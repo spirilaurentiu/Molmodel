@@ -710,7 +710,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
         DecorationSubsystem&     artwork = updDecorationSubsystem();
         DecorativeLine crossBodyBond; crossBodyBond.setColor(Orange).setLineThickness(5);
 
-        /*for (DuMM::BondIndex i(0); i < dumm.getNumBonds(); ++i) {
+        for (DuMM::BondIndex i(0); i < dumm.getNumBonds(); ++i) {
             const DuMM::AtomIndex    a1 = dumm.getBondAtom(i,0), a2 = dumm.getBondAtom(i,1);
             const MobilizedBodyIndex b1 = dumm.getAtomBody(a1),  b2 = dumm.getAtomBody(a2);
             if (b1==b2)
@@ -731,7 +731,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                 DecorativeSphere(shrink*r)
                     .setColor(dumm.getAtomDefaultColor(anum)).setOpacity(opacity).setResolution(3));
         }
-	*/
+	
     }
 
     if (showDebugMessages) cout << "Finished modelOneCompound" << endl;
