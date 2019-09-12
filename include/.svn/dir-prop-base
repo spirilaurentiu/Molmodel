@@ -1,0 +1,11 @@
+K 10
+svn:ignore
+V 58
+bin
+bin-release
+.cproject
+.gdb_history
+.project
+.settings
+
+END

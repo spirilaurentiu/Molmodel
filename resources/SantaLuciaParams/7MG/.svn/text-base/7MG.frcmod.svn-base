@@ -1,0 +1,198 @@
+remark goes here
+MASS
+P  30.970        1.538               same as p4 
+O  16.000        0.434               same as o  
+OS 16.000        0.465               same as os 
+CT 12.010        0.878               same as c3 
+H1 1.008         0.135               same as hc 
+OH 16.000        0.465               same as oh 
+HO 1.008         0.135               same as ho 
+N2 14.010        0.530               same as n3 
+CR 12.010        0.360               same as c2 
+N* 14.010        0.530               same as na 
+CB 12.010        0.360               same as c2 
+C  12.010        0.616               same as c  
+NA 14.010        0.530               same as na 
+CA 12.010        0.360               same as c2 
+H  1.008         0.161               same as hn 
+NC 14.010        0.530               same as n2 
+H5 1.008         0.135               same as ha 
+H2 1.008         0.135               same as hc 
+
+BOND
+P -O   456.40   1.485       same as o -p4 Autocorrect
+P -OS  311.60   1.599       same as os-p4 Autocorrect
+OS-CT  301.50   1.438       same as c3-os Autocorrect
+CT-H1  337.30   1.073       same as c3-hc Autocorrect
+CT-CT  303.10   1.520       same as c3-c3 Autocorrect
+CT-N2  320.60   1.470       same as c3-n3
+CT-H2  337.30   1.070       same as c3-hc Autocorrect
+CT-OH  314.10   1.417       same as c3-oh Autocorrect
+OH-HO  369.60   0.960       same as ho-oh Autocorrect
+N2-CR  449.00   1.333       same as cc-nh Autocorrect
+N2-CB  449.00   1.372       same as cc-nh Autocorrect
+CR-N*  411.10   1.303       same as c2-na Autocorrect
+CR-H5  344.30   1.069       same as c2-ha Autocorrect
+N*-CB  411.10   1.386       same as c2-na Autocorrect
+N*-CT  334.70   1.469       same as c3-na Autocorrect
+CB-C   449.90   1.436       same as c -c2 Autocorrect
+CB-CB  418.30   1.360       same as cc-cc Autocorrect
+C -O   648.00   1.190       same as c -o  Autocorrect
+C -NA  424.00   1.402       same as c -na Autocorrect
+NA-CA  411.10   1.366       same as c2-na Autocorrect
+NA-H   406.60   1.000       same as hn-na Autocorrect
+CA-N2  449.00   1.329       same as ca-nh Autocorrect
+CA-NC  492.90   1.306       same as ca-nc Autocorrect
+N2-H   394.10   0.995       same as hn-n3 Autocorrect
+NC-CB  431.60   1.334       same as cc-nc Autocorrect
+
+ANGLE
+P -OS-CT   77.600     120.683   same as c3-os-p4 Autocorrect
+O -P -O    45.100     119.600   same as o -p4-o  Autocorrect
+O -P -OS   43.100     108.391   same as o -p4-os Autocorrect
+OS-CT-H1   50.900     108.280   same as hc-c3-os Autocorrect
+OS-CT-CT   67.800     108.767   same as c3-c3-os Autocorrect
+CT-CT-H1   46.400     110.752   same as c3-c3-hc Autocorrect
+CT-CT-CT   63.200     105.429   same as c3-c3-c3 Autocorrect
+H1-CT-H1   39.400     112.603   same as hc-c3-hc Autocorrect
+CT-OS-CT   62.100     109.085   same as c3-os-c3 Autocorrect
+OS-CT-N2   70.376     109.395   Calculated with empirical approach Autocorrect
+OS-CT-H2   50.900     112.526   same as hc-c3-os Autocorrect
+CT-CT-OH   67.700     110.149   same as c3-c3-oh Autocorrect
+CT-N2-CR   62.820     127.060   Calculated with empirical approach Autocorrect
+CT-N2-CB   62.820     125.446   Calculated with empirical approach Autocorrect
+CT-CT-N2   66.200     112.364   same as c3-c3-n3 Autocorrect
+CT-CT-H2   46.400     109.541   same as c3-c3-hc Autocorrect
+CT-OH-HO   47.100     109.531   same as c3-oh-ho Autocorrect
+OH-CT-H1   51.100     106.101   same as hc-c3-oh Autocorrect
+N2-CT-H2   49.400     106.657   same as hc-c3-n3 Autocorrect
+N2-CR-N*   73.125     111.141   Calculated with empirical approach Autocorrect
+N2-CR-H5   52.400     124.146   same as ha-c2-n3 Autocorrect
+N2-CB-CB   68.600     106.650   same as cc-cc-nh Autocorrect
+N2-CB-NC   73.900     125.294   same as nc-cc-nh Autocorrect
+CR-N2-CB   66.200     107.493   same as c2-n3-c2 Autocorrect
+CR-N*-CB   67.800     107.044   same as c2-na-c2 Autocorrect
+CR-N*-CT   64.200     126.977   same as c2-na-c3 Autocorrect
+N*-CR-H5   51.200     124.713   same as ha-c2-na Autocorrect
+N*-CB-C    69.960     132.243   Calculated with empirical approach Autocorrect
+N*-CB-CB   69.800     107.671   same as c2-c2-na Autocorrect
+N*-CT-H1   49.900     108.814   same as hc-c3-na Autocorrect
+CB-N*-CT   64.200     125.978   same as c2-na-c3 Autocorrect
+CB-C -O    72.800     128.834   same as c2-c -o  Autocorrect
+CB-C -NA   69.516     109.212   Calculated with empirical approach Autocorrect
+CB-CB-NC   70.000     128.056   same as cc-cc-nc Autocorrect
+C -CB-CB   67.900     120.087   same as c -c2-c2 Autocorrect
+C -NA-CA   64.300     126.092   same as c -na-c2 Autocorrect
+C -NA-H    48.800     114.091   same as c -na-hn Autocorrect
+O -C -NA   75.000     121.954   same as na-c -o  Autocorrect
+NA-CA-N2   73.125     117.240   Calculated with empirical approach Autocorrect
+NA-CA-NC   71.700     123.272   same as n2-c2-na Autocorrect
+CA-NA-H    47.600     119.818   same as c2-na-hn Autocorrect
+CA-N2-H    49.100     120.764   same as c2-n3-hn Autocorrect
+CA-NC-CB   69.426     113.282   Calculated with empirical approach Autocorrect
+N2-CA-NC   72.800     119.488   same as nc-ca-nh Autocorrect
+H -N2-H    41.300     118.473   same as hn-n3-hn Autocorrect
+
+DIHE
+P -OS-CT-H1   1    0.383         0.000           3.000      same as X -c3-os-X 
+P -OS-CT-CT   1    0.383         0.000           3.000      same as X -c3-os-X 
+O -P -OS-CT   1    1.050       180.000           2.000      same as X -os-p4-X 
+OS-CT-CT-OS   1    0.156         0.000           3.000      same as X -c3-c3-X 
+OS-CT-CT-H1   1    0.156         0.000           3.000      same as X -c3-c3-X 
+OS-CT-CT-CT   1    0.156         0.000           3.000      same as X -c3-c3-X 
+CT-CT-OS-CT   1    0.383         0.000           3.000      same as X -c3-os-X 
+CT-CT-CT-CT   1    0.156         0.000           3.000      same as X -c3-c3-X 
+CT-CT-CT-H1   1    0.156         0.000           3.000      same as X -c3-c3-X 
+H1-CT-CT-H1   1    0.156         0.000           3.000      same as X -c3-c3-X 
+CT-OS-CT-N2   1    0.383         0.000           3.000      same as X -c3-os-X 
+CT-OS-CT-H2   1    0.383         0.000           3.000      same as X -c3-os-X 
+CT-CT-CT-OH   1    0.156         0.000           3.000      same as X -c3-c3-X 
+OS-CT-CT-OH   1    0.156         0.000           3.000      same as X -c3-c3-X 
+OS-CT-N2-CR   1    0.300         0.000           3.000      same as X -c3-n3-X 
+OS-CT-N2-CB   1    0.300         0.000           3.000      same as X -c3-n3-X 
+CT-OS-CT-H1   1    0.383         0.000           3.000      same as X -c3-os-X 
+CT-CT-OH-HO   1    0.167         0.000           3.000      same as X -c3-oh-X 
+CT-N2-CR-N*   1    0.300       180.000           2.000      same as X -c2-n3-X 
+CT-N2-CR-H5   1    0.300       180.000           2.000      same as X -c2-n3-X 
+CT-N2-CB-CB   1    0.300       180.000           2.000      same as X -c2-n3-X 
+CT-N2-CB-NC   1    0.300       180.000           2.000      same as X -c2-n3-X 
+CT-CT-N2-CR   1    0.300         0.000           3.000      same as X -c3-n3-X 
+CT-CT-N2-CB   1    0.300         0.000           3.000      same as X -c3-n3-X 
+OH-CT-CT-N2   1    0.156         0.000           3.000      same as X -c3-c3-X 
+OH-CT-CT-H2   1    0.156         0.000           3.000      same as X -c3-c3-X 
+OH-CT-CT-H1   1    0.156         0.000           3.000      same as X -c3-c3-X 
+HO-OH-CT-H1   1    0.167         0.000           3.000      same as X -c3-oh-X 
+H1-CT-CT-N2   1    0.156         0.000           3.000      same as X -c3-c3-X 
+H1-CT-CT-H2   1    0.156         0.000           3.000      same as X -c3-c3-X 
+N2-CT-CT-CT   1    0.156         0.000           3.000      same as X -c3-c3-X 
+N2-CR-N*-CB   1    0.625       180.000           2.000      same as X -c2-na-X 
+N2-CR-N*-CT   1    0.625       180.000           2.000      same as X -c2-na-X 
+N2-CB-CB-N*   1    6.650       180.000           2.000      same as X -c2-c2-X 
+N2-CB-CB-C    1    6.650       180.000           2.000      same as X -c2-c2-X 
+N2-CB-NC-CA   1    4.750       180.000           2.000      same as X -cc-nc-X 
+CR-N2-CT-H2   1    0.300         0.000           3.000      same as X -c3-n3-X 
+CR-N2-CB-CB   1    1.050       180.000           2.000      same as X -cc-nh-X 
+CR-N2-CB-NC   1    1.050       180.000           2.000      same as X -cc-nh-X 
+CR-N*-CB-C    1    0.625       180.000           2.000      same as X -c2-na-X 
+CR-N*-CB-CB   1    0.625       180.000           2.000      same as X -c2-na-X 
+CR-N*-CT-H1   1    0.156         0.000           3.000      same as X -c3-na-X JSL changed force constant and periodicity
+N*-CR-N2-CB   1    0.300       180.000           2.000      same as X -c2-n3-X 
+N*-CB-C -O    1    2.175       180.000           2.000      same as X -c -c2-X 
+N*-CB-C -NA   1    2.175       180.000           2.000      same as X -c -c2-X 
+N*-CB-CB-NC   1    6.650       180.000           2.000      same as X -c2-c2-X 
+CB-N*-CR-H5   1    0.625       180.000           2.000      same as X -c2-na-X 
+CB-N*-CT-H1   1    0.156         0.000           3.000      same as X -c3-na-X JSL changed force constant and periodicity
+CB-C -NA-CA   1    2.000       180.000           2.000      same as X -c -na-X JSL removed 4 fold and changed force constant
+CB-C -NA-H    1    2.000       180.000           2.000      same as X -c -na-X JSL removed 4 fold and changed force constant
+CB-CB-NC-CA   1    4.750       180.000           2.000      same as X -cc-nc-X 
+C -CB-N*-CT   1    0.625       180.000           2.000      same as X -c2-na-X 
+C -CB-CB-NC   1    6.650       180.000           2.000      same as X -c2-c2-X 
+C -NA-CA-N2   1    0.625       180.000           2.000      same as X -c2-na-X 
+C -NA-CA-NC   1    0.625       180.000           2.000      same as X -c2-na-X 
+O -C -CB-CB   1    2.175       180.000           2.000      same as X -c -c2-X 
+O -C -NA-CA   1    2.000       180.000           2.000      same as X -c -na-X JSL removed 4 fold and changed force constant
+O -C -NA-H    1    2.000       180.000           2.000      same as X -c -na-X JSL removed 4 fold and changed force constant
+NA-C -CB-CB   1    2.175       180.000           2.000      same as X -c -c2-X 
+NA-CA-N2-H    1    0.300       180.000           2.000      same as X -c2-n3-X 
+NA-CA-NC-CB   1    4.150       180.000           2.000      same as X -c2-n2-X 
+N2-CA-NA-H    1    0.625       180.000           2.000      same as X -c2-na-X 
+N2-CA-NC-CB   1    4.800       180.000           2.000      same as X -ca-nc-X 
+H -N2-CA-NC   1    0.300       180.000           2.000      same as X -c2-n3-X 
+NC-CA-NA-H    1    0.625       180.000           2.000      same as X -c2-na-X 
+CB-N2-CT-H2   1    0.300         0.000           3.000      same as X -c3-n3-X 
+CB-N2-CR-H5   1    1.050       180.000           2.000      same as X -cc-nh-X 
+CB-CB-N*-CT   1    0.625       180.000           2.000      same as X -c2-na-X 
+CT-N*-CR-H5   1    0.625       180.000           2.000      same as X -c2-na-X 
+H2-CT-CT-CT   1    0.156         0.000           3.000      same as X -c3-c3-X 
+
+IMPROPER
+CB-CR-N2-CT         1.1          180.0         2.0          Using default value
+H5-N*-CR-N2         1.1          180.0         2.0          Using default value
+CB-CR-N*-CT         1.1          180.0         2.0          Using default value
+C -CB-CB-N*         1.1          180.0         2.0          Using default value
+CB-NA-C -O          1.1          180.0         2.0          Using default value
+N2-NA-CA-NC         1.1          180.0         2.0          Using default value
+CB-N2-CB-NC         1.1          180.0         2.0          Using default value
+
+NONBON
+  P           2.1000  0.2000             same as p4 
+  O           1.6612  0.2100             same as o  
+  OS          1.6837  0.1700             same as os 
+  CT          1.9080  0.1094             same as c3 
+  H1          1.4870  0.0157             same as hc 
+  OH          1.7210  0.2104             same as oh 
+  HO          0.6000  0.0157             same as ho  Autocorrect
+  N2          1.8240  0.1700             same as nh 
+  CR          1.9080  0.0860             same as cc 
+  N*          1.8240  0.1700             same as na 
+  CB          1.9080  0.0860             same as cc 
+  C           1.9080  0.0860             same as c  
+  NA          1.8240  0.1700             same as na 
+  CA          1.9080  0.0860             same as ca 
+  H           0.6000  0.0157             same as hn 
+  NC          1.8240  0.1700             same as nc 
+  H5          1.4870  0.0157             same as hc 
+  H2          1.4870  0.0157             same as hc 
+
+
+

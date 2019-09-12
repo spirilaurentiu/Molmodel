@@ -1,0 +1,27 @@
+Instructions for running ExampleAdenylateMobilitiesVMD
+
+You must already have the SimTK core binaries installed from SimTK.org and compiled ExampleAdenylateMobilitiesVMD.
+
+#  Download VMD for your platform from http://www.ks.uiuc.edu/Research/vmd/ and install.
+
+# Locate the ThreeAdenylates.pdb and the VMD state file adenylates.vmd in this directory.
+
+# Start VMD and load the pdb file (ThreeAdenylates.pdb) using the "File --> New Molecule" command, and then load the VMD state file (adenylates.vmd) using the "File --> Load State" command. 
+You should see a static picture of three adenylatyes.
+
+# in VMD select "Extensions --> Simulations --> IMD connect."
+Set:
+
+a) hostname to localhost
+b) Port to 3000
+c) Timestep transfer rate to 1
+d) Timestep keep rate to 1
+
+Do not hit "connect" yet, but do not close the IMD connect window.
+
+# Run ExampleAdenylateMobilitiesVMD and when prompted, go to the VMD "IMD connect" window, verify that you have the settings from the previous step and hit "connect".
+ 
+YOU WILL SEE THE SIMULATION in VMD. 
+
+Note: if you are running on a windows machine and have an older GPU and the animation appears sluggish select CTR-ALT-DEL to bring up the task manager.
+Go to Processes and find VMD. Right click the VMD process and set the priority of VMD to "above normal".

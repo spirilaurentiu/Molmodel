@@ -1,0 +1,197 @@
+K 25
+svn:wc:ra_dav:version-url
+V 36
+/svn/molmodel/!svn/ver/799/trunk/src
+END
+VelocityRescalingThermostat.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/molmodel/!svn/ver/777/trunk/src/VelocityRescalingThermostat.cpp
+END
+MolecularMechanicsSystem.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/molmodel/!svn/ver/716/trunk/src/MolecularMechanicsSystem.cpp
+END
+DuMMForceFieldSubsystem.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/molmodel/!svn/ver/725/trunk/src/DuMMForceFieldSubsystem.cpp
+END
+Pdb.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/svn/molmodel/!svn/ver/787/trunk/src/Pdb.cpp
+END
+ElementRep.h
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/molmodel/!svn/ver/326/trunk/src/ElementRep.h
+END
+imd.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/svn/molmodel/!svn/ver/510/trunk/src/imd.cpp
+END
+About.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/molmodel/!svn/ver/717/trunk/src/About.cpp
+END
+CompoundAtom.h
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/molmodel/!svn/ver/787/trunk/src/CompoundAtom.h
+END
+OpenMMPlugin.h
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/molmodel/!svn/ver/569/trunk/src/OpenMMPlugin.h
+END
+DuMMForceFieldSubsystemRep.h
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/molmodel/!svn/ver/729/trunk/src/DuMMForceFieldSubsystemRep.h
+END
+Compound.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/molmodel/!svn/ver/799/trunk/src/Compound.cpp
+END
+TinkerAmber99.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/molmodel/!svn/ver/760/trunk/src/TinkerAmber99.cpp
+END
+mol.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/svn/molmodel/!svn/ver/798/trunk/src/mol.cpp
+END
+BiotypeRep.h
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/molmodel/!svn/ver/312/trunk/src/BiotypeRep.h
+END
+PDBReader.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/molmodel/!svn/ver/787/trunk/src/PDBReader.cpp
+END
+Element.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/molmodel/!svn/ver/326/trunk/src/Element.cpp
+END
+BondGeometry.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/molmodel/!svn/ver/719/trunk/src/BondGeometry.cpp
+END
+CompoundRep.h
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/molmodel/!svn/ver/789/trunk/src/CompoundRep.h
+END
+RiboseMobilizer.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/molmodel/!svn/ver/519/trunk/src/RiboseMobilizer.cpp
+END
+VanderWallSphere.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/molmodel/!svn/ver/440/trunk/src/VanderWallSphere.cpp
+END
+VmdConnection.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/molmodel/!svn/ver/572/trunk/src/VmdConnection.cpp
+END
+vmdsock.c
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/molmodel/!svn/ver/515/trunk/src/vmdsock.c
+END
+vmdsock.h
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/molmodel/!svn/ver/575/trunk/src/vmdsock.h
+END
+DuMMForceFieldSubsystemRep.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/molmodel/!svn/ver/729/trunk/src/DuMMForceFieldSubsystemRep.cpp
+END
+Biotype.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/molmodel/!svn/ver/630/trunk/src/Biotype.cpp
+END
+imd.h
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/svn/molmodel/!svn/ver/575/trunk/src/imd.h
+END
+MolecularMechanicsSystemRep.h
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/molmodel/!svn/ver/275/trunk/src/MolecularMechanicsSystemRep.h
+END
+AtomSubsystem.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/molmodel/!svn/ver/486/trunk/src/AtomSubsystem.cpp
+END
+PeriodicVmdReporter.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/molmodel/!svn/ver/610/trunk/src/PeriodicVmdReporter.cpp
+END
+CompoundSystem.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/molmodel/!svn/ver/785/trunk/src/CompoundSystem.cpp
+END
+TinkerAmber99.h
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/molmodel/!svn/ver/535/trunk/src/TinkerAmber99.h
+END
+mol.h
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/svn/molmodel/!svn/ver/798/trunk/src/mol.h
+END

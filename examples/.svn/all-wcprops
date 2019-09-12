@@ -1,0 +1,149 @@
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/svn/molmodel/!svn/ver/777/trunk/examples
+END
+MolmodelInstallTest.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/molmodel/!svn/ver/761/trunk/examples/MolmodelInstallTest.cpp
+END
+1AKGtrim.pdb
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/molmodel/!svn/ver/712/trunk/examples/1AKGtrim.pdb
+END
+ExampleLoadPdb2.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/molmodel/!svn/ver/748/trunk/examples/ExampleLoadPdb2.cpp
+END
+ThreeAdenylates.pdb
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/molmodel/!svn/ver/712/trunk/examples/ThreeAdenylates.pdb
+END
+ExampleCreatePropane.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/molmodel/!svn/ver/748/trunk/examples/ExampleCreatePropane.cpp
+END
+README_VisualStudio.txt
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/molmodel/!svn/ver/743/trunk/examples/README_VisualStudio.txt
+END
+1AKG.pdb
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/molmodel/!svn/ver/712/trunk/examples/1AKG.pdb
+END
+ExampleSimpleProtein.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/molmodel/!svn/ver/761/trunk/examples/ExampleSimpleProtein.cpp
+END
+ExampleSimpleRNA.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/molmodel/!svn/ver/751/trunk/examples/ExampleSimpleRNA.cpp
+END
+ExampleAdenylateMobilitiesVMD.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/molmodel/!svn/ver/748/trunk/examples/ExampleAdenylateMobilitiesVMD.cpp
+END
+ExampleRigidProtein.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/molmodel/!svn/ver/748/trunk/examples/ExampleRigidProtein.cpp
+END
+ExampleAdenylateMobilitiesVMD_Notes.txt
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/molmodel/!svn/ver/746/trunk/examples/ExampleAdenylateMobilitiesVMD_Notes.txt
+END
+ExampleTwoArgonAtoms.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/molmodel/!svn/ver/748/trunk/examples/ExampleTwoArgonAtoms.cpp
+END
+ExampleLoadPdb.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/molmodel/!svn/ver/748/trunk/examples/ExampleLoadPdb.cpp
+END
+MolmodelInstallTestNoViz.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/molmodel/!svn/ver/761/trunk/examples/MolmodelInstallTestNoViz.cpp
+END
+README_Makefile.txt
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/molmodel/!svn/ver/744/trunk/examples/README_Makefile.txt
+END
+README.txt
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/molmodel/!svn/ver/746/trunk/examples/README.txt
+END
+InstalledCMakeLists.txt
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/molmodel/!svn/ver/759/trunk/examples/InstalledCMakeLists.txt
+END
+ExampleFoldPolyalanine.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/molmodel/!svn/ver/777/trunk/examples/ExampleFoldPolyalanine.cpp
+END
+ExampleAdenylateMobilitiesViz.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/molmodel/!svn/ver/748/trunk/examples/ExampleAdenylateMobilitiesViz.cpp
+END
+CMakeLists.txt
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/molmodel/!svn/ver/774/trunk/examples/CMakeLists.txt
+END
+Makefile
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/molmodel/!svn/ver/759/trunk/examples/Makefile
+END
+ExampleTwoEthanes.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/molmodel/!svn/ver/748/trunk/examples/ExampleTwoEthanes.cpp
+END
+adenylates.vmd
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/molmodel/!svn/ver/712/trunk/examples/adenylates.vmd
+END

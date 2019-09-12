@@ -1,0 +1,280 @@
+atom   2012    28    P       "TwoNMethylGuanidineGroup P"  15     30.970  4
+atom   2013    24    O       "TwoNMethylGuanidineGroup O1P"   8     16.000  1
+atom   2014    24    O       "TwoNMethylGuanidineGroup O2P"   8     16.000  1
+atom   2015    23    OS      "TwoNMethylGuanidineGroup O5'"   8     16.000  2
+atom   2016     1    CT      "TwoNMethylGuanidineGroup C5'"   6     12.010  4
+atom   2017    35    H1      "TwoNMethylGuanidineGroup H5'1"   1      1.008  1
+atom   2018    35    H1      "TwoNMethylGuanidineGroup H5'2"   1      1.008  1
+atom   2019     1    CT      "TwoNMethylGuanidineGroup C4'"   6     12.010  4
+atom   2020    23    OS      "TwoNMethylGuanidineGroup O4'"   8     16.000  2
+atom   2021     1    CT      "TwoNMethylGuanidineGroup C1'"   6     12.010  4
+atom   2022     1    CT      "TwoNMethylGuanidineGroup C2'"   6     12.010  4
+atom   2023    22    OH      "TwoNMethylGuanidineGroup O2'"   8     16.000  2
+atom   2024    31    HO      "TwoNMethylGuanidineGroup HO'2"   1      1.008  1
+atom   2025    35    H1      "TwoNMethylGuanidineGroup H2'"   1      1.008  1
+atom   2026    18    N*      "TwoNMethylGuanidineGroup N9"   7     14.010  3
+atom   2027    12    CK      "TwoNMethylGuanidineGroup C8"   6     12.010  3
+atom   2028    16    NB      "TwoNMethylGuanidineGroup N7"   7     14.010  2
+atom   2029     9    CB      "TwoNMethylGuanidineGroup C5"   6     12.010  3
+atom   2030     2    C       "TwoNMethylGuanidineGroup C6"   6     12.010  3
+atom   2031    24    O       "TwoNMethylGuanidineGroup O6"   8     16.000  1
+atom   2032    15    NA      "TwoNMethylGuanidineGroup N1"   7     14.010  3
+atom   2033     3    CA      "TwoNMethylGuanidineGroup C2"   6     12.010  3
+atom   2034    19    N2      "TwoNMethylGuanidineGroup N2"   7     14.010  3
+atom   2035    29    H       "TwoNMethylGuanidineGroup 1H2"   1      1.008  1
+atom   2036     1    CT      "TwoNMethylGuanidineGroup C10"   6     12.010  4
+atom   2037    35    H1      "TwoNMethylGuanidineGroup H20"   1      1.008  1
+atom   2038    35    H1      "TwoNMethylGuanidineGroup H21"   1      1.008  1
+atom   2039    35    H1      "TwoNMethylGuanidineGroup H22"   1      1.008  1
+atom   2040    17    NC      "TwoNMethylGuanidineGroup N3"   7     14.010  2
+atom   2041     9    CB      "TwoNMethylGuanidineGroup C4"   6     12.010  3
+atom   2042    29    H       "TwoNMethylGuanidineGroup H1"   1      1.008  1
+atom   2043    40    H5      "TwoNMethylGuanidineGroup H8"   1      1.008  1
+atom   2044    36    H2      "TwoNMethylGuanidineGroup H1'"   1      1.008  1
+atom   2045    35    H1      "TwoNMethylGuanidineGroup H4'"   1      1.008  1
+atom   2046     1    CT      "TwoNMethylGuanidineGroup C3'"   6     12.010  4
+atom   2047    35    H1      "TwoNMethylGuanidineGroup H3'"   1      1.008  1
+atom   2048    23    OS      "TwoNMethylGuanidineGroup O3'"   8     16.000  1
+
+vdw         17              1.8240     0.1700
+vdw         19              1.8240     0.1700
+vdw         40              1.4870     0.0157
+vdw          9              1.9080     0.0860
+vdw         18              1.8240     0.1700
+vdw         23              1.6837     0.1700
+vdw         22              1.7210     0.2104
+vdw         15              1.8240     0.1700
+vdw         35              1.4870     0.0157
+vdw         36              1.4870     0.0157
+vdw         29              0.6000     0.0157
+vdw         31              0.6000     0.0157
+vdw         12              1.9080     0.0860
+vdw          2              1.9080     0.0860
+vdw          1              1.9080     0.1094
+vdw         16              1.8240     0.1700
+vdw          3              1.9080     0.0860
+vdw         24              1.6612     0.2100
+vdw         28              2.1000     0.2000
+
+bond        17    9          431.6     1.3560
+bond        19   29          394.1     0.9940
+bond        19    1          320.6     1.4490
+bond         9    2          449.9     1.4350
+bond         9    9          418.3     1.3690
+bond        18    9          411.1     1.3530
+bond        18   12          411.1     1.3740
+bond        23    1          301.5     1.4380
+bond        22   31          369.6     0.9600
+bond        15   29          406.6     0.9980
+bond        15    3          411.1     1.3620
+bond        12   40          344.3     1.0710
+bond        12   16          431.6     1.2800
+bond         2   24          648.0     1.1940
+bond         2   15          424.0     1.4150
+bond         1   18          334.7     1.4700
+bond         1   35          337.3     1.0740
+bond         1    1          303.1     1.5200
+bond         1   36          337.3     1.0700
+bond         1   22          314.1     1.4170
+bond        16    9          431.6     1.3760
+bond         3   17          492.9     1.2910
+bond         3   19          449.0     1.3550
+bond        28   24          456.4     1.4850
+bond        28   23          311.6     1.5990
+
+angle       19    1   35     49.40     109.98
+angle       19    3   17     72.80     120.48
+angle        9    2   24     72.80     131.21
+angle        9    2   15     69.52     109.67
+angle        9    9   17     70.00     128.88
+angle       18    1   36     49.90     106.64
+angle       18    9   17     71.70     125.19
+angle       18    9    9     69.80     105.93
+angle       18   12   40     51.20     120.93
+angle       18   12   16     71.70     113.56
+angle       23    1   18     71.20     109.37
+angle       23    1   35     50.90     108.26
+angle       23    1    1     67.80     108.77
+angle       23    1   36     50.90     112.52
+angle       22    1   35     51.10     106.09
+angle       15    3   17     71.70     123.42
+angle       15    3   19     73.12     116.09
+angle       35    1   35     39.40     111.72
+angle       29   19    1     47.10     116.64
+angle       12   18    9     67.80     105.65
+angle       12   16    9     68.60     104.42
+angle        2    9    9     67.90     118.65
+angle        2   15   29     48.80     113.65
+angle        2   15    3     64.30     126.50
+angle        1   18    9     64.20     126.59
+angle        1   18   12     64.20     127.77
+angle        1   23    1     62.10     109.06
+angle        1    1   18     65.80     112.36
+angle        1    1   35     46.40     110.76
+angle        1    1    1     63.20     105.42
+angle        1    1   36     46.40     109.57
+angle        1    1   22     67.70     110.18
+angle        1   22   31     47.10     109.44
+angle       16    9    2     69.99     130.92
+angle       16    9    9     70.00     110.43
+angle       16   12   40     52.40     125.50
+angle        3   17    9     69.43     112.89
+angle        3   19   29     49.10     116.70
+angle        3   19    1     62.82     120.93
+angle        3   15   29     47.60     119.75
+angle       24    2   15     75.00     119.11
+angle       24   28   24     45.10     119.61
+angle       24   28   23     43.10     108.43
+angle       28   23    1     77.60     120.65
+
+torsion     17    3   15   29          0.625  180.0  2
+torsion     19    3   17    9          4.800  180.0  2
+torsion     19    3   15   29          0.625  180.0  2
+torsion      9   18    1   36          0.156    0.0  3
+torsion      9   18   12   40          0.625  180.0  2
+torsion      9    2   15   29          2.000  180.0  2
+torsion      9    2   15    3          2.000  180.0  2
+torsion      9    9   17    3          4.750  180.0  2
+torsion      9   16   12   40          4.750  180.0  2
+torsion     18    1    1    1          0.156    0.0  3
+torsion     18    9   17    3          4.150  180.0  2
+torsion     18    9    9    2          6.650  180.0  2
+torsion     18    9    9   16          6.650  180.0  2
+torsion     18   12   16    9          4.150  180.0  2
+torsion     23    1   18    9          0.300    0.0  3
+torsion     23    1   18   12          0.300    0.0  3
+torsion     23    1    1   35          0.156    0.0  3
+torsion     23    1    1    1          0.156    0.0  3
+torsion     23    1    1   23          0.156    0.0  3
+torsion     23    1    1   22          0.156    0.0  3
+torsion     22    1    1   35          0.156    0.0  3
+torsion     22    1    1   18          0.156    0.0  3
+torsion     22    1    1   36          0.156    0.0  3
+torsion     15    2    9    9          2.175  180.0  2
+torsion     15    3   17    9          4.150  180.0  2
+torsion     15    3   19   29          0.300  180.0  2
+torsion     15    3   19    1          0.300  180.0  2
+torsion     35    1    1   18          0.156    0.0  3
+torsion     35    1    1   35          0.156    0.0  3
+torsion     35    1    1   36          0.156    0.0  3
+torsion     36    1    1    1          0.156    0.0  3
+torsion     29   19    1   35          0.300    0.0  3
+torsion     29   19    3   17          0.300  180.0  2
+torsion     31   22    1   35          0.167    0.0  3
+torsion     12   18    1   36          0.156    0.0  3
+torsion     12   18    9   17          0.625  180.0  2
+torsion     12   18    9    9          0.625  180.0  2
+torsion     12   16    9    2          4.150  180.0  2
+torsion     12   16    9    9          4.750  180.0  2
+torsion      2    9    9   17          6.650  180.0  2
+torsion      2   15    3   17          0.625  180.0  2
+torsion      2   15    3   19          0.625  180.0  2
+torsion      1   18    9   17          0.625  180.0  2
+torsion      1   18    9    9          0.625  180.0  2
+torsion      1   18   12   40          0.625  180.0  2
+torsion      1   18   12   16          0.625  180.0  2
+torsion      1   23    1   35          0.383    0.0  3
+torsion      1   23    1   18          0.383    0.0  3
+torsion      1   23    1   36          0.383    0.0  3
+torsion      1    1   18    9          0.300    0.0  3
+torsion      1    1   18   12          0.300    0.0  3
+torsion      1    1    1   35          0.156    0.0  3
+torsion      1    1    1    1          0.156    0.0  3
+torsion      1    1    1   22          0.156    0.0  3
+torsion      1    1   23    1          0.383    0.0  3
+torsion      1    1   22   31          0.167    0.0  3
+torsion      1   19    3   17          0.300  180.0  2
+torsion     16    9    2   24          2.175  180.0  2
+torsion     16    9    2   15          2.175  180.0  2
+torsion     16    9    9   17          4.000  180.0  2
+torsion     16   12   18    9          0.625  180.0  2
+torsion      3   19    1   35          0.300    0.0  3
+torsion     24    2    9    9          2.175  180.0  2
+torsion     24    2   15   29          2.000  180.0  2
+torsion     24    2   15    3          2.000  180.0  2
+torsion     24   28   23    1          1.050  180.0  2
+torsion     28   23    1   35          0.383    0.0  3
+torsion     28   23    1    1          0.383    0.0  3
+
+imptors     19   15    3   17          1.100  180.0  2
+imptors     40   18   12   16          1.100  180.0  2
+imptors      9   18    9   17          1.100  180.0  2
+imptors      9   12   18    1          1.100  180.0  2
+imptors      9   15    2   24          1.100  180.0  2
+imptors      2    9    9   16          1.100  180.0  2
+
+charge    2012        1.0878
+charge    2013       -0.7667
+charge    2014       -0.7667
+charge    2015       -0.4713
+charge    2016        0.0635
+charge    2017        0.0689
+charge    2018        0.0689
+charge    2019        0.0386
+charge    2020       -0.3272
+charge    2021        0.0460
+charge    2022        0.0775
+charge    2023       -0.5914
+charge    2024        0.4101
+charge    2025        0.0929
+charge    2026       -0.0092
+charge    2027        0.1045
+charge    2028       -0.5521
+charge    2029        0.1348
+charge    2030        0.5823
+charge    2031       -0.5518
+charge    2032       -0.6081
+charge    2033        0.6587
+charge    2034       -0.5599
+charge    2035        0.3584
+charge    2036       -0.0754
+charge    2037        0.0822
+charge    2038        0.0822
+charge    2039        0.0822
+charge    2040       -0.5456
+charge    2041        0.1935
+charge    2042        0.3461
+charge    2043        0.1591
+charge    2044        0.1643
+charge    2045        0.1168
+charge    2046        0.2125
+charge    2047        0.0825
+charge    2048       -0.4890
+
+biotype   2012    P       "TwoNMethylGuanidineGroup"    2012
+biotype   2013    O1P     "TwoNMethylGuanidineGroup"    2013
+biotype   2014    O2P     "TwoNMethylGuanidineGroup"    2014
+biotype   2015    O5'     "TwoNMethylGuanidineGroup"    2015
+biotype   2016    C5'     "TwoNMethylGuanidineGroup"    2016
+biotype   2017    H5'1    "TwoNMethylGuanidineGroup"    2017
+biotype   2018    H5'2    "TwoNMethylGuanidineGroup"    2018
+biotype   2019    C4'     "TwoNMethylGuanidineGroup"    2019
+biotype   2020    O4'     "TwoNMethylGuanidineGroup"    2020
+biotype   2021    C1'     "TwoNMethylGuanidineGroup"    2021
+biotype   2022    C2'     "TwoNMethylGuanidineGroup"    2022
+biotype   2023    O2'     "TwoNMethylGuanidineGroup"    2023
+biotype   2024    HO'2    "TwoNMethylGuanidineGroup"    2024
+biotype   2025    H2'     "TwoNMethylGuanidineGroup"    2025
+biotype   2026    N9      "TwoNMethylGuanidineGroup"    2026
+biotype   2027    C8      "TwoNMethylGuanidineGroup"    2027
+biotype   2028    N7      "TwoNMethylGuanidineGroup"    2028
+biotype   2029    C5      "TwoNMethylGuanidineGroup"    2029
+biotype   2030    C6      "TwoNMethylGuanidineGroup"    2030
+biotype   2031    O6      "TwoNMethylGuanidineGroup"    2031
+biotype   2032    N1      "TwoNMethylGuanidineGroup"    2032
+biotype   2033    C2      "TwoNMethylGuanidineGroup"    2033
+biotype   2034    N2      "TwoNMethylGuanidineGroup"    2034
+biotype   2035    1H2     "TwoNMethylGuanidineGroup"    2035
+biotype   2036    C10     "TwoNMethylGuanidineGroup"    2036
+biotype   2037    H20     "TwoNMethylGuanidineGroup"    2037
+biotype   2038    H21     "TwoNMethylGuanidineGroup"    2038
+biotype   2039    H22     "TwoNMethylGuanidineGroup"    2039
+biotype   2040    N3      "TwoNMethylGuanidineGroup"    2040
+biotype   2041    C4      "TwoNMethylGuanidineGroup"    2041
+biotype   2042    H1      "TwoNMethylGuanidineGroup"    2042
+biotype   2043    H8      "TwoNMethylGuanidineGroup"    2043
+biotype   2044    H1'     "TwoNMethylGuanidineGroup"    2044
+biotype   2045    H4'     "TwoNMethylGuanidineGroup"    2045
+biotype   2046    C3'     "TwoNMethylGuanidineGroup"    2046
+biotype   2047    H3'     "TwoNMethylGuanidineGroup"    2047
+biotype   2048    O3'     "TwoNMethylGuanidineGroup"    2048

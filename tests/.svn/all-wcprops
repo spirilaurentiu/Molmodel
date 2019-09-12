@@ -1,0 +1,239 @@
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/svn/molmodel/!svn/ver/793/trunk/tests
+END
+TestOxygenMolecule.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/molmodel/!svn/ver/716/trunk/tests/TestOxygenMolecule.cpp
+END
+TestVelocityRescalingThermostat.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/molmodel/!svn/ver/753/trunk/tests/TestVelocityRescalingThermostat.cpp
+END
+TestNoseHooverThermostat.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/molmodel/!svn/ver/723/trunk/tests/TestNoseHooverThermostat.cpp
+END
+TestCompoundTransforms.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/molmodel/!svn/ver/349/trunk/tests/TestCompoundTransforms.cpp
+END
+TestTinkerAmber.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/molmodel/!svn/ver/484/trunk/tests/TestTinkerAmber.cpp
+END
+TestPdb.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/molmodel/!svn/ver/782/trunk/tests/TestPdb.cpp
+END
+TestMethanol.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/molmodel/!svn/ver/716/trunk/tests/TestMethanol.cpp
+END
+TestForeignBodyIds.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/molmodel/!svn/ver/716/trunk/tests/TestForeignBodyIds.cpp
+END
+TestSetTorsion.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/molmodel/!svn/ver/484/trunk/tests/TestSetTorsion.cpp
+END
+TestLoadVariantRnaAtomNames.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/molmodel/!svn/ver/793/trunk/tests/TestLoadVariantRnaAtomNames.cpp
+END
+TestMethaneCartesian.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/molmodel/!svn/ver/716/trunk/tests/TestMethaneCartesian.cpp
+END
+TestMgSolvationEnergy.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/molmodel/!svn/ver/484/trunk/tests/TestMgSolvationEnergy.cpp
+END
+TestRna.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/molmodel/!svn/ver/716/trunk/tests/TestRna.cpp
+END
+TestPartitionerDihedrals.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/molmodel/!svn/ver/710/trunk/tests/TestPartitionerDihedrals.cpp
+END
+TestShortPdbLines.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/molmodel/!svn/ver/793/trunk/tests/TestShortPdbLines.cpp
+END
+TestBiopolymer.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/molmodel/!svn/ver/610/trunk/tests/TestBiopolymer.cpp
+END
+TestAtomTargetLocations.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/molmodel/!svn/ver/610/trunk/tests/TestAtomTargetLocations.cpp
+END
+CMakeLists.txt
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/molmodel/!svn/ver/774/trunk/tests/CMakeLists.txt
+END
+TestBodyIds.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/molmodel/!svn/ver/610/trunk/tests/TestBodyIds.cpp
+END
+TestPartitioner.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/molmodel/!svn/ver/716/trunk/tests/TestPartitioner.cpp
+END
+TestProteinDihedrals.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/molmodel/!svn/ver/793/trunk/tests/TestProteinDihedrals.cpp
+END
+TestRiboseMobilizer.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/molmodel/!svn/ver/723/trunk/tests/TestRiboseMobilizer.cpp
+END
+TestGetAtomName.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/molmodel/!svn/ver/185/trunk/tests/TestGetAtomName.cpp
+END
+TestPositiveControl.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/molmodel/!svn/ver/127/trunk/tests/TestPositiveControl.cpp
+END
+TestEthane.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/molmodel/!svn/ver/190/trunk/tests/TestEthane.cpp
+END
+TestDuMMForces.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/molmodel/!svn/ver/553/trunk/tests/TestDuMMForces.cpp
+END
+TestLoadPdb.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/molmodel/!svn/ver/460/trunk/tests/TestLoadPdb.cpp
+END
+TestWriteSimtimePdb.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/molmodel/!svn/ver/716/trunk/tests/TestWriteSimtimePdb.cpp
+END
+TestLoneAtomCoordinates.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/molmodel/!svn/ver/484/trunk/tests/TestLoneAtomCoordinates.cpp
+END
+TestFitMagnesiums.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/molmodel/!svn/ver/793/trunk/tests/TestFitMagnesiums.cpp
+END
+TestGbsa.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/molmodel/!svn/ver/534/trunk/tests/TestGbsa.cpp
+END
+TestNucleotide2.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/molmodel/!svn/ver/772/trunk/tests/TestNucleotide2.cpp
+END
+TestTorsionPartitioner.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/molmodel/!svn/ver/716/trunk/tests/TestTorsionPartitioner.cpp
+END
+TestProtein.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/molmodel/!svn/ver/753/trunk/tests/TestProtein.cpp
+END
+TestBiotypeSelfCode.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/molmodel/!svn/ver/484/trunk/tests/TestBiotypeSelfCode.cpp
+END
+TestDihedrals2.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/molmodel/!svn/ver/484/trunk/tests/TestDihedrals2.cpp
+END
+TestSerine.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/molmodel/!svn/ver/723/trunk/tests/TestSerine.cpp
+END
+TestWriteDefaultPdb.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/molmodel/!svn/ver/484/trunk/tests/TestWriteDefaultPdb.cpp
+END
+TestSanityDuMM.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/molmodel/!svn/ver/440/trunk/tests/TestSanityDuMM.cpp
+END

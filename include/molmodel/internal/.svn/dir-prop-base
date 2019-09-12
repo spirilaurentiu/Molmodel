@@ -1,0 +1,12 @@
+K 10
+svn:ignore
+V 89
+bin
+bin-release
+.cproject
+.gdb_history
+.project
+.settings
+.DuMMForceFieldSubsystem.h.swp
+
+END

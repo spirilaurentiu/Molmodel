@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 42
+/svn/molmodel/!svn/ver/456/trunk/resources
+END
+tinker_amber99_sam.prm
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/molmodel/!svn/ver/375/trunk/resources/tinker_amber99_sam.prm
+END
+tinker_amber99_clean.prm
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/molmodel/!svn/ver/127/trunk/resources/tinker_amber99_clean.prm
+END
+amber99.prm
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/molmodel/!svn/ver/127/trunk/resources/amber99.prm
+END
+serine_test.pdb
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/molmodel/!svn/ver/173/trunk/resources/serine_test.pdb
+END

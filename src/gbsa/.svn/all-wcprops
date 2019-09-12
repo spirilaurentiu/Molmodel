@@ -1,0 +1,119 @@
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/svn/molmodel/!svn/ver/725/trunk/src/gbsa
+END
+SimTKOpenMMUtilities.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/molmodel/!svn/ver/679/trunk/src/gbsa/SimTKOpenMMUtilities.cpp
+END
+cpuObcInterface.h
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/molmodel/!svn/ver/725/trunk/src/gbsa/cpuObcInterface.h
+END
+CpuImplicitSolvent.h
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/molmodel/!svn/ver/484/trunk/src/gbsa/CpuImplicitSolvent.h
+END
+SimTKOpenMMUtilities.h
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/molmodel/!svn/ver/679/trunk/src/gbsa/SimTKOpenMMUtilities.h
+END
+SimTKOpenMMLog.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/molmodel/!svn/ver/484/trunk/src/gbsa/SimTKOpenMMLog.cpp
+END
+ImplicitSolventParameters.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/molmodel/!svn/ver/484/trunk/src/gbsa/ImplicitSolventParameters.cpp
+END
+SimTKOpenMMLog.h
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/molmodel/!svn/ver/430/trunk/src/gbsa/SimTKOpenMMLog.h
+END
+CpuObc.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/molmodel/!svn/ver/575/trunk/src/gbsa/CpuObc.cpp
+END
+SimTKOpenMMCommon.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/molmodel/!svn/ver/484/trunk/src/gbsa/SimTKOpenMMCommon.cpp
+END
+ImplicitSolventParameters.h
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/molmodel/!svn/ver/484/trunk/src/gbsa/ImplicitSolventParameters.h
+END
+ObcReadme.txt
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/molmodel/!svn/ver/303/trunk/src/gbsa/ObcReadme.txt
+END
+SimTKOpenMMRealType.h
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/molmodel/!svn/ver/484/trunk/src/gbsa/SimTKOpenMMRealType.h
+END
+SimTKOpenMMWindowLinux.h
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/molmodel/!svn/ver/575/trunk/src/gbsa/SimTKOpenMMWindowLinux.h
+END
+CpuObc.h
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/molmodel/!svn/ver/484/trunk/src/gbsa/CpuObc.h
+END
+SimTKOpenMMCommon.h
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/molmodel/!svn/ver/484/trunk/src/gbsa/SimTKOpenMMCommon.h
+END
+ObcParameters.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/molmodel/!svn/ver/484/trunk/src/gbsa/ObcParameters.cpp
+END
+ObcParameters.h
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/molmodel/!svn/ver/484/trunk/src/gbsa/ObcParameters.h
+END
+cpuObcInterface.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/molmodel/!svn/ver/725/trunk/src/gbsa/cpuObcInterface.cpp
+END
+CpuImplicitSolvent.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/molmodel/!svn/ver/575/trunk/src/gbsa/CpuImplicitSolvent.cpp
+END
