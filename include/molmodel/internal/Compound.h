@@ -698,6 +698,17 @@ public:
         const Compound::Name& subcompoundName ///< name of subcompound with respect to this Compound
         ) const;
 
+
+    /**
+     * Robosample GMOL:
+     * @param atom1
+     * @param atom2
+     * @return
+     */
+    Transform getDefaultBondCenterFrameInOtherBondCenterFrame(Compound::AtomIndex atom1, Compound::AtomIndex atom2);
+
+
+
     /**
      * \brief Create a mapping between this Compound and atom locations in a PdbStructure
      *

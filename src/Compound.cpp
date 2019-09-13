@@ -1993,6 +1993,18 @@ ostream& Compound::writePdb(const SimTK::State& state, ostream& os, int& nextAto
     return os;
 }
 
+// GMOL
+Transform Compound::getDefaultBondCenterFrameInOtherBondCenterFrame(
+        Compound::AtomIndex atom1, Compound::AtomIndex atom2)
+{
+    CompoundRep& rep = updImpl();
+    AtomInfo& atomInfo1 = rep.updAtomInfo(atom1);
+    AtomInfo& atomInfo2 = rep.updAtomInfo(atom2);
+    BondInfo& bondInfo = rep.updBondInfo(atomInfo1, atomInfo2);
+    Bond& bond = rep.updBond(bondInfo);
+    return bond.getDefaultBondCenterFrameInOtherBondCenterFrame();
+}
+
 Compound& Compound::convertInboardBondCenterToOutboard() {
     updImpl().convertInboardBondCenterToOutboard();
     return *this;
