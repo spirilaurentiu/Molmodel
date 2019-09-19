@@ -722,7 +722,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                                           b2, dumm.getAtomStationOnBody(a2), crossBodyBond);
         }
 
-        for (DuMM::AtomIndex anum(0); anum < dumm.getNumAtoms(); ++anum) {
+/*        for (DuMM::AtomIndex anum(0); anum < dumm.getNumAtoms(); ++anum) {
             Real shrink = 0.25 , opacity = dumm.getAtomElement(anum)==1?0.5:1;
             Real r = dumm.getAtomRadius(anum);
             if (r<.001) r=0.1; //nm
@@ -730,7 +730,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             artwork.addBodyFixedDecoration(dumm.getAtomBody(anum), dumm.getAtomStationOnBody(anum),
                 DecorativeSphere(shrink*r)
                     .setColor(dumm.getAtomDefaultColor(anum)).setOpacity(opacity).setResolution(3));
-        }
+        }*/
 	
     }
 
