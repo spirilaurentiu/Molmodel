@@ -632,7 +632,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 	            unit.bodyId = torsionBody.getMobilizedBodyIndex();
             }
             else {
-                if(bond.getMobility() == BondMobility::Torsion) {
+///*
+               if(bond.getMobility() == BondMobility::Torsion) {
                     // GMOL BIG RB ======
                     MobilizedBody::Pin torsionBody(
                             matter.updMobilizedBody(parentUnit.bodyId),
@@ -641,11 +642,12 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                             newX_BM);
 
                     bond.setPinBody(torsionBody, 0);
-                    torsionBody.setDefaultAngle(0);
+                    torsionBody.setDefaultAngle(0); // no chem change to 0 for chem
                     unit.bodyId = torsionBody.getMobilizedBodyIndex();
-                    // GMOL END
-///* Molmodel: BEGIN
-/*                    MobilizedBody::Pin torsionBody(
+                    // GMOL END */
+
+/* Molmodel: BEGIN
+                    MobilizedBody::Pin torsionBody(
                             matter.updMobilizedBody(parentUnit.bodyId),
                             P_X_M * M_X_pin,
                             dumm.calcClusterMassProperties(unit.clusterIx),
@@ -655,7 +657,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                     // the bond, in Atom.h)
                     // NOTE - setPinBody automatically sets the torsionBody default torsion angle
                     bond.setPinBody(torsionBody);
-                    unit.bodyId = torsionBody.getMobilizedBodyIndex();*/
+                    unit.bodyId = torsionBody.getMobilizedBodyIndex();
 // Molmodel: END */
 
 
@@ -709,17 +711,22 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
     {
         DecorationSubsystem&     artwork = updDecorationSubsystem();
         DecorativeLine crossBodyBond; crossBodyBond.setColor(Orange).setLineThickness(5);
+        DecorativeLine sameBodyBond; sameBodyBond.setColor(Gray).setLineThickness(3);
 
         for (DuMM::BondIndex i(0); i < dumm.getNumBonds(); ++i) {
             const DuMM::AtomIndex    a1 = dumm.getBondAtom(i,0), a2 = dumm.getBondAtom(i,1);
             const MobilizedBodyIndex b1 = dumm.getAtomBody(a1),  b2 = dumm.getAtomBody(a2);
-            if (b1==b2)
-                artwork.addBodyFixedDecoration(b1, Transform(),
-                                               DecorativeLine(dumm.getAtomStationOnBody(a1), dumm.getAtomStationOnBody(a2))
-                                                 .setColor(Gray).setLineThickness(3));
-            else
-                artwork.addRubberBandLine(b1, dumm.getAtomStationOnBody(a1),
-                                          b2, dumm.getAtomStationOnBody(a2), crossBodyBond);
+            if (b1==b2) {
+                //artwork.addBodyFixedDecoration(b1, Transform(),
+                //                               DecorativeLine(dumm.getAtomStationOnBody(a1),
+                //                                              dumm.getAtomStationOnBody(a2))
+                //                                       .setColor(Gray).setLineThickness(3));
+/*                artwork.addRubberBandLine(b1, dumm.getAtomStationOnBody(a1),
+                                          b2, dumm.getAtomStationOnBody(a2), sameBodyBond);*/
+            }else {
+/*                artwork.addRubberBandLine(b1, dumm.getAtomStationOnBody(a1),
+                                          b2, dumm.getAtomStationOnBody(a2), crossBodyBond);*/
+            }
         }
 
 /*        for (DuMM::AtomIndex anum(0); anum < dumm.getNumAtoms(); ++anum) {
