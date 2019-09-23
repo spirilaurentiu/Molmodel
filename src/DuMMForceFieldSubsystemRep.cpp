@@ -3324,14 +3324,10 @@ public:
             :   dumm(dumm), AllAtomPos_G(AllAtomPos_G),
                 eVdW(eVdW), eCoulomb(eCoulomb)
     {
-        std::cout << "NonbondedFullEnergyTask constructor" << std::endl << std::flush; // REC BUG
     }
 
 
     void initialize() {
-
-        std::cout << "NonbondedFullEnergyTask initialize for "
-            << dumm.AllBodies.size() << " bodies"  << std::endl << std::flush; // REC BUG
 
         localVdwEnergyAll = 0.0;
         localCoulombEnergyAll = 0.0;
@@ -3346,9 +3342,6 @@ public:
     }
 
     void execute(int body1, int body2) {
-
-        std::cout << "NonbondedFullEnergyTask execute call CalcFullPotEnergyNonbonded for bodies "
-            << body1 << " " << body2 << std::endl << std::flush; // REC BUG
 
         dumm.CalcFullPotEnergyNonbonded(
                 DuMMIncludedBodyIndex(body1),
@@ -3440,11 +3433,6 @@ CalcFullPotEnergyIncludingRigidBodiesRep(const State& s) const {
             AllAtomStation_G[iax] = p_BS_G;
             AllAtomPos_G[iax]     = p_GB + p_BS_G;
 
-            // REC BUG
-            std::cout << "DuMM CalcFull aIx AllAtomPos_G "
-                << iax << " " << AllAtomPos_G[iax] << std::endl;
-            // REC BUG END
-
 	    iax_count++;
         }
 
@@ -3480,22 +3468,16 @@ CalcFullPotEnergyIncludingRigidBodiesRep(const State& s) const {
 
      //Calculate Nonbonded Terms
      if (usingMultithreaded) {
-         std::cout << "CalcFullPotEnergyIncludingRigidBodiesRep usingMultithreaded for "
-            << AllBodies.size() << " bodies " << std::endl; // REC BUG
 
         NonbondedFullEnergyTask NonbondedFullTask
                         (*this, AllAtomPos_G, eVdW, eCoulomb);
 
-         std::cout << "CalcFullPotEnergyIncludingRigidBodiesRep call NonbondedFullExecutor->execute(NonbondedFullTask, "
-                << Parallel2DExecutor::HalfMatrix << " times " << std::endl << std::flush; // REC BUG
 
         //NonbondedFullExecutor -> execute(NonbondedFullTask, Parallel2DExecutor::HalfMatrix); // inter body
-        NonbondedFullExecutor -> execute(NonbondedFullTask, Parallel2DExecutor::HalfPlusDiagonal ); // REC BUG
+        NonbondedFullExecutor -> execute(NonbondedFullTask, Parallel2DExecutor::HalfPlusDiagonal ); // inter and inside bodies
      }
 
      else {
-         std::cout << "CalcFullPotEnergyIncludingRigidBodiesRep single thread for "
-            << AllBodies.size() << " bodies " << std::endl<< std::flush; // REC BUG
 
          if (!(coulombGlobalScaleFactor == 0 && vdwGlobalScaleFactor == 0)) {
              CalcFullPotEnergyNonbondedSingleThread(AllAtomPos_G, eVdW, eCoulomb);
@@ -3504,7 +3486,7 @@ CalcFullPotEnergyIncludingRigidBodiesRep(const State& s) const {
 
     eTotal = eStretch + eBend + eTorsion + eImproper + eVdW + eCoulomb;
 
-///*
+/*
     TRACE( ("FUll Potential Bond Stretch: " + std::to_string( eStretch ) + "\n").c_str() );
     TRACE( ("FUll Potential Bond Bend   : " + std::to_string( eBend ) + "\n").c_str() );
     TRACE( ("FUll Potential Bond Torsion: " + std::to_string( eTorsion ) + "\n").c_str() );
@@ -3537,8 +3519,6 @@ void DuMMForceFieldSubsystemRep::CalcFullPotEnergyNonbonded
          Real&                                   eVdW,
          Real&                                   eCoulomb) const
 {
-    std::cout << "CalcFullPotEnergyNonbonded for bodies " << dummBodIx
-        << " " << firstIx << " " << lastIx << std::endl << std::flush; // REC BUG
 
     const IncludedBody& inclBod1 = AllBodies[dummBodIx];
 
@@ -3561,7 +3541,7 @@ void DuMMForceFieldSubsystemRep::CalcFullPotEnergyNonbonded
         scaleAllBondedAtoms(a1,vdwScaleAll,coulombScaleAll);
 
         for (DuMMIncludedBodyIndex dbx2 = firstIx; dbx2 <= lastIx; ++dbx2) {
-            // REC BUG We also want atoms inside the bodies: assert(dbx2 != dummBodIx);
+            // REC BUG RESTORE We also want atoms inside the bodies: assert(dbx2 != dummBodIx);
             const IncludedBody& inclBod2 = AllBodies[dbx2];
 
 
@@ -3571,9 +3551,9 @@ void DuMMForceFieldSubsystemRep::CalcFullPotEnergyNonbonded
 
                 DuMM::IncludedAtomIndex iax2 =
                         getAllAtomIndexOfNonbondAtom(nax2);
+
                 // assert(iax2 != iax1); REC BUG RESTORE
-                if ((dummBodIx == dbx2) && (iax2 <= iax1)) {continue;} // REC BUG
-                std::cout << "iax1 iax2 " << iax1 << " " << iax2 << std::endl << std::flush; // REC BUG
+                if ((dummBodIx == dbx2) && (iax2 <= iax1)) {continue;} // don't double count pairs
 
                 const IncludedAtom& a2 = getAllAtom(iax2);
                 const ChargedAtomType& a2type  = chargedAtomTypes[a2.chargedAtomTypeIndex];
@@ -3631,14 +3611,10 @@ void DuMMForceFieldSubsystemRep::CalcFullPotEnergyNonbondedSingleThread
          Real&                               eVdW,
          Real&                               eCoulomb) const
 {
-    std::cout << "CalcFullPotEnergyNonbondedSingleThread" << std::endl; // REC BUG
 
     for (DuMMIncludedBodyIndex inclBodyIx(0);
          inclBodyIx < getNumAllBodies(); ++inclBodyIx)
     {
-        // REC BUG
-        std::cout << "DuMM CalcFullPotEnergyNonbondedSingleThread ibIX " << inclBodyIx << std::endl;
-        // REC BUG END
         CalcFullPotEnergyNonbonded(
                 inclBodyIx,
                 DuMMIncludedBodyIndex(inclBodyIx + 1),
