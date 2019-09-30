@@ -106,7 +106,8 @@ void buildUpRigidBody(Compound::AtomIndex atomId,
             // continue;  // cannot restrict rigid body if free
         }
         else if ( (bond.getMobility() == BondMobility::Torsion)
-               || (bond.getMobility() == BondMobility::Ball) ) // Gmol
+                  || (bond.getMobility() == BondMobility::Cylinder)
+                  || (bond.getMobility() == BondMobility::Ball) ) // Gmol
         {
             // TORSION-only bonds to atoms with just one bond are included in rigid body
             // for inertian reasons
@@ -266,6 +267,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             case BondMobility::Free:
                 break; // no multibody parent/child relationship => ignore
             case BondMobility::Torsion:
+            case BondMobility::Cylinder:
             case BondMobility::Ball: // Gmol
                 {
                     // This might represent a parent/child relationship
