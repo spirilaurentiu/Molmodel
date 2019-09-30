@@ -680,14 +680,14 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                 } else if(bond.getMobility() == BondMobility::Cylinder) {
                     MobilizedBody::Cylinder cylinderBody(
                                matter.updMobilizedBody(parentUnit.bodyId),
-                               P_X_M * M_X_pin,
+                               newX_PF,
                                dumm.calcClusterMassProperties(unit.clusterIx),
-                               M_X_pin);
+                               newX_BM);
                     // Save a pointer to the pin joint in the bond object
                     // (ensure that the default angle of the MobilizedBody::Pin matches that of
                     // the bond, in Atom.h)
                     // NOTE - setPinBody automatically sets the torsionBody default torsion angle
-                    bond.setCylinderBody(cylinderBody);
+                    bond.setCylinderBody(cylinderBody, 0, 0);
                     unit.bodyId = cylinderBody.getMobilizedBodyIndex();
                 }
             }
