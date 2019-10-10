@@ -3563,35 +3563,40 @@ void DuMMForceFieldSubsystemRep::CalcFullPotEnergyNonbonded
                 const Vec3&      a2Pos_G = AllAtomPos_G[iax2];
 
                 const Vec3  r  = a2Pos_G - a1Pos_G;
-                const Real  d2 = r.normSqr() ;
+                const Real d2 = r.normSqr();
 
-                const Real  ood = 1/std::sqrt(d2);
-                const Real  ood2 = ood*ood;
-
-
-                // Coulombic electrostatic force
-                const Real qq = coulombScaleAll[nax2] // 2 flops
-                                * q1Fac * a2type.partialCharge;
-                // e = scale*(1/(4*pi*e0)) *  q1*q2/d
-                eCoulomb += qq * ood;     // 1 flop
+                // QUICK DIRTY FIX FOR DISTANCE CUTOFF
+                if( d2 <= 1.44){
 
 
-                Real dij, eij;
-                if (a1cnum <= a2cnum) {
-                    dij = a1class.vdwDij[a2cnum-a1cnum];
-                    eij = a1class.vdwEij[a2cnum-a1cnum];
-                } else {
-                    dij = a2class.vdwDij[a1cnum-a2cnum];
-                    eij = a2class.vdwEij[a1cnum-a2cnum];
+                    const Real ood = 1 / std::sqrt(d2);
+                    const Real ood2 = ood * ood;
+
+
+                    // Coulombic electrostatic force
+                    const Real qq = coulombScaleAll[nax2] // 2 flops
+                                    * q1Fac * a2type.partialCharge;
+                    // e = scale*(1/(4*pi*e0)) *  q1*q2/d
+                    eCoulomb += qq * ood;     // 1 flop
+
+
+                    Real dij, eij;
+                    if (a1cnum <= a2cnum) {
+                        dij = a1class.vdwDij[a2cnum - a1cnum];
+                        eij = a1class.vdwEij[a2cnum - a1cnum];
+                    } else {
+                        dij = a2class.vdwDij[a1cnum - a2cnum];
+                        eij = a2class.vdwEij[a1cnum - a2cnum];
+                    }
+
+                    const Real ddij2 = dij * dij * ood2;   // (dmin_ij/d)^2
+                    const Real ddij6 = ddij2 * ddij2 * ddij2;
+                    const Real ddij12 = ddij6 * ddij6;
+
+                    const Real eijScale = vdwGlobalScaleFactor * vdwScaleAll[nax2] * eij;
+
+                    eVdW += eijScale * (ddij12 - 2 * ddij6);
                 }
-
-                const Real ddij2  = dij*dij*ood2;   // (dmin_ij/d)^2
-                const Real ddij6  = ddij2*ddij2*ddij2;
-                const Real ddij12 = ddij6*ddij6;
-
-                const Real eijScale = vdwGlobalScaleFactor * vdwScaleAll[nax2]*eij;
-
-                eVdW     +=      eijScale * (ddij12 - 2*ddij6);
             }
         }
 
