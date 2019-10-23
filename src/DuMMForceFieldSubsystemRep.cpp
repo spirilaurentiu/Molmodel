@@ -2055,59 +2055,62 @@ void DuMMForceFieldSubsystemRep::calcBodySubsetNonbondedForces
                 const Real  d2 = r.normSqr() ;     // 5 flops
 
                 // Check for cutoffs on d2?
+                // QUICK DIRTY FIX FOR CUTOFF
+                if( d2 <= 1.44) {
 
-                //TRACE( (std::string(" r ") + std::to_string(std::sqrt(d2))).c_str() );
-                const Real  ood = 1/std::sqrt(d2); // approx 40 flops
-                const Real  ood2 = ood*ood;        // 1 flop
+                    //TRACE( (std::string(" r ") + std::to_string(std::sqrt(d2))).c_str() );
+                    const Real ood = 1 / std::sqrt(d2); // approx 40 flops
+                    const Real ood2 = ood * ood;        // 1 flop
 
-                // Coulombic electrostatic force
-                const Real qq = coulombScale[nax2] // 2 flops
+                    // Coulombic electrostatic force
+                    const Real qq = coulombScale[nax2] // 2 flops
                                     * q1Fac * a2type.partialCharge;
-                //TRACE( (std::string(" a1type.partialCharge ") + std::to_string(a1type.partialCharge) + std::string(" a2type.partialCharge ") + std::to_string(a2type.partialCharge)).c_str() );
-                // e = scale*(1/(4*pi*e0)) *  q1*q2/d
-                const Real eCoulomb = qq * ood;     // 1 flop
-                // f = -[scale*(1/(4*pi*e0)) * -q1*q2/d^2] * r
-                // Note: we're missing a factor of 1/d^2 here; see below.
-                const Real fCoulomb = eCoulomb;
+                    //TRACE( (std::string(" a1type.partialCharge ") + std::to_string(a1type.partialCharge) + std::string(" a2type.partialCharge ") + std::to_string(a2type.partialCharge)).c_str() );
+                    // e = scale*(1/(4*pi*e0)) *  q1*q2/d
+                    const Real eCoulomb = qq * ood;     // 1 flop
+                    // f = -[scale*(1/(4*pi*e0)) * -q1*q2/d^2] * r
+                    // Note: we're missing a factor of 1/d^2 here; see below.
+                    const Real fCoulomb = eCoulomb;
 
-                // van der Waals forces
+                    // van der Waals forces
 
-                // Get precomputed mixed dmin and emin. Must ask the lower-numbered atom class.
-                Real dij, eij;
-                if (a1cnum <= a2cnum) {
-                    dij = a1class.vdwDij[a2cnum-a1cnum];
-                    eij = a1class.vdwEij[a2cnum-a1cnum];
-                } else {
-                    dij = a2class.vdwDij[a1cnum-a2cnum];
-                    eij = a2class.vdwEij[a1cnum-a2cnum];
+                    // Get precomputed mixed dmin and emin. Must ask the lower-numbered atom class.
+                    Real dij, eij;
+                    if (a1cnum <= a2cnum) {
+                        dij = a1class.vdwDij[a2cnum - a1cnum];
+                        eij = a1class.vdwEij[a2cnum - a1cnum];
+                    } else {
+                        dij = a2class.vdwDij[a1cnum - a2cnum];
+                        eij = a2class.vdwEij[a1cnum - a2cnum];
+                    }
+                    //TRACE( (std::string(" Dij ") + std::to_string(dij) + std::string(" eij ") + std::to_string(eij)).c_str() );
+
+                    // 5 flops
+                    const Real ddij2 = dij * dij * ood2;   // (dmin_ij/d)^2
+                    const Real ddij6 = ddij2 * ddij2 * ddij2;
+                    const Real ddij12 = ddij6 * ddij6;
+
+                    // 8 flops
+                    const Real eijScale = vdwGlobalScaleFactor * vdwScale[nax2] * eij;
+                    //TRACE( (std::string(" vdwGlobal ") + std::to_string(vdwGlobalScaleFactor) + std::string(" vdwScale[nax2] ") + std::to_string(vdwScale[nax2])).c_str() );
+                    const Real eVdw = eijScale * (ddij12 - 2 * ddij6);
+                    //TRACE(" eVdw: ");
+                    //TRACE((std::to_string(eVdw)).c_str());
+                    // Note: factor of 1/d^2 missing here; see below.
+                    const Real fVdw = 12 * eijScale * (ddij12 - ddij6);
+
+                    // Here's where we restore the missing 1/d^2. This
+                    // is the force to apply to atom 2; apply equal and
+                    // opposite to atom 1.
+                    const Vec3 fj = ((fCoulomb + fVdw) * ood2) * r; // 5 flops
+                    // kJ (Da-nm^2/ps^2)        // 2 flops
+                    energy += (eCoulomb + eVdw);
+                    //TRACE(" energy: ");
+                    //TRACE((std::to_string(eVdw)).c_str());
+                    //TRACE(" ");
+                    inclAtomForce_G[iax2] += fj;   // 3 flops
+                    afrc1_G -= fj;   // 3 flops
                 }
-                //TRACE( (std::string(" Dij ") + std::to_string(dij) + std::string(" eij ") + std::to_string(eij)).c_str() );
-
-                // 5 flops
-                const Real ddij2  = dij*dij*ood2;   // (dmin_ij/d)^2
-                const Real ddij6  = ddij2*ddij2*ddij2;
-                const Real ddij12 = ddij6*ddij6;
-
-                // 8 flops
-                const Real eijScale = vdwGlobalScaleFactor*vdwScale[nax2]*eij;
-                //TRACE( (std::string(" vdwGlobal ") + std::to_string(vdwGlobalScaleFactor) + std::string(" vdwScale[nax2] ") + std::to_string(vdwScale[nax2])).c_str() );
-                const Real eVdw     =      eijScale * (ddij12 - 2*ddij6);
-                //TRACE(" eVdw: ");
-                //TRACE((std::to_string(eVdw)).c_str());
-                // Note: factor of 1/d^2 missing here; see below.
-                const Real fVdw     = 12 * eijScale * (ddij12 -   ddij6);
-
-                // Here's where we restore the missing 1/d^2. This
-                // is the force to apply to atom 2; apply equal and
-                // opposite to atom 1.
-                const Vec3 fj = ((fCoulomb+fVdw)*ood2) * r; // 5 flops
-                // kJ (Da-nm^2/ps^2)        // 2 flops
-                energy                += (eCoulomb + eVdw);
-                //TRACE(" energy: ");
-                //TRACE((std::to_string(eVdw)).c_str());
-                //TRACE(" ");
-                inclAtomForce_G[iax2] += fj;   // 3 flops
-                afrc1_G               -= fj;   // 3 flops
             }
         }
 
@@ -3567,7 +3570,6 @@ void DuMMForceFieldSubsystemRep::CalcFullPotEnergyNonbonded
 
                 // QUICK DIRTY FIX FOR DISTANCE CUTOFF
                 if( d2 <= 1.44){
-
 
                     const Real ood = 1 / std::sqrt(d2);
                     const Real ood2 = ood * ood;
