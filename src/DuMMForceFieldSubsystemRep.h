@@ -1491,7 +1491,7 @@ public:
         vdwScale12=coulombScale12=vdwScale13=coulombScale13 = 0;
         vdwScale14=coulombScale14=vdwScale15=coulombScale15 = 1;
 
-        tracing                     = false;
+        tracing                     = true; // EU
         useMultithreadedComputation = true;
         numThreadsRequested         = 0; // let DuMM pick
 
