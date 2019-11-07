@@ -1149,8 +1149,8 @@ public:
         
         const Biotype& biotype = Biotype::get(biotypeResidueName, biotypeAtomName, ordinality);
         
-        assert( static_cast<size_t>(biotype.getElement()) == getAtomElement(atomIndex) );
-        assert( static_cast<size_t>(biotype.getValence()) == getNumBondCenters(atomIndex) );
+        assert( biotype.getElement() == getAtomElement(atomIndex) );
+        assert( biotype.getValence() == getNumBondCenters(atomIndex) );
         
         BiotypeIndex biotypeIndex = biotype.getIndex();
         setBiotypeIndex(atomName, biotypeIndex);
