@@ -377,8 +377,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         }
     }
     for (DuMM::AtomIndex ax(0); ax < atoms.size(); ++ax) {
-        //const DuMMAtom& a = getAtom(ax);
-        assert(ax.isAttachedToBody()); // TODO catch unassigned atoms
+        assert(getAtom(ax).isAttachedToBody()); // TODO catch unassigned atoms
     }
 
     //------- Process bonds -------
