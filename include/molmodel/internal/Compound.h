@@ -231,6 +231,9 @@ public:
     explicit Compound(const Name& name ///< name of the compound type, not the compound instance
         );
 
+    // TODO check if it is correct and does not result in undefined behaviour.
+    virtual ~Compound() = default;
+
     /**
      * \return the number of atoms in the Compound, including those within subcompounds.
      */
@@ -1452,7 +1455,7 @@ public:
 class  MethyleneGroup : public Compound {
 public:
     MethyleneGroup() {
-        static const mdunits::Length C_Hdistance = 0.1112; // nanometers
+        //static const mdunits::Length C_Hdistance = 0.1112; // nanometers
 
         setBaseAtom(AliphaticCarbon("C"));
         bondAtom(AliphaticHydrogen("H1"), "C/bond3");
@@ -1764,8 +1767,9 @@ public:
     public:
         friend class ResidueInfo;
 
-        AtomInfo(Compound::AtomIndex index, const Compound::AtomName& name) 
-            : pdbAtomName(name), biopolymerAtomIndex(index)
+        AtomInfo(Compound::AtomIndex index, const Compound::AtomName& name) : 
+            biopolymerAtomIndex(index),
+            pdbAtomName(name)
         {
             synonyms.insert(name);
         }

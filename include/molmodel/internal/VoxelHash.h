@@ -8,10 +8,10 @@
 // #include "md_units.hpp"
 
 #ifdef __GNUC__
-#include <ext/hash_map>
+#include <unordered_map>
 #define HASH_MAP_NAMESPACE __gnu_cxx
 #else
-#include <hash_map>
+#include <unordered_map>
 #define HASH_MAP_NAMESPACE stdext
 #endif
 

@@ -37,7 +37,7 @@ using namespace SimTK;
 // stores parameter settings, ...
 // used to calculate GBSA forces/energy
 
-CpuImplicitSolvent* CpuImplicitSolvent::_cpuImplicitSolvent                     = NULL;
+CpuImplicitSolvent* CpuImplicitSolvent::_cpuImplicitSolvent                     = nullptr;
 
 // info file related-stuff
 
@@ -115,9 +115,9 @@ void CpuImplicitSolvent::_initializeDataMembers( void ){
 
    // ---------------------------------------------------------------------------------------
 
-   _bornRadii                           = NULL;
-   _tempBornRadii                       = NULL;
-   _bornForce                           = NULL;
+   _bornRadii                           = nullptr;
+   _tempBornRadii                       = nullptr;
+   _bornForce                           = nullptr;
  
    _includeAceApproximation             = 0;
 
@@ -189,9 +189,9 @@ int CpuImplicitSolvent::deleteCpuImplicitSolvent( void ){
 
    // ---------------------------------------------------------------------------------------
 
-   if( _cpuImplicitSolvent != NULL ){
+   if( _cpuImplicitSolvent != nullptr ){
       delete _cpuImplicitSolvent;
-      _cpuImplicitSolvent = NULL;
+      _cpuImplicitSolvent = nullptr;
       return SimTKOpenMMCommon::DefaultReturn;
    } else {
       return SimTKOpenMMCommon::ErrorReturn;
@@ -495,7 +495,7 @@ RealOpenMM* CpuImplicitSolvent::getBornForce( void ){
 
    // ---------------------------------------------------------------------------------------
 
-   if( _bornForce == NULL ){
+   if( _bornForce == nullptr ){
       _bornForce = new RealOpenMM[_implicitSolventParameters->getNumberOfAtoms()];
    }
    return _bornForce;
@@ -519,7 +519,7 @@ RealOpenMM* CpuImplicitSolvent::getBornRadii( void ){
 
    // ---------------------------------------------------------------------------------------
 
-   if( _bornRadii == NULL ){
+   if( _bornRadii == nullptr ){
       _bornRadii = new RealOpenMM[_implicitSolventParameters->getNumberOfAtoms()];
       _bornRadii[0] = 0.0;
    }
@@ -562,7 +562,7 @@ RealOpenMM* CpuImplicitSolvent::getBornRadiiTemp( void ){
 
    // ---------------------------------------------------------------------------------------
 
-   if( _tempBornRadii == NULL ){
+   if( _tempBornRadii == nullptr ){
       _tempBornRadii = new RealOpenMM[_implicitSolventParameters->getNumberOfAtoms()];
    }
    return _tempBornRadii;
@@ -661,7 +661,7 @@ int CpuImplicitSolvent::computeImplicitSolventForces( const RealOpenMM* const*  
    // and then once computed, always greater than zero.
 
    RealOpenMM* bornRadii = getBornRadii();
-   computeBornRadii( atomCoordinates, bornRadii, executor == NULL ? NULL : &executor->getExecutor() );
+   computeBornRadii( atomCoordinates, bornRadii, executor == nullptr ? nullptr : &executor->getExecutor() );
 
    // diagnostics
 
@@ -741,7 +741,7 @@ int CpuImplicitSolvent::computeImplicitSolventForces( const RealOpenMM* const*  
 
    Get Born energy and forces based on J. Phys. Chem. A V101 No 16, p. 3005 (Simbios)
 
-   @param bornRadii           Born radii -- optional; if NULL, then ImplicitSolventParameters 
+   @param bornRadii           Born radii -- optional; if nullptr, then ImplicitSolventParameters 
                               entry is used
    @param atomCoordinates     atomic coordinates
    @param partialCharges      partial charges
@@ -856,7 +856,7 @@ int CpuImplicitSolvent::writeBornEnergyForces( const RealOpenMM* const* atomCoor
 
    // open file -- return if unsuccessful
 
-   FILE* implicitSolventResultsFile = NULL;
+   FILE* implicitSolventResultsFile = nullptr;
 #ifdef _WIN32
    fopen_s( &implicitSolventResultsFile, resultsFileName.c_str(), "w" );
 #else
@@ -867,7 +867,7 @@ int CpuImplicitSolvent::writeBornEnergyForces( const RealOpenMM* const* atomCoor
 
    std::stringstream message;
    message << methodName;
-   if( implicitSolventResultsFile != NULL ){
+   if( implicitSolventResultsFile != nullptr ){
       std::stringstream message;
       message << methodName;
       message << " Opened file=<" << resultsFileName << ">.";
@@ -889,13 +889,13 @@ int CpuImplicitSolvent::writeBornEnergyForces( const RealOpenMM* const* atomCoor
 
    // output
 
-   if( forces != NULL && atomCoordinates != NULL && partialCharges != NULL && atomicRadii != NULL ){
+   if( forces != nullptr && atomCoordinates != nullptr && partialCharges != nullptr && atomicRadii != nullptr ){
       for( int ii = 0; ii < numberOfAtoms; ii++ ){
             (void) fprintf( implicitSolventResultsFile, "%.7e %.7e %.7e %.7e %.5f %.5f %.7e %.7e %.7e\n",
                             lengthConversion*atomCoordinates[ii][0],
                             lengthConversion*atomCoordinates[ii][1], 
                             lengthConversion*atomCoordinates[ii][2],
-                           (bornRadii != NULL ? lengthConversion*bornRadii[ii] : 0.0),
+                           (bornRadii != nullptr ? lengthConversion*bornRadii[ii] : 0.0),
                             partialCharges[ii], lengthConversion*atomicRadii[ii],
                             forceConversion*forces[ii][0],
                             forceConversion*forces[ii][1],
@@ -1017,14 +1017,14 @@ int CpuImplicitSolvent::readInfoFile( const std::string infoFileName ){
 
    // ---------------------------------------------------------------------------------------
 
-   FILE* infoFile = NULL;
+   FILE* infoFile = nullptr;
 #ifdef _WIN32
    fopen_s( &infoFile, infoFileName.c_str(), "r" );
 #else
    infoFile = fopen( infoFileName.c_str(), "r" );
 #endif
 
-   if( infoFile == NULL ){
+   if( infoFile == nullptr ){
 
 #ifdef _WIN32
       fopen_s( &infoFile, _defaultInfoFileName.c_str(), "r" );
@@ -1032,7 +1032,7 @@ int CpuImplicitSolvent::readInfoFile( const std::string infoFileName ){
       infoFile = fopen( _defaultInfoFileName.c_str(), "r" );
 #endif
 
-      if( infoFile == NULL ){
+      if( infoFile == nullptr ){
          std::stringstream message;
          message << methodName << " fopen failed on info file=<" << _defaultInfoFileName << "> and file=<" << infoFileName << ">";
          SimTKOpenMMLog::printMessage( message );
@@ -1179,7 +1179,7 @@ std::string CpuImplicitSolvent::getStateString( const char* title ) const {
 
    // get parameters
 
-   message << getImplicitSolventParameters()->getStateString( NULL );
+   message << getImplicitSolventParameters()->getStateString( nullptr );
 
    return message.str();
 }

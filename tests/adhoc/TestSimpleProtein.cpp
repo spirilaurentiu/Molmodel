@@ -23,7 +23,7 @@ public:
 
     void handleEvent(const State& state) const 
     {
-		const SimbodyMatterSubsystem& matter = system.getMatterSubsystem();
+		//const SimbodyMatterSubsystem& matter = system.getMatterSubsystem();
 		static Real lastTime = -Infinity;
 		Real t = state.getTime();
 		system.realize(state, Stage::Dynamics);
@@ -106,7 +106,7 @@ try {
 	GeneralForceSubsystem forces(system);
 	const Real temp = 300;
 	const Real tRelax = 1/(2*Pi); // ps
-	const Real thermalMass = 100;
+	//const Real thermalMass = 100;
 	Force::Thermostat thermostat(forces, matter, SimTK_BOLTZMANN_CONSTANT_MD,
 								 temp, tRelax);
 	//thermostat.setDefaultNumChains(3);
@@ -165,10 +165,11 @@ try {
 	system.realizeTopology();
 	State state = system.getDefaultState();
 
-    if (forceField.isUsingOpenMM())
-        std::cout << "**** USING OpenMM -- Platform " << forceField.getOpenMMPlatformInUse() << std::endl;
-    else
-        std::cout << "**** NOT USING OpenMM\n";
+    if (forceField.isUsingOpenMM()) {
+		std::cout << "**** USING OpenMM -- Platform " << forceField.getOpenMMPlatformInUse() << std::endl;
+	} else {
+		std::cout << "**** NOT USING OpenMM\n";
+	}
 
 	system.realizeModel(state);
 	Random::Uniform rand;

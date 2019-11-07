@@ -147,9 +147,9 @@ void testShortProtein()
 
     integrator.initialize(state);
 
+/*
     int numberOfSteps = 3;
 
-    /*
 #ifdef CREATE_VIZ_WINDOW
     numberOfSteps = 10;
 #endif
@@ -175,10 +175,9 @@ void testShortProtein()
         system.realize(state, SimTK::Stage::Position);
         matter.realizeArticulatedBodyInertias(state);
 
-        SimTK::Real detM = 1.0;
         SimTK::Vector DetV(nu);
-        SimTK::Real* D0 = new SimTK::Real(1.0);
-        matter.calcDetM(state, V, DetV, D0);
+        SimTK::Real D0 = 1.0;
+        matter.calcDetM(state, V, DetV, &D0);
 
         // Initialize velocities
         if( !(i % 10)) {

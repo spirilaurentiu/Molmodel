@@ -533,7 +533,7 @@ int ImplicitSolventParameters::setAtomicRadii( const RealOpenMM* atomicRadii, in
 
    // ---------------------------------------------------------------------------------------
 
-   static const char* methodName = "\nImplicitSolventParameters::setAtomicRadii:";
+   //static const char* methodName = "\nImplicitSolventParameters::setAtomicRadii:";
 
    // ---------------------------------------------------------------------------------------
 

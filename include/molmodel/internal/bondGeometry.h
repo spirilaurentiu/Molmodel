@@ -38,6 +38,7 @@
 
 namespace SimTK {
 
+/*
 // Dihedral angles are define in terms of four atomic positions
 // 
 //   1
@@ -55,6 +56,7 @@ namespace SimTK {
 // The answer is unchanged if the order of atoms is reversed from (1,2,3,4) to (4,3,2,1)
 // This method can be used as a helper method for dihedral angles express using either 4 atomic
 // location, or two bond center orientations.
+*/
 
 /// Dihedral angle in radians in the range (-Pi, Pi]
 Angle SimTK_MOLMODEL_EXPORT calcDihedralAngle(

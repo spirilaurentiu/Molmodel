@@ -64,7 +64,7 @@ public:
     {}
 
     DihedralAngle(Compound::BondCenterIndex bc1, Compound::BondCenterIndex bc2, Angle o = 0*Deg2Rad) 
-        : bondCenter1(bc1), bondCenter2(bc2), nomenclatureOffset(o)
+        : nomenclatureOffset(o), bondCenter1(bc1), bondCenter2(bc2)
         // , internalOffset(0)
     {}
 
@@ -92,14 +92,14 @@ public:
     friend class CompoundSystem;
     friend class ResidueInfo;
 
-    explicit CompoundRep(const String& n="UnknownCompoundType", const Transform& transform = Transform()) 
-      : ownerSystem(0), 
-      name(n), 
-      pdbChainId(' '), 
-      pdbResidueName("UNK"), 
-      pdbResidueNumber(-111111), 
-      // haveParentCompound(false),
-      topLevelTransform(transform)
+    explicit CompoundRep(const String& n="UnknownCompoundType", const Transform& transform = Transform()) :
+        ownerSystem(0),
+        topLevelTransform(transform),
+        name(n),
+        pdbResidueNumber(-111111),
+        pdbResidueName("UNK"),
+        pdbChainId(' ')
+        //haveParentCompound(false)
     {
     	addCompoundSynonym(n);
     }
@@ -544,8 +544,8 @@ public:
         assert( atomsAreBonded(atomInfo2, atomInfo3) ); // absolutely required
 
         // Find central bond
-        const BondInfo& bondInfo23 = getBondInfo(atomInfo2, atomInfo3);
-        const Bond& bond23 = getBond(bondInfo23);
+        //const BondInfo& bondInfo23 = getBondInfo(atomInfo2, atomInfo3);
+        //const Bond& bond23 = getBond(bondInfo23);
 
         // Identify the bond centers associated with the atom2-atom3 bond
         const BondCenterInfo& bondCenterInfo23 = getBondCenterInfo(atomInfo2, atomInfo3);
@@ -596,7 +596,7 @@ public:
         // * offsetAngle4 is counter-clockwise angle from canonical bond center on atom3 to atom4, viewed
         // down the atom3-atom2 axis.
         const BondCenterInfo& bondCenterInfo34 = getBondCenterInfo(bondCenterIndex34);
-        Angle offsetAngle4;
+        Angle offsetAngle4 = std::numeric_limits<Angle>::max(); // TODO might use std::optionatl, should look into it
         if (canonicalCenterIndex3 == bondCenterInfo34.getAtomBondCenterIndex())
             offsetAngle4 = 0.0;
         else
@@ -615,6 +615,12 @@ public:
                 offsetAngle4 = SimTK::calcDihedralAngle(dirRefAtom4, dirBond, dirAtom4);
 
             // assert(offsetAngle4 != 0);
+        }
+
+        if(offsetAngle4 == std::numeric_limits<Angle>::max()) {
+            // Should never get here, but compiler keeps warning.
+            // Se above for a more elegant solution.
+            assert(false);
         }
 
         // nominal = internal + offset
@@ -686,7 +692,7 @@ public:
     // setDefaultDihedral changes no bond lengths or bond angles
     CompoundRep& setDefaultDihedralAngle(const String& dihedralName, Angle finalNominalAngle) 
     {
-        Bond& bond = updBondByDihedralName(dihedralName);
+        //Bond& bond = updBondByDihedralName(dihedralName);
         DihedralAngle& dihedral = dihedralAnglesByName.find(dihedralName)->second;
 
         // internal = nominal - offset
@@ -1375,16 +1381,18 @@ public:
                     if (sourceChirality * targetChirality < 0) // mismatched chirality
                     {
                         const BondCenterInfo& bondCenterInfo = getBondCenterInfo(bondCenterIndexes[bondIx]);
+
+                        #ifdef DEBUG_MOLMODEL
                         Compound::AtomIndex partnerAtomIndex = 
                             getBondCenterInfo(bondCenterInfo.getBondPartnerBondCenterIndex())
                             .getAtomIndex();
-                        #ifdef DEBUG_MOLMODEL
                         std::cerr << "WARNING: Flipping chirality of bond from atom ";
                         std::cerr << getAtomName(atomIndex);
                         std::cerr << " to atom ";
                         std::cerr << getAtomName(partnerAtomIndex);
                         std::cerr << std::endl;
                         #endif
+                        
                         BondCenter& bondCenter = updBondCenter(bondCenterInfo);
                         switch(bondCenter.getChirality()) {
                             case BondCenter::RightHanded:
@@ -1393,6 +1401,8 @@ public:
                             case BondCenter::LeftHanded:
                                 bondCenter.setChirality(BondCenter::RightHanded);
                                 break;
+                            default:
+                                break; // TODO what should planar do here?
                         }
                     }
                 }
@@ -1704,9 +1714,9 @@ public:
 
         for (Compound::AtomIndex a(0); a < getNumAtoms(); ++a) 
         {
-            int residueNumber = getPdbResidueNumber();
-            char insertionCode = ' '; // TODO - make this an attribute of the residue?
-            String chainId = getPdbChainId();
+            //int residueNumber = getPdbResidueNumber();
+            //char insertionCode = ' '; // TODO - make this an attribute of the residue?
+            //String chainId = getPdbChainId();
 
             String atomName = getAtomName(a);
             // search synonyms if we cannot find this atom in the structure
@@ -2433,7 +2443,7 @@ protected:
             assert(ownerSystem != NULL);
             const SimbodyMatterSubsystem& matter = ownerSystem->getMatterSubsystem();
 
-            Angle internalAngle;
+            Angle internalAngle = 0;
             if(bond.getMobility() == BondMobility::Torsion) {
                 const MobilizedBody::Pin &body = (const MobilizedBody::Pin &) matter.getMobilizedBody(bodyId);
                 internalAngle = body.getAngle(state);
@@ -2454,6 +2464,9 @@ protected:
                                 1 - 2 * (q2sq + q3sq));
                     internalAngle = psi;
                 }
+            } else {
+                // Should never get here, but compiler keeps complaining.
+                assert(false);
             }
 
             // TODO - use simtime offset, not default
@@ -2499,11 +2512,11 @@ protected:
                 SimTK::Rotation R;
                 R.setRotationFromQuaternion(Quaternion(body.getQ(state)));
                 Angle theta1 = -1.0 * std::asin(R[2][0]);
-                Angle theta2 = SimTK::Pi - theta1;
+                //Angle theta2 = SimTK::Pi - theta1;
                 double cosTheta1 = std::cos(theta1);
-                double cosTheta2 = std::cos(theta2);
+                //double cosTheta2 = std::cos(theta2);
                 Angle psi1 =  std::atan2(R[2][1] / cosTheta1, R[2][2] / cosTheta1);
-                Angle psi2 =  std::atan2(R[2][1] / cosTheta2, R[2][2] / cosTheta2);
+                //Angle psi2 =  std::atan2(R[2][1] / cosTheta2, R[2][2] / cosTheta2);
 
                 std::cout << psi1 * DuMM::Rad2Deg;
                 std::cout << " degrees";
@@ -2599,7 +2612,7 @@ private:
         MemberForDebuggingCopyCtor() {}
         MemberForDebuggingCopyCtor(const MemberForDebuggingCopyCtor&) {
             // Put a breakpoint here to notice when CompoundRep copyCtor is called
-            int x = 5;
+            //int x = 5;
         }
     };
     // MemberForDebuggingCopyCtor testMember;
@@ -2864,7 +2877,7 @@ public:
         const Transform& transform,
         const std::vector<Transform>& atomFrameCache) const 
     {
-        Transform myTransform = transform * calcDefaultResidueFrameInBiopolymerFrame(r, atomFrameCache);
+        //Transform myTransform = transform * calcDefaultResidueFrameInBiopolymerFrame(r, atomFrameCache);
         const ResidueInfo& residue = getResidue(r);
 
         int residueNumber = residue.getPdbResidueNumber();
@@ -2882,7 +2895,6 @@ public:
         for (ResidueInfo::AtomIndex a(0); a < residue.getNumAtoms(); ++a) 
         {
             Compound::AtomIndex atomIx = residue.getAtomIndex(a);
-            const CompoundAtom& atom = getAtom(atomIx);
 
             PdbAtom pdbAtom(residue.getAtomName(a), getAtomElement(atomIx));
             pdbAtom.setLocation(PdbAtomLocation(transform * atomFrameCache[atomIx].p()));
@@ -2950,7 +2962,7 @@ public:
         for (ResidueInfo::AtomIndex a(0); a < residue.getNumAtoms(); ++a) 
         {
             Compound::AtomIndex atomIx = residue.getAtomIndex(a);
-            const CompoundAtom& atom = getAtom(atomIx);
+            //const CompoundAtom& atom = getAtom(atomIx);
 
             PdbAtom pdbAtom(residue.getAtomName(a), getAtomElement(atomIx));
             pdbAtom.setLocation(

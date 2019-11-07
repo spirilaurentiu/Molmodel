@@ -139,8 +139,8 @@ BondInfo::BondInfo(
     : id(bId), 
         // amLocalBond(false), 
         // amRingClosingBond(b.isRingClosingBond()), 
-        parentBondCenterIndex(bondCenter1), 
         childBondCenterIndex(bondCenter2),
+        parentBondCenterIndex(bondCenter1), 
         bond(b)
 {
     // bond.setRingClosingBond(true);
@@ -186,24 +186,23 @@ BondInfo::BondInfo(
 
 BondCenter::BondCenter() 
     : 
-    bonded(false), 
     inboard(false), 
+    bonded(false), 
     chirality(BondCenter::Planar),
     defaultBondLength(NaN), 
     defaultDihedralAngle(NaN)
 {}
 
 
-BondCenter::BondCenter(Angle angle1, Angle angle2, int yCenter, BondCenter::Chirality c)
-    : 
+BondCenter::BondCenter(Angle angle1, Angle angle2, int yCenter, BondCenter::Chirality c) :
+    inboard(false),
+    bonded(false),
     defaultBond1Angle(angle1), 
     defaultBond2Angle(angle2),
     defaultDihedralReferenceCenter(yCenter), 
     chirality(c), 
     defaultBondLength(NaN), 
-    defaultDihedralAngle(NaN), 
-    bonded(false),
-    inboard(false)
+    defaultDihedralAngle(NaN)
 {}
 
 bool BondCenter::isBonded() const { 
@@ -259,8 +258,8 @@ const Element& CompoundAtom::getElement() const {
 // One constructor for local atoms
 AtomInfo::AtomInfo(Compound::AtomIndex i, const CompoundAtom& atom, bool isBase /*, const Transform& xform */ )
   : id(i), 
-    atom(atom), 
-    bIsBaseAtom(isBase) // ,
+    bIsBaseAtom(isBase),
+    atom(atom) // ,
     // frameInCompound(xform)
 {}
 
@@ -422,7 +421,7 @@ CompoundRep& CompoundRep::bondCompound(
     //const Compound::BondIndex bondIndex = 
     //    bondBondCenters(outboardBondCenterIndex, inboardBondCenterIndex, distance, dihedral);
 
-    const BondInfo& bondInfo = getBondInfo(bondIndex);
+    //const BondInfo& bondInfo = getBondInfo(bondIndex);
 
     // Set bond mobility
     Bond& bond = updBond(updBondInfo(bondIndex));
@@ -655,8 +654,8 @@ CompoundRep& CompoundRep::addBondCenterInfo(
     // bondCenterIndicesByName[centerName] = infoId;
 
     // Set bonded bit
-    BondCenterInfo bondCenterInfo = getBondCenterInfo(infoId);
-    const BondCenter& bondCenter = getBondCenter(infoId);
+    //BondCenterInfo bondCenterInfo = getBondCenterInfo(infoId);
+    //const BondCenter& bondCenter = getBondCenter(infoId);
     // bondCenterInfo.setBonded(bondCenter.isBonded());
 
     assert( hasBondCenter( atomId, atomCenterIndex ) );
@@ -1095,9 +1094,7 @@ CompoundRep& CompoundRep::setInboardBondCenter(Compound::BondCenterIndex id)
     assert( hasBondCenter(id) );
 
     const BondCenterInfo& bondCenterInfo = getBondCenterInfo(id);
-    BondCenter& bondCenter = updBondCenter(id);
-
-    assert(! bondCenter.isBonded() );
+    assert(! updBondCenter(id).isBonded() );
 
     bondCenterIndicesByName[InboardBondName] = bondCenterInfo.getIndex();
 
@@ -1116,14 +1113,12 @@ Compound::BondCenterIndex CompoundRep::addLocalCompound(
     if (inboardIndex.isValid()) {
         const BondCenterInfo& bc = getBondCenterInfo(inboardIndex);
         CompoundAtom& atom = updAtom(bc.getAtomIndex());
-        const AtomInfo& atomInfo = getAtomInfo(bc.getAtomIndex());
-        assert(atomInfo.isBaseAtom());
+        assert(getAtomInfo(bc.getAtomIndex()).isBaseAtom());
         atom.setDefaultFrameInCompoundFrame(location * atom.getDefaultFrameInCompoundFrame());
     }
     else {
         CompoundAtom& atom = updAtom(Compound::AtomIndex(0));
-        const AtomInfo& atomInfo = getAtomInfo(Compound::AtomIndex(0));
-        assert(atomInfo.isBaseAtom());
+        assert(getAtomInfo(Compound::AtomIndex(0)).isBaseAtom());
         atom.setDefaultFrameInCompoundFrame(location * atom.getDefaultFrameInCompoundFrame());
     }
     return inboardIndex;
@@ -1176,7 +1171,7 @@ Compound::BondCenterIndex CompoundRep::absorbSubcompound(
     std::map<Compound::BondCenterIndex, Compound::BondCenterIndex> parentBondCenterIndicesBySubcompoundBondCenterIndex;
     for (Compound::BondCenterIndex bond(0); bond < subcompound.getNumBondCenters(); ++bond) 
     {
-        const BondCenter&   scBc     = subcompoundRep.getBondCenter(bond);
+        //const BondCenter&   scBc     = subcompoundRep.getBondCenter(bond);
         const BondCenterInfo&     scBcInfo = subcompoundRep.getBondCenterInfo(bond);
 
         const AtomInfo& atomInfo = getAtomInfo(parentAtomIndicesBySubcompoundAtomIndex[scBcInfo.getAtomIndex()]);
@@ -1203,8 +1198,8 @@ Compound::BondCenterIndex CompoundRep::absorbSubcompound(
         const BondInfo&       scBondInfo = subcompoundRep.getBondInfo(bond);
         const BondCenterInfo& scBc1      = subcompoundRep.getBondCenterInfo( scBondInfo.getParentBondCenterIndex() );
         const BondCenterInfo& scBc2      = subcompoundRep.getBondCenterInfo( scBondInfo.getChildBondCenterIndex() );
-        const AtomInfo&       scAtom1    = subcompoundRep.getAtomInfo(scBc1.getAtomIndex());
-        const AtomInfo&       scAtom2    = subcompoundRep.getAtomInfo(scBc2.getAtomIndex());
+        //const AtomInfo&       scAtom1    = subcompoundRep.getAtomInfo(scBc1.getAtomIndex());
+        //const AtomInfo&       scAtom2    = subcompoundRep.getAtomInfo(scBc2.getAtomIndex());
 
         // 2) Index Info relative to parent compound
         const AtomInfo& atom1Info = getAtomInfo(parentAtomIndicesBySubcompoundAtomIndex[scBc1.getAtomIndex()]);
@@ -1219,7 +1214,7 @@ Compound::BondCenterIndex CompoundRep::absorbSubcompound(
             bc2Info.getIndex(),
             scBondInfo.getBond()
             ) );
-        const BondInfo& bondInfo = getBondInfo(bondIndex);
+        //const BondInfo& bondInfo = getBondInfo(bondIndex);
 
         parentBondIndicesBySubcompoundBondIndex[bond] = bondIndex;
 
@@ -2405,9 +2400,9 @@ ResidueInfo::ResidueInfo(ResidueInfo::Index ix,
     : index(ix),
       nameInCompound(name), 
       pdbResidueName(res.getPdbResidueName()), 
+      synonyms(res.getImpl().synonyms),
       pdbResidueNumber(res.getPdbResidueNumber()), 
-      pdbInsertionCode(insertionCode),
-      synonyms(res.getImpl().synonyms)
+      pdbInsertionCode(insertionCode)
 {
     setOneLetterCode(res.getOneLetterCode());
     for (Compound::AtomIndex a(0); a < res.getNumAtoms(); ++a) {
@@ -2476,7 +2471,7 @@ void Biopolymer::assignBiotypes() {
         if (r == 0) residueOrdinality = Ordinality::Initial;
         else if (r == (getNumResidues() - 1)) residueOrdinality = Ordinality::Final;
 
-        ResidueInfo& residue = updResidue(r);
+        //ResidueInfo& residue = updResidue(r);
 
         assignResidueBiotypes(r, residueOrdinality);
     }
@@ -2487,7 +2482,7 @@ ResidueInfo::Index Biopolymer::appendResidue(const String& resName, const Biopol
     ResidueInfo::Index resId(getImpl().residues.size());
     updImpl().residues.push_back(ResidueInfo(resId, resName, r, Compound::AtomIndex(getNumAtoms())));
     updImpl().residueIdsByName[resName] = resId;
-    ResidueInfo& residue = updResidue(resId);
+    //ResidueInfo& residue = updResidue(resId);
 
     // Note that new (empty) residue has already been added to residue count
     if (getNumResidues() <= 1) {
@@ -3015,8 +3010,8 @@ void Protein::loadFromPdbChain(const PdbChain& pdbChain, SimTK::Real targetRms)
 	bool useObservedPointFitter = true;
 	if (useObservedPointFitter) {
         // sherm 100307: Optimizers now use relative tolerance.
-        Real tolerance = .001; // 0.1%
-	Real rmsd = ObservedPointFitter::findBestFit(matchingSystem, state, bodyList, stationList, targetList, tolerance);
+        //Real tolerance = .001; // 0.1%
+	    //Real rmsd = ObservedPointFitter::findBestFit(matchingSystem, state, bodyList, stationList, targetList, tolerance);
         //std::cout << "Rmsd is " << rmsd << std::endl;
 	}
 	else {

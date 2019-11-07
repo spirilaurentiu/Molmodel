@@ -25,7 +25,7 @@ protected:
 
 public:
     // need to traverse bodies in the order they were inserted
-    typedef std::vector< std::vector<AtomSubsystem::AtomIndex> > AtomAtomicBodies;
+    using AtomAtomicBodies = std::vector< std::vector<AtomSubsystem::AtomIndex> >;
 
     friend class AtomSubsystem;
     friend class AtomSubsystem::PairIterator;
@@ -126,8 +126,6 @@ public:
             const std::vector<AtomSubsystem::AtomIndex>& bodyAtoms = atomsByBody[b].atoms;
             for (size_t a(0); a < bodyAtoms.size(); ++a) {
                 AtomSubsystem::AtomIndex atomIx = bodyAtoms[a];
-                const AtomSubsystem::Atom& atom = atoms[atomIx];
-
                 atomVelocityCache[atomIx] = v + w % atomBodyStationCache[a];
             }
         }
@@ -177,8 +175,8 @@ AtomSubsystem::AtomIndex AtomSubsystem::addAtom( mass_t mass )
 AtomSubsystem& 
 AtomSubsystem::setAtomMobilizedBodyIndex(AtomSubsystem::AtomIndex atomIx, MobilizedBodyIndex bodyIx) 
 {
-    MobilizedBodyIndex oldBodyIx = getAtom(atomIx).getMobilizedBodyIndex();
-    assert( ! oldBodyIx.isValid() );
+    // Assert old body index
+    assert( ! getAtom(atomIx).getMobilizedBodyIndex().isValid() );
     
     if (getRep().systemBodyIxToLocalBodyIx.find(bodyIx) == getRep().systemBodyIxToLocalBodyIx.end()) {
         LocalBodyIndex localIndex( getRep().atomsByBody.size() );
@@ -324,15 +322,15 @@ void AtomSubsystem::addBodyExclusion(MobilizedBodyIndex bodyIx1, MobilizedBodyIn
 AtomSubsystem::PairIterator::PairIterator(
         const AtomSubsystem& a, 
         const State& state, 
-        length_t cutoff,
+        length_t cutoffArg,
         NeighborAlgorithm algorithm
     ) :
     atomSubsystem(&a),
     state(&state),
-    cutoffSquared(cutoff * cutoff),
-    cutoff(cutoff),
+    cutoffSquared(cutoffArg * cutoffArg),
+    cutoff(cutoffArg),
     atomsByBody( &(a.getRep().atomsByBody) ), 
-    voxelHash( cutoff, a.getNumAtoms() ),
+    voxelHash( cutoffArg, a.getNumAtoms() ),
     algorithm(algorithm)
 {
     // Decide which algorithm to use; populate bUseVoxelHash

@@ -74,7 +74,7 @@ void testMatchTopLevelTransform()
 
     compound.setBaseAtom( QuadrivalentAtom("A", Element::Carbon()) );
 
-    Vec3 atomLocation = compound.calcDefaultAtomLocationInGroundFrame("A");
+    [[maybe_unused]] Vec3 atomLocation = compound.calcDefaultAtomLocationInGroundFrame("A");
     assert(dot(atomLocation, atomLocation) < 0.1);
 
     CompoundSystem system;

@@ -469,7 +469,7 @@ public:
 
     // Set stretch around the nominal length.
     void setCCStretch(Real stretchInNm, State& s) const {
-        const MobilizedBody& b1 = getMatter().getMobilizedBody(getBodyIndex(1));
+        //const MobilizedBody& b1 = getMatter().getMobilizedBody(getBodyIndex(1));
         assert(b1.getNumU(s) == 2);    // must have been build with Cylinder mobilizer
         const MobilizedBodyIndex CBody = getDuMM().getAtomBody(getC(1));
         const MobilizedBody& b = getMatter().getMobilizedBody(CBody);
@@ -549,8 +549,8 @@ try
     Real outputInterval = .01;
     Real simulationLength = 10;
 
-    const Real torsControlGain = /*100000*/0;
-    const Real desiredTorsAngle = /*Pi/3*/0;
+    //const Real torsControlGain = /*100000*/0;
+    //const Real desiredTorsAngle = /*Pi/3*/0;
 
     Force::UniformGravity gravity(forces, matter, Vec3(0,0,0));
     Force::GlobalDamper(forces, matter, .01);
@@ -704,7 +704,7 @@ try
             Mobilizer::Cartesian());
         mm.attachAtomToBody(i, b, Vec3(0));
     }
-    /**/
+    */
 
     //if (useCartesian && useRigid && wantConstraint) {
     //    int theConstraint =
@@ -791,7 +791,7 @@ try
         ethane.setMobilizerTransform(s, b, 
             Transform(mm.getAtomStationInCluster(i, wholeEthaneEclipsed)));
     }
-    /**/
+    */
 
 
     mm.dump();
@@ -826,7 +826,7 @@ try
     mbs.realize(s);
     const Real Estart = mbs.calcEnergy(s);
 
-    int step = 0; bool flag=false;
+    int step = 0; //bool flag=false;
     while (study.getTime() <= tmax) {
         const State& s = study.getState(); // not the same s as above
         mbs.realize(s);
@@ -872,8 +872,7 @@ EthaneMolecule::EthaneMolecule(MobilizedBodyIndex pIx, const Transform& parentTr
                                MolecularMechanicsSystem& mmSys)
   : MyMolecule(pIx,parentTransform,mmSys)
 {
-    SimbodyMatterSubsystem&  matter = 
-        SimbodyMatterSubsystem::updDowncast(mmSys.updMatterSubsystem());
+    //SimbodyMatterSubsystem&  matter = SimbodyMatterSubsystem::updDowncast(mmSys.updMatterSubsystem());
     DuMMForceFieldSubsystem& mm     = mmSys.updMolecularMechanicsForceSubsystem();
 
     twoCarbons = methyl[0] = methyl[1] = DuMM::InvalidClusterIndex;

@@ -21,12 +21,12 @@ public:
 		const char*  atom4Name,
         Real interval) 
         : PeriodicEventReporter(interval), 
-          torsions(torsions),
           compound(compound),
           atom1Index( compound.getAtomIndex(atom1Name) ),
           atom2Index( compound.getAtomIndex(atom2Name) ),
           atom3Index( compound.getAtomIndex(atom3Name) ),
-          atom4Index( compound.getAtomIndex(atom4Name) )
+          atom4Index( compound.getAtomIndex(atom4Name) ),
+          torsions(torsions)
     {	
     }
 
@@ -145,7 +145,7 @@ int main() { try
 	// Write PDB coordinates to the screen
 	/*
     system.addEventReporter(new PeriodicPdbWriter(system, std::cout, 0.050));
-	/* */
+	*/
     
     system.addEventHandler(
     	new VelocityRescalingThermostat(system, 5000.0, 0.100));
@@ -158,7 +158,7 @@ int main() { try
     /* 
 	system.addEventReporter(
              new PeriodicVmdReporter(system, 0.008, 3001, true) ); 
-    /* */
+    */
 
     system.modelCompounds(); // finalize multibody system
 

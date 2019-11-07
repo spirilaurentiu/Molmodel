@@ -57,7 +57,7 @@ public:
         :   PeriodicEventReporter(reportInterval), system(system), thermo(thermo) {}
 
     void handleEvent(const State& state) const {
-		const SimbodyMatterSubsystem& matter = system.getMatterSubsystem();
+		//const SimbodyMatterSubsystem& matter = system.getMatterSubsystem();
         system.realize(state, Stage::Dynamics);
         const Real pe = system.calcPotentialEnergy(state);
 
@@ -94,7 +94,7 @@ public:
     // the time interval that was provided in the constructor.
     void handleEvent(State& state, Real accuracy, bool& shouldTerminate) const 
     {
-		const SimbodyMatterSubsystem& matter = system.getMatterSubsystem();
+		//const SimbodyMatterSubsystem& matter = system.getMatterSubsystem();
 
         const Real bathT = thermo.getBathTemperature(state);
         if (state.getTime() == 0) {

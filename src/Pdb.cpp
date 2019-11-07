@@ -532,8 +532,8 @@ PdbChain::PdbChain(const Compound& compound,
 {
     int defaultNextResidueNumber = 1;
     std::cout<<__FILE__<<":"<<__LINE__<<" residues.size() : "<<residues.size()<<std::endl;
-    for (int i = 0; i < residues.size(); i++) {
-        std::cout<<__FILE__<<":"<<__LINE__<<" "<<residues[i].getResidueId().residueNumber<<std::endl;
+    for (const auto& residue : residues) {
+        std::cout<<__FILE__<<":"<<__LINE__<<" "<<residue.getResidueId().residueNumber<<std::endl;
     } 
     if (residues.size() > 0)
         defaultNextResidueNumber = residues.back().getResidueId().residueNumber + 1;

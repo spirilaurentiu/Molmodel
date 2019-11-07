@@ -204,7 +204,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
         assert(atomBonds.find(a1) != atomBonds.end());
 
         // Tell subsystem about the bond (including ring closing bonds)
-        DuMM::BondIndex dummId = dumm.addBond(atomBonds[a0].dummAtomIndex, atomBonds[a1].dummAtomIndex);
+        /*DuMM::BondIndex dummId =*/ dumm.addBond(atomBonds[a0].dummAtomIndex, atomBonds[a1].dummAtomIndex);
 
         // store bond info on each atom
         // only store those bonds that are part of the tree structure
@@ -711,7 +711,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
  //   /*
     if (hasDecorationSubsystem()) 
     {
-        DecorationSubsystem&     artwork = updDecorationSubsystem();
+        //DecorationSubsystem&     artwork = updDecorationSubsystem();
         DecorativeLine crossBodyBond; crossBodyBond.setColor(Orange).setLineThickness(5);
         DecorativeLine sameBodyBond; sameBodyBond.setColor(Gray).setLineThickness(3);
 

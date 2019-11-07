@@ -51,7 +51,7 @@ namespace SimTK {
 
 // Store biotype data in this compilation unit, rather than in the biotype class
 
-static void initializePopularBiotypes();
+//static void initializePopularBiotypes();
 
 static std::map<BiotypeIndex, Biotype> biotypesByIndex;
 static std::map<TinkerBiotypeIndex, BiotypeIndex> biotypeIxsByTinkerIndex;

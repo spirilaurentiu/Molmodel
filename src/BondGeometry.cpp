@@ -2,23 +2,25 @@
 
 namespace SimTK {
 
-// Dihedral angles are define in terms of four atomic positions
-// 
-//   1
-//    \
-//     \
-//      2------3
-//              \
-//               \
-//                4
-//
-// calcDihedralAngle returns a dihedral angle in radians, 
-// in the range (-Pi, Pi]
-// given three unit vectors
-// pointing in the direction of the 1->2 axis, the 2->3 axis, and the 3->4 axis, respectively.
-// The answer is unchanged if the order of atoms is reversed from (1,2,3,4) to (4,3,2,1)
-// This method can be used as a helper method for dihedral angles express using either 4 atomic
-// location, or two bond center orientations.
+/*
+    Dihedral angles are define in terms of four atomic positions
+
+    1
+    \
+        \
+        2------3
+                \
+                \
+                4
+
+    calcDihedralAngle returns a dihedral angle in radians, 
+    in the range (-Pi, Pi]
+    given three unit vectors
+    pointing in the direction of the 1->2 axis, the 2->3 axis, and the 3->4 axis, respectively.
+    The answer is unchanged if the order of atoms is reversed from (1,2,3,4) to (4,3,2,1)
+    This method can be used as a helper method for dihedral angles express using either 4 atomic
+    location, or two bond center orientations.
+*/
 Angle calcDihedralAngle(const UnitVec3& bond12, const UnitVec3& bond23, const UnitVec3& bond34)
 {
     // 12 and 34 vectors must not be colinear with 23

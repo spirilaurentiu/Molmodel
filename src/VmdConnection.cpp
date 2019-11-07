@@ -26,10 +26,10 @@ static bool debugVmdConnection = true;
 
 namespace SimTK {
 
-VmdConnection::VmdConnection(int portNumber)
-:   socket(NULL),
-    clientSocket(NULL),
-    socketNumber(portNumber)
+VmdConnection::VmdConnection(int portNumber) :
+    socketNumber(portNumber),
+    socket(NULL),
+    clientSocket(NULL)
 {
     if (debugVmdConnection)
         cerr << "Opening socket connection to VMD on port " << portNumber << "..." << endl;

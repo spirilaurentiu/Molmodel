@@ -385,7 +385,7 @@ class HarmonicBondStretch
 {
 public:
     HarmonicBondStretch(Real stiffness, Real idealLength)
-        : stiffness(stiffness), idealLength(idealLength)
+        : idealLength(idealLength), stiffness(stiffness)
     {}
 
     Real calcEnergy(Real length) const {
@@ -599,7 +599,7 @@ class HarmonicBondBend
 {
 public:
     HarmonicBondBend(Real stiffnessInKJPerNmSquared, Real idealAngleInRadians)
-        : stiffness(stiffnessInKJPerNmSquared), idealAngle(idealAngleInRadians)
+        : idealAngle(idealAngleInRadians), stiffness(stiffnessInKJPerNmSquared)
     {}
 
     Real calcEnergy(Real angle) const {

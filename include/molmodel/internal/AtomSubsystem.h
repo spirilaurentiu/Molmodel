@@ -180,15 +180,18 @@ class AtomSubsystem::PairIterator
         : public std::iterator<std::forward_iterator_tag, std::pair<AtomSubsystem::AtomIndex, AtomSubsystem::AtomIndex> >
 {
 public:
-    typedef std::pair<AtomIndex, AtomIndex> Pair;
+    using Pair = std::pair<AtomIndex, AtomIndex>;
 
 private:
-    Pair currentPair;
     const AtomSubsystem* atomSubsystem;
     const State* state;
-    length_t cutoff;
     area_t cutoffSquared;
+    length_t cutoff;
     const AtomicBodies* atomsByBody;
+    VoxelHash<AtomSubsystem::AtomIndex> voxelHash; // for use in O(n) neighbor list
+    NeighborAlgorithm algorithm;
+
+    Pair currentPair;
     AtomicBodies::const_iterator body1;
     AtomicBodies::const_iterator body2;
     AtomIndexList::const_iterator atom1;
@@ -197,10 +200,8 @@ private:
     // So use an index for atom2, instead of an iterator
     // (body1, body2, and atom1 iterators always refer to atomsByBody pointee, and thus remain valid)
     size_t atom2Index;
-
-    NeighborAlgorithm algorithm;
     bool bUseVoxelHash;
-    VoxelHash<AtomSubsystem::AtomIndex> voxelHash; // for use in O(n) neighbor list
+    
     std::set<AtomicBodies::const_iterator> pendingBodies;
     AtomIndexList currentNeighborAtoms;
     

@@ -77,7 +77,7 @@ mol_ChainAtomsGet (MolChain *chain, int *p_num, int **p_list)
 
   int *list;
 
-  MolChainTerm *terms;
+  //MolChainTerm *terms;
 
   int num_atoms;
 
@@ -190,13 +190,11 @@ mol_ChainResiduesGet (MolChain *chain, int *p_num, MolResidue ***p_list)
 
   MolResidue *res, **list;
 
-  char chain_id;
+  //char chain_id;
 
   int i, n;
 
-  int begin, end, rindex; 
-
-  MolResName *names;
+  //MolResName *names;
 
  /**************
   ***  body  ***
@@ -208,9 +206,7 @@ mol_ChainResiduesGet (MolChain *chain, int *p_num, MolResidue ***p_list)
     }
 
   num = chain->residues.num;
-  begin = chain->residues.begin;
-  end = chain->residues.end;
-  rindex = chain->residues.index;
+  int rindex = chain->residues.index;
   mem_Alloc (list, num, chain->model, MolResidue**);
 
   mol_StructureResiduesGet (chain->struc, chain->type, &num_res, &res);
@@ -342,12 +338,12 @@ mol_ResTypeConv (char *s, MolResidueType *type)
 
   if ((s[1] == ' ') &&
       (s[2] == ' '))  { 
-      s[1] = NULL;    // dropping a null here terminates the string.  This gets rid of trailing whitespace.
+      s[1] = '\0';    // dropping a null here terminates the string.  This gets rid of trailing whitespace.
   }
 
   if (s[2] == ' ')  // scf added a second block to get rid of third whitespace in case residue name has two characters only, and uses the first two character slots.  Relevant for DNA (DA, DT, DG, DC).
   { 
-      s[2] = NULL;    // dropping a null here terminates the string.  This gets rid of trailing whitespace.
+      s[2] = '\0';    // dropping a null here terminates the string.  This gets rid of trailing whitespace.
   }
 
   if (strlen(s) == 1) {
@@ -584,19 +580,19 @@ mol_StructureChainsBuild (MolStructure *struc, int type)
 
   int i, j;
 
-  int num;
+  //int num;
 
   int num_chains;
 
   char chain_id, chain_ids[100];
 
-  MolChain *chains;
+  //MolChain *chains;
 
   int ibegin, iend, chain_index[100][4];
 
-  int num_atoms;
+  int num_atoms = 0; // TODO what is the correct value for initialization
 
-  MolAtom *atoms;
+  MolAtom *atoms = nullptr; // TODO check below before accessing memory from this pointer
 
   int num_res, num_chain_res, num_res_atoms;
 
@@ -612,9 +608,9 @@ mol_StructureChainsBuild (MolStructure *struc, int type)
 
   MolChain *chain;
 
-  int new_res;
+  //int new_res;
 
-  static const char *fn = "mol_StructureChainsBuild";
+  //static const char *fn = "mol_StructureChainsBuild";
 
  /**************
   ***  body  ***
@@ -848,9 +844,9 @@ mol_StructureHelixAdd (MolStructure *struc, MolHelix *helix)
 
   int num;
 
-  float x, y, z;
+  //float x, y, z;
 
-  MolAtom *atoms;
+  //MolAtom *atoms;
 
  /**************
   ***  body  ***
@@ -907,7 +903,7 @@ void
 mol_StructureResiduesGet (MolStructure *struc, int type, int *num_res, MolResidue **res)
   {
 
-  char id;
+  //char id;
 
  /**************
   ***  body  ***
@@ -1154,7 +1150,8 @@ mol_DbGromacsRead (MolModel *model, FILE *fp)
 
   char line[1000];
 
-  int i, j, n;
+  int i, j;
+  //int n;
 
   MolStructure *struc;
 
@@ -1162,26 +1159,28 @@ mol_DbGromacsRead (MolModel *model, FILE *fp)
 
   int atom_id, res_id;
 
-  char *s, c, res_name[10], atom_name[10];
+  char *s, res_name[10], atom_name[10];
+  //char c;
 
-  float x, y, z, vx, vy, vz;
+  float x, y, z;
+  //float vx, vy, vz;
 
   MolAtom atom;
 
-  static const char *fmt = "%5d %5s %5s %5d %8.3f% 8.3f %8.3f ";
+  //static const char *fmt = "%5d %5s %5s %5d %8.3f% 8.3f %8.3f ";
 
  /**************
   ***  body  ***
   **************/
 
-  char* retp; // to avoid warnings
-  retp=fgets (line, 1000, fp);
-  retp=fgets (line, 1000, fp);
+  // to avoid warnings
+  [[maybe_unused]] auto read = fgets (line, 1000, fp);
+  read = fgets (line, 1000, fp);
   num_atoms = atoi (line);
   mol_MolModelCurrStrucGet (model, &struc);
 
   for (i = 0; i < num_atoms; i++) {
-    retp = fgets (line, 1000, fp);
+    read = fgets (line, 1000, fp);
     mol_DbRecordIntGet (line, 1, 5, &res_id);
     mol_DbRecordStrGet (line, 6, 10, res_name);
     mol_DbRecordStrGet (line, 11, 15, atom_name);
@@ -1213,7 +1212,8 @@ mol_DbGromacsRead (MolModel *model, FILE *fp)
 
     /* get atom element  */
 
-    for (j = 0; j < strlen(atom_name); j++) {
+    const int len = static_cast<int>(strlen(atom_name));
+    for (j = 0; j < len; j++) {
       if (atom_name[j] != ' ') {
         mol_AtomTypeConv (atom_name+j, &atom.type);
         break;
@@ -1285,7 +1285,8 @@ mol_DbLineStrip (char *s)
   ***  body  ***
   **************/
 
-  for (i = 0, n = 0; i < strlen(s); i++) {
+  const int len = static_cast<int>(strlen(s));
+  for (i = 0, n = 0; i < len; i++) {
     if (n != 0) {
       s[n++] = s[i];
       }
@@ -1330,7 +1331,7 @@ void
 mol_DbPdbCompProc (FILE *fp, char *line, MolModel *model)
   {
 
-  char *s;
+  //char *s;
 
  /**************
   ***  body  ***
@@ -1351,7 +1352,7 @@ void
 mol_DbPdbHelixProc (FILE *fp, char *line, MolModel *model)
   {
 
-  char str[80];
+  //char str[80];
 
   MolStructure *struc;
 
@@ -1388,23 +1389,22 @@ mol_DbPdbHelixProc (FILE *fp, char *line, MolModel *model)
 
 void
 mol_DbPdbSeqresProc (FILE *fp, char *line, MolModel *model)
-  {
-
-  MolStructure *struc;
+{
+  //MolStructure *struc;
 
   int res_seq;
   
-  char insertion_code;
+  //char insertion_code;
 
   int num_res, n;
 
-  char chain_id;
+  //char chain_id;
 
   char *s, str[80];
 
   MolResName *residues;
 
-  MolChain *chain;
+  //MolChain *chain;
 
  /**************
   ***  body  ***
@@ -1412,7 +1412,7 @@ mol_DbPdbSeqresProc (FILE *fp, char *line, MolModel *model)
 
   mol_DbRecordIntGet (line, 9,  10, &res_seq);
   mol_DbRecordIntGet (line, 14, 17, &num_res);
-  chain_id = line[11];
+  //auto chain_id = line[11];
   mem_Alloc (residues, num_res, model, MolResName*);
   n = 0;
 
@@ -1528,7 +1528,7 @@ void
 mol_DbPdbSheetProc (FILE *fp, char *line, MolModel *model)
   {
 
-  char str[80];
+  //char str[80];
 
   MolStructure *struc;
 
@@ -1575,7 +1575,7 @@ mol_DbPdbAtomProc (FILE *fp, char *line, MolModel *model)
 
   char str[80], aa_name[4];
 
-  int n, i;
+  //int n, i;
 
   MolAtom atom;
 
@@ -1639,18 +1639,18 @@ mol_DbPdbAtomProc (FILE *fp, char *line, MolModel *model)
 void
 mol_DbPdbConectProc (FILE *fp, char *line, MolModel *mol)
   {
-
+/*
   char *s;
 
   int n;
 
   int conn[1000];
-
+*/
  /**************
   ***  body  ***
   **************/
-
-  return;
+/*
+  return; // What is this?
   s = strtok (line, " ");
   s = strtok (NULL, " ");
   n = 0;
@@ -1660,7 +1660,6 @@ mol_DbPdbConectProc (FILE *fp, char *line, MolModel *mol)
     s = strtok (NULL, " ");
     }
 
-/*
   mol_MolAtomConnAdd (mol, n, conn);
 */
   }
@@ -1697,13 +1696,12 @@ void
 mol_DbStrParse (char *line, char *val)
   {
 
-  int i, j;
-
  /**************
   ***  body  ***
   **************/
 
-  for (i = 0; i < strlen(line); ++i) {
+  const int len = static_cast<int>(strlen(line));
+  for (int i = 0; i < len; ++i) {
     if (line[i] == '"') {
       break;
       }
@@ -1774,9 +1772,9 @@ mol_DbMolSurfRead (char *file_name, MolSurface *surf)
 
   FILE *fp;
 
-  char line[1000];
+  //char line[1000];
 
-  int n, i;
+  //int n, i;
 
  /**************
   ***  body  ***
@@ -1807,17 +1805,17 @@ mol_DbMolSurfParse (FILE *fp, MolSurface *surf)
 
   int num_verts;
 
-  MolPoint3 *verts;
+  MolPoint3 *verts = nullptr;
 
   int num_tri;
 
-  MolIntPoint3 *conn;
+  MolIntPoint3 *conn = nullptr;
 
   char *s, line[1000];
 
   char name[1000];
 
-  int n, i, id;
+  int i, id;
 
  /**************
   ***  body  ***
@@ -1845,7 +1843,7 @@ mol_DbMolSurfParse (FILE *fp, MolSurface *surf)
       mol_DbLineGet (fp, line);
 
       for (i = 0; i < num_verts; i++) {
-        int nn=fscanf (fp, "%d %f %f %f \n", &id, &verts[i][0], &verts[i][1], &verts[i][2]);
+        [[maybe_unused]] auto nn = fscanf (fp, "%d %f %f %f \n", &id, &verts[i][0], &verts[i][1], &verts[i][2]);
         verts[i][0] *= 0.1;
         verts[i][1] *= 0.1;
         verts[i][2] *= 0.1;
@@ -1860,7 +1858,7 @@ mol_DbMolSurfParse (FILE *fp, MolSurface *surf)
       mol_DbLineGet (fp, line);
 
       for (i = 0; i < num_tri; i++) {
-        int nn=fscanf (fp, "%d %d %d %d \n", &id, &conn[i][0], &conn[i][1], &conn[i][2]);
+        [[maybe_unused]] auto nn = fscanf (fp, "%d %d %d %d \n", &id, &conn[i][0], &conn[i][1], &conn[i][2]);
         }
 
       mol_DbLineGet (fp, line);
@@ -1903,14 +1901,13 @@ mol_DbMolSurfBinRead (FILE *fp, MolSurface *surf)
   ***  body  ***
   **************/
 
-  size_t nRead; // to avoid warnings
-  nRead=fread (&num_verts, sizeof(int), 1, fp);
-  nRead=fread (&num_tri, sizeof(int), 1, fp);
+  [[maybe_unused]] auto read = fread (&num_verts, sizeof(int), 1, fp);
+  read = fread (&num_tri, sizeof(int), 1, fp);
   mem_Alloc (verts, num_verts, NULL, MolPoint3*);
-  nRead=fread (verts, sizeof(MolPoint3), num_verts, fp);
+  read = fread (verts, sizeof(MolPoint3), num_verts, fp);
 
   mem_Alloc (conn, num_tri, NULL, MolIntPoint3*);
-  nRead=fread (conn, sizeof(MolIntPoint3), num_tri, fp);
+  read = fread (conn, sizeof(MolIntPoint3), num_tri, fp);
 
   surf->num_verts = num_verts; 
   surf->verts = verts; 
@@ -1937,7 +1934,7 @@ mol_MemCallocFunc (const char *name, const char *file, int line, unsigned num, u
 
   void *p;
 
-  int pid;
+  //int pid;
 
  /**************
   ***  body  ***
@@ -1975,7 +1972,7 @@ mol_MemReallocFunc (const char *name, const char *file, int line, void *ptr, uns
 
   void *p;
 
-  int pid;
+  //int pid;
 
  /**************
   ***  body  ***
@@ -2042,9 +2039,9 @@ mol_msg (const char *format, ...)
 
   float fa;
 
-  char *sa, *fn;
+  char *sa/*, *fn*/;
 
-  char des[3], msg[1000], gui_msg[1000], str[1000], tf[1000];
+  char des[3], msg[1000], /*gui_msg[1000],*/ str[1000], tf[1000];
 
   int n;
 

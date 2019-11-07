@@ -125,9 +125,10 @@ public:
     {}
 
     Bond(mdunits::Length l, Angle t, bool isRingClosing) :
-            defaultLength(l), defaultDihedral(t), 
-            // amRotatable(true), 
-            mobility(BondMobility::Default),
+        defaultDihedral(t),
+        defaultLength(l), 
+        // amRotatable(true), 
+        mobility(BondMobility::Default),
             amRingClosingBond(isRingClosing)
     {}
 
@@ -301,6 +302,9 @@ public:
 
         }
 
+        // Shouldn't get here but compiler keeps complaining
+        assert(false);
+        return 0;
     }
 
     // GMOL

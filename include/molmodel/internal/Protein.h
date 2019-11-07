@@ -325,7 +325,7 @@ public:
         static const mdunits::Length H_Sdistance = 0.1336;
         static const mdunits::Length S_Cdistance = 0.1810;
         static const Angle H_S_Cangle = 96.0*Deg2Rad;
-        static const Angle S_C_Cangle = 108.6*Deg2Rad;
+        //static const Angle S_C_Cangle = 108.6*Deg2Rad;
 
         bondAtom(BivalentAtom("SG", Element::Sulfur(), H_S_Cangle), "bondCB", S_Cdistance, 180*Deg2Rad);
         bondAtom(UnivalentAtom("HG", Element::Hydrogen()), "SG/bond2", H_Sdistance, 180*Deg2Rad);
@@ -350,13 +350,13 @@ public:
         : AminoAcidResidue::BetaUnbranchedAminoAcidResidue("disulphidebridgedcysteine", "Cyx", 'X') // Note single letter code is 'X' rather than 'C' which is used for non-bridged cystein.
     {
         // From amber99 parameters in Tinker param file amber99.dat
-        static const mdunits::Length H_Sdistance = 0.1336;
+        //static const mdunits::Length H_Sdistance = 0.1336;
         static const mdunits::Length S_Cdistance = 0.1810;
         // won't need this anymore:
         //static const Angle H_S_Cangle = 96.0*Deg2Rad;
         // from the Amber99 parameters: angle        1   26   26     68.00     103.70
         static const Angle S_S_Cangle = 103.70*Deg2Rad;
-        static const Angle S_C_Cangle = 108.6*Deg2Rad;
+        //static const Angle S_C_Cangle = 108.6*Deg2Rad;
 
         // Putting 90 degrees here, though it's not clear the PARM99 potential has its minimum there.
         bondAtom(BivalentAtom("SG", Element::Sulfur(), S_S_Cangle), "bondCB", S_Cdistance,  90*Deg2Rad);
@@ -491,7 +491,7 @@ public:
         static const mdunits::Length CB_CGdistance = 0.15040; // from tinker amber99.dat
         static const mdunits::Length CG_NDdistance = 0.13895; // average of protonation states 1385/1394
         static const mdunits::Length N_CEdistance = 0.13390; // average of protonation states 1343/1335
-        static const mdunits::Length NE_CDdistance = 0.13875; // avg 1394/1381
+        //static const mdunits::Length NE_CDdistance = 0.13875; // avg 1394/1381
         static const mdunits::Length CD_CGdistance = 0.1373; // avg 1371/1375
         static const mdunits::Length H_Cdistance = 0.1080;
         static const mdunits::Length H_Ndistance = 0.1010;

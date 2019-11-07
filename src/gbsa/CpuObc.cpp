@@ -552,8 +552,8 @@ public:
                   RealOpenMM&               obcEnergy,
                   RealOpenMM                preFactor)
     :   bornRadii(bornRadii), atomCoordinates(atomCoordinates), partialCharges(partialCharges),
-        forces(forces), bornForces(bornForces), obcEnergy(obcEnergy), preFactor(preFactor),
-        one((RealOpenMM) 1.0), four((RealOpenMM) 4.0), half((RealOpenMM) 0.5), fourth((RealOpenMM) 0.25) {
+        obcEnergy(obcEnergy), bornForces(bornForces), forces(forces),
+        one((RealOpenMM) 1.0), four((RealOpenMM) 4.0), half((RealOpenMM) 0.5), fourth((RealOpenMM) 0.25), preFactor(preFactor) {
     }
     void initialize() {
         energy = 0.0;
@@ -651,8 +651,8 @@ public:
         RealOpenMM*                 bornForces,
         RealOpenMM                  dielectricOffs)
     :   atomicRadii(atomicRadii), atomCoordinates(atomCoordinates), partialCharges(partialCharges),
-        scaledRadiusFactor(scaledRadiusFactor), forces(forces), bornForces(bornForces), dielectricOffset(dielectricOffs),
-        one((RealOpenMM) 1.0), fourth((RealOpenMM) 0.25), eighth((RealOpenMM) 0.125)
+        scaledRadiusFactor(scaledRadiusFactor), bornForces(bornForces), forces(forces),
+        one((RealOpenMM) 1.0), fourth((RealOpenMM) 0.25), eighth((RealOpenMM) 0.125), dielectricOffset(dielectricOffs)
     {
     }
 
@@ -748,13 +748,13 @@ int CpuObc::computeBornEnergyForces( const RealOpenMM*          bornRadii,
    // static const char* methodName = "\nCpuObc::computeBornEnergyForces";
 
    static const RealOpenMM zero    = (RealOpenMM) 0.0;
-   static const RealOpenMM one     = (RealOpenMM) 1.0;
-   static const RealOpenMM two     = (RealOpenMM) 2.0;
-   static const RealOpenMM three   = (RealOpenMM) 3.0;
-   static const RealOpenMM four    = (RealOpenMM) 4.0;
-   static const RealOpenMM half    = (RealOpenMM) 0.5;
-   static const RealOpenMM fourth  = (RealOpenMM) 0.25;
-   static const RealOpenMM eighth  = (RealOpenMM) 0.125;
+   // static const RealOpenMM one     = (RealOpenMM) 1.0;
+   // static const RealOpenMM two     = (RealOpenMM) 2.0;
+   // static const RealOpenMM three   = (RealOpenMM) 3.0;
+   // static const RealOpenMM four    = (RealOpenMM) 4.0;
+   // static const RealOpenMM half    = (RealOpenMM) 0.5;
+   // static const RealOpenMM fourth  = (RealOpenMM) 0.25;
+   // static const RealOpenMM eighth  = (RealOpenMM) 0.125;
 
    // ---------------------------------------------------------------------------------------
 
@@ -770,7 +770,7 @@ int CpuObc::computeBornEnergyForces( const RealOpenMM*          bornRadii,
    // constants
 
    const RealOpenMM preFactor           = obcParameters->getPreFactor();
-   const RealOpenMM electricConstant    = obcParameters->getElectricConstant();
+   // const RealOpenMM electricConstant    = obcParameters->getElectricConstant();
    const RealOpenMM dielectricOffset    = obcParameters->getDielectricOffset();
 
    // ---------------------------------------------------------------------------------------
@@ -825,9 +825,9 @@ int CpuObc::computeBornEnergyForces( const RealOpenMM*          bornRadii,
    RealOpenMM* obcChain                  = getObcChain();
    const RealOpenMM* atomicRadii         = obcParameters->getAtomicRadii();
 
-   const RealOpenMM alphaObc             = obcParameters->getAlphaObc();
-   const RealOpenMM betaObc              = obcParameters->getBetaObc();
-   const RealOpenMM gammaObc             = obcParameters->getGammaObc();
+   // const RealOpenMM alphaObc             = obcParameters->getAlphaObc();
+   // const RealOpenMM betaObc              = obcParameters->getBetaObc();
+   // const RealOpenMM gammaObc             = obcParameters->getGammaObc();
    const RealOpenMM* scaledRadiusFactor  = obcParameters->getScaledRadiusFactors();
 
     // compute factor that depends only on the outer loop index
@@ -1140,7 +1140,7 @@ FILE* logFile = fopen( "bF", "w" );
    // constants
 
    const RealOpenMM preFactor           = obcParameters->getPreFactor();
-   const RealOpenMM electricConstant    = obcParameters->getElectricConstant();
+   // const RealOpenMM electricConstant    = obcParameters->getElectricConstant();
    const RealOpenMM dielectricOffset    = obcParameters->getDielectricOffset();
 
    // ---------------------------------------------------------------------------------------

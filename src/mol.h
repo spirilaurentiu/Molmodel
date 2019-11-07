@@ -214,8 +214,9 @@ static const char *mol_res_names[MOL_RESIDUE_MAX_NUM+1][3] = {
 
 
 
- static MolResiduePropType mol_res_props[MOL_RESIDUE_MAX_NUM] = {
-    MOL_RESIDUE_PROP_UNKNOWN,
+// This table is used elswhere in the program. Quick fix to quiet the compiler.
+// Marked as TODO because there might be another solution.
+[[maybe_unused]] static MolResiduePropType mol_res_props[MOL_RESIDUE_MAX_NUM] = {
     MOL_RESIDUE_PROP_HYDROPHOBIC,    /* ala  */
     MOL_RESIDUE_PROP_BASIC,          /* arg  */
     MOL_RESIDUE_PROP_POLAR,          /* asn  */
@@ -528,7 +529,9 @@ mol_DbPdbSeqresProc (FILE *fp, char *line, MolModel *model),
 mol_DbPdbSheetProc (FILE *fp, char *line, MolModel *model),
 mol_DbPdbTerProc (FILE *fp, char *line, MolModel *model);
 
-static MolDbProc  pdb_table[] = {
+// This table is used elswhere in the program. Quick fix to quiet the compiler.
+// Marked as TODO because there might be another solution.
+[[maybe_unused]] static MolDbProc  pdb_table[] = {
     {"atom",     mol_DbPdbAtomProc},
     {"compnd",   mol_DbPdbCompProc},
     {"conect",   mol_DbPdbConectProc},
@@ -546,11 +549,13 @@ static MolDbProc  pdb_table[] = {
  *============================================================*/
 
 
-//#define mem_Alloc(ptr, num, model) (ptr) = static_cast<typeof(ptr)>(mol_MemCallocFunc(#ptr, __FILE__, __LINE__,\
-//                                                   (num), sizeof(*(ptr)), model))
-//
-//#define mem_Realloc(ptr,num,model) (ptr) = static_cast<typeof(ptr)>(mol_MemReallocFunc(#ptr, __FILE__, __LINE__, \
-//                                                      (ptr), (num)*sizeof(*(ptr)), model))
+/*
+#define mem_Alloc(ptr, num, model) (ptr) = static_cast<typeof(ptr)>(mol_MemCallocFunc(#ptr, __FILE__, __LINE__,\
+                                                   (num), sizeof(*(ptr)), model))
+
+#define mem_Realloc(ptr,num,model) (ptr) = static_cast<typeof(ptr)>(mol_MemReallocFunc(#ptr, __FILE__, __LINE__, \
+                                                      (ptr), (num)*sizeof(*(ptr)), model))
+*/
 
 // On windows, future standard keyword "typeof" is not recognized
 #define mem_Alloc(ptr, num, model, type) (ptr) = static_cast<type>(mol_MemCallocFunc(#ptr, __FILE__, __LINE__,\

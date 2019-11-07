@@ -121,7 +121,7 @@ class ImplicitSolventParameters {
       
          --------------------------------------------------------------------------------------- */
     
-       ~ImplicitSolventParameters( );
+      virtual ~ImplicitSolventParameters( ); // TODO is this correct?
 
       // override of new/delete
 

@@ -807,7 +807,7 @@ void DuMMForceFieldSubsystem::defineAmberImproperTorsion
 }
 
 void DuMMForceFieldSubsystem::setVdwMixingRule(VdwMixingRule rule) {
-    static const char* MethodName = "setVdwMixingRule";
+    //static const char* MethodName = "setVdwMixingRule";
 
     invalidateSubsystemTopologyCache();
 
@@ -817,7 +817,7 @@ void DuMMForceFieldSubsystem::setVdwMixingRule(VdwMixingRule rule) {
 
 DuMMForceFieldSubsystem::VdwMixingRule 
 DuMMForceFieldSubsystem::getVdwMixingRule() const {
-    static const char* MethodName = "getVdwMixingRule";
+    //static const char* MethodName = "getVdwMixingRule";
     const DuMMForceFieldSubsystemRep& mm = getRep();
     return mm.vdwMixingRule; 
 }
@@ -1088,7 +1088,7 @@ Real DuMMForceFieldSubsystem::getSoluteDielectric() const {
 
 void DuMMForceFieldSubsystem::setGbsaIncludeAceApproximation(bool doInclude)
 {
-    static const char* MethodName = "setGbsaIncludeAceApproximation";
+    //static const char* MethodName = "setGbsaIncludeAceApproximation";
 
     invalidateSubsystemTopologyCache();
 
@@ -1208,9 +1208,8 @@ includeAllInterbodyBondsBetweenTwoBodies
 
 int DuMMForceFieldSubsystem::
 getNumIncludedAtoms() const {
-    static const char* MethodName = "getNumIncludedAtoms";
     SimTK_STAGECHECK_TOPOLOGY_REALIZED_ALWAYS(subsystemTopologyHasBeenRealized(),
-        MethodName, "Subsystem", "DuMMForceFieldSubsystem");
+        "getNumIncludedAtoms", "Subsystem", "DuMMForceFieldSubsystem");
     return getRep().getNumIncludedAtoms();
 }
 
@@ -1218,20 +1217,18 @@ DuMM::AtomIndex DuMMForceFieldSubsystem::
 getAtomIndexOfIncludedAtom
    (DuMM::IncludedAtomIndex incAtomIndex) const 
 {
-    static const char* MethodName = "getAtomIndexOfIncludedAtom";
     // Don't check in Release mode since this might get called a lot and
     // presumably we just checked in getNumIncludedAtoms().
     SimTK_STAGECHECK_TOPOLOGY_REALIZED(subsystemTopologyHasBeenRealized(),
-        MethodName, "Subsystem", "DuMMForceFieldSubsystem");
+        "getAtomIndexOfIncludedAtom", "Subsystem", "DuMMForceFieldSubsystem");
 
     return getRep().getAtomIndexOfIncludedAtom(incAtomIndex);
 }
 
 int DuMMForceFieldSubsystem::
 getNumNonbondAtoms() const {
-    static const char* MethodName = "getNumNonbondAtoms";
     SimTK_STAGECHECK_TOPOLOGY_REALIZED_ALWAYS(subsystemTopologyHasBeenRealized(),
-        MethodName, "Subsystem", "DuMMForceFieldSubsystem");
+        "getNumNonbondAtoms", "Subsystem", "DuMMForceFieldSubsystem");
     return getRep().getNumNonbondAtoms();
 }
 
@@ -1239,11 +1236,10 @@ DuMM::IncludedAtomIndex DuMMForceFieldSubsystem::
 getIncludedAtomIndexOfNonbondAtom
    (DuMM::NonbondAtomIndex nbAtomIndex) const 
 {
-    static const char* MethodName = "getIncludedAtomIndexOfNonbondAtom";
     // Don't check in Release mode since this might get called a lot and
     // presumably we just checked in getNumNonbondAtoms().
     SimTK_STAGECHECK_TOPOLOGY_REALIZED(subsystemTopologyHasBeenRealized(),
-        MethodName, "Subsystem", "DuMMForceFieldSubsystem");
+        "getIncludedAtomIndexOfNonbondAtom", "Subsystem", "DuMMForceFieldSubsystem");
 
     return getRep().getIncludedAtomIndexOfNonbondAtom(nbAtomIndex);
 }
@@ -1788,7 +1784,9 @@ DuMM::ClusterIndex DuMMForceFieldSubsystem::bgetMobodClusterIndex(MobilizedBodyI
     }
   }
 
-
+  // Should never get here, but the compiler keeps complaining.
+  assert(false);
+  return {};
 }
 // EU END
 
@@ -2366,7 +2364,7 @@ void DuMMForceFieldSubsystem::populateFromTinkerParameterFile(std::istream& tink
             // Separate residue name from ordinality indicator
             // case of "Acetyl N-Terminus"
             // Handle "N-Terminal GLY"
-            int pos1 = residueName.find("N-Term");
+            auto pos1 = residueName.find("N-Term");
             if (pos1 != std::string::npos) {
                 ordinality = Ordinality::Initial;
 

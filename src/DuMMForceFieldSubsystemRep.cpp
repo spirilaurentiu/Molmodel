@@ -377,7 +377,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         }
     }
     for (DuMM::AtomIndex ax(0); ax < atoms.size(); ++ax) {
-        const DuMMAtom& a = getAtom(ax);
+        //const DuMMAtom& a = getAtom(ax);
         assert(a.isAttachedToBody()); // TODO catch unassigned atoms
     }
 
@@ -659,10 +659,12 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         if (bonds3Atoms.isValid() &&
             (   atoms[bonds3Atoms[0]].mobodIx != a.mobodIx
              || atoms[bonds3Atoms[1]].mobodIx != a.mobodIx
-             || atoms[bonds3Atoms[2]].mobodIx != a.mobodIx))
-            x.xbonds3Atoms = bonds3Atoms;
-	    if (bonds3Atoms.isValid())
-	        x.xbonds3AtomsAll = bonds3Atoms;
+             || atoms[bonds3Atoms[2]].mobodIx != a.mobodIx)) {
+                 x.xbonds3Atoms = bonds3Atoms;
+             }
+	    if (bonds3Atoms.isValid()) {
+            x.xbonds3AtomsAll = bonds3Atoms;
+        }
 
 
         // By default, or if this atom or its body are on the "must include"
@@ -885,8 +887,9 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
             for (int j=0; j < (int)shortPath13.size(); ++j) {
                 if (!atoms[shortPath13[j][1]].isNonbondAtom()) continue;
                 if (   atoms[shortPath13[j][0]].mobodIx != a.mobodIx
-                    || atoms[shortPath13[j][1]].mobodIx != a.mobodIx)
-                    x.xshortPath13.push_back(shortPath13[j]);
+                    || atoms[shortPath13[j][1]].mobodIx != a.mobodIx) {
+                        x.xshortPath13.push_back(shortPath13[j]);
+                    }
 	            x.xshortPath13All.push_back( shortPath13[j] );
             }
 
@@ -895,8 +898,9 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
                 if (!atoms[shortPath14[j][2]].isNonbondAtom()) continue;
                 if (   atoms[shortPath14[j][0]].mobodIx != a.mobodIx
                     || atoms[shortPath14[j][1]].mobodIx != a.mobodIx
-                    || atoms[shortPath14[j][2]].mobodIx != a.mobodIx)
-                    x.xshortPath14.push_back(shortPath14[j]);
+                    || atoms[shortPath14[j][2]].mobodIx != a.mobodIx) {
+                        x.xshortPath14.push_back(shortPath14[j]);
+                    }
 	            x.xshortPath14All.push_back(shortPath14[j]);
             }
 
@@ -2346,8 +2350,8 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
         return; // nothing to do
 
     // Get access to the matter subsystem so we can access the bodies.
-    const MultibodySystem&        mbs    = getMultibodySystem();
-    const SimbodyMatterSubsystem& matter = mbs.getMatterSubsystem();
+    // const MultibodySystem&        mbs    = getMultibodySystem();
+    //const SimbodyMatterSubsystem& matter = mbs.getMatterSubsystem();
 
     // These are the DuMM-local cache entries that we're going to fill in here.
     Vector_<Vec3>&          inclAtomForce_G  = updIncludedAtomForceCache(s);
@@ -2742,7 +2746,7 @@ static inline void vdwCombineKong(
 // Radii and returned diameter are given in nm, energies in kJ/mol.
 void DuMMForceFieldSubsystemRep::applyMixingRule(Real ri, Real rj, Real ei, Real ej, Real& dmin, Real& emin) const
 {
-    Real rmin;
+    Real rmin = 0;
 
     switch(vdwMixingRule) {
     case DuMMForceFieldSubsystem::WaldmanHagler:
@@ -2873,7 +2877,7 @@ void DuMMForceFieldSubsystemRep::setBiotypeChargedAtomType(DuMM::ChargedAtomType
     // OK if value is already populated
     if (chargedAtomTypesByBiotype.find(biotypeIx) != chargedAtomTypesByBiotype.end())
     {
-        DuMM::ChargedAtomTypeIndex oldId = chargedAtomTypesByBiotype.find(biotypeIx)->second;
+        [[maybe_unused]] const auto oldId = chargedAtomTypesByBiotype.find(biotypeIx)->second;
         assert(oldId == chargedAtomTypeIndex);
     }
 
@@ -3236,8 +3240,7 @@ void Cluster::placeCluster(DuMM::ClusterIndex childClusterIndex,
     // Make sure none of the child's atoms are already in the parent.
     AtomPlacementSet::const_iterator ap = childsAtoms.begin();
     while (ap != childsAtoms.end()) {
-        std::pair<AtomPlacementSet::iterator, bool> ret =
-            parentsAtoms.insert(AtomPlacement(ap->atomIndex, placement*ap->station));
+        [[maybe_unused]] auto ret = parentsAtoms.insert(AtomPlacement(ap->atomIndex, placement*ap->station));
         assert(ret.second); // mustn't have been there already
         ++ap;
     }
@@ -3248,8 +3251,7 @@ void Cluster::placeCluster(DuMM::ClusterIndex childClusterIndex,
     // Make sure none of the child's atoms are already in the parent.
     ClusterPlacementSet::const_iterator cp = childsClusters.begin();
     while (cp != childsClusters.end()) {
-        std::pair<ClusterPlacementSet::iterator, bool> ret =
-            parentsClusters.insert(ClusterPlacement(cp->clusterIndex, placement*cp->placement));
+        [[maybe_unused]] auto ret = parentsClusters.insert(ClusterPlacement(cp->clusterIndex, placement*cp->placement));
         assert(ret.second); // mustn't have been there already
         ++cp;
     }
@@ -3325,7 +3327,7 @@ public:
              const Vector_<Vec3>& AllAtomPos_G,
              Real& eVdW, Real& eCoulomb)
             :   dumm(dumm), AllAtomPos_G(AllAtomPos_G),
-                eVdW(eVdW), eCoulomb(eCoulomb)
+                eCoulomb(eCoulomb), eVdW(eVdW)
     {
     }
 

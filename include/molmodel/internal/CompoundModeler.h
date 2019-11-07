@@ -50,7 +50,7 @@ public:
     class RigidUnit {
     public:
         RigidUnit(RigidUnitIndex ix, CompoundModeler& parent) 
-            : myIndex(ix), compoundModeler(&parent)
+            : compoundModeler(&parent), myIndex(ix)
         {}
         
         MassProperties calcMassProperties() const {

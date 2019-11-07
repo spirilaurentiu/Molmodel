@@ -48,7 +48,7 @@ public:
     {}
 
     Impl(int an, Element::Name nm, Element::Symbol sm, mdunits::Mass ms)
-        : atomicNumber(an), name(nm), symbol(sm), averageMass(ms)
+        : symbol(sm), name(nm), averageMass(ms), atomicNumber(an)
     {}
 
     Element::Symbol getSymbol() const {return symbol;}

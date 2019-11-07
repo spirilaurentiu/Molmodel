@@ -270,8 +270,8 @@ protected:
     {
         Real vdwScale = 1.0;  // TODO scale bonded atoms
 
-        const AtomSubsystem::Atom& atom1 = atomSubsystem.getAtom(vdwAtom1.atomIndex);
-        const AtomSubsystem::Atom& atom2 = atomSubsystem.getAtom(vdwAtom2.atomIndex);
+        //const AtomSubsystem::Atom& atom1 = atomSubsystem.getAtom(vdwAtom1.atomIndex);
+        //const AtomSubsystem::Atom& atom2 = atomSubsystem.getAtom(vdwAtom2.atomIndex);
 
         const Vec3& a1Pos_G = atomSubsystem.getAtomLocationInGround(state, vdwAtom1.atomIndex);
         const Vec3& a2Pos_G = atomSubsystem.getAtomLocationInGround(state, vdwAtom2.atomIndex);
@@ -316,7 +316,7 @@ protected:
 
     energy_t calcPotentialEnergy(const WallSphere& sphere, const VdwAtom& vdwAtom2, const State& state) const
     {
-        const AtomSubsystem::Atom& atom2 = atomSubsystem.getAtom(vdwAtom2.atomIndex);
+        //const AtomSubsystem::Atom& atom2 = atomSubsystem.getAtom(vdwAtom2.atomIndex);
 
         const Vec3& a2Pos_G = atomSubsystem.getAtomLocationInGround(state, vdwAtom2.atomIndex);
 

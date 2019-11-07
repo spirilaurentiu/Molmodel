@@ -66,11 +66,12 @@ public:
         mutable Vec3 sumPosition;
         mutable Real sumRMSVelPos;
 
-        OscillatorReporter(HarmonicOscillator& oscillator, Real reportInterval) 
-            : PeriodicEventReporter(reportInterval), oscillator(oscillator),
+        OscillatorReporter(HarmonicOscillator& oscillator, Real reportInterval) : 
+              PeriodicEventReporter(reportInterval),
               eventCount(0), sumEnergy(0.0), sumEnergySquared(0.0), 
               sumVelocity(0), sumSpeedSq(0), sumSpeed(0),
-              sumPosition(0.0), sumRMSVelPos(0.0)
+              sumPosition(0.0), sumRMSVelPos(0.0),
+              oscillator(oscillator)
         {}
 
         void handleEvent(const State& state) const 
@@ -317,9 +318,10 @@ public:
         mutable int  nDofs, nConstraints;
 
         ArgonReporter(ArgonGasSphere& argon, Real reportInterval) 
-            : PeriodicEventReporter(reportInterval), argon(argon),
+            : PeriodicEventReporter(reportInterval),
               eventCount(0), sumEnergy(0.0), sumEnergySquared(0.0),
-              sumVelocity(0), sumSpeedSq(0), sumSpeed(0), sumPosition(0)
+              sumVelocity(0), sumSpeedSq(0), sumSpeed(0), sumPosition(0),
+              argon(argon)
         {}
 
         void handleEvent(const State& state) const 
@@ -374,7 +376,7 @@ public:
         Real latSpacing = 5.0 * md::angstroms; // distance between atoms
 
         // How many atoms per edge of the lattice?
-        Real l1 = std::pow(numberOfAtoms, 0.333333);
+        //Real l1 = std::pow(numberOfAtoms, 0.333333);
         int atomsPerLatticeEdge = (int)( std::ceil(std::pow(numberOfAtoms, 0.33333)) ); // max edge dimension
 
         int latX = 0;

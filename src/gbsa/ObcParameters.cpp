@@ -351,7 +351,7 @@ int ObcParameters::setAtomicRadii( const RealOpenMMVector& atomicRadii, int unit
 
    // ---------------------------------------------------------------------------------------
 
-   static const char* methodName = "\nObcParameters::setAtomicRadii:";
+   //static const char* methodName = "\nObcParameters::setAtomicRadii:";
 
    // ---------------------------------------------------------------------------------------
 

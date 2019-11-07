@@ -13,7 +13,7 @@ int main()
     DuMMForceFieldSubsystem dumm(system);
     dumm.loadAmber99Parameters();
 
-    const char* uudPdbString = ""
+    constexpr auto uudPdbString = ""
 "ATOM      1  P     G     1     -10.655  -7.494   9.276  1.00  0.00           P  \n"
 "ATOM      2  OP1   G     1     -11.450  -7.642   8.036  1.00  0.00           O  \n"
 "ATOM      3  OP2   G     1      -9.248  -7.952   9.308  1.00  0.00           O  \n"
@@ -50,12 +50,12 @@ int main()
 "ATOM     34  O6    G     1      -5.036  -4.227  13.814  1.00  0.00           O  \n"
 "END";
 
-    const char* uudPdbString2 = ""
-"ATOM      5  C5*   G     1       0.000   1.000   0.000  1.00  0.00           C  \n"
-"ATOM      8  C4*   G     1       0.000   0.000   0.000  1.00  0.00           C  \n"
-"ATOM     10  O4*   G     1       1.000   0.000   0.000  1.00  0.00           O  \n"
-"ATOM     11  C3*   G     1       0.000   0.000   1.000  1.00  0.00           C  \n"
-"END";
+//     const char* uudPdbString2 = ""
+// "ATOM      5  C5*   G     1       0.000   1.000   0.000  1.00  0.00           C  \n"
+// "ATOM      8  C4*   G     1       0.000   0.000   0.000  1.00  0.00           C  \n"
+// "ATOM     10  O4*   G     1       1.000   0.000   0.000  1.00  0.00           O  \n"
+// "ATOM     11  C3*   G     1       0.000   0.000   1.000  1.00  0.00           C  \n"
+// "END";
 
     // std::ifstream inFileStream( "1UUD.pdb"); 
     std::istringstream inFileStream(uudPdbString);

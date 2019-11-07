@@ -401,7 +401,7 @@ public:
     }
 
     bool isValid() const
-    {   return classes.isValid() && hasBuiltinTerm() || hasCustomTerm(); }
+    {   return (classes.isValid() && hasBuiltinTerm()) || hasCustomTerm(); } // TODO what is the correct order here?
 
     std::ostream& generateSelfCode(std::ostream& os) const {
         if (hasBuiltinTerm()) {
@@ -466,7 +466,7 @@ public:
     }
 
     bool isValid() const
-    {   return classes.isValid() && hasBuiltinTerm() || hasCustomTerm(); }
+    {   return (classes.isValid() && hasBuiltinTerm()) || hasCustomTerm(); } // TODO what is the correct order here?
 
     // Given a central atom location c bonded to atoms at r and s,
     // calculate the angle between them, the potential energy,
@@ -506,7 +506,7 @@ public:
 };
 
 
-
+/*
 //-----------------------------------------------------------------------------
 //                              TORSION TERM
 //-----------------------------------------------------------------------------
@@ -532,6 +532,7 @@ public:
 //       T(theta) = -[sum -n*E_n*sin(n*theta - theta0_n)]
 // We have to translate this into forces on the four atoms.
 // 
+*/
 class TorsionTerm {
 public:
     TorsionTerm() : periodicity(-1), amplitude(-1), theta0(-1) { }
@@ -696,7 +697,7 @@ public:
 class AtomPlacement {
 public:
     AtomPlacement() : atomIndex(-1) { }
-    AtomPlacement(DuMM::AtomIndex a, const Vec3& s) : atomIndex(a), station(s) {
+    AtomPlacement(DuMM::AtomIndex a, const Vec3& s) : station(s), atomIndex(a) {
         assert(isValid());
     }
     bool isValid() const {return atomIndex.isValid();}
@@ -743,7 +744,7 @@ inline bool operator==(const AtomPlacement& a1, const AtomPlacement& a2) {
 class ClusterPlacement {
 public:
     ClusterPlacement() : clusterIndex(-1) { }
-    ClusterPlacement(DuMM::ClusterIndex c, const Transform& t) : clusterIndex(c), placement(t) {
+    ClusterPlacement(DuMM::ClusterIndex c, const Transform& t) : placement(t), clusterIndex(c) {
         assert(isValid());
     }
     bool isValid() const {return clusterIndex.isValid();}
@@ -1105,7 +1106,7 @@ public:
         assert(isTopLevelCluster());
 
         const AtomPlacementSet& testAtoms = test.getAllContainedAtoms();
-        const AtomPlacementSet& myAtoms   = getAllContainedAtoms();
+        //const AtomPlacementSet& myAtoms   = getAllContainedAtoms();
 
         AtomPlacementSet::const_iterator ap = testAtoms.begin();
         while (ap != testAtoms.end()) {
@@ -1250,8 +1251,8 @@ private:
     // translation is in nm
     void noteNewParentCluster(DuMM::ClusterIndex parentClusterIndex, 
                               const Transform& X_PC) 
-    {   std::pair<ClusterPlacementSet::iterator, bool> ret =
-            parentClusters.insert(ClusterPlacement(parentClusterIndex,X_PC));
+    {   
+        [[maybe_unused]] auto ret = parentClusters.insert(ClusterPlacement(parentClusterIndex,X_PC));
         assert(ret.second); // must not have been there already
     }
 
