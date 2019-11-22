@@ -469,7 +469,7 @@ public:
 
     // Set stretch around the nominal length.
     void setCCStretch(Real stretchInNm, State& s) const {
-        //const MobilizedBody& b1 = getMatter().getMobilizedBody(getBodyIndex(1));
+        const MobilizedBody& b1 = getMatter().getMobilizedBody(getBodyIndex(1));
         assert(b1.getNumU(s) == 2);    // must have been build with Cylinder mobilizer
         const MobilizedBodyIndex CBody = getDuMM().getAtomBody(getC(1));
         const MobilizedBody& b = getMatter().getMobilizedBody(CBody);
