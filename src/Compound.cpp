@@ -2109,6 +2109,13 @@ const Transform& Compound::getTopLevelTransform() const
 	return getImpl().getTopLevelTransform();
 }
 
+// EU: get list of all runs of consecutive bonded atoms of run-length n from the atoms mentions in an AtomTargetLocations structure
+// for example, to get a list of all bonded pairs, set run-length to 2.
+std::vector< std::vector<Compound::AtomIndex> > Compound::getBondedAtomRuns(int atomRunCount, const Compound::AtomTargetLocations& atomTargets) const
+{
+	return getImpl().getBondedAtomRuns(atomRunCount, atomTargets);
+}
+
 Compound& Compound::matchDefaultAtomChirality(const AtomTargetLocations& atomTargets, Angle planarityTolerance, bool flipAll)
 {
     updImpl().matchDefaultAtomChirality(atomTargets, planarityTolerance, flipAll);

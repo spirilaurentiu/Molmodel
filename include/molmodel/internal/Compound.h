@@ -727,6 +727,16 @@ public:
        (const class PdbResidue& targetResidue, 
         bool                    guessCoordinates = false) const;
 
+
+
+	// EU: get list of all runs of consecutive bonded atoms of run-length n 
+	// from the atoms mentions in an AtomTargetLocations structure
+	// for example, to get a list of all bonded pairs, set run-length to 2.
+	std::vector< std::vector<Compound::AtomIndex> > getBondedAtomRuns(
+	int atomRunCount,
+	const AtomTargetLocations& atomTargets) const;
+
+
     /**
      * \brief Adjust stereochemistry about chiral atoms to match that seen in a set of atomic locations
      *
