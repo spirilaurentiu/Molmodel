@@ -531,7 +531,8 @@ public:
 
     /// \name Molecular geometry methods
     /// @{
-
+    // EU
+    Transform calcAtomFrameInGroundFrame(const State& state, Compound::AtomIndex atomId) const;
     /**
      * Compute atom location in local Compound frame
      * 

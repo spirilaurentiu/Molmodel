@@ -1806,6 +1806,10 @@ Angle Compound::bgetDefaultInboardDihedralAngle(Compound::AtomIndex atomIx) cons
     return getImpl().bgetDefaultInboardDihedralAngle(atomIx);
 }
 
+Transform Compound::calcAtomFrameInGroundFrame(const State& state, Compound::AtomIndex atomId) const {
+	return getImpl().calcAtomFrameInGroundFrame(state, atomId);
+}
+
 ///* GMolModel Try other Mobilizers
 mdunits::Length Compound::bgetDefaultInboardBondLength(Compound::AtomIndex atomIx) const {
     return getImpl().bgetDefaultInboardBondLength(atomIx);
