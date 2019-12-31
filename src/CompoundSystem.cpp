@@ -101,11 +101,14 @@ void buildUpRigidBody(Compound::AtomIndex atomId,
         const BondInfo& bondInfo = compoundRep.getBondInfo(atomInfo1, atomInfo2);
         const Bond& bond = compoundRep.getBond(bondInfo);
 
-        if (bond.getMobility() == BondMobility::Free) 
+        //if (bond.getMobility() == BondMobility::Free) // OLDMOB
+        if(false)
         {
             // continue;  // cannot restrict rigid body if free
         }
-        else if ( (bond.getMobility() == BondMobility::Torsion)
+        else if ( (bond.getMobility() == BondMobility::Translation) // NEWMOB
+                || (bond.getMobility() == BondMobility::Free) || // NEWMOB
+                (bond.getMobility() == BondMobility::Torsion)
                   || (bond.getMobility() == BondMobility::Cylinder)
                   || (bond.getMobility() == BondMobility::Ball) ) // Gmol
         {
@@ -214,6 +217,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             atomBonds[a1].treeBonds.insert(a0);
             
             if (bond.getMobility() == BondMobility::Free) {
+                std::cout << "CompoundSystem: Step2: Found Free bond between atoms "
+                    << a0 << " " << a1 << std::endl;
                 atomBonds[a0].freeTreeBonds.insert(a1);
                 atomBonds[a1].freeTreeBonds.insert(a0);            	
             }
@@ -252,6 +257,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
     // 4) Assign rigid body parents and set body frames relative to top compound
     for (Compound::BondIndex i(0); i < compound.getNumBonds(); ++i) 
     {
+        std::cout << "CompoundSystem: BondIndex " << i << std::endl;
         const BondInfo& bondInfo = compoundRep.getBondInfo(i);
 
         // Don't use ring closing bonds to assign parent child relationships
@@ -265,7 +271,57 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             case BondMobility::Rigid:
                 break; // same body => ignore
             case BondMobility::Free:
-                break; // no multibody parent/child relationship => ignore
+            case BondMobility::Translation:
+		{ // NEWMOB introduce parent-child here too
+                    const BondCenterInfo& parentBondCenterInfo = compoundRep.getBondCenterInfo(bondInfo.getParentBondCenterIndex());
+                    const BondCenterInfo& childBondCenterInfo = compoundRep.getBondCenterInfo(bondInfo.getChildBondCenterIndex());
+                    const AtomInfo& parentAtomInfo = compoundRep.getAtomInfo(parentBondCenterInfo.getAtomIndex());
+                    const AtomInfo& childAtomInfo = compoundRep.getAtomInfo(childBondCenterInfo.getAtomIndex());
+
+                    Compound::AtomIndex a0 = parentAtomInfo.getIndex();
+                    Compound::AtomIndex a1 = childAtomInfo.getIndex();
+                    assert(a0 != a1);
+
+                    assert(atomBonds.find(a0) != atomBonds.end());
+                    assert(atomBonds.find(a1) != atomBonds.end());
+                    std::cout << "CompoundSystem: Free link between " << a0 << " " << a1 << std::endl;
+
+                    DuMM::ClusterIndex parentClusterIndex = atomBonds[a0].clusterIx;
+                    DuMM::ClusterIndex childClusterIndex = atomBonds[a1].clusterIx;
+                    std::cout << "CompoundSystem: parentClusterIndex " << parentClusterIndex << " childClusterIx " << childClusterIndex << std::endl;
+
+                    if (parentClusterIndex == childClusterIndex){
+                        std::cout << "CompoundSystem: same body => break" << std::endl;
+                        break;  // same body, no action
+                    }
+
+                    RigidUnit& childUnit = rigidUnits.find(childClusterIndex)->second;
+                    // parent should be same or undefined
+                    assert(!childUnit.parentId.isValid());
+
+                    childUnit.parentId = parentClusterIndex;
+                    if (parentClusterIndex.isValid()) {
+                        RigidUnit& parentUnit = rigidUnits.find(parentClusterIndex)->second;
+                        parentUnit.hasChild = true;
+                    }
+
+                    childUnit.inboardBondCenterIndex = childBondCenterInfo.getIndex();
+
+                    childUnit.inboardBondDihedralAngle = bond.getDefaultDihedralAngle();
+
+                    childUnit.inboardBondIndex = bondInfo.getIndex();
+
+                    // based child frame on most inboard atom/bondCenter of the cluster
+
+                    // child body frame in top compound frame including default dihedral rotation
+                    Transform T_X_Mr =
+                            compoundRep.calcDefaultBondCenterFrameInCompoundFrame(compoundRep.getBondCenterInfo(childUnit.inboardBondCenterIndex), defaultAtomFrames);
+
+                    childUnit.frameInTopCompoundFrame = T_X_Mr;
+                    std::cout << "CompoundSystem: T_X_Mr: " << T_X_Mr << std::endl;
+		}
+		break; // END EU
+                //break; // no multibody parent/child relationship => ignore// RESTORE
             case BondMobility::Torsion:
             case BondMobility::Cylinder:
             case BondMobility::Ball: // Gmol
@@ -323,7 +379,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 
     // 4.5) - temporary debugging status
     std::map<DuMM::ClusterIndex, RigidUnit>::iterator rigidUnitI;
-    static bool doPrintRigidUnitDebugInfo = false;
+    static bool doPrintRigidUnitDebugInfo = true;
     if (doPrintRigidUnitDebugInfo) 
     {
         for (rigidUnitI = rigidUnits.begin(); rigidUnitI != rigidUnits.end(); ++rigidUnitI)
@@ -389,6 +445,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 
         rigidUnit.frameInTopCompoundFrame = T_X_atom;
         rigidUnit.frameInParentFrame = G_X_atom;
+        std::cout << "CompoundSystem: Step 5: Found RigidUnit lacking parent: clusterIx = "
+        << rigidUnit.clusterIx << " ; mobodIx = " << rigidUnit.bodyId << std::endl;
     }
 
     if (showDebugMessages) cout << "Step 6 set child frames" << endl;
@@ -414,6 +472,10 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
         // unrotated mobile frame in parent body frame
         Transform Fr_X_M0 = Fr_X_T * T_X_M0;
         rigidUnit.frameInParentFrame = Fr_X_M0;
+
+        std::cout << "CompoundSystem: Step 6: Set child frames for : clusterIx = "
+                << rigidUnit.clusterIx << " ; mobodIx = " << rigidUnit.bodyId << std::endl;
+
     }
 
     if (showDebugMessages) cout << "Step 7 populate dumm clusters" << endl;
@@ -447,6 +509,10 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             CompoundAtom& atom = compoundRep.updAtom(atomId);
             atom.setFrameInMobilizedBodyFrame(B_X_atom);
         }
+
+        std::cout << "CompoundSystem: Step 7: Populate DuMM clusters : clusterIx = "
+                  << unit.clusterIx << " ; mobodIx = " << unit.bodyId << std::endl;
+
     }
 
 
@@ -468,6 +534,11 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             const Transform& G_X_T = compoundRep.getTopLevelTransform();
             const Transform& T_X_B = unit.frameInTopCompoundFrame;
 
+            std::cout << "CompoundSystem: Step 8: Case A : clusterIx = "
+                      << unit.clusterIx << " ; mobodIx = " << unit.bodyId << std::endl;
+            std::cout << "unit.clusterAtoms.size() > 2 " << (unit.clusterAtoms.size() > 2) << std::endl;
+            std::cout << "unit.hasChild " << unit.hasChild << std::endl;
+
             // Anything with a child body attached gets a 6-dof Free Mobilizer,
             // because it can handle six degrees of freedom.  (assuming all children
             // are attached by Pin Mobilizers.)  Also anything with three or more
@@ -481,6 +552,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 				        dumm.calcClusterMassProperties(unit.clusterIx), 
 				        Transform());
 		            unit.bodyId = freeBody.getMobilizedBodyIndex();
+                    std::cout << " got Free mobodIx " << unit.bodyId << std::endl;
                 } else if (mobilizedBodyType.compare("Weld") == 0) {
 		            MobilizedBody::Weld weldBody
                        (matter.Ground(), 
@@ -488,6 +560,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 					    dumm.calcClusterMassProperties(unit.clusterIx), 
 					    Transform());
 		            unit.bodyId = weldBody.getMobilizedBodyIndex();
+                    std::cout << " got Weld mobodIx " << unit.bodyId << std::endl;
                 }
                 dumm.attachClusterToBody(unit.clusterIx, unit.bodyId);
             }
@@ -540,6 +613,10 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
         // Case B: rigid unit has a parent rigid unit
         else // unit has a parent body
         {
+            std::cout << "CompoundSystem: Step 8: Case B : clusterIx = "
+                      << unit.clusterIx << " ; mobodIx = " << unit.bodyId << std::endl;
+            std::cout << " unit.parentId.isValid " << unit.parentId.isValid() << std::endl;
+
             DuMM::ClusterIndex parentClusterIndex = unit.parentId;
             RigidUnit& parentUnit = rigidUnits.find(parentClusterIndex)->second;
 
@@ -555,8 +632,6 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 
             // this is just a hack for testing the unfinished ribose mobilizer
             bool testRiboseMobilizer = false;
-
-
 
             // GMOL BIG RB =====================
 
@@ -646,6 +721,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                     bond.setPinBody(torsionBody, 0);
                     torsionBody.setDefaultAngle(0); // no chem change to 0 for chem
                     unit.bodyId = torsionBody.getMobilizedBodyIndex();
+                    std::cout << " got Pin mobodIx " << unit.bodyId << std::endl;
                     // GMOL END */
 
 /* Molmodel: BEGIN
@@ -673,13 +749,40 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                         );
 
                         bond.setBallBody(ballBody, 0);
-                    unit.bodyId = ballBody.getMobilizedBodyIndex();
+                        unit.bodyId = ballBody.getMobilizedBodyIndex();
+                        std::cout << " got Ball mobodIx " << unit.bodyId << std::endl;
 /*
                     } // Molmodel
 */
 
 
-                } else if(bond.getMobility() == BondMobility::Cylinder) {
+                }else if(bond.getMobility() == BondMobility::Translation) {
+
+                   MobilizedBody::Translation transBody(
+                           matter.updMobilizedBody(parentUnit.bodyId),
+                           newX_PF,
+                           dumm.calcClusterMassProperties(unit.clusterIx),
+                           newX_BM
+                   );
+
+                   bond.setTransBody(transBody, 0);
+                   unit.bodyId = transBody.getMobilizedBodyIndex();
+                   std::cout << " got Trans mobodIx " << unit.bodyId << std::endl;
+
+               }else if(bond.getMobility() == BondMobility::Free) {
+
+                   MobilizedBody::Free freeBody(
+                           matter.updMobilizedBody(parentUnit.bodyId),
+                           newX_PF,
+                           dumm.calcClusterMassProperties(unit.clusterIx),
+                           newX_BM
+                   );
+
+                   bond.setFreeBody(freeBody, 0, 0);
+                   unit.bodyId = freeBody.getMobilizedBodyIndex();
+                   std::cout << " got Free mobodIx " << unit.bodyId << std::endl;
+
+               }else if(bond.getMobility() == BondMobility::Cylinder) {
                     MobilizedBody::Cylinder cylinderBody(
                                matter.updMobilizedBody(parentUnit.bodyId),
                                newX_PF,
@@ -691,6 +794,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                     // NOTE - setPinBody automatically sets the torsionBody default torsion angle
                     bond.setCylinderBody(cylinderBody, 0, 0);
                     unit.bodyId = cylinderBody.getMobilizedBodyIndex();
+                    std::cout << " got Cylinder mobodIx " << unit.bodyId << std::endl;
                 }
             }
             

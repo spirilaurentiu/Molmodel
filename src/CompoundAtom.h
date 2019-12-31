@@ -170,21 +170,22 @@ public:
         if(mobility == BondMobility::Torsion) {
             MobilizedBody::Pin &pin = (MobilizedBody::Pin &) matter.updMobilizedBody(pinJointId);
             pin.setAngle(state, angleInRadians);
+
         }else if(mobility == BondMobility::Cylinder) { // Gmol
             MobilizedBody::Cylinder &cyl = (MobilizedBody::Cylinder &) matter.updMobilizedBody(pinJointId);
             cyl.setOneQ(state, 0, angleInRadians);
+
         }else if(mobility == BondMobility::Ball){ // Gmol
 
             MobilizedBody::Ball &ball = (MobilizedBody::Ball &) matter.updMobilizedBody(pinJointId);
             ball.setQ(state, SimTK::Rotation(angleInRadians,
                     CoordinateAxis::ZCoordinateAxis()).convertRotationToQuaternion().asVec4());
-/*
 
-            ball.setQ(state, SimTK::Rotation(angleInRadians,
-                                             CoordinateAxis::XCoordinateAxis()).convertRotationToQuaternion().asVec4());
-
-*/
-
+        }else if(mobility == BondMobility::Free) { // Gmol
+            MobilizedBody::Free &freeB = (MobilizedBody::Free &) matter.updMobilizedBody(pinJointId);
+            Vec4 rot = SimTK::Rotation(angleInRadians, CoordinateAxis::ZCoordinateAxis()).convertRotationToQuaternion().asVec4();
+            Vec7 q(rot[0], rot[1], rot[2], rot[3], 0, 0, 0);
+            freeB.setQ(state, q);
         }
 
         return *this;
@@ -238,18 +239,35 @@ public:
         pinJointId = ball.getMobilizedBodyIndex();
 
         SimTK::Rotation R_FM;
-
         R_FM.setRotationFromAngleAboutX(0.0);
         R_FM.setRotationFromAngleAboutY(0.0);
-        //R_FM.setRotationFromAngleAboutZ(defaultDihedral);
         R_FM.setRotationFromAngleAboutZ(argDefaultDihedral);
-/*
-        R_FM.setRotationFromAngleAboutX(defaultDihedral);
-        R_FM.setRotationFromAngleAboutY(0.0);
-        R_FM.setRotationFromAngleAboutZ(0.0);
-*/
 
         ball.setDefaultRotation(R_FM);
+
+        return *this;
+    }
+
+    Bond& setFreeBody(MobilizedBody::Free& free, Angle argDefaultDihedral, Real argDefaultLength)
+    {
+        pinJointId = free.getMobilizedBodyIndex();
+
+        SimTK::Rotation R_FM;
+        R_FM.setRotationFromAngleAboutX(0.0);
+        R_FM.setRotationFromAngleAboutY(0.0);
+        R_FM.setRotationFromAngleAboutZ(argDefaultDihedral);
+
+        free.setDefaultRotation(R_FM);
+        free.setDefaultTranslation(Vec3(0, 0, argDefaultLength));
+
+        return *this;
+    }
+
+    Bond& setTransBody(MobilizedBody::Translation& trans, Real argDefaultLength)
+    {
+        pinJointId = trans.getMobilizedBodyIndex();
+
+        trans.setDefaultTranslation(Vec3(0, 0, argDefaultLength));
 
         return *this;
     }
@@ -274,6 +292,27 @@ public:
 
             const MobilizedBody::Pin& pin = (const MobilizedBody::Pin&) matter.getMobilizedBody(pinJointId);
             return pin.getAngle(state);
+
+        }else if(mobility == BondMobility::Free){
+
+            const MobilizedBody::Free& free = (const MobilizedBody::Free&) matter.getMobilizedBody(pinJointId);
+            Vec7 q7 = free.getQ(state);
+            Vec4 q = SimTK::Quaternion(q7[0], q7[1], q7[2], q7[3]);
+
+            double psi;
+            // Deal with singularity
+            if( (std::abs((q[1] * q[2]) + (q[3] * q[0])) - 0.5) < 0.01 ){
+                psi = 0.0;
+            }else {
+                double q0q3 = q[0] * q[3];
+                double q1q2 = q[1] * q[2];
+                double q2sq = q[2] * q[2];
+                double q3sq = q[3] * q[3];
+                psi = atan2(2 * (q0q3 + q1q2),
+                            1 - 2 * (q2sq + q3sq));
+            }
+            return (Angle)psi;
+
 
         }else if(mobility == BondMobility::Cylinder){
 
@@ -310,9 +349,10 @@ public:
     // GMOL
     Rotation getDefaultRotation(const State& state, const SimbodyMatterSubsystem& matter) const {
         assert(pinJointId.isValid());
-        assert(mobility == BondMobility::Ball);
-        const MobilizedBody::Ball &ball = (const MobilizedBody::Ball &) matter.getMobilizedBody(pinJointId);
-        return ball.getBodyRotation(state);
+        //assert(mobility == BondMobility::Ball);
+        //const MobilizedBody::Ball &ball = (const MobilizedBody::Ball &) matter.getMobilizedBody(pinJointId);
+        //return ball.getBodyRotation(state);
+        return matter.getMobilizedBody(pinJointId).getBodyRotation(state);
     }
 
     Bond& setDefaultBondLength(mdunits::Length d) {
