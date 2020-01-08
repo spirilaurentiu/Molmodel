@@ -263,6 +263,21 @@ public:
         return *this;
     }
 
+    Bond& setFreeLineBody(MobilizedBody::FreeLine& freeLine, Angle argDefaultDihedral, Real argDefaultLength)
+    {
+        pinJointId = freeLine.getMobilizedBodyIndex();
+
+        //SimTK::Rotation R_FM;
+        //R_FM.setRotationFromAngleAboutX(0.0);
+        //R_FM.setRotationFromAngleAboutY(0.0);
+        //R_FM.setRotationFromAngleAboutZ(argDefaultDihedral);
+
+        //freeLine.setDefaultRotation(R_FM);
+        //freeLine.setDefaultTranslation(Vec3(0, 0, argDefaultLength));
+
+        return *this;
+    }
+
     Bond& setTransBody(MobilizedBody::Translation& trans, Real argDefaultLength)
     {
         pinJointId = trans.getMobilizedBodyIndex();

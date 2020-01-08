@@ -73,7 +73,8 @@ namespace BondMobility {
         Rigid = 3, ///< Bond links both atoms to the same rigid unit
         Ball = 4, ///< Three rotational dofs. It allows  angle flexibility besides torsion.
         Cylinder = 5, ///< Torsion plus translation along the bond
-        Translation = 6 ///< Three translational mobilities (Cartesian). // NEWMOB
+        Translation = 6, ///< Three translational mobilities (Cartesian). // NEWMOB
+        FreeLine = 7 ///< Three translational mobilities (Cartesian). // NEWMOB
     };
     static Mobility Default = Torsion;
 }

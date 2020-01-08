@@ -107,6 +107,7 @@ void buildUpRigidBody(Compound::AtomIndex atomId,
             // continue;  // cannot restrict rigid body if free
         }
         else if ( (bond.getMobility() == BondMobility::Translation) // NEWMOB
+                || (bond.getMobility() == BondMobility::FreeLine) // NEWMOB
                 || (bond.getMobility() == BondMobility::Free) || // NEWMOB
                 (bond.getMobility() == BondMobility::Torsion)
                   || (bond.getMobility() == BondMobility::Cylinder)
@@ -272,6 +273,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                 break; // same body => ignore
             case BondMobility::Free:
             case BondMobility::Translation:
+            case BondMobility::FreeLine:
 		{ // NEWMOB introduce parent-child here too
                     const BondCenterInfo& parentBondCenterInfo = compoundRep.getBondCenterInfo(bondInfo.getParentBondCenterIndex());
                     const BondCenterInfo& childBondCenterInfo = compoundRep.getBondCenterInfo(bondInfo.getChildBondCenterIndex());
@@ -318,7 +320,6 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                             compoundRep.calcDefaultBondCenterFrameInCompoundFrame(compoundRep.getBondCenterInfo(childUnit.inboardBondCenterIndex), defaultAtomFrames);
 
                     childUnit.frameInTopCompoundFrame = T_X_Mr;
-                    std::cout << "CompoundSystem: T_X_Mr: " << T_X_Mr << std::endl;
 		}
 		break; // END EU
                 //break; // no multibody parent/child relationship => ignore// RESTORE
@@ -552,7 +553,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 				        dumm.calcClusterMassProperties(unit.clusterIx), 
 				        Transform());
 		            unit.bodyId = freeBody.getMobilizedBodyIndex();
-                    std::cout << " got Free mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " got obligated Free mobodIx " << unit.bodyId << std::endl;
                 } else if (mobilizedBodyType.compare("Weld") == 0) {
 		            MobilizedBody::Weld weldBody
                        (matter.Ground(), 
@@ -607,6 +608,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 
                 unit.bodyId = freeBody.getMobilizedBodyIndex();
                 dumm.attachClusterToBody(unit.clusterIx, unit.bodyId);
+                std::cout << " got FreeLine mobodIx " << unit.bodyId << std::endl;
             }
         }
 
@@ -678,6 +680,27 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 
             Transform newX_BM = X_childBC_parentBC * M_X_pin;
             Transform newX_PF = oldX_PF * oldX_FM * oldX_MB * newX_BM;
+
+	    // Special transform for free line
+            Transform newX_BM_FreeLine;
+            std::set<Compound::AtomIndex>::const_iterator atomI = unit.clusterAtoms.begin();
+            Compound::AtomIndex atomId1 = *atomI;
+            ++atomI;
+            Compound::AtomIndex atomId2 = *atomI;
+
+            Vec3 atom1Location = atomBonds[atomId1].locationInBodyFrame;
+            Vec3 atom2Location = atomBonds[atomId2].locationInBodyFrame;
+	    
+            UnitVec3 zAxis(0,0,1); // Required direction of freeline
+            UnitVec3 bondDirection(atom2Location - atom1Location);
+
+            // Compute transform that positions bond direction on z-axis
+            // Br is body frame rotated so that atom axis is parallel to ZAxis
+            Real rotAngle = std::acos( ~zAxis * bondDirection );
+            if (rotAngle != 0) { // TODO - numerical precision
+                 UnitVec3 rotAxis( bondDirection % zAxis );
+                 newX_BM_FreeLine = newX_BM * Transform(Rotation(rotAngle, rotAxis));
+            }
 
 /*            std::cout << "Molmodel X_parentBC_childBC " << X_parentBC_childBC << std::endl;
             std::cout << "Molmodel X_childBC_parentBC " << X_childBC_parentBC << std::endl;
@@ -768,6 +791,18 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                    bond.setTransBody(transBody, 0);
                    unit.bodyId = transBody.getMobilizedBodyIndex();
                    std::cout << " got Trans mobodIx " << unit.bodyId << std::endl;
+
+               }else if(bond.getMobility() == BondMobility::FreeLine) {
+                   MobilizedBody::FreeLine freeLineBody(
+                           matter.updMobilizedBody(parentUnit.bodyId),
+                           newX_PF,
+                           dumm.calcClusterMassProperties(unit.clusterIx),
+                           newX_BM
+                   );
+
+                   bond.setFreeLineBody(freeLineBody, 0, 0);
+                   unit.bodyId = freeLineBody.getMobilizedBodyIndex();
+                   std::cout << " got FreeLine mobodIx " << unit.bodyId << std::endl;
 
                }else if(bond.getMobility() == BondMobility::Free) {
 
