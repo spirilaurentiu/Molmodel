@@ -605,6 +605,8 @@ public:
 
     BondCenter(Angle angle1, Angle angle2, int yCenter, Chirality c);
 
+    BondCenter(Angle angle1, Angle angle2, int yCenter, Chirality c, UnitVec3 dir); // NEWMOB
+
     bool isBonded() const;
 
     BondCenter& setDefaultBondLength(mdunits::Length l) {
@@ -672,6 +674,21 @@ public:
 
     BondCenter& setBonded(bool b);
 
+    // NEWMOB BEGIN
+    const UnitVec3& getDirection(void) const{
+        return direction;
+    }
+
+    UnitVec3& updDirection(void){
+        return direction;
+    }
+
+    BondCenter& setDirection(UnitVec3 dir) {
+        direction = dir;
+        return *this;
+    }
+    //NEWMOB END
+
 protected:
 
 private:
@@ -683,6 +700,7 @@ private:
     Angle defaultBond2Angle; // bond angle with second bond center (in +y half of XY plane)
     int defaultDihedralReferenceCenter; // index of other bond center to use as y-axis
     Chirality chirality;
+    UnitVec3 direction; // NEWMOB
 
     // Compound::BondIndex bondIndex; // if bonded, the bond object containing a subcompound
 
@@ -714,7 +732,8 @@ public:
         int refY = 1;
         const BondCenterIndex bondCenterIndex = BondCenterIndex(bondCenters.size());
 
-        bondCenters.push_back(BondCenter(0, 0, refY, BondCenter::Planar));
+        //bondCenters.push_back(BondCenter(0, 0, refY, BondCenter::Planar)); // OLDMOB
+        bondCenters.push_back(BondCenter(0, 0, refY, BondCenter::Planar, UnitVec3(1, 0, 0))); // NEWMOB
 
         assert( bondCenterIndex == 0 );
         assert( hasBondCenter(BondCenterIndex(0)) );
@@ -737,6 +756,12 @@ public:
         const BondCenterIndex bondCenterIndex = BondCenterIndex(bondCenters.size());
 
         bondCenters.push_back(BondCenter(bond1Angle, 0, refY, BondCenter::Planar));
+        // NEWMOB BEGIN
+        UnitVec3 xAxis(1,0,0);
+        Rotation rotMat(bond1Angle, ZAxis);
+        UnitVec3 dir(rotMat * xAxis);
+        (bondCenters[bondCenters.size() - 1]).setDirection(dir);
+        // NEWMOB END
 
         // TODO - ensure that theta1 remains in sync with second bond center angle
         // theta1 = bond1Angle;
@@ -769,6 +794,16 @@ public:
 
         bondCenters.push_back(BondCenter(bond1Angle, bond2Angle, refY, BondCenter::Planar));
 
+        // NEWMOB BEGIN
+        auto& bondCenter = bondCenters[bondCenters.size() - 1];
+        UnitVec3 a1 = getBondCenterDirectionInAtomFrame(BondCenterIndex(0));
+        UnitVec3 a2 = getBondCenterDirectionInAtomFrame(BondCenterIndex(1));
+        Angle theta1 = bondCenter.getDefaultBond1Angle();
+        Angle theta2 = bondCenter.getDefaultBond2Angle();
+        BondCenter::Chirality chirality = bondCenter.getChirality();
+        bondCenter.setDirection(BondCenter::getBondDirection(a1, theta1, a2, theta2, chirality));
+        // NEWMOB END
+
         assert( hasBondCenter(bondCenterIndex) );
 
         return bondCenterIndex;
@@ -796,6 +831,16 @@ public:
 
         bondCenters.push_back(BondCenter(bond1Angle, bond2Angle, refY, BondCenter::RightHanded));
 
+        // NEWMOB BEGIN
+        auto& bondCenter = bondCenters[bondCenters.size() - 1];
+        UnitVec3 a1 = getBondCenterDirectionInAtomFrame(BondCenterIndex(0));
+        UnitVec3 a2 = getBondCenterDirectionInAtomFrame(BondCenterIndex(1));
+        Angle theta1 = bondCenter.getDefaultBond1Angle();
+        Angle theta2 = bondCenter.getDefaultBond2Angle();
+        BondCenter::Chirality chirality = bondCenter.getChirality();
+        bondCenter.setDirection(BondCenter::getBondDirection(a1, theta1, a2, theta2, chirality));
+        // NEWMOB END
+
         assert( hasBondCenter(bondCenterIndex) );
 
         return bondCenterIndex;
@@ -819,6 +864,16 @@ public:
         assert( ! hasBondCenter(bondCenterIndex) );
 
         bondCenters.push_back(BondCenter(bond1Angle, bond2Angle, refY, BondCenter::LeftHanded));
+
+        // NEWMOB BEGIN
+        auto& bondCenter = bondCenters[bondCenters.size() - 1];
+        UnitVec3 a1 = getBondCenterDirectionInAtomFrame(BondCenterIndex(0));
+        UnitVec3 a2 = getBondCenterDirectionInAtomFrame(BondCenterIndex(1));
+        Angle theta1 = bondCenter.getDefaultBond1Angle();
+        Angle theta2 = bondCenter.getDefaultBond2Angle();
+        BondCenter::Chirality chirality = bondCenter.getChirality();
+        bondCenter.setDirection(BondCenter::getBondDirection(a1, theta1, a2, theta2, chirality));
+        // NEWMOB END
 
         assert( hasBondCenter(bondCenterIndex) );
 
@@ -865,16 +920,36 @@ public:
     {
         const BondCenter& bondCenter = getBondCenter(index);
 
-        if (index == 0) return UnitVec3(1, 0, 0);
+        if (index == 0){
+            //NEWMOB BEGIN
+            Angle theta1 = bondCenter.getDefaultBond1Angle();
+            Angle theta2 = bondCenter.getDefaultBond2Angle();
+            std::cout << "CompoundAtom: getBondCenterDirectionInAtomFrame: default angles and dir for BC0: "
+                << theta1 << " " << theta2 << " "
+                << bondCenter.getDirection() << std::endl;
+            // NEWMOB END
+
+            //return UnitVec3(1, 0, 0); // OLDMOB
+            return bondCenter.getDirection(); // NEWMOB
+        }
         else if (index == 1) {
+            // NEWMOB BEGIN
+            Angle theta1 = bondCenter.getDefaultBond1Angle();
+            Angle theta2 = bondCenter.getDefaultBond2Angle();
+            std::cout << "CompoundAtom: getBondCenterDirectionInAtomFrame: default angles and dir for BC1: "
+                    << theta1 << " " << theta2 << " "
+                    << bondCenter.getDirection() << std::endl;
+            // NEWMOB END
+
             //std::cout<<__FILE__<<":"<<__LINE__<<std::endl;
             Angle theta = getBondCenter(index).getDefaultBond1Angle();
 
             UnitVec3 xAxis(1,0,0);
             Rotation rotMat(theta, ZAxis);
             UnitVec3 direction(rotMat * xAxis);
-
-            return direction;
+            std::cout << "CompoundAtom: getBondCenterDirectionInAtomFrame: real dir " << direction << std::endl; // NEWMOB
+            //return direction; // OLDMOB
+            return bondCenter.getDirection(); // NEWMOB
         }
         else {
             //std::cout<<__FILE__<<":"<<__LINE__<<std::endl;
@@ -883,7 +958,15 @@ public:
             Angle theta1 = bondCenter.getDefaultBond1Angle();
             Angle theta2 = bondCenter.getDefaultBond2Angle();
             BondCenter::Chirality chirality = bondCenter.getChirality();
-            return BondCenter::getBondDirection(a1, theta1, a2, theta2, chirality);
+            //NEWMOB BEGIN
+            std::cout << "CompoundAtom: getBondCenterDirectionInAtomFrame: default angles and dir for BC>1: "
+                      << theta1 << " " << theta2 << " "
+                      << bondCenter.getDirection() << std::endl;
+            std::cout << "CompoundAtom: getBondCenterDirectionInAtomFrame: real dir "
+                << BondCenter::getBondDirection(a1, theta1, a2, theta2, chirality) << std::endl; // NEWMOB
+            // NEWMOB END
+            //return BondCenter::getBondDirection(a1, theta1, a2, theta2, chirality); // OLDMOB
+            return bondCenter.getDirection(); // NEWMOB
         }
     }
 

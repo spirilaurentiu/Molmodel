@@ -919,6 +919,8 @@ public:
         const Compound::AtomIndex atom2Id, 
         const Compound::AtomIndex atom3Id) 
     {
+        std::cout << "setDefaultBondAngle " << std::endl;
+
         CompoundAtom& atom2 = updAtom(atom2Id);
         const AtomInfo&        atom2Info = getAtomInfo(atom2Id);
 
@@ -952,6 +954,27 @@ public:
 
         // one of the bond centers must be bond1 or bond2
         // assert(smallerId < 2);
+
+        // NEWMOB BEGIN
+
+        BondCenter& BC0 = atom2.updBondCenter(smallerId);
+        BondCenter& BCX = atom2.updBondCenter(largerId);
+        UnitVec3& BC0_dir = BC0.updDirection();
+        UnitVec3& BCX_dir = BCX.updDirection();
+        UnitVec3 rotAxis(BCX_dir % BC0_dir);
+        Angle oldAngle;
+        if(smallerId == 0) {
+            oldAngle = BCX.getDefaultBond1Angle();
+        }else if(smallerId == 1){
+            oldAngle = BCX.getDefaultBond2Angle();
+        }
+        Angle rotAngle = angle - oldAngle;
+        std::cout << "oldAngle angle rotAngle " << oldAngle << " " << angle << " " << rotAngle << std::endl;
+        Rotation rotMat = Rotation(rotAngle, rotAxis);
+        UnitVec3 newDir = rotMat * BCX.getDirection();
+        BCX.setDirection(newDir);
+
+        // NEWMOB END
 
         if (smallerId == 0) {
             atom2.updBondCenter(largerId).setDefaultBond1Angle(angle);
@@ -1139,6 +1162,7 @@ public:
 
     CompoundRep& matchDefaultAtomChirality(const Compound::AtomTargetLocations& atomTargets, Angle breakPlanarityThreshold, bool flipAll=true)
     {
+        std::cout << "matchDefaultAtomChirality" << std::endl;
         std::vector< AtomIndexList > atomPairs = getBondedAtomRuns(2, atomTargets);
 
         // 1 Ignore atoms with less than three known atoms bonded
@@ -1415,6 +1439,8 @@ public:
 
     CompoundRep& matchDefaultBondLengths(const Compound::AtomTargetLocations& atomTargets) 
     {
+        std::cout << "matchDefaultBondLengths" << std::endl;
+
         //std::cout<<"BEGIN  matchDefaultBondLengths"<<std::endl;
         std::vector< AtomIndexList > atomPairs = getBondedAtomRuns(2, atomTargets);
 
@@ -1443,6 +1469,7 @@ public:
 
     CompoundRep& matchDefaultBondAngles(const Compound::AtomTargetLocations& atomTargets) 
     {
+        std::cout << "matchDefaultBondAngles" << std::endl;
         //std::cout<<"BEGIN  matchDefaultBondAngles"<<std::endl;
         std::vector< AtomIndexList > atomTriples = getBondedAtomRuns(3, atomTargets);
 
@@ -1511,6 +1538,7 @@ public:
             const Compound::AtomTargetLocations& atomTargets, 
             Compound::PlanarBondMatchingPolicy policy) 
     {
+        std::cout << "matchDefaultDihedralAngles" << std::endl;
         //std::cout<<"BEGIN   matchDefaultDihedralAngles"<<std::endl;
         std::vector< AtomIndexList > atomQuads = getBondedAtomRuns(4, atomTargets);
 
@@ -1584,6 +1612,7 @@ public:
 
     CompoundRep& matchDefaultTopLevelTransform(const Compound::AtomTargetLocations& atomTargets) 
     {
+        std::cout << "matchDefaultTopLevelTransform" << std::endl;
         //std::cout<<"BEGIN  matchDefaultTopLevelTransform"<<std::endl;
         Transform adjustment = getTransformAndResidual(atomTargets).transform;
         //std::cout<<"adjustment:"<<std::endl<<adjustment<<std::endl;

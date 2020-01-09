@@ -190,7 +190,8 @@ BondCenter::BondCenter()
     bonded(false), 
     chirality(BondCenter::Planar),
     defaultBondLength(NaN), 
-    defaultDihedralAngle(NaN)
+    defaultDihedralAngle(NaN),
+    direction(UnitVec3()) // NEWMOB
 {}
 
 
@@ -202,7 +203,21 @@ BondCenter::BondCenter(Angle angle1, Angle angle2, int yCenter, BondCenter::Chir
     defaultDihedralReferenceCenter(yCenter), 
     chirality(c), 
     defaultBondLength(NaN), 
-    defaultDihedralAngle(NaN)
+    defaultDihedralAngle(NaN),
+    direction(UnitVec3()) // NEWMOB
+{}
+
+
+BondCenter::BondCenter(Angle angle1, Angle angle2, int yCenter, BondCenter::Chirality c, UnitVec3 dir) : // NEWMOB
+        inboard(false),
+        bonded(false),
+        defaultBond1Angle(angle1),
+        defaultBond2Angle(angle2),
+        defaultDihedralReferenceCenter(yCenter),
+        chirality(c),
+        defaultBondLength(NaN),
+        defaultDihedralAngle(NaN),
+        direction(dir) // NEWMOB
 {}
 
 bool BondCenter::isBonded() const { 
