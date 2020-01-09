@@ -955,27 +955,6 @@ public:
         // one of the bond centers must be bond1 or bond2
         // assert(smallerId < 2);
 
-        // NEWMOB BEGIN
-
-        BondCenter& BC0 = atom2.updBondCenter(smallerId);
-        BondCenter& BCX = atom2.updBondCenter(largerId);
-        UnitVec3& BC0_dir = BC0.updDirection();
-        UnitVec3& BCX_dir = BCX.updDirection();
-        UnitVec3 rotAxis(BCX_dir % BC0_dir);
-        Angle oldAngle;
-        if(smallerId == 0) {
-            oldAngle = BCX.getDefaultBond1Angle();
-        }else if(smallerId == 1){
-            oldAngle = BCX.getDefaultBond2Angle();
-        }
-        Angle rotAngle = angle - oldAngle;
-        std::cout << "oldAngle angle rotAngle " << oldAngle << " " << angle << " " << rotAngle << std::endl;
-        Rotation rotMat = Rotation(rotAngle, rotAxis);
-        UnitVec3 newDir = rotMat * BCX.getDirection();
-        BCX.setDirection(newDir);
-
-        // NEWMOB END
-
         if (smallerId == 0) {
             atom2.updBondCenter(largerId).setDefaultBond1Angle(angle);
         }
@@ -1500,6 +1479,54 @@ public:
 
         return *this;
     }
+
+    // NEWMOB BEGIN
+    CompoundRep& matchDefaultDirections(const Compound::AtomTargetLocations& atomTargets){
+        // NEWMOB BEGIN
+        std::vector< AtomIndexList > atomRun = getBondedAtomRuns(1, atomTargets);
+        std::vector< AtomIndexList >::const_iterator atomRIx;
+        for(atomRIx = atomRun.begin(); atomRIx != atomRun.end(); ++atomRIx) {
+            Compound::AtomIndex atomIx = (*atomRIx)[0];
+            CompoundAtom& atom = updAtom(atomIx);
+            const AtomInfo& atomInfo = getAtomInfo(atomIx);
+
+            // Go through bond centers on atom. Order counts.
+            for (CompoundAtom::BondCenterIndex b(0); b < atom.getNumBonds(); ++b) {
+                BondCenter &BC0 = atom.updBondCenter(CompoundAtom::BondCenterIndex(0));
+                if(b == 0) {
+                    continue;
+                }else if(b == 1){ // Rotate with theta in the initial plane
+                    BondCenter &BCX = atom.updBondCenter(b);
+                    UnitVec3& BC0_dir = BC0.updDirection();
+                    UnitVec3& BCX_dir = BCX.updDirection();
+                    UnitVec3 rotAxis(BCX_dir % BC0_dir);
+
+                    Angle rotAngle = BCX.getDefaultBond1Angle();
+                    Rotation rotMat = Rotation(rotAngle, rotAxis);
+                    UnitVec3 newDir = rotMat * BC0.getDirection();
+                    BCX.setDirection(newDir);
+                }else if(b > 1) { // Use Paul's method
+                    BondCenter &BCX = atom.updBondCenter(b);
+                    UnitVec3 a1 = atom.getBondCenterDirectionInAtomFrame(CompoundAtom::BondCenterIndex(0));
+                    UnitVec3 a2 = atom.getBondCenterDirectionInAtomFrame(CompoundAtom::BondCenterIndex(1));
+                    Angle theta1, theta2;
+                    theta1 = BCX.getDefaultBond1Angle();
+                    theta2 = BCX.getDefaultBond2Angle();
+                    BondCenter::Chirality chirality = BCX.getChirality();
+
+                    std::cout << " bc  a1 theta1 a2 theta2 chir " << b
+                              << " " << a1 << " " << theta1 << " " << a2 << " " << theta2
+                              << " " << chirality << std::endl;
+
+                    BCX.setDirection(BondCenter::getBondDirection(a1, theta1, a2, theta2, chirality));
+                }
+            }
+        }
+
+        // NEWMOB END
+    }
+
+    // NEWMOB END
 
     // Helper method for matchDefaultDihedralAngles
     bool isPlanarBond(

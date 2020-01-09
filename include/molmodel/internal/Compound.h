@@ -755,6 +755,8 @@ public:
     Compound& matchDefaultBondLengths(const AtomTargetLocations& atomTargets);
     Compound& matchDefaultBondAngles(const AtomTargetLocations& atomTargets);
 
+    Compound& matchDefaultDirections(const AtomTargetLocations& atomTargets); // NEWMOB
+
     enum PlanarBondMatchingPolicy {KeepPlanarBonds, DistortPlanarBonds, FlipPlanarBonds};
     Compound& matchDefaultDihedralAngles(
         const AtomTargetLocations& atomTargets,///< set of atom locations to match dihedrals of
@@ -783,6 +785,7 @@ public:
 
             matchDefaultBondLengths(atomTargets);
             matchDefaultBondAngles(atomTargets);
+            matchDefaultDirections(atomTargets); // NEWMOB
             
             // Set dihedral angles even when bonded atoms are planar
             matchDefaultDihedralAngles(atomTargets, Compound::DistortPlanarBonds);
@@ -808,7 +811,7 @@ public:
             // many bad contacts.  Optimization is needed
             // TODO - ObservedPointFitter on internal coordinates
             fitDefaultConfiguration(atomTargets, 0.005,useObservedPointFitter,minimizerTolerance);
-            
+            matchDefaultDirections(atomTargets); // NEWMOB
             return *this;
         }
             

@@ -2151,6 +2151,15 @@ Compound& Compound::matchDefaultBondAngles(const AtomTargetLocations& atomTarget
     updImpl().matchDefaultBondAngles(atomTargets);
     return *this;
 }
+
+//NEWMOB BEGIN
+Compound& Compound::matchDefaultDirections(const AtomTargetLocations& atomTargets)
+{
+    updImpl().matchDefaultDirections(atomTargets);
+    return *this;
+}
+//NEWMOB END
+
 Compound& Compound::matchDefaultDihedralAngles(
         const AtomTargetLocations& atomTargets, 
         Compound::PlanarBondMatchingPolicy policy)
