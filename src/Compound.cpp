@@ -583,6 +583,33 @@ CompoundRep& CompoundRep::addSecondBondCenter(
     return *this;
 }
 
+// NEWMOB BEGIN
+CompoundRep& CompoundRep::addFirstTwoBondCenters(
+        const Compound::BondCenterName& centerName1,
+        const Compound::BondCenterName& centerName2,
+        const Compound::AtomName& atomName,
+        UnitVec3 dir1, UnitVec3 dir2
+)
+{
+    assert (!hasBondCenter(centerName1));
+    assert (!hasBondCenter(centerName2));
+
+    const Compound::AtomIndex atomId = getAtomInfo(atomName).getIndex();
+
+    const std::vector<CompoundAtom::BondCenterIndex> centerIndeces = updAtom(atomId).addFirstTwoBondCenters(dir1, dir2);
+
+    addBondCenterInfo(atomId, centerIndeces[0]);
+    addBondCenterInfo(atomId, centerIndeces[1]);
+
+    bondCenterIndicesByName[centerName1] = getBondCenterInfo(atomId, centerIndeces[0]).getIndex();
+    bondCenterIndicesByName[centerName2] = getBondCenterInfo(atomId, centerIndeces[1]).getIndex();
+
+    assert (hasBondCenter(centerName1));
+    assert (hasBondCenter(centerName2));
+
+    return *this;
+} // NEWMOB END
+
 CompoundRep& CompoundRep::addPlanarBondCenter(
     const Compound::BondCenterName& centerName, 
     const Compound::AtomName& atomName,
@@ -1646,6 +1673,17 @@ Compound& Compound::addSecondBondCenter(
     updImpl().addSecondBondCenter(centerName, atomName, bondAngle1);
     return *this;
 }
+
+// NEWMOB BEGIN
+Compound& Compound::addFirstTwoBondCenters(
+        const Compound::BondCenterName& centerName1,
+        const Compound::BondCenterName& centerName2,
+        const Compound::AtomName& atomName,
+        UnitVec3 dir1, UnitVec3 dir2)
+{
+    updImpl().addFirstTwoBondCenters(centerName1, centerName2, atomName, dir1, dir2);
+    return *this;
+} // NEWMOB END
 
 
 Compound& Compound::addPlanarBondCenter(

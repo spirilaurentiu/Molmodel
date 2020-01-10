@@ -247,6 +247,13 @@ public:
         Angle bondAngle1
         );
 
+    CompoundRep& addFirstTwoBondCenters(
+            const Compound::BondCenterName& centerName1,
+            const Compound::BondCenterName& centerName2,
+            const Compound::AtomName& atomName,
+            UnitVec3 dir1, UnitVec3 dir2
+    );
+
     CompoundRep& addPlanarBondCenter(
         const Compound::BondCenterName& centerName, 
         const Compound::AtomName& atomName,

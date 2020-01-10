@@ -427,6 +427,16 @@ public:
         Angle bondAngle1 ///< default bond bend angle relating the first two bond centers of the atom
         );
 
+    /** Assign first two bond centers on a particular atom with arbitrary directions // NEWMOB
+     *  \return a reference to this Compound object
+     *
+     * \return a reference to this compound object
+     */
+    Compound& addFirstTwoBondCenters(
+            const Compound::BondCenterName& centerName1,  const Compound::BondCenterName& centerName2,
+            const Compound::AtomPathName& atomName, ///< name of the Atom to attach the bond center to
+            UnitVec3 dir1, UnitVec3 dir2
+    );
     /**
      * Places a third or later bond center on an atom, in the same
      * plane as the first two bond centers.

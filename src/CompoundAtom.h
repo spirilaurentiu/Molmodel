@@ -772,6 +772,47 @@ public:
         return bondCenterIndex;
     }
 
+    // NEWMOB BEGIN
+    std::vector<BondCenterIndex> addFirstTwoBondCenters(
+            UnitVec3 dir1, UnitVec3 dir2
+    )
+    {
+        assert( ! hasBondCenter(BondCenterIndex(0)) );
+        assert( ! hasBondCenter(BondCenterIndex(1)) );
+
+        // all bond centers except first use first bond center as dihedral reference
+        int refY = 1;
+        std::vector<BondCenterIndex> result;
+
+        // First BC
+        const BondCenterIndex bondCenterIndex1 = BondCenterIndex(bondCenters.size());
+        result.push_back(bondCenterIndex1);
+        bondCenters.push_back(BondCenter(0, 0, refY, BondCenter::Planar, dir1)); // NEWMOB
+
+        // Second BC
+        // Compute bond1Angle
+        Angle theta12 = dot(dir1, dir2);
+        if (theta12 > 1.0) theta12 = 1.0;
+        if (theta12 < -1.0) theta12 = -1.0;
+        theta12 = std::acos(theta12);
+
+        // Push
+        refY = 0;
+        const BondCenterIndex bondCenterIndex2 = BondCenterIndex(bondCenters.size());
+        result.push_back(bondCenterIndex2);
+        bondCenters.push_back(BondCenter(theta12, 0, refY, BondCenter::Planar, dir2));
+
+        // Check
+        assert( bondCenterIndex1 == 0 );
+        assert( bondCenterIndex2 == 1 );
+        assert( hasBondCenter(BondCenterIndex(0)) );
+        assert( hasBondCenter(BondCenterIndex(1)) );
+
+        return result;
+    } // NEWMOB
+
+
+
     BondCenterIndex addPlanarBondCenter(
         Angle bond1Angle,
         Angle bond2Angle
