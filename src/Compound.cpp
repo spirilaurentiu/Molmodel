@@ -1355,6 +1355,7 @@ const Transform CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(const Bon
     const BondCenter& bondCenter = getBondCenter(info);
 
     if (bondCenter.isInboard()) {
+        std::cout << "calcDefaultBondCenterFrameInCompoundFrame cache: BCIx " << info.getBondIndex() << " inboard" << std::endl;
         //cout<<__FILE__<<":"<<__LINE__<<endl;
         assert(bondCenter.isBonded());
         const BondInfo& bondInfo = getBondInfo(info.getBondIndex());
@@ -1367,6 +1368,7 @@ const Transform CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(const Bon
         X_compound_center = X_compound_parentBC * X_parentBC_childBC;
     } 
     else {
+        std::cout << "calcDefaultBondCenterFrameInCompoundFrame cache: BCIx " << info.getBondIndex() << " outboard" << std::endl;
         //cout<<__FILE__<<":"<<__LINE__<<endl;
         Transform X_compound_atom = calcDefaultAtomFrameInCompoundFrame(info.getAtomIndex(), atomFrameCache);
         //cout<<__FILE__<<":"<<__LINE__<<endl;
@@ -1375,6 +1377,7 @@ const Transform CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(const Bon
     }
 
     //cout<<__FILE__<<":"<<__LINE__<<endl;
+    std::cout << "calcDefaultBondCenterFrameInCompoundFrame cache: return " << std::endl;
     return X_compound_center;
 }
 
@@ -1384,6 +1387,7 @@ Transform CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(const BondCente
     const BondCenter& bondCenter = getBondCenter(info);
 
     if (bondCenter.isInboard()) {
+        std::cout << "calcDefaultBondCenterFrameInCompoundFrame: BCIx " << info.getBondIndex() << " inboard" << std::endl;
         //cout<<__FILE__<<":"<<__LINE__<<endl;
         assert(bondCenter.isBonded());
         const BondInfo& bondInfo = getBondInfo(info.getBondIndex());
@@ -1397,6 +1401,7 @@ Transform CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(const BondCente
         X_compound_center = X_compound_parentBC * X_parentBC_childBC;
     } 
     else {
+        std::cout << "calcDefaultBondCenterFrameInCompoundFrame: BCIx " << info.getBondIndex() << " outboard" << std::endl;
         //cout<<__FILE__<<":"<<__LINE__<<endl;
         Transform X_compound_atom = calcDefaultAtomFrameInCompoundFrame(info.getAtomIndex());
         //cout<<__FILE__<<":"<<__LINE__<<endl;
@@ -1404,6 +1409,7 @@ Transform CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(const BondCente
         X_compound_center = X_compound_atom * X_atom_center;
     }
 
+    std::cout << "calcDefaultBondCenterFrameInCompoundFrame: return" << std::endl;
     return X_compound_center;
 }
 
@@ -1420,9 +1426,11 @@ const Transform& CompoundRep::calcDefaultAtomFrameInCompoundFrame(Compound::Atom
 
     Transform parent_X_atom; // atom frame in this compound's frame
     if (atomInfo.isBaseAtom()) {
+        std::cout << "calcDefaultAtomFrameInCompoundFrame cache: aIx " << atomId << " base" << std::endl;
         parent_X_atom = atom.getDefaultFrameInCompoundFrame();
     }
     else {
+        std::cout << "calcDefaultAtomFrameInCompoundFrame cache: aIx : " << atomId << std::endl;
         // Delegate frame to inboard bond center
         Transform inboard_X_atom = atom.calcDefaultFrameInInboardCenterFrame();
         const BondCenterInfo& center = getBondCenterInfo(atomId, atom.getInboardBondCenterIndex());
@@ -1431,6 +1439,7 @@ const Transform& CompoundRep::calcDefaultAtomFrameInCompoundFrame(Compound::Atom
     }
 
     candidate = parent_X_atom;
+    std::cout << "calcDefaultAtomFrameInCompoundFrame cache: return "<< std::endl;
     return candidate;
 }
 
@@ -1441,10 +1450,12 @@ Transform CompoundRep::calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex a
     Transform parent_X_atom; // atom frame in this compound's frame
     //cout<<__FILE__<<":"<<__LINE__<<endl;
     if (atomInfo.isBaseAtom()) {
+        std::cout << "calcDefaultAtomFrameInCompoundFrame: aIx " << atomId << " base" << std::endl;
         //cout<<__FILE__<<":"<<__LINE__<<endl;
         parent_X_atom = atom.getDefaultFrameInCompoundFrame();
     }
     else {
+        std::cout << "calcDefaultAtomFrameInCompoundFrame: aIx : " << atomId << std::endl;
         // Delegate frame to inboard bond center
         //cout<<__FILE__<<":"<<__LINE__<<endl;
         Transform inboard_X_atom = atom.calcDefaultFrameInInboardCenterFrame();
@@ -1456,6 +1467,7 @@ Transform CompoundRep::calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex a
     }
 
     //cout<<__FILE__<<":"<<__LINE__<<endl;
+    std::cout << "calcDefaultAtomFrameInCompoundFrame: return "<< std::endl;
     return parent_X_atom;
 }
 

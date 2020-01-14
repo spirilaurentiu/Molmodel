@@ -1521,7 +1521,7 @@ public:
                     theta2 = BCX.getDefaultBond2Angle();
                     BondCenter::Chirality chirality = BCX.getChirality();
 
-                    std::cout << " bc  a1 theta1 a2 theta2 chir " << b
+                    std::cout << "matchDefaultDirections: bc  a1 theta1 a2 theta2 chir " << b
                               << " " << a1 << " " << theta1 << " " << a2 << " " << theta2
                               << " " << chirality << std::endl;
 

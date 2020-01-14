@@ -142,7 +142,7 @@ void buildUpRigidBody(Compound::AtomIndex atomId,
 
 void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilizedBodyType ) 
 {
-    bool showDebugMessages = false;
+    bool showDebugMessages = true;
     if (showDebugMessages) cout << "modelOneCompound" << endl;
 
     // Turn off default decorations, since we'll make our own decorations.
@@ -502,7 +502,9 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             Transform B_X_atom = B_X_T * T_X_atom;
 
             Vec3 atomLocationInBody = B_X_atom.p();
-
+            std::cout << " atomIx " << atomId // NEWMOB
+                << " B_X_atom " << B_X_atom << std::endl; // NEWMOB
+            std::cout << "B_X_atom.p() " << B_X_atom.p() << std::endl; // NEWMOB
             dumm.placeAtomInCluster(atomBonding.dummAtomIndex, unit.clusterIx, atomLocationInBody);
             atomBonding.locationInBodyFrame = atomLocationInBody;
 
