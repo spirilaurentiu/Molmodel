@@ -926,7 +926,7 @@ public:
         const Compound::AtomIndex atom2Id, 
         const Compound::AtomIndex atom3Id) 
     {
-        std::cout << "setDefaultBondAngle " << std::endl;
+        //std::cout << "setDefaultBondAngle " << std::endl;
 
         CompoundAtom& atom2 = updAtom(atom2Id);
         const AtomInfo&        atom2Info = getAtomInfo(atom2Id);
@@ -1148,7 +1148,7 @@ public:
 
     CompoundRep& matchDefaultAtomChirality(const Compound::AtomTargetLocations& atomTargets, Angle breakPlanarityThreshold, bool flipAll=true)
     {
-        std::cout << "matchDefaultAtomChirality" << std::endl;
+        //std::cout << "matchDefaultAtomChirality" << std::endl;
         std::vector< AtomIndexList > atomPairs = getBondedAtomRuns(2, atomTargets);
 
         // 1 Ignore atoms with less than three known atoms bonded
@@ -1425,7 +1425,7 @@ public:
 
     CompoundRep& matchDefaultBondLengths(const Compound::AtomTargetLocations& atomTargets) 
     {
-        std::cout << "matchDefaultBondLengths" << std::endl;
+        //std::cout << "matchDefaultBondLengths" << std::endl;
 
         //std::cout<<"BEGIN  matchDefaultBondLengths"<<std::endl;
         std::vector< AtomIndexList > atomPairs = getBondedAtomRuns(2, atomTargets);
@@ -1455,7 +1455,7 @@ public:
 
     CompoundRep& matchDefaultBondAngles(const Compound::AtomTargetLocations& atomTargets) 
     {
-        std::cout << "matchDefaultBondAngles" << std::endl;
+        //std::cout << "matchDefaultBondAngles" << std::endl;
         //std::cout<<"BEGIN  matchDefaultBondAngles"<<std::endl;
         std::vector< AtomIndexList > atomTriples = getBondedAtomRuns(3, atomTargets);
 
@@ -1572,7 +1572,7 @@ public:
             const Compound::AtomTargetLocations& atomTargets, 
             Compound::PlanarBondMatchingPolicy policy) 
     {
-        std::cout << "matchDefaultDihedralAngles" << std::endl;
+        //std::cout << "matchDefaultDihedralAngles" << std::endl;
         //std::cout<<"BEGIN   matchDefaultDihedralAngles"<<std::endl;
         std::vector< AtomIndexList > atomQuads = getBondedAtomRuns(4, atomTargets);
 
@@ -1646,7 +1646,7 @@ public:
 
     CompoundRep& matchDefaultTopLevelTransform(const Compound::AtomTargetLocations& atomTargets) 
     {
-        std::cout << "matchDefaultTopLevelTransform" << std::endl;
+        //std::cout << "matchDefaultTopLevelTransform" << std::endl;
         //std::cout<<"BEGIN  matchDefaultTopLevelTransform"<<std::endl;
         Transform adjustment = getTransformAndResidual(atomTargets).transform;
         //std::cout<<"adjustment:"<<std::endl<<adjustment<<std::endl;
