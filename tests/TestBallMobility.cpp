@@ -158,7 +158,7 @@ public:
         // Ultimaately what we want to try: Bond Mobility
         for (unsigned int r=0 ; r<getNumBonds(); r++){
             //setBondMobility(BondMobility::Torsion, Compound::BondIndex(r));
-            setBondMobility(BondMobility::Ball, Compound::BondIndex(r));
+            setBondMobility(BondMobility::BallF, Compound::BondIndex(r));
         }
 
     }

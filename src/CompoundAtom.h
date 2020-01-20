@@ -175,11 +175,27 @@ public:
             MobilizedBody::Cylinder &cyl = (MobilizedBody::Cylinder &) matter.updMobilizedBody(pinJointId);
             cyl.setOneQ(state, 0, angleInRadians);
 
-        }else if(mobility == BondMobility::Ball){ // Gmol
+        }else if(mobility == BondMobility::Spherical) { // NEWMOB
+            MobilizedBody::SphericalCoords &sphere = (MobilizedBody::SphericalCoords &) matter.updMobilizedBody(pinJointId);
+            sphere.setOneQ(state, 0, angleInRadians); // azimuth angle
+
+        }else if((mobility == BondMobility::BallF) || (mobility == BondMobility::BallM)){ // Gmol NEWMOB
 
             MobilizedBody::Ball &ball = (MobilizedBody::Ball &) matter.updMobilizedBody(pinJointId);
             ball.setQ(state, SimTK::Rotation(angleInRadians,
                     CoordinateAxis::ZCoordinateAxis()).convertRotationToQuaternion().asVec4());
+
+        }else if(mobility == BondMobility::UniversalM){ // Gmol NEWMOB
+
+        MobilizedBody::Universal &universal = (MobilizedBody::Universal &) matter.updMobilizedBody(pinJointId);
+        universal.setQToFitTransform(state, SimTK::Rotation(angleInRadians,
+                                              CoordinateAxis::ZCoordinateAxis()));
+
+        }else if((mobility == BondMobility::LineOrientationF) || (mobility == BondMobility::LineOrientationM)){ // Gmol
+
+            MobilizedBody::LineOrientation &lineOrientation = (MobilizedBody::LineOrientation &) matter.updMobilizedBody(pinJointId);
+            lineOrientation.setQ(state, SimTK::Rotation(angleInRadians,
+                                             CoordinateAxis::ZCoordinateAxis()).convertRotationToQuaternion().asVec4());
 
         }else if(mobility == BondMobility::Free) { // Gmol
             MobilizedBody::Free &freeB = (MobilizedBody::Free &) matter.updMobilizedBody(pinJointId);
@@ -225,16 +241,74 @@ public:
 
         cyl.setDefaultQ(Vec2(argDefaultDihedral, argDefaultLength));
 
-        //cyl.setOneQ(const_cast<State &>(cyl.getMatterSubsystem().getSystem().getDefaultState()), 0, argDefaultDihedral);
-        //cyl.setDefaultAngle(defaultDihedral); No function found
-        //SimTK::Transform cylX_FM(SimTK::Rotation(defaultDihedral, SimTK::ZAxis),
-        //     SimTK::Vec3(0, 0, defaultLength));
-        //cyl.setQToFitTransform(state, cylX_FM);
+        return *this;
+    }
+
+    Bond& setSphericalBody(MobilizedBody::SphericalCoords& sphere, Real argDefaultLength, Angle argDefaultAngle, Angle argDefaultDihedral)
+    {
+        pinJointId = sphere.getMobilizedBodyIndex();
+
+        sphere.setDefaultQ(Vec3(argDefaultDihedral, argDefaultAngle, argDefaultLength));
 
         return *this;
     }
 
-    Bond& setBallBody(MobilizedBody::Ball& ball, Angle argDefaultDihedral)
+    Bond& setBallFBody(MobilizedBody::Ball& ball, Angle argDefaultDihedral)
+    {
+        pinJointId = ball.getMobilizedBodyIndex();
+
+        SimTK::Rotation R_FM;
+        R_FM.setRotationFromAngleAboutX(0.0);
+        R_FM.setRotationFromAngleAboutY(0.0);
+        R_FM.setRotationFromAngleAboutZ(argDefaultDihedral);
+
+        ball.setDefaultRotation(R_FM);
+
+        return *this;
+    }
+
+    Bond& setBallMBody(MobilizedBody::Ball& ball, Angle argDefaultDihedral)
+    {
+        pinJointId = ball.getMobilizedBodyIndex();
+
+        SimTK::Rotation R_FM;
+        R_FM.setRotationFromAngleAboutX(0.0);
+        R_FM.setRotationFromAngleAboutY(0.0);
+        R_FM.setRotationFromAngleAboutZ(argDefaultDihedral);
+
+        ball.setDefaultRotation(R_FM);
+
+        return *this;
+    }
+    Bond& setUniversalMBody(MobilizedBody::Universal& universal, Angle argDefaultDihedral)
+    {
+        pinJointId = universal.getMobilizedBodyIndex();
+
+        SimTK::Rotation R_FM;
+        R_FM.setRotationFromAngleAboutX(0.0);
+        R_FM.setRotationFromAngleAboutY(0.0);
+        R_FM.setRotationFromAngleAboutZ(argDefaultDihedral);
+
+        //universal.setDefaultInboardFrame(R_FM);
+
+        return *this;
+    }
+
+    Bond& setLineOrientationFBody(MobilizedBody::LineOrientation& ball, Angle argDefaultDihedral)
+    {
+        pinJointId = ball.getMobilizedBodyIndex();
+
+        SimTK::Rotation R_FM;
+        R_FM.setRotationFromAngleAboutX(0.0);
+        R_FM.setRotationFromAngleAboutY(0.0);
+        R_FM.setRotationFromAngleAboutZ(argDefaultDihedral);
+
+        ball.setDefaultRotation(R_FM);
+
+        return *this;
+    }
+
+    Bond& setLineOrientationMBody(MobilizedBody::LineOrientation& ball, Angle argDefaultDihedral)
     {
         pinJointId = ball.getMobilizedBodyIndex();
 
@@ -334,7 +408,17 @@ public:
             const MobilizedBody::Cylinder& cyl = (const MobilizedBody::Cylinder&) matter.getMobilizedBody(pinJointId);
             return cyl.getOneQ(state, 0);
 
-        }else if(mobility == BondMobility::Ball){ // Gmol
+        }else if(mobility == BondMobility::Spherical){
+
+            const MobilizedBody::SphericalCoords& sphere = (const MobilizedBody::SphericalCoords&) matter.getMobilizedBody(pinJointId);
+            return (sphere.getQ(state))[0];
+
+        }else if(mobility == BondMobility::UniversalM){
+
+            const MobilizedBody::Universal& universal = (const MobilizedBody::Universal&) matter.getMobilizedBody(pinJointId);
+            return universal.getOneQ(state, 0);
+
+        }else if((mobility == BondMobility::BallF) || (mobility == BondMobility::BallM)){ // Gmol NEWMOB
 
             const MobilizedBody::Ball &ball = (const MobilizedBody::Ball &) matter.getMobilizedBody(pinJointId);
 
@@ -354,6 +438,26 @@ public:
             }
             return (Angle)psi;
 
+        }else if((mobility == BondMobility::LineOrientationF) || (mobility == BondMobility::LineOrientationM)){ // Gmol
+
+            const MobilizedBody::LineOrientation &lineOrientation = (const MobilizedBody::LineOrientation &) matter.getMobilizedBody(pinJointId);
+
+            // Return psi Euler angle and ignore phi and theta
+            Vec4 q = SimTK::Quaternion(lineOrientation.getQ(state));
+            double psi;
+            // Deal with singularity
+            if( (std::abs((q[1] * q[2]) + (q[3] * q[0])) - 0.5) < 0.01 ){
+                psi = 0.0;
+            }else {
+                double q0q3 = q[0] * q[3];
+                double q1q2 = q[1] * q[2];
+                double q2sq = q[2] * q[2];
+                double q3sq = q[3] * q[3];
+                psi = atan2(2 * (q0q3 + q1q2),
+                            1 - 2 * (q2sq + q3sq));
+            }
+            return (Angle)psi;
+
         }
 
         // Shouldn't get here but compiler keeps complaining
@@ -364,8 +468,8 @@ public:
     // GMOL
     Rotation getDefaultRotation(const State& state, const SimbodyMatterSubsystem& matter) const {
         assert(pinJointId.isValid());
-        //assert(mobility == BondMobility::Ball);
-        //const MobilizedBody::Ball &ball = (const MobilizedBody::Ball &) matter.getMobilizedBody(pinJointId);
+        //assert(mobility == BondMobility::BallF);
+        //const MobilizedBody::BallF &ball = (const MobilizedBody::BallF &) matter.getMobilizedBody(pinJointId);
         //return ball.getBodyRotation(state);
         return matter.getMobilizedBody(pinJointId).getBodyRotation(state);
     }
@@ -390,8 +494,8 @@ public:
         Transform bondLength(Vec3(defaultLength, 0, 0));
 
         // 3) rotate 180 degrees about y-axis to face the parent bond center
-        //Transform aboutFace( Rotation(180*Deg2Rad, YAxis) );
-        Transform aboutFace( Rotation(180*Deg2Rad, ZAxis) ); // NEWMOB
+        Transform aboutFace( Rotation(180*Deg2Rad, YAxis) );
+        //Transform aboutFace( Rotation(180*Deg2Rad, ZAxis) ); // NEWMOB
 
         Transform BC1_X_BC2 = dihedral * bondLength * aboutFace;
         //std::cout<<__FILE__<<":"<<__LINE__<<std::endl;
@@ -993,6 +1097,8 @@ public:
             UnitVec3 xAxis(1,0,0);
             Rotation rotMat(theta, ZAxis);
             UnitVec3 direction(rotMat * xAxis);
+
+            // return direction; // OLDMOB
             return bondCenter.getDirection(); // NEWMOB
         }
         else {
@@ -1036,8 +1142,8 @@ public:
         // This creates a Rotation whose X axis is in "direction", and whose Y axis
         // is (at least roughly) in direction ydir.
 
-        //return Transform(Rotation(direction, XAxis, ydir, YAxis));
-        return Transform(Rotation(direction, XAxis, ydir, ZAxis)); // NEWMOB
+        return Transform(Rotation(direction, XAxis, ydir, YAxis));
+        //return Transform(Rotation(direction, XAxis, ydir, ZAxis)); // NEWMOB
     }
 
 

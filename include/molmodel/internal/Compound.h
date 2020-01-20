@@ -71,10 +71,15 @@ namespace BondMobility {
         Free = 1, ///< Unrestricted bond, permitting changes in stretch, bend, and torsion modes
         Torsion = 2, ///< Bond has fixed length and angles, but permits rotation about the bond axis
         Rigid = 3, ///< Bond links both atoms to the same rigid unit
-        Ball = 4, ///< Three rotational dofs. It allows  angle flexibility besides torsion.
-        Cylinder = 5, ///< Torsion plus translation along the bond
-        Translation = 6, ///< Three translational mobilities (Cartesian). // NEWMOB
-        FreeLine = 7 ///< Three translational mobilities (Cartesian). // NEWMOB
+        BallF = 4, ///< Three rotational dofs. It allows  angle flexibility besides torsion.
+        BallM = 5, ///< Three rotational dofs. It allows  angle flexibility besides torsion.
+        Cylinder = 6, ///< Torsion plus translation along the bond
+        Translation = 7, ///< Three translational mobilities (Cartesian). // NEWMOB
+        FreeLine = 8, ///< Three translational mobilities (Cartesian). // NEWMOB
+        LineOrientationF = 9, ///< Two rotational mobilities // NEWMOB
+        LineOrientationM = 10, ///< Two rotational mobilities // NEWMOB
+        UniversalM = 11, ///< Cap de bara
+        Spherical = 12 ///< BAT coordinates
     };
     static Mobility Default = Torsion;
 }

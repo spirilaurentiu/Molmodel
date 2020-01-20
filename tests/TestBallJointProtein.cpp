@@ -126,7 +126,7 @@ void testShortProtein()
 
     // This is what we want to test
     for (unsigned int r = 0 ; r < protein.getNumBonds(); r++){
-        protein.setBondMobility(BondMobility::Ball, Compound::BondIndex(r));
+        protein.setBondMobility(BondMobility::BallF, Compound::BondIndex(r));
     }
 
     //protein.writeDefaultPdb(cout);
