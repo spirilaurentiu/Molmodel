@@ -131,7 +131,8 @@ void buildUpRigidBody(Compound::AtomIndex atomId,
             // and thus get included in rigid body
             if ( (numberOfNonBendyBondsOnBondedAtom == 1) || (numberOfNonBendyBondsOnThisAtom == 1) )
             {
-                buildUpRigidBody(*b, clusterIx, clusterAtoms, atomBondings, compoundRep);
+                //buildUpRigidBody(*b, clusterIx, clusterAtoms, atomBondings, compoundRep); // OLDMOB
+                ; // NEWMOB
             }
         }
 
@@ -513,8 +514,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 
             Vec3 atomLocationInBody = B_X_atom.p();
             std::cout << " atomIx " << atomId // NEWMOB
-                << " B_X_atom " << B_X_atom << std::endl; // NEWMOB
-            std::cout << "B_X_atom.p() " << B_X_atom.p() << std::endl; // NEWMOB
+             << " B_X_atom.p() " << B_X_atom.p() << std::endl; // NEWMOB
             dumm.placeAtomInCluster(atomBonding.dummAtomIndex, unit.clusterIx, atomLocationInBody);
             atomBonding.locationInBodyFrame = atomLocationInBody;
 
@@ -560,12 +560,20 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             {   
                 if (mobilizedBodyType.compare("Free") == 0) {
                     MobilizedBody::Free freeBody
-                       (matter.Ground(), 
-				        G_X_T * T_X_B, 
-				        dumm.calcClusterMassProperties(unit.clusterIx), 
-				        Transform());
-		            unit.bodyId = freeBody.getMobilizedBodyIndex();
+                            (matter.Ground(),
+                             G_X_T * T_X_B,
+                             dumm.calcClusterMassProperties(unit.clusterIx),
+                             Transform());
+                    unit.bodyId = freeBody.getMobilizedBodyIndex();
                     std::cout << " got obligated Free mobodIx " << unit.bodyId << std::endl;
+                }else if (mobilizedBodyType.compare("Cartesian") == 0) {
+                        MobilizedBody::Translation cartesianBody
+                                (matter.Ground(),
+                                 G_X_T * T_X_B,
+                                 dumm.calcClusterMassProperties(unit.clusterIx),
+                                 Transform());
+                        unit.bodyId = cartesianBody.getMobilizedBodyIndex();
+                        std::cout << " got initial Cartesian mobodIx " << unit.bodyId << std::endl;
                 } else if (mobilizedBodyType.compare("Weld") == 0) {
 		            MobilizedBody::Weld weldBody
                        (matter.Ground(), 
@@ -648,32 +656,13 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             bool testRiboseMobilizer = false;
 
             // GMOL BIG RB =====================
-
             // Get the atom indeces at the origin of the bodies
             Compound::AtomIndex originAtomId(*unit.clusterAtoms.begin());
             //Compound::AtomIndex parentOriginAtomId(*parentUnit.clusterAtoms.begin());
 
-            // Check if they are relly the origins
-            //Vec3 originAtomLoc = atomBonds[originAtomId].locationInBodyFrame;
-            //Vec3 parentOriginAtomLoc = atomBonds[parentOriginAtomId].locationInBodyFrame;
-
-            // Get atoms
-            //CompoundAtom& originAtom = compoundRep.updAtom(originAtomId);
-            //CompoundAtom& parentOriginAtom = compoundRep.updAtom(parentOriginAtomId);
-
             // Get the parent atom of the origin atom
             AtomBonding& originAtomBonding = atomBonds.find(originAtomId)->second;
             Compound::AtomIndex parentAtomId = originAtomBonding.parentAtomIndex;
-
-/*            CompoundAtom& parentAtom = compoundRep.updAtom(parentAtomId);
-
-            Transform P_X_parent = parentAtom.getFrameInMobilizedBodyFrame();
-            Transform parentAtom_X_P = ~P_X_parent;
-            // Get default Q
-            const Transform& T_X_origin = defaultAtomFrames[originAtomId];
-            const Transform& T_X_parent = defaultAtomFrames[parentAtomId];
-            Transform parent_X_origin = ~T_X_parent * T_X_origin;
-            Transform origin_X_parent = ~parent_X_origin;*/
 
             // Get BondCenterInfo defaultDihedrals
             const AtomInfo& originAtomInfo = compoundRep.getAtomInfo(originAtomId);

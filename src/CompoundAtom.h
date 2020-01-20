@@ -485,7 +485,6 @@ public:
 
     // This transform is symmetric, so it does not matter which bondCenterIsRelative to which
     Transform getDefaultBondCenterFrameInOtherBondCenterFrame() const {
-        std::cout << "getDefaultBondCenterFrameInOtherBondCenterFrame" << std::endl;
         //std::cout<<__FILE__<<":"<<__LINE__<<std::endl;
         // 1) rotate about x-axis by dihedral angle
         Transform dihedral(Rotation(getDefaultDihedralAngle(), XAxis));
@@ -1042,7 +1041,6 @@ public:
     BiotypeIndex getBiotypeIndex() const {return biotypeIx;}
 
     const Transform& getDefaultFrameInCompoundFrame() const {
-        std::cout << "getDefaultFrameInCompoundFrame" << std::endl;
         return localTransform;
     }
 
@@ -1136,9 +1134,6 @@ public:
             ydir = getBondCenterDirectionInAtomFrame(yAxisIndex);
         }
 
-        std::cout << "CompoundAtom: calcDefaultBondCenterFrameInAtomFrame: BC" << bondCenterIndex << " with dir "
-            << direction << " will be XAxis and BC" << yAxisIndex << " with dir " << ydir << " will be in XOY" << std::endl;
-
         // This creates a Rotation whose X axis is in "direction", and whose Y axis
         // is (at least roughly) in direction ydir.
 
@@ -1160,7 +1155,6 @@ public:
 
     Transform calcDefaultFrameInInboardCenterFrame() const
     {
-        std::cout << "calcDefaultFrameInInboardCenterFrame" << std::endl;
         return ~calcDefaultBondCenterFrameInAtomFrame(getInboardBondCenterIndex());
     }
     
