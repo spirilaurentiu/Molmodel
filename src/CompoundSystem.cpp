@@ -682,7 +682,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             Transform newX_BM = X_childBC_parentBC * M_X_pin;
             Transform newX_PF = oldX_PF * oldX_FM * oldX_MB * newX_BM;
 
-            Transform universalX_BM = X_childBC_parentBC;
+            Transform universalPin = Rotation(-90*Deg2Rad, XAxis); // Move rotation axis Y to Z
+            Transform universalX_BM = X_childBC_parentBC * universalPin;
             Transform universalX_PF = oldX_PF * oldX_FM * oldX_MB * universalX_BM;
 
 	    // Special transform for free line
