@@ -171,6 +171,11 @@ public:
             MobilizedBody::Pin &pin = (MobilizedBody::Pin &) matter.updMobilizedBody(pinJointId);
             pin.setAngle(state, angleInRadians);
 
+        }else if(mobility == BondMobility::AnglePin) { // NEWMOB
+            // Do nothing
+            //MobilizedBody::Pin &anglePin = (MobilizedBody::Pin &) matter.updMobilizedBody(pinJointId);
+            //anglePin.setOneQ(state, 0, angleInRadians);
+
         }else if(mobility == BondMobility::Cylinder) { // Gmol
             MobilizedBody::Cylinder &cyl = (MobilizedBody::Cylinder &) matter.updMobilizedBody(pinJointId);
             cyl.setOneQ(state, 0, angleInRadians);
@@ -232,6 +237,15 @@ public:
         return *this;
     }
     // GMOL END
+
+    Bond& setAnglePinBody(MobilizedBody::Pin& pin, Angle argDefaultDihedral)
+    {
+        pinJointId = pin.getMobilizedBodyIndex();
+
+        pin.setDefaultAngle(argDefaultDihedral);
+
+        return *this;
+    }
 
 ///* GMolModel Try other Mobilizers
     // This method does not set default values of Q
@@ -381,6 +395,9 @@ public:
 
             const MobilizedBody::Pin& pin = (const MobilizedBody::Pin&) matter.getMobilizedBody(pinJointId);
             return pin.getAngle(state);
+
+        }else if(mobility == BondMobility::AnglePin) {
+            return 0;
 
         }else if(mobility == BondMobility::Free){
 

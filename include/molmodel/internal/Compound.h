@@ -79,7 +79,8 @@ namespace BondMobility {
         LineOrientationF = 9, ///< Two rotational mobilities // NEWMOB
         LineOrientationM = 10, ///< Two rotational mobilities // NEWMOB
         UniversalM = 11, ///< Cap de bara
-        Spherical = 12 ///< BAT coordinates
+        Spherical = 12, ///< BAT coordinates
+        AnglePin = 13
     };
     static Mobility Default = Torsion;
 }
