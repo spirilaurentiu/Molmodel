@@ -176,6 +176,11 @@ public:
             //MobilizedBody::Pin &anglePin = (MobilizedBody::Pin &) matter.updMobilizedBody(pinJointId);
             //anglePin.setOneQ(state, 0, angleInRadians);
 
+        }else if(mobility == BondMobility::Slider) { // NEWMOB
+            // Do nothing
+            //MobilizedBody::Slider &slider = (MobilizedBody::Slider &) matter.updMobilizedBody(pinJointId);
+            //slider.setOneQ(state, 0, length);
+
         }else if(mobility == BondMobility::Cylinder) { // Gmol
             MobilizedBody::Cylinder &cyl = (MobilizedBody::Cylinder &) matter.updMobilizedBody(pinJointId);
             cyl.setOneQ(state, 0, angleInRadians);
@@ -243,6 +248,15 @@ public:
         pinJointId = pin.getMobilizedBodyIndex();
 
         pin.setDefaultAngle(argDefaultDihedral);
+
+        return *this;
+    }
+
+    Bond& setSliderBody(MobilizedBody::Slider& slider, Angle argDefaultLength)
+    {
+        pinJointId = slider.getMobilizedBodyIndex();
+
+        slider.setDefaultLength(argDefaultLength);
 
         return *this;
     }
@@ -397,6 +411,9 @@ public:
             return pin.getAngle(state);
 
         }else if(mobility == BondMobility::AnglePin) {
+            return 0;
+
+        }else if(mobility == BondMobility::Slider) {
             return 0;
 
         }else if(mobility == BondMobility::Free){

@@ -113,7 +113,8 @@ void buildUpRigidBody(Compound::AtomIndex atomId,
                 || (bond.getMobility() == BondMobility::LineOrientationM)
                 || (bond.getMobility() == BondMobility::UniversalM) // NEWMOB
                 || (bond.getMobility() == BondMobility::Torsion)
-                || (bond.getMobility() == BondMobility::AnglePin)
+                || (bond.getMobility() == BondMobility::AnglePin) // NEWMOB
+                || (bond.getMobility() == BondMobility::Slider) // NEWMOB
                 || (bond.getMobility() == BondMobility::Cylinder)
                 || (bond.getMobility() == BondMobility::Spherical) // NEWMOB
                 || (bond.getMobility() == BondMobility::BallF) // Gmol
@@ -339,6 +340,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             case BondMobility::UniversalM:
             case BondMobility::Spherical:
             case BondMobility::AnglePin:
+            case BondMobility::Slider:
                 {
                     // This might represent a parent/child relationship
                     const BondCenterInfo& parentBondCenterInfo = compoundRep.getBondCenterInfo(bondInfo.getParentBondCenterIndex());
@@ -691,6 +693,9 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             Transform anglePinX_BM = X_childBC_parentBC;
             Transform anglePinX_PF = oldX_PF * oldX_FM * oldX_MB * anglePinX_BM;
 
+            Transform sliderX_BM = anglePinX_BM;
+            Transform sliderX_PF = anglePinX_PF;
+
 	    // Special transform for free line
             Transform newX_BM_FreeLine;
             std::set<Compound::AtomIndex>::const_iterator atomI = unit.clusterAtoms.begin();
@@ -769,6 +774,19 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                    bond.setAnglePinBody(anglePinBody, 0);
                    unit.bodyId = anglePinBody.getMobilizedBodyIndex();
                    std::cout << " got AnglePin mobodIx " << unit.bodyId << std::endl;
+
+               }else if(bond.getMobility() == BondMobility::Slider) {
+
+                   MobilizedBody::Slider sliderBody(
+                           matter.updMobilizedBody(parentUnit.bodyId),
+                           sliderX_PF,
+                           dumm.calcClusterMassProperties(unit.clusterIx),
+                           sliderX_BM
+                   );
+
+                   bond.setSliderBody(sliderBody, 0);
+                   unit.bodyId = sliderBody.getMobilizedBodyIndex();
+                   std::cout << " got Slider mobodIx " << unit.bodyId << std::endl;
 
                } else if(bond.getMobility() == BondMobility::BallF) {
 
