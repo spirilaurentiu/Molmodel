@@ -586,6 +586,14 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 					    Transform());
 		            unit.bodyId = weldBody.getMobilizedBodyIndex();
                     std::cout << " got Weld mobodIx " << unit.bodyId << std::endl;
+                }else if (mobilizedBodyType.compare("FreeLine") == 0) {
+                    MobilizedBody::FreeLine freeLineBody
+                            (matter.Ground(),
+                             G_X_T * T_X_B,
+                             dumm.calcClusterMassProperties(unit.clusterIx),
+                             Transform());
+                    unit.bodyId = freeLineBody.getMobilizedBodyIndex();
+                    std::cout << " got Weld mobodIx " << unit.bodyId << std::endl;
                 }
                 dumm.attachClusterToBody(unit.clusterIx, unit.bodyId);
             }
