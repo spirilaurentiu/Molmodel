@@ -81,7 +81,7 @@ namespace BondMobility {
         UniversalM = 11, ///< Cap de bara
         Spherical = 12, ///< BAT coordinates
         AnglePin = 13,
-        Slider = 14 ///< Translation along bond
+        Slider = 14, ///< Translation along bond
     };
     static Mobility Default = Torsion;
 }
