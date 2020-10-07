@@ -252,7 +252,7 @@ class Element::Aluminum : public Element {public: Aluminum() :
 class Element::Silicon : public Element {public: Silicon() :
     Element(14, "silicon", "Si", 28.08553) {} };
 class Element::Phosphorus : public Element {public: Phosphorus() :
-    Element(15, "phosphorus", "P", 30.97) {} }; // EU
+    Element(15, "phosphorus", "P", 30.97) {} };    
 class Element::Sulfur : public Element {public: Sulfur() :
     Element(16, "sulfur", "S", 32.06) {} }; // EU
 class Element::Chlorine : public Element {public: Chlorine() :
