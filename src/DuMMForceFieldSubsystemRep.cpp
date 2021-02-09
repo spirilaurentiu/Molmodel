@@ -161,9 +161,9 @@ struct CrossBodyBondInfo {
 
 int DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl(State& s) const
 {
-    //std::cout << "DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl BEGIN" << std::endl;
+    std::cout << "DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl BEGIN" << std::endl;
     if(includedAtomStations.size()){
-	//auto start = std::chrono::system_clock::now();
+auto start = std::chrono::high_resolution_clock::now();
 
         // At realization time, we need to verify that every atom has a valid atom
         // class id. TODO: should apply only to included atoms.
@@ -236,9 +236,9 @@ int DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl(State& s) const
     
         //std::cout << "DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl END" << std::endl;
 
-    //auto end = std::chrono::system_clock::now();
-    //std::chrono::duration<double> diff = end-start;
-    //TRACE (("realizeSubsystemTopology took " + std::to_string(diff.count()) +  " s \n").c_str());
+auto end = std::chrono::high_resolution_clock::now();
+auto duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start ).count();
+TRACE (("realizeSubsystemTopology took " + std::to_string(duration) +  " s \n").c_str());
                       
         return 0;
     }else{
@@ -260,7 +260,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
 // EU END
 {
 
-    //auto start = std::chrono::system_clock::now();
+    auto start = std::chrono::high_resolution_clock::now();
 
     // At realization time, we need to verify that every atom has a valid atom
     // class id. TODO: should apply only to included atoms.
@@ -1575,9 +1575,9 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
 
     mutableThis->internalListsRealized = true;
 
-    //auto end = std::chrono::system_clock::now();
-    //std::chrono::duration<double> diff = end-start;
-    //TRACE (("realizeInternalLists took " + std::to_string(diff.count()) +  " s \n").c_str());
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start ).count();
+    TRACE (("realizeInternalLists took " + std::to_string(duration) +  " s \n").c_str());
                   
     return 0;
 }
@@ -1594,6 +1594,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
 // Cost is 18 flops per atom plus bookkeeping.
 int DuMMForceFieldSubsystemRep::
 realizeSubsystemPositionImpl(const State& s) const {
+auto start = std::chrono::high_resolution_clock::now();
     const MultibodySystem&        mbs    = getMultibodySystem();
     const SimbodyMatterSubsystem& matter = mbs.getMatterSubsystem();
 
@@ -1624,6 +1625,10 @@ realizeSubsystemPositionImpl(const State& s) const {
         }
     }
 
+auto end = std::chrono::high_resolution_clock::now();
+auto duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start ).count();
+TRACE (("realizeSubsystemPositionImpl took " + std::to_string(duration) +  " s \n").c_str());
+                  
     return 0;
 }
 //.............................REALIZE POSITION.................................
@@ -1638,6 +1643,7 @@ realizeSubsystemPositionImpl(const State& s) const {
 // Cost is 12 flops per atom plus bookkeeping.
 void DuMMForceFieldSubsystemRep::
 realizeIncludedAtomVelocityCache(const State& state) const {
+auto start = std::chrono::high_resolution_clock::now();
     if (isIncludedAtomVelocityCacheRealized(state))
         return; // nothing to do
 
@@ -1667,6 +1673,11 @@ realizeIncludedAtomVelocityCache(const State& state) const {
     }
 
     markIncludedAtomVelocityCacheRealized(state);
+
+auto end = std::chrono::high_resolution_clock::now();
+auto duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start ).count();
+TRACE (("realizeIncludedAtomVelocityCache took " + std::to_string(duration) +  " s \n").c_str());
+                      
 }
 //...........................REALIZE ATOM VELOCITY CACHE........................
 
@@ -1677,6 +1688,11 @@ realizeIncludedAtomVelocityCache(const State& state) const {
 //------------------------------------------------------------------------------
 int DuMMForceFieldSubsystemRep::realizeSubsystemVelocityImpl(const State& state) const
 {
+auto start = std::chrono::high_resolution_clock::now();
+auto end = std::chrono::high_resolution_clock::now();
+auto duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start ).count();
+TRACE (("realizeSubsystemVelocityImpl took " + std::to_string(duration) +  " s \n").c_str());
+                      
     // NOTHING TO DO
     return 0;
 }
@@ -2342,6 +2358,7 @@ void DuMMForceFieldSubsystemRep::calcGBSAForces
 // Potential energy is calculated at the same time since that comes for free.
 void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
 {
+auto start = std::chrono::high_resolution_clock::now();
 
     if (   isIncludedAtomForceCacheRealized(s)
         && isIncludedBodyForceCacheRealized(s)
@@ -2490,6 +2507,11 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
     markIncludedAtomForceCacheRealized(s);
     markIncludedBodyForceCacheRealized(s);
     markEnergyCacheRealized(s);
+
+auto end = std::chrono::high_resolution_clock::now();
+auto duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start ).count();
+TRACE (("realizeForcesAndEnergy took " + std::to_string(duration) +  " s \n").c_str());
+                      
 }
 //..........................REALIZE FORCES AND ENERGY...........................
 
@@ -2503,6 +2525,7 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
 // haven't already been calculated.
 int DuMMForceFieldSubsystemRep::realizeSubsystemDynamicsImpl(const State& s) const
 {
+auto start = std::chrono::high_resolution_clock::now();
     // Get access to the System-global cache entry into which all forces must
     // ultimately be accumulated. Units are: kJ (torque), kJ/nm (force).
     const MultibodySystem& mbs = getMultibodySystem();
@@ -2520,6 +2543,10 @@ int DuMMForceFieldSubsystemRep::realizeSubsystemDynamicsImpl(const State& s) con
         rigidBodyForces[inclBod.mobodIx] += inclBodyForces[i];
     }
 
+auto end = std::chrono::high_resolution_clock::now();
+auto duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start ).count();
+TRACE (("realizeSubsystemDynamicsImpl took " + std::to_string(duration) +  " s \n").c_str());
+                      
     return 0;
 }
 //..............................REALIZE DYNAMICS................................
@@ -2532,11 +2559,17 @@ int DuMMForceFieldSubsystemRep::realizeSubsystemDynamicsImpl(const State& s) con
 // Return the potential energy. This can be done any time after stage Position,
 // however we have to make sure it has been realized first.
 Real DuMMForceFieldSubsystemRep::calcPotentialEnergy(const State& state) const {
+auto start = std::chrono::high_resolution_clock::now();
     // Currently there is no way to compute only the energy, although it
     // would be somewhat cheaper if forces aren't needed.
 
 
     realizeForcesAndEnergy(state);
+
+auto end = std::chrono::high_resolution_clock::now();
+auto duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start ).count();
+TRACE (("calcPotentialEnergy_realizeForcesAndEnergy took " + std::to_string(duration) +  " s \n").c_str());
+                      
     //CalcFullPotEnergyIncludingRigidBodiesRep(state);
     return getEnergyCache(state);
 }
