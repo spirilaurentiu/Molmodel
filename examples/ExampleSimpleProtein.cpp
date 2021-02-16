@@ -22,12 +22,18 @@ try {
 
     // molecular force field
     DuMMForceFieldSubsystem forceField(system);
+
+    forceField.setUseOpenMMAcceleration(true);
+
     forceField.loadAmber99Parameters();
 
     // Create a five-residue protein. Neutral end caps are automatically
     // added unless you suppress them. This is 
     // (Ace-) Ser-Ile-Met-Thr-Lys (-Nac).
-    Protein protein("SIMTK");
+
+    // 100 aa
+    Protein protein("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+//    Protein protein("AAAAAAAAAA");
 
     protein.assignBiotypes();
     system.adoptCompound(protein);
@@ -36,7 +42,7 @@ try {
     system.modelCompounds(); 
 
     // show me a movie
-    system.addEventReporter(new Visualizer::Reporter(system, 0.020));
+    // system.addEventReporter(new Visualizer::Reporter(system, 0.020));
 
     // Maintain a constant temperature. (This isn't a very good
     // thermostat -- consider NoseHooverThermostat instead.)
@@ -47,13 +53,16 @@ try {
     State state = system.realizeTopology();
 
     // Relax the structure before dynamics run
-    LocalEnergyMinimizer::minimizeEnergy(system, state, 15.0);
+    // LocalEnergyMinimizer::minimizeEnergy(system, state, 15.0);
 
     // Simulate it.
     VerletIntegrator integ(system);
+
     TimeStepper ts(system, integ);
+//    integ.setFixedStepSize(0.001);
+
     ts.initialize(state);
-    ts.stepTo(20.0); // 20ps
+    ts.stepTo(0.001); // ps; 1 fs = 0.001 ps
 
     return 0;
 } 

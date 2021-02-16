@@ -52,6 +52,9 @@ using namespace SimTK;
 //#endif
 
 
+#define TRACE_TIME(STR) printf("%s", STR);
+
+
 // This is Coulomb's constant 1/(4*pi*e0) in units which convert
 // e^2/nm to kJ/mol.
 static const Real CoulombFac = (Real)SimTK_COULOMB_CONSTANT_IN_MD;
@@ -1388,7 +1391,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
 
     // OpenMM has to be enabled at run time to be used. And if
     // all we can find is a slow reference implementation we still won't use it
-    // unless the reference platform has been explicitly allowed.
+    // unless the reference platform has been explicitly allowed.OpenMMUpdate
 
     // Using "while" here just so we can break out; this won't ever loop. If we
     // decide to use OpenMM, the flag usingOpenMM will be set true.
@@ -1594,6 +1597,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
 // Cost is 18 flops per atom plus bookkeeping.
 int DuMMForceFieldSubsystemRep::
 realizeSubsystemPositionImpl(const State& s) const {
+
 auto start = std::chrono::high_resolution_clock::now();
     const MultibodySystem&        mbs    = getMultibodySystem();
     const SimbodyMatterSubsystem& matter = mbs.getMatterSubsystem();
@@ -2358,7 +2362,13 @@ void DuMMForceFieldSubsystemRep::calcGBSAForces
 // Potential energy is calculated at the same time since that comes for free.
 void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
 {
-auto start = std::chrono::high_resolution_clock::now();
+
+    auto start0 = std::chrono::high_resolution_clock::now();
+    auto time = std::chrono::duration_cast<std::chrono::microseconds>
+            (start0.time_since_epoch()).count();
+
+    TRACE_TIME (("REALTIME\tDUMMrealizeForcesAndEnergy\tBEG\t" + std::to_string(time) +  " us \n").c_str());
+
 
     if (   isIncludedAtomForceCacheRealized(s)
         && isIncludedBodyForceCacheRealized(s)
@@ -2386,6 +2396,12 @@ auto start = std::chrono::high_resolution_clock::now();
     // Get access to already-calculated position dependent quantities.
     const Vector_<Vec3>& inclAtomStation_G = getIncludedAtomStationsInG(s);
     const Vector_<Vec3>& inclAtomPos_G     = getIncludedAtomPositionsInG(s);
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start0 ).count();
+    TRACE_TIME (("TESTIME\tDUMMrealizeForcesAndEnergy\tinisetup\t" + std::to_string(duration) +  " us \n").c_str());
+
+    auto start1 = std::chrono::high_resolution_clock::now();
 
 
         // BONDED FORCES //
@@ -2439,6 +2455,12 @@ auto start = std::chrono::high_resolution_clock::now();
         }
     }
 
+    end = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start1 ).count();
+    TRACE_TIME (("TESTIME\tDUMMrealizeForcesAndEnergy\tCalcBonded\t" + std::to_string(duration) +  " us \n").c_str());
+
+    auto start2 = std::chrono::high_resolution_clock::now();
+
                 // NONBONDED FORCES //
 
    // TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: trying to evaluate nonbonded\n");
@@ -2462,6 +2484,16 @@ auto start = std::chrono::high_resolution_clock::now();
             markIncludedAtomForceCacheRealized(s);
             markIncludedBodyForceCacheRealized(s);
             markEnergyCacheRealized(s);
+
+
+            end = std::chrono::high_resolution_clock::now();
+
+            duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start2 ).count();
+            TRACE_TIME (("TESTIME\tDUMMrealizeForcesAndEnergy\tOpenMMcalcnonbond\t" + std::to_string(duration) +  " us \n").c_str());
+
+            duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start0 ).count();
+            TRACE_TIME (("TESTIME\tDUMMrealizeForcesAndEnergy\tTOTAL\t" + std::to_string(duration) +  " us \n").c_str());
+
             return;
         }
 
@@ -2508,10 +2540,11 @@ auto start = std::chrono::high_resolution_clock::now();
     markIncludedBodyForceCacheRealized(s);
     markEnergyCacheRealized(s);
 
-auto end = std::chrono::high_resolution_clock::now();
-auto duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start ).count();
-TRACE (("realizeForcesAndEnergy took " + std::to_string(duration) +  " s \n").c_str());
-                      
+end = std::chrono::high_resolution_clock::now();
+duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start0 ).count();
+//TRACE (("realizeForcesAndEnergy took " + std::to_string(duration) +  " s \n").c_str());
+TRACE_TIME (("TESTIME\tDUMMrealizeForcesAndEnergy\tTOTAL\t" + std::to_string(duration) +  " us \n").c_str());
+
 }
 //..........................REALIZE FORCES AND ENERGY...........................
 
@@ -2526,6 +2559,7 @@ TRACE (("realizeForcesAndEnergy took " + std::to_string(duration) +  " s \n").c_
 int DuMMForceFieldSubsystemRep::realizeSubsystemDynamicsImpl(const State& s) const
 {
 auto start = std::chrono::high_resolution_clock::now();
+
     // Get access to the System-global cache entry into which all forces must
     // ultimately be accumulated. Units are: kJ (torque), kJ/nm (force).
     const MultibodySystem& mbs = getMultibodySystem();
@@ -2546,7 +2580,7 @@ auto start = std::chrono::high_resolution_clock::now();
 auto end = std::chrono::high_resolution_clock::now();
 auto duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start ).count();
 TRACE (("realizeSubsystemDynamicsImpl took " + std::to_string(duration) +  " s \n").c_str());
-                      
+
     return 0;
 }
 //..............................REALIZE DYNAMICS................................

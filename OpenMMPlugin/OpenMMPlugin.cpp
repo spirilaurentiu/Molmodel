@@ -54,11 +54,15 @@ using namespace SimTK;
 #define STRINGIZE(var) #var
 #define MAKE_VERSION_STRING(maj,min,build)  STRINGIZE(maj.min.build)
 
+#define TRACE_TIME(STR) printf("%s", STR);
+
 
 /**
  * This is a concrete implementation of the OpenMMPluginInterface class defined
  * by Molmodel.
  */
+
+
 
 class OpenMMInterface : public OpenMMPluginInterface {
 public:
@@ -126,6 +130,9 @@ std::string OpenMMInterface::
 initializeOpenMM(bool allowReferencePlatform, 
                  std::vector<std::string>& logMessages) throw()
 {
+
+    auto start = std::chrono::high_resolution_clock::now();
+
     logMessages.clear();
 
     // Determine whether OpenMM supports all the features we've asked for.
@@ -265,6 +272,13 @@ try {
         return "";
     }
 
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start ).count();
+    TRACE_TIME (("TESTIME\tinitializeOpenMM\t" + std::to_string(duration) +  " us \n").c_str());
+
+
+
     return openMMContext->getPlatform().getName();
 } 
 catch (const std::exception& e) {
@@ -290,6 +304,9 @@ void OpenMMInterface::calcOpenMMNonbondedAndGBSAForces
     Vector_<SpatialVec>&    includedBodyForces_G,
     Real&                   energy) const
 {
+
+    auto start0 = std::chrono::high_resolution_clock::now();
+
     assert(includedAtomStation_G.size() == dumm.getNumIncludedAtoms());
     assert(includedAtomPos_G.size()     == dumm.getNumIncludedAtoms());
     assert(includedBodyForces_G.size()  == dumm.getNumIncludedBodies());
@@ -310,10 +327,26 @@ void OpenMMInterface::calcOpenMMNonbondedAndGBSAForces
 
     openMMContext->setPositions(positions);
 
+
+
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start0 ).count();
+    TRACE_TIME (("TESTIME\tcalcOpenMMNonbondedAndGBSAForces\tinisetup\t" + std::to_string(duration) +  " us \n").c_str());
+
+    auto start1 = std::chrono::high_resolution_clock::now();
+
     // Ask for energy, forces, or both.
     const OpenMM::State openMMState = 
         openMMContext->getState(  (wantForces?OpenMM::State::Forces:0)
                                 | (wantEnergy?OpenMM::State::Energy:0));
+
+
+    end = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start1 ).count();
+    TRACE_TIME (("TESTIME\tcalcOpenMMNonbondedAndGBSAForces\tgetState\t" + std::to_string(duration) +  " us \n").c_str());
+
+    auto start2 = std::chrono::high_resolution_clock::now();
 
     if (wantForces) {
         const std::vector<OpenMM::Vec3>& openMMForces = openMMState.getForces();
@@ -330,7 +363,21 @@ void OpenMMInterface::calcOpenMMNonbondedAndGBSAForces
         }
     }
 
+    end = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start2 ).count();
+    TRACE_TIME (("TESTIME\tcalcOpenMMNonbondedAndGBSAForces\tupdForces\t" + std::to_string(duration) +  " us \n").c_str());
+
+    auto start3 = std::chrono::high_resolution_clock::now();
+
     if (wantEnergy)
         energy += openMMState.getPotentialEnergy();
+
+    end = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start3 ).count();
+    TRACE_TIME (("TESTIME\tcalcOpenMMNonbondedAndGBSAForces\tupdEnergies\t" + std::to_string(duration) +  " us \n").c_str());
+
+    duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start0 ).count();
+    TRACE_TIME (("TESTIME\tcalcOpenMMNonbondedAndGBSAForces\tTOTAL\t" + std::to_string(duration) +  " us \n").c_str());
+
 }
 
