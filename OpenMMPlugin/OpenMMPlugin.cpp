@@ -82,6 +82,9 @@ public:
     // Call this during Molmodel's realizeTopology() method. Return value
     // is the selected OpenMM Platform name.
     std::string initializeOpenMM(bool allowReferencePlatform, 
+//                                 std::vector<std::string>& logMessages,
+//                                 bool calcBonded=true,
+//                                 bool calcIntegration=false) throw();
                                  std::vector<std::string>& logMessages) throw();
 
 
@@ -94,6 +97,7 @@ public:
         bool                    wantEnergy,
         Vector_<SpatialVec>&    includedBodyForce_G,
         Real&                   energy) const;
+
 
 private:
     // Put this object back into its just-constructed condition.
@@ -123,12 +127,17 @@ SimTK_createOpenMMPluginInterface(const DuMMForceFieldSubsystemRep& dumm) {
     return new OpenMMInterface(dumm);
 }
 
+
+
 //-----------------------------------------------------------------------------
 //                              initializeOpenMM
 //-----------------------------------------------------------------------------
 std::string OpenMMInterface::
-initializeOpenMM(bool allowReferencePlatform, 
+initializeOpenMM(bool allowReferencePlatform,
                  std::vector<std::string>& logMessages) throw()
+//                 std::vector<std::string>& logMessages,
+//                 bool calcBonded,
+//                 bool calcIntegration) throw()
 {
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -183,7 +192,7 @@ try {
         // atom. We'll also build up the list of all 1-2 bonds between nonbond
         // atoms which will be used by OpenMM as an exceptions list, with
         // nonbond interactions excluded for 1-2 and 1-3 connections, and
-        // scaled down for 1-4 connections. Since OpenMM doesn't know about 
+        // scaled down for 1-4 connections. Since OpenMM doesn't know about
         // bodies, we can't used the stripped-down cross-body bond lists here.
         // We will look at all the 1-2 bonds for each nonbond atom and keep 
         // those that connect to another nonbond atom.
@@ -240,6 +249,143 @@ try {
         openMMSystem->addForce(GBSAOBCForce);
     }
 
+
+        // //////////////////////
+        // BONDED
+
+    bool calcBonded = true;
+    if( calcBonded ){
+
+        TRACE_TIME ( String("OPENMM\t BONDED and NONBONDED \n").c_str());
+
+        // TODO !!!!!
+        // Be sure that nonbonded index order is equivalent...and all bonded atoms were added as particles
+        // As it is now, it should work only with a fully flexible setup
+
+        OpenMM::HarmonicBondForce *bondStretch = new OpenMM::HarmonicBondForce();
+        OpenMM::HarmonicAngleForce     *bondBend    = new OpenMM::HarmonicAngleForce();
+        OpenMM::PeriodicTorsionForce   *bondTorsion = new OpenMM::PeriodicTorsionForce();
+
+
+        for (DuMMIncludedBodyIndex incBodyIx(0);
+             incBodyIx < dumm.getNumIncludedBodies(); ++incBodyIx) {
+
+            const IncludedBody &inclBody = dumm.includedBodies[incBodyIx];
+            assert(inclBody.isValid());
+
+            for (DuMMBondStarterIndex bsx = inclBody.beginBondStarterAtoms;
+                 bsx != inclBody.endBondStarterAtoms; ++bsx) {
+
+                const DuMM::IncludedAtomIndex a1num = dumm.bondStarterAtoms[bsx];
+                const IncludedAtom &a1 = dumm.getIncludedAtom(a1num);
+
+
+                // ADD BONDED STRETCHES (1-2)
+                if (dumm.bondStretchGlobalScaleFactor != 0
+                    || dumm.customBondStretchGlobalScaleFactor != 0) {
+
+                    for (DuMM::IncludedAtomIndex b12(0); b12 < a1.force12.size(); ++b12) {
+
+                        const DuMM::IncludedAtomIndex a2num = a1.force12[b12];
+                        const BondStretch &bs = *a1.stretch[b12];
+
+                        if (bs.hasBuiltinTerm()) {
+
+                            // TODO check units: Ang and KcalPerAngstrom2 ??
+                            bondStretch->addBond(a1num, a2num,
+                                                bs.d0,
+//                                                * OpenMM::NmPerAngstrom,
+                                                bs.k);
+//                                                * OpenMM::KJPerKcal
+//                                                * OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm);
+                        }
+                    }
+                }
+
+                // ADD BONDED BEND (1-2-3)
+                if (dumm.bondBendGlobalScaleFactor != 0
+                    || dumm.customBondBendGlobalScaleFactor != 0) {
+
+                    const IncludedAtom &a1 = dumm.getIncludedAtom(a1num);
+
+                    for (int b13=0; b13 < (int)a1.force13.size(); ++b13) {
+                        const DuMM::IncludedAtomIndex a2num = a1.force13[b13][0];
+                        const DuMM::IncludedAtomIndex a3num = a1.force13[b13][1];
+
+                        const BondBend& bb = *a1.bend[b13];
+
+                        if (bb.hasBuiltinTerm()) {
+
+                            // TODO: check atom order !!! which should be the central atom?
+                            // TODO: check units: degreess and kcal/rad2 ??
+                            bondBend->addAngle(a1num, a2num, a3num,
+                                              bb.theta0,
+                                              bb.k * 2 );
+                                                // * OpenMM::KJPerKcal);
+                        }
+                    }
+                }
+
+                // ADD BONDED DIHEDRALS (1-2-3-4)
+                if (dumm.bondTorsionGlobalScaleFactor != 0
+                    || dumm.customBondTorsionGlobalScaleFactor != 0) {
+
+                    const IncludedAtom &a1 = dumm.getIncludedAtom(a1num);
+
+                    for (int b14=0; b14 < (int)a1.force14.size(); ++b14) {
+                        const DuMM::IncludedAtomIndex a2num = a1.force14[b14][0];
+                        const DuMM::IncludedAtomIndex a3num = a1.force14[b14][1];
+                        const DuMM::IncludedAtomIndex a4num = a1.force14[b14][2];
+
+                        const BondTorsion& bt = *a1.torsion[b14];
+
+                        if (bt.hasBuiltinTerm()) {
+                            for ( int i=0; i < (int) bt.terms.size(); ++i)
+                            {
+                                bondTorsion->addTorsion(a1num, a2num, a3num, a4num,
+                                                       bt.terms[i].periodicity,
+                                                       bt.terms[i].theta0,
+                                                       bt.terms[i].amplitude);
+                            }
+                        }
+                    }
+                }
+
+                // ADD BONDED IMPROPERS (1-2-3-4)
+                if (dumm.amberImproperTorsionGlobalScaleFactor != 0) {
+
+                    const IncludedAtom &a1 = dumm.getIncludedAtom(a1num);
+
+                    // TODO: a1num is actually the 3rd one... check openmm order
+                    for (int b14=0; b14 < (int)a1.forceImproper14.size(); ++b14) {
+                        const DuMM::IncludedAtomIndex a2num = a1.forceImproper14[b14][0];
+                        const DuMM::IncludedAtomIndex a3num = a1.forceImproper14[b14][1];
+                        const DuMM::IncludedAtomIndex a4num = a1.forceImproper14[b14][2];
+
+                        const BondTorsion& bt = *a1.aImproperTorsion[b14];
+
+                        if (bt.hasBuiltinTerm()) {
+                            for ( int i=0; i < (int) bt.terms.size(); ++i)
+                            {
+                                bondTorsion->addTorsion(a1num, a2num, a3num, a4num,
+                                                       bt.terms[i].periodicity,
+                                                       bt.terms[i].theta0,
+                                                       bt.terms[i].amplitude);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        openMMSystem->addForce(bondStretch);
+        openMMSystem->addForce(bondBend);
+        openMMSystem->addForce(bondTorsion);
+
+    }
+
+
+
     
         // OpenMM CONTEXT //
 
@@ -293,6 +439,7 @@ catch (...) {
 }
 }
 
+
 //-----------------------------------------------------------------------------
 //                    calcOpenMMNonbondedAndGBSAForces
 //-----------------------------------------------------------------------------
@@ -326,8 +473,6 @@ void OpenMMInterface::calcOpenMMNonbondedAndGBSAForces
         positions[nax] = OpenMM::Vec3(pos[0], pos[1], pos[2]); }
 
     openMMContext->setPositions(positions);
-
-
 
 
     auto end = std::chrono::high_resolution_clock::now();

@@ -55,6 +55,7 @@ using namespace SimTK;
 #define TRACE_TIME(STR) printf("%s", STR);
 
 
+
 // This is Coulomb's constant 1/(4*pi*e0) in units which convert
 // e^2/nm to kJ/mol.
 static const Real CoulombFac = (Real)SimTK_COULOMB_CONSTANT_IN_MD;
