@@ -76,9 +76,17 @@ public:
         // variable if it exists, or if not then it is the system default
         // installation directory with /SimTK appended. Then /lib/plugins
         // is added to that.
-        addSearchDirectory(SimTK::Pathname::getInstallDir("SimTK_INSTALL_DIR", "SimTK") 
-                            + "lib/plugins");
-	addSearchDirectory("/usr/local/lib/plugins/");
+        // addSearchDirectory(SimTK::Pathname::getInstallDir("SimTK_INSTALL_DIR", "SimTK") 
+        //                    + "lib/plugins");
+
+	
+    // addSearchDirectory( OpenMMPlugin_PATH );
+    addSearchDirectory( std::getenv("OpenMMPlugin_PATH") );
+
+    addSearchDirectory(SimTK::Pathname::getInstallDir("SimTK_INSTALL_DIR", "SimTK")
+			                              + "lib/plugins");
+    addSearchDirectory("/usr/local/lib/plugins/");
+
     }
 
     // This is the only defined exported method for this kind of plugin.
