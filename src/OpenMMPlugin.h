@@ -81,7 +81,18 @@ public:
 
 	
     // addSearchDirectory( OpenMMPlugin_PATH );
-    addSearchDirectory( std::getenv("OpenMMPlugin_PATH") );
+    
+    char * path = std::getenv("OpenMMPlugin_PATH");
+
+    if (path!=NULL){ addSearchDirectory( std::getenv("OpenMMPlugin_PATH") ); }  
+    
+    addSearchDirectory( "./" );
+
+    addSearchDirectory( "../lib/plugins/" );
+
+    addSearchDirectory( "../Molmodel/install-debug/lib/plugins/" );
+
+    addSearchDirectory( "../Molmodel/install-release/lib/plugins/" );
 
     addSearchDirectory(SimTK::Pathname::getInstallDir("SimTK_INSTALL_DIR", "SimTK")
 			                              + "lib/plugins");
