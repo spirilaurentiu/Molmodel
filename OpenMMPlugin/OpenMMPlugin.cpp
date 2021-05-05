@@ -57,7 +57,8 @@ using namespace SimTK;
 //#define TRACE_TIME(STR) printf("%s", STR);
 #define TRACE_TIME(STR);
 
-#define TRACE(STR) printf("%s", STR);
+//#define TRACE(STR) printf("%s", STR);
+#define TRACE(STR);
 
 
 /**
@@ -84,11 +85,7 @@ public:
 
     // Call this during Molmodel's realizeTopology() method. Return value
     // is the selected OpenMM Platform name.
-    std::string initializeOpenMM(bool allowReferencePlatform, 
-//                                 std::vector<std::string>& logMessages,
-//                                 bool calcBonded=true,
-//                                 bool calcIntegration=false) throw();
-                                 std::vector<std::string>& logMessages) throw();
+    std::string initializeOpenMM(bool allowReferencePlatform, std::vector<std::string> &logMessages, bool b) throw();
 
 
     // Calculates forces and/or energy and *adds* them into the output
@@ -137,10 +134,9 @@ SimTK_createOpenMMPluginInterface(const DuMMForceFieldSubsystemRep& dumm) {
 //-----------------------------------------------------------------------------
 std::string OpenMMInterface::
 initializeOpenMM(bool allowReferencePlatform,
-                 std::vector<std::string>& logMessages) throw()
-//                 std::vector<std::string>& logMessages,
-//                 bool calcBonded,
-//                 bool calcIntegration) throw()
+//                 std::vector<std::string>& logMessages) throw()
+                 std::vector<std::string>& logMessages,
+                 bool calcOnlyNonBonded ) throw()
 {
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -181,12 +177,8 @@ try {
         openMMSystem->addParticle(e.getMass());
     }
 
-        // NONBONDED FORCES //
+    // NONBONDED FORCES //
 
-    bool calcNonBonded = true;
-
-    if( calcNonBonded ){
-    
     if (dumm.coulombGlobalScaleFactor!=0 || dumm.vdwGlobalScaleFactor!=0) {
         OpenMM::NonbondedForce* nonbondedForce = new OpenMM::NonbondedForce();
 
@@ -236,9 +228,9 @@ try {
         openMMSystem->addForce(nonbondedForce);
     }
 
-        // GBSA //
+    // GBSA //
 
-    if (dumm.gbsaGlobalScaleFactor != 0) {
+    if ( dumm.gbsaGlobalScaleFactor != 0) {
         OpenMM::GBSAOBCForce* GBSAOBCForce   = new OpenMM::GBSAOBCForce();
         GBSAOBCForce->setSolventDielectric(dumm.gbsaSolventDielectric);
         GBSAOBCForce->setSoluteDielectric(dumm.gbsaSoluteDielectric);
@@ -255,15 +247,14 @@ try {
         // System takes over heap ownership of the force.
         openMMSystem->addForce(GBSAOBCForce);
     }
-    }
 
-        // //////////////////////
-        // BONDED
 
-    bool calcBonded = false;
-    if( calcBonded ){
 
-        TRACE_TIME ( String("OPENMM\t BONDED and NONBONDED \n").c_str());
+    // BONDED
+
+    if( ! calcOnlyNonBonded ){
+
+//        TRACE_TIME ( String("OPENMM\t BONDED and NONBONDED \n").c_str());
 
         // TODO !!!!!
         // Be sure that nonbonded index order is equivalent...and all bonded atoms were added as particles
@@ -429,9 +420,9 @@ try {
     }
 
 
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start ).count();
-    TRACE_TIME (("TESTIME\tinitializeOpenMM\t" + std::to_string(duration) +  " us \n").c_str());
+//    auto end = std::chrono::high_resolution_clock::now();
+//    auto duration = std::chrono::duration_cast<std::chrono::microseconds> ( end - start ).count();
+//    TRACE_TIME (("TESTIME\tinitializeOpenMM\t" + std::to_string(duration) +  " us \n").c_str());
 
 
 
@@ -451,9 +442,10 @@ catch (...) {
 
 
 //-----------------------------------------------------------------------------
-//                    calcOpenMMNonbondedAndGBSAForces
+//                    # calcOpenMMNonbondedAndGBSAForces
+//                         calcOpenMMEnergyAndForces
 //-----------------------------------------------------------------------------
-void OpenMMInterface::calcOpenMMNonbondedAndGBSAForces
+void OpenMMInterface::calcOpenMMEnergyAndForces
    (const Vector_<Vec3>&    includedAtomStation_G,
     const Vector_<Vec3>&    includedAtomPos_G,
     bool                    wantForces,

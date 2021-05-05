@@ -14,6 +14,7 @@
 using namespace SimTK;
 
 int main() {
+
 try {
     // molecule-specialized simbody System
     CompoundSystem system;

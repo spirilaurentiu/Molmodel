@@ -1290,6 +1290,13 @@ void DuMMForceFieldSubsystem::setUseOpenMMAcceleration(bool use)
 {   invalidateSubsystemTopologyCache();
     updRep().wantOpenMMAcceleration = use; }
 
+bool DuMMForceFieldSubsystem::getUseOpenMMCalcOnlyNonBonded() const
+{   return getRep().wantOpenMMCalcOnlyNonBonded; }
+
+void DuMMForceFieldSubsystem::setUseOpenMMCalcOnlyNonBonded(bool use)
+{   invalidateSubsystemTopologyCache();
+    updRep().wantOpenMMCalcOnlyNonBonded = use; }
+
 bool DuMMForceFieldSubsystem::getAllowOpenMMReference() const
 {   return getRep().allowOpenMMReference; }
 

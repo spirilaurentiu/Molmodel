@@ -1306,6 +1306,23 @@ void setUseOpenMMAcceleration(bool);
 bool getUseOpenMMAcceleration() const;
 
 
+/* Customize OpenMMPlugin */
+
+/** This determines whether we use OpenMM for calculating the nonbonded
+ energy & forces (van der Waals, Coulomb and GBSA ) or to calculate the
+ all the energy & forces terms (included the bonded terms: bonds, bends,
+ dihedral and impropers) **/
+void setUseOpenMMCalcOnlyNonBonded(bool);
+/** Return the current setting of the flag set by setUseOpenMMCalcOnlyNonBonded(). **/
+bool getUseOpenMMCalcOnlyNonBonded() const;
+
+
+
+
+
+
+
+
 /** This allows us to use OpenMM even if only the Reference platform is 
 available. This is for testing/debugging; one should never use the Reference
 platform in production since it will likely be slower than the CPU 

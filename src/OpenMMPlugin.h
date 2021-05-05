@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+
 /**
  * This is the interface which must be implemented by a DLL which wants
  * to serve as an OpenMM Plugin to Molmodel. The DLL should define a concrete
@@ -12,6 +13,7 @@
  */
 class OpenMMPluginInterface {
 public:
+
     virtual ~OpenMMPluginInterface() {}
 
     // This is the Molmodel version number at the time the
@@ -26,8 +28,7 @@ public:
     // This method will never throw an exception because failure just means
     // you shouldn't use OpenMM.
     virtual std::string initializeOpenMM
-       (bool                        allowReferencePlatform, 
-        std::vector<std::string>&   logMessages) throw() = 0;
+            (bool allowReferencePlatform, std::vector<std::string> &logMessages, bool b) throw() = 0;
 
     // Calculates forces and/or energy and *adds* them into the output
     // parameters. This will throw an exception if something goes wrong.
@@ -40,6 +41,9 @@ public:
         SimTK::Real&                        energy) const = 0;
 
 private:
+    std::string OpenMMPlatform;
+    std::string OpenMMGPUindex;
+
 };
 
 namespace SimTK {
@@ -71,33 +75,23 @@ public:
     // Constructor supplies default base name for this Plugin and sets
     // up search rule, which in this case is the lib/plugins directory
     // of the SimTK installation directory.
-    OpenMMPlugin() : SimTK::Plugin("OpenMMPlugin") {
+    OpenMMPlugin() : SimTK::Plugin() {
         // Install directory is either the contents of this environment
         // variable if it exists, or if not then it is the system default
         // installation directory with /SimTK appended. Then /lib/plugins
         // is added to that.
         // addSearchDirectory(SimTK::Pathname::getInstallDir("SimTK_INSTALL_DIR", "SimTK") 
         //                    + "lib/plugins");
-
-	
-    // addSearchDirectory( OpenMMPlugin_PATH );
     
-    char * path = std::getenv("OpenMMPlugin_PATH");
+        char * envvar = std::getenv("OpenMMPlugin_PATH");
+        if ( envvar != NULL ) { addSearchDirectory( envvar ); }
 
-    if (path!=NULL){ addSearchDirectory( std::getenv("OpenMMPlugin_PATH") ); }  
-    
-    addSearchDirectory( "./" );
-
-    addSearchDirectory( "../lib/plugins/" );
-
-    addSearchDirectory( "../Molmodel/install-debug/lib/plugins/" );
-
-    addSearchDirectory( "../Molmodel/install-release/lib/plugins/" );
-
-    addSearchDirectory(SimTK::Pathname::getInstallDir("SimTK_INSTALL_DIR", "SimTK")
+        addSearchDirectory( "../lib/plugins/" );
+        addSearchDirectory( "../Molmodel/install-debug/lib/plugins/" );
+        addSearchDirectory( "../Molmodel/install-release/lib/plugins/" );
+        addSearchDirectory(SimTK::Pathname::getInstallDir("SimTK_INSTALL_DIR", "SimTK")
 			                              + "lib/plugins");
-    addSearchDirectory("/usr/local/lib/plugins/");
-
+        addSearchDirectory("/usr/local/lib/plugins/");
     }
 
     // This is the only defined exported method for this kind of plugin.
@@ -106,6 +100,9 @@ public:
     SimTK_PLUGIN_DEFINE_FUNCTION1(OpenMMPluginInterface*,
                                   SimTK_createOpenMMPluginInterface,
                                   const SimTK::DuMMForceFieldSubsystemRep&);
+
+    std::string OpenMMPluginPATH;
+
 private:
 };
 

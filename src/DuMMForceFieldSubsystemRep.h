@@ -1508,6 +1508,7 @@ public:
         usingOpenMM     = false;
         openMMPluginIfc = 0;
 
+
         usingMultithreaded = false;
         numThreadsInUse   = 0;
         nonbondedExecutor = 0;  // these are allocated if we end up multithreaded
@@ -2387,6 +2388,9 @@ public:
     // Control use of OpenMM.
     bool wantOpenMMAcceleration;
     bool allowOpenMMReference;
+
+    std::string OpenMMPluginPATH;
+    bool wantOpenMMCalcOnlyNonBonded;
 
         // TOPOLOGICAL CACHE ENTRIES
         //   These cache entries are allocated in realizeTopology().
