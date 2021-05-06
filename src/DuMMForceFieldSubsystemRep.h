@@ -1496,7 +1496,8 @@ public:
         useMultithreadedComputation = true;
         numThreadsRequested         = 0; // let DuMM pick
 
-        wantOpenMMAcceleration      = false;
+        wantOpenMMAcceleration      = true;
+	wantOpenMMCalcOnlyNonBonded = false;
         allowOpenMMReference        = false;
 
         gbsaIncludeAceApproximation = true;

@@ -54,11 +54,11 @@ using namespace SimTK;
 #define STRINGIZE(var) #var
 #define MAKE_VERSION_STRING(maj,min,build)  STRINGIZE(maj.min.build)
 
-//#define TRACE_TIME(STR) printf("%s", STR);
-#define TRACE_TIME(STR);
+#define TRACE_TIME(STR) printf("%s", STR);
+//#define TRACE_TIME(STR);
 
-//#define TRACE(STR) printf("%s", STR);
-#define TRACE(STR);
+#define TRACE(STR) printf("%s", STR);
+//#define TRACE(STR);
 
 
 /**
@@ -85,12 +85,12 @@ public:
 
     // Call this during Molmodel's realizeTopology() method. Return value
     // is the selected OpenMM Platform name.
-    std::string initializeOpenMM(bool allowReferencePlatform, std::vector<std::string> &logMessages, bool b) throw();
+    std::string initializeOpenMM(bool allowReferencePlatform, std::vector<std::string> &logMessages, bool calcOnlyNonBonded) throw();
 
 
     // Calculates forces and/or energy and *adds* them into the output
     // parameters.
-    void calcOpenMMNonbondedAndGBSAForces
+    void calcOpenMMEnergyAndForces
        (const Vector_<Vec3>&    includedAtomStation_G,
         const Vector_<Vec3>&    includedAtomPos_G,
         bool                    wantForces,
@@ -251,10 +251,12 @@ try {
 
 
     // BONDED
+    
+    TRACE_TIME( String("calcOnlyNonBonded is " + std::to_string(calcOnlyNonBonded) + "\n").c_str());	 
 
     if( ! calcOnlyNonBonded ){
 
-//        TRACE_TIME ( String("OPENMM\t BONDED and NONBONDED \n").c_str());
+        TRACE_TIME( String("OPENMM\t BONDED and NONBONDED !!! \n").c_str());
 
         // TODO !!!!!
         // Be sure that nonbonded index order is equivalent...and all bonded atoms were added as particles

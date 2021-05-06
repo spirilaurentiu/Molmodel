@@ -1741,9 +1741,9 @@ void DuMMForceFieldSubsystemRep::calcBondStretch
 	assert(b2 != b1);
         energy += eStretch;
 
-        //TRACE("calcBondStretch: ");
-        //TRACE((std::to_string(energy)).c_str());
-        //TRACE("\n");
+        TRACE("calcBondStretch: ");
+        TRACE((std::to_string(energy)).c_str());
+        TRACE("\n");
 
         inclBodyForces_G[b2] += SpatialVec( a2Station_G % f2, f2); // 15 flops
         inclBodyForces_G[b1] -= SpatialVec( a1Station_G % f2, f2); // 15 flops
@@ -1807,9 +1807,9 @@ void DuMMForceFieldSubsystemRep::calcBondBend
 
         energy += e;
 
-        //TRACE("calcBondBend: ");
-        //TRACE((std::to_string(e)).c_str());
-        //TRACE("\n");
+        TRACE("calcBondBend: ");
+        TRACE((std::to_string(e)).c_str());
+        TRACE("\n");
 
         inclBodyForces_G[b1] += SpatialVec( a1Station_G % f1, f1); // 15 flops
         inclBodyForces_G[b2] += SpatialVec( a2Station_G % f2, f2); // 15 flops
@@ -1876,9 +1876,9 @@ void DuMMForceFieldSubsystemRep::calcBondTorsion
     
         energy += e;
 
-        //TRACE("calcBondTorsion: ");
-        //TRACE((std::to_string(e)).c_str());
-        //TRACE("\n");
+        TRACE("calcBondTorsion: ");
+        TRACE((std::to_string(e)).c_str());
+        TRACE("\n");
 
         inclBodyForces_G[b1] += SpatialVec( a1Station_G % f1, f1); // 15 flops
         inclBodyForces_G[b2] += SpatialVec( a2Station_G % f2, f2); // 15 flops
@@ -2365,6 +2365,8 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
 
     if ( ! ( usingOpenMM && ! wantOpenMMCalcOnlyNonBonded ) ) {
 
+	TRACE("HEREEE CALC BONDED with DUMM");    
+
         const bool doStretch = bondStretchGlobalScaleFactor != 0
                                || customBondStretchGlobalScaleFactor != 0;
         const bool doBend = bondBendGlobalScaleFactor != 0
@@ -2372,6 +2374,8 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
         const bool doTorsion = bondTorsionGlobalScaleFactor != 0
                                || customBondTorsionGlobalScaleFactor != 0;
         const bool doImproper = amberImproperTorsionGlobalScaleFactor != 0;
+
+	TRACE("doStretch is "+std::to_string(doStretch) + "\n");
 
         for (DuMMIncludedBodyIndex incBodyIx(0);
              incBodyIx < getNumIncludedBodies(); ++incBodyIx) {
@@ -2422,15 +2426,20 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
         // otherwise serial calculation here.
 
         if (usingOpenMM) {
-    //        TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: using OpenMM\n");
+            TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: using OpenMM\n");
             assert(openMMPluginIfc);
      //       TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: assert passed\n");
 
             // Calculate forces and energy.
             // TODO: should calculate energy only when it is asked for.
-            openMMPluginIfc->calcOpenMMNonbondedAndGBSAForces(
+            
+	    TRACE (("BEFORE OpenMM\t" + std::to_string(energy) +  " \n").c_str());
+
+	    openMMPluginIfc->calcOpenMMEnergyAndForces(
                 inclAtomStation_G, inclAtomPos_G, true /*forces*/, true /*energy*/,
                 inclBodyForces_G, energy);
+
+	    TRACE (("AFTER OpenMM\t" + std::to_string(energy) +  " \n").c_str());
 
             // All done!
             markIncludedAtomForceCacheRealized(s);
@@ -2441,7 +2450,7 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
 
         // We're not using OpenMM; calculate these terms here as best we can.
         if (usingMultithreaded) {
-     //       TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: using multithreading\n");
+            TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: using multithreading\n");
             // Parallel calculation.
             NonbondedForceTask task
                (*this, inclAtomPos_G, inclAtomForce_G, energy);

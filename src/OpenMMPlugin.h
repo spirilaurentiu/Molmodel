@@ -28,11 +28,11 @@ public:
     // This method will never throw an exception because failure just means
     // you shouldn't use OpenMM.
     virtual std::string initializeOpenMM
-            (bool allowReferencePlatform, std::vector<std::string> &logMessages, bool b) throw() = 0;
+            (bool allowReferencePlatform, std::vector<std::string> &logMessages, bool calcOnlyNonBonded ) throw() = 0;
 
     // Calculates forces and/or energy and *adds* them into the output
     // parameters. This will throw an exception if something goes wrong.
-    virtual void calcOpenMMNonbondedAndGBSAForces
+    virtual void calcOpenMMEnergyAndForces
        (const SimTK::Vector_<SimTK::Vec3>&  atomStation_G,
         const SimTK::Vector_<SimTK::Vec3>&  atomPos_G,
         bool                                wantForces,
@@ -75,7 +75,7 @@ public:
     // Constructor supplies default base name for this Plugin and sets
     // up search rule, which in this case is the lib/plugins directory
     // of the SimTK installation directory.
-    OpenMMPlugin() : SimTK::Plugin() {
+    OpenMMPlugin() : SimTK::Plugin("OpenMMPlugin") {
         // Install directory is either the contents of this environment
         // variable if it exists, or if not then it is the system default
         // installation directory with /SimTK appended. Then /lib/plugins
