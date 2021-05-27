@@ -1492,12 +1492,15 @@ public:
         vdwScale12=coulombScale12=vdwScale13=coulombScale13 = 0;
         vdwScale14=coulombScale14=vdwScale15=coulombScale15 = 1;
 
+        nonbondedCutoff = 2.0;
+        nonbondedMethod = 0;
+
         tracing                     = true; // EU
         useMultithreadedComputation = true;
         numThreadsRequested         = 0; // let DuMM pick
 
         wantOpenMMAcceleration      = true;
-	wantOpenMMCalcOnlyNonBonded = false;
+	    wantOpenMMCalcOnlyNonBonded = true;
         allowOpenMMReference        = false;
 
         gbsaIncludeAceApproximation = true;
@@ -2374,6 +2377,9 @@ public:
          bondTorsionGlobalScaleFactor, amberImproperTorsionGlobalScaleFactor;
     Real customBondStretchGlobalScaleFactor, customBondBendGlobalScaleFactor, 
          customBondTorsionGlobalScaleFactor;
+
+    Real nonbondedCutoff;
+    int nonbondedMethod;
 
     // These affect GBSA.
     bool gbsaIncludeAceApproximation;

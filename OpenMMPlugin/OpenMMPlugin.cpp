@@ -54,8 +54,8 @@ using namespace SimTK;
 #define STRINGIZE(var) #var
 #define MAKE_VERSION_STRING(maj,min,build)  STRINGIZE(maj.min.build)
 
-#define TRACE_TIME(STR) printf("%s", STR);
-//#define TRACE_TIME(STR);
+//#define TRACE_TIME(STR) printf("%s", STR);
+#define TRACE_TIME(STR);
 
 #define TRACE(STR) printf("%s", STR);
 //#define TRACE(STR);
@@ -85,7 +85,8 @@ public:
 
     // Call this during Molmodel's realizeTopology() method. Return value
     // is the selected OpenMM Platform name.
-    std::string initializeOpenMM(bool allowReferencePlatform, std::vector<std::string> &logMessages, bool calcOnlyNonBonded) throw();
+    std::string initializeOpenMM(bool allowReferencePlatform,
+                                 std::vector<std::string>& logMessages) throw();
 
 
     // Calculates forces and/or energy and *adds* them into the output
@@ -97,6 +98,15 @@ public:
         bool                    wantEnergy,
         Vector_<SpatialVec>&    includedBodyForce_G,
         Real&                   energy) const;
+
+
+    void setNonbondedCutoff (Real cutoff) ;            /// Set NonbondedCutoff for OpenMM
+    void setOpenMMPlatform (std::string platform) ;    /// Set Platform to use for OpenMM ('CPU', 'CUDA', 'OpenCL')
+    void setGPUindex (std::string GPUindex) ;          /// Set GPU index (if Platform CUDA/OpenCL). Values:"0"/"1"/"0,1"
+
+    Real getNonbondedCutoff () const;                  /// Get NonbondedCutoff for OpenMM
+    std::string getOpenMMPlatform () const;            /// Get Platform to use for OpenMM ('CPU', 'CUDA', 'OpenCL')
+    std::string getGPUindex () const;                  /// Get GPU index. Values: "0"/"1"/"0,1"
 
 
 private:
@@ -134,9 +144,7 @@ SimTK_createOpenMMPluginInterface(const DuMMForceFieldSubsystemRep& dumm) {
 //-----------------------------------------------------------------------------
 std::string OpenMMInterface::
 initializeOpenMM(bool allowReferencePlatform,
-//                 std::vector<std::string>& logMessages) throw()
-                 std::vector<std::string>& logMessages,
-                 bool calcOnlyNonBonded ) throw()
+                 std::vector<std::string>& logMessages) throw()
 {
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -168,7 +176,7 @@ initializeOpenMM(bool allowReferencePlatform,
 
 try {
 
-        // OpenMM SYSTEM //
+    // OpenMM SYSTEM //
 
     openMMSystem = new OpenMM::System();
     for (DuMM::NonbondAtomIndex nax(0); nax < dumm.getNumNonbondAtoms(); ++nax) {
@@ -181,6 +189,17 @@ try {
 
     if (dumm.coulombGlobalScaleFactor!=0 || dumm.vdwGlobalScaleFactor!=0) {
         OpenMM::NonbondedForce* nonbondedForce = new OpenMM::NonbondedForce();
+
+
+        nonbondedForce->setNonbondedMethod( OpenMM::NonbondedForce::NonbondedMethod( dumm.nonbondedMethod ) );
+        nonbondedForce->setCutoffDistance( dumm.nonbondedCutoff );
+        // nonbondedForce->setUseSwitchingFunction( 0 );
+
+        TRACE( String("OpenMM nonbonding method is " + std::to_string(nonbondedForce->getNonbondedMethod()) + "\n").c_str());
+        TRACE( String("OpenMM nonbonding cutoff is " + std::to_string(nonbondedForce->getCutoffDistance()) + "\n").c_str());
+
+        // Add nonbonded method and nonbonded cutoff from dumm.
+
 
         // Scale charges by sqrt of scale factor so that products of charges 
         // scale linearly.
@@ -252,9 +271,9 @@ try {
 
     // BONDED
     
-    TRACE_TIME( String("calcOnlyNonBonded is " + std::to_string(calcOnlyNonBonded) + "\n").c_str());	 
+    TRACE_TIME( String("calcOnlyNonBonded is " + std::to_string(dumm.wantOpenMMCalcOnlyNonBonded) + "\n").c_str());
 
-    if( ! calcOnlyNonBonded ){
+    if( ! dumm.wantOpenMMCalcOnlyNonBonded ){
 
         TRACE_TIME( String("OPENMM\t BONDED and NONBONDED !!! \n").c_str());
 
@@ -390,7 +409,7 @@ try {
 
 
     
-        // OpenMM CONTEXT //
+    // OpenMM CONTEXT //
 
     const std::vector<std::string> pluginsLoaded = 
         OpenMM::Platform::loadPluginsFromDirectory(OpenMM::Platform::getDefaultPluginsDirectory());

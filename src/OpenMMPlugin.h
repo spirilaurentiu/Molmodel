@@ -28,7 +28,7 @@ public:
     // This method will never throw an exception because failure just means
     // you shouldn't use OpenMM.
     virtual std::string initializeOpenMM
-            (bool allowReferencePlatform, std::vector<std::string> &logMessages, bool calcOnlyNonBonded ) throw() = 0;
+            (bool allowReferencePlatform, std::vector<std::string> &logMessages ) throw() = 0;
 
     // Calculates forces and/or energy and *adds* them into the output
     // parameters. This will throw an exception if something goes wrong.
@@ -86,7 +86,7 @@ public:
         char * envvar = std::getenv("OpenMMPlugin_PATH");
         if ( envvar != NULL ) { addSearchDirectory( envvar ); }
 
-        addSearchDirectory( "../lib/plugins/" );
+        addSearchDirectory( "./" );
         addSearchDirectory( "../Molmodel/install-debug/lib/plugins/" );
         addSearchDirectory( "../Molmodel/install-release/lib/plugins/" );
         addSearchDirectory(SimTK::Pathname::getInstallDir("SimTK_INSTALL_DIR", "SimTK")

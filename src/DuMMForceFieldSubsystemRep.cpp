@@ -1424,8 +1424,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
 
         std::vector<std::string> messages;
         mutableThis->openMMPlatformInUse =
-                openMMPluginIfc->initializeOpenMM(allowOpenMMReference, messages,
-                                                  mutableThis->wantOpenMMCalcOnlyNonBonded);
+                openMMPluginIfc->initializeOpenMM(allowOpenMMReference, messages);
 
         if (tracing)
             for (unsigned i=0; i < messages.size(); ++i)
@@ -1741,9 +1740,9 @@ void DuMMForceFieldSubsystemRep::calcBondStretch
 	assert(b2 != b1);
         energy += eStretch;
 
-        TRACE("calcBondStretch: ");
-        TRACE((std::to_string(energy)).c_str());
-        TRACE("\n");
+//        TRACE("calcBondStretch: ");
+//        TRACE((std::to_string(energy)).c_str());
+//        TRACE("\n");
 
         inclBodyForces_G[b2] += SpatialVec( a2Station_G % f2, f2); // 15 flops
         inclBodyForces_G[b1] -= SpatialVec( a1Station_G % f2, f2); // 15 flops
@@ -1807,9 +1806,9 @@ void DuMMForceFieldSubsystemRep::calcBondBend
 
         energy += e;
 
-        TRACE("calcBondBend: ");
-        TRACE((std::to_string(e)).c_str());
-        TRACE("\n");
+//        TRACE("calcBondBend: ");
+//        TRACE((std::to_string(e)).c_str());
+//        TRACE("\n");
 
         inclBodyForces_G[b1] += SpatialVec( a1Station_G % f1, f1); // 15 flops
         inclBodyForces_G[b2] += SpatialVec( a2Station_G % f2, f2); // 15 flops
@@ -1876,9 +1875,9 @@ void DuMMForceFieldSubsystemRep::calcBondTorsion
     
         energy += e;
 
-        TRACE("calcBondTorsion: ");
-        TRACE((std::to_string(e)).c_str());
-        TRACE("\n");
+//        TRACE("calcBondTorsion: ");
+//        TRACE((std::to_string(e)).c_str());
+//        TRACE("\n");
 
         inclBodyForces_G[b1] += SpatialVec( a1Station_G % f1, f1); // 15 flops
         inclBodyForces_G[b2] += SpatialVec( a2Station_G % f2, f2); // 15 flops
@@ -2046,13 +2045,14 @@ void DuMMForceFieldSubsystemRep::calcBodySubsetNonbondedForces
 
                 const Vec3  r  = a2Pos_G - a1Pos_G; // from a1 to a2 (3 flops)
                 const Real  d2 = r.normSqr() ;     // 5 flops
+                const Real  d = std::sqrt(d2);
 
                 // Check for cutoffs on d2?
                 // QUICK DIRTY FIX FOR CUTOFF
-                if( d2 <= 1.44) {
+                if( nonbondedMethod ==0 || ( nonbondedMethod ==1 && d <= nonbondedCutoff ) ) {
 
                     //TRACE( (std::string(" r ") + std::to_string(std::sqrt(d2))).c_str() );
-                    const Real ood = 1 / std::sqrt(d2); // approx 40 flops
+                    const Real ood = 1 / d;
                     const Real ood2 = ood * ood;        // 1 flop
 
                     // Coulombic electrostatic force
@@ -2365,7 +2365,7 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
 
     if ( ! ( usingOpenMM && ! wantOpenMMCalcOnlyNonBonded ) ) {
 
-	TRACE("HEREEE CALC BONDED with DUMM");    
+
 
         const bool doStretch = bondStretchGlobalScaleFactor != 0
                                || customBondStretchGlobalScaleFactor != 0;
@@ -2375,7 +2375,6 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
                                || customBondTorsionGlobalScaleFactor != 0;
         const bool doImproper = amberImproperTorsionGlobalScaleFactor != 0;
 
-	TRACE("doStretch is "+std::to_string(doStretch) + "\n");
 
         for (DuMMIncludedBodyIndex incBodyIx(0);
              incBodyIx < getNumIncludedBodies(); ++incBodyIx) {
@@ -2415,6 +2414,8 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
                                              inclBodyForces_G, energy);
             }
         }
+
+        TRACE (("CALC BONDED with DUMM: Ebonded = " + std::to_string(energy) +  " \n").c_str());
     }
 
     // NONBONDED FORCES //
@@ -2454,16 +2455,22 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
             // Parallel calculation.
             NonbondedForceTask task
                (*this, inclAtomPos_G, inclAtomForce_G, energy);
-     //       TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: about to execute nonbondedExecutor with: ");
+      //       TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: about to execute nonbondedExecutor with: ");
       //      TRACE(std::to_string(numThreadsInUse).c_str());
       //      TRACE(" threads\n");
             nonbondedExecutor->execute(task, Parallel2DExecutor::HalfMatrix);
+
+            TRACE (("CALC NONBONDED with DUMM Parallel2DExecutor: Energy = " + std::to_string(energy) +  " \n").c_str());
+
         } else {
             // Serial calculation in this thread.
       //      TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: begin serial calculation\n");
             if (!(coulombGlobalScaleFactor==0 && vdwGlobalScaleFactor==0)) {
       //          TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: scale factor not 0\n");
                 calcNonbondedForces(inclAtomPos_G, inclAtomForce_G, energy);
+
+                TRACE (("CALC NONBONDED with DUMM SingleThread: Energy = " + std::to_string(energy) +  " \n").c_str());
+
             }
         }
 
@@ -2472,6 +2479,8 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
             calcGBSAForces(inclAtomStation_G, inclAtomPos_G, usingMultithreaded,
                            gbsaGlobalScaleFactor, inclBodyForces_G, energy);
         }
+
+        TRACE (("CALC GBSA with DUMM : Energy = " + std::to_string(energy) +  " \n").c_str());
     }
 
     // Compute included body spatial forces from generated atom forces.
@@ -2486,6 +2495,7 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
         }
     }
 
+    TRACE (("FINAL ENERGY = " + std::to_string(energy) +  " \n").c_str());
     // Done.
     markIncludedAtomForceCacheRealized(s);
     markIncludedBodyForceCacheRealized(s);
@@ -3572,7 +3582,7 @@ void DuMMForceFieldSubsystemRep::CalcFullPotEnergyNonbonded
                 const Real d2 = r.normSqr();
 
                 // QUICK DIRTY FIX FOR DISTANCE CUTOFF
-                if( d2 <= 1.44){
+                if( d2 <= 1.0){
 
                     const Real ood = 1 / std::sqrt(d2);
                     const Real ood2 = ood * ood;

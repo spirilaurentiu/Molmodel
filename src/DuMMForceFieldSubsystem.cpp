@@ -1063,6 +1063,36 @@ void DuMMForceFieldSubsystem::setCustomBondTorsionGlobalScaleFactor(Real fac) {
     mm.customBondTorsionGlobalScaleFactor=fac;
 }
 
+void DuMMForceFieldSubsystem::setNonbondedCutoff(Real cutoff) {
+    static const char* MethodName = "setNonbondedCutoff";
+
+    invalidateSubsystemTopologyCache();
+
+    DuMMForceFieldSubsystemRep& mm = updRep();
+
+    SimTK_APIARGCHECK1_ALWAYS(0 <= cutoff, mm.ApiClassName, MethodName,
+                              "Nonbonded cutoff (nm) (%g) was invalid: must be nonnegative",
+                              cutoff);
+
+    mm.nonbondedCutoff=cutoff;
+}
+
+
+void DuMMForceFieldSubsystem::setNonbondedMethod(int methodIndex) {
+    static const char* MethodName = "setNonbondedMethod";
+
+    invalidateSubsystemTopologyCache();
+
+    DuMMForceFieldSubsystemRep& mm = updRep();
+
+    SimTK_APIARGCHECK1_ALWAYS(0 <= methodIndex && methodIndex <= 1, mm.ApiClassName, MethodName,
+                              "Nonbonded method index should be 0 (NoCutoff) or 1 (CutoffNonPeriodic): (%g) was invalid",
+                              methodIndex);
+
+    mm.nonbondedMethod=methodIndex;
+}
+
+
 void DuMMForceFieldSubsystem::setSolventDielectric(Real dielectric) {
     static const char* MethodName = "setSolventDielectric";
     DuMMForceFieldSubsystemRep& mm = updRep();
@@ -1257,6 +1287,10 @@ Real DuMMForceFieldSubsystem::getAmberImproperTorsionGlobalScaleFactor() const {
 Real DuMMForceFieldSubsystem::getCustomBondStretchGlobalScaleFactor() const {return getRep().customBondStretchGlobalScaleFactor;}
 Real DuMMForceFieldSubsystem::getCustomBondBendGlobalScaleFactor()    const {return getRep().customBondBendGlobalScaleFactor;}
 Real DuMMForceFieldSubsystem::getCustomBondTorsionGlobalScaleFactor() const {return getRep().customBondTorsionGlobalScaleFactor;}
+
+Real DuMMForceFieldSubsystem::getNonbondedCutoff()     const {return getRep().nonbondedCutoff;}
+int DuMMForceFieldSubsystem::getNonbondedMethod() const {return getRep().nonbondedMethod;}
+
 
 void DuMMForceFieldSubsystem::setTracing(bool shouldTrace) {
     updRep().tracing = shouldTrace;

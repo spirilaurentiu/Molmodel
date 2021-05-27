@@ -1243,6 +1243,15 @@ Real getCustomBondStretchGlobalScaleFactor() const;     ///< get current scale f
 Real getCustomBondBendGlobalScaleFactor() const;        ///< get current scale factor for custom bond bending terms
 Real getCustomBondTorsionGlobalScaleFactor() const;     ///< get current scale factor for custom bond torsion terms
 
+
+// Added extra functions to customize OpenMM usage (Eliza)
+Real getNonbondedCutoff() const;                        ///< get current nonbonded cutoff (nm) used for LJ and Coulomb calculations
+void setNonbondedCutoff(Real);                          ///< set nonbonded cutoff (nm) used for LJ and Coulomb calculations
+int getNonbondedMethod() const;                         ///< get current nonbonded method used by OpenMM.
+void setNonbondedMethod(int);                           ///< set nonbonded nonbonded method used by OpenMM. (0 = nocutoff; 1=cutoffnonperiodic).
+
+
+
 /** Set all the global scale factors to the same value. This is commonly used 
 to turn everything on or off, followed by selectively disabling or enabling 
 individual terms. **/
