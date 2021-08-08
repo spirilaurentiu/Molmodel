@@ -137,6 +137,8 @@ foreach(pth IN LISTS Simbody_SEARCH_PATHS)
     NAMES "SimTKsimbody.h" "Simbody.h"
     PATHS "${pth}"
     PATH_SUFFIXES "include" 
+                  "include/simbody"
+                  "Simbody" "simbody"
                   "Simbody/include" "simbody/include"
                   "SimTK/include" "simtk/include"
     NO_DEFAULT_PATH
@@ -154,8 +156,9 @@ find_path(Simbody_INCLUDE_DIR
     DOC "Location of top-level installed Simbody header files"
 )
 
+# we need to go back one folder
 get_filename_component(Simbody_ROOT_DIR_TEMP "${Simbody_INCLUDE_DIR}" PATH)
-set(Simbody_ROOT_DIR "${Simbody_ROOT_DIR_TEMP}" CACHE PATH
+set(Simbody_ROOT_DIR "${Simbody_ROOT_DIR_TEMP}/.." CACHE PATH
     "Where we found Simbody; use SimTK_INSTALL_DIR to change." FORCE)
 
 set(Simbody_LIB_DIR ${Simbody_ROOT_DIR}/lib CACHE PATH

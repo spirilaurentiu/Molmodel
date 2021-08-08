@@ -231,11 +231,12 @@ ENDIF (UNIX AND NOT CMAKE_BUILD_TYPE)
 
 # This will be initialized to the environment variable of the same name
 # if it is set, otherwise it will be empty.
+SET(ENV{SimTK_INSTALL_DIR} ${SimTK_INSTALL_PREFIX})
 SET(SimTK_INSTALL_DIR $ENV{SimTK_INSTALL_DIR} CACHE
   PATH "Where to look for the Simbody libraries; you can change this.")
 
 # This should find Simbody in SimTK_SDK if it is set, otherwise hunt for it.
-find_package(Simbody CONFIG REQUIRED)
+find_package(Simbody REQUIRED) # CONFIG
 include_directories(${Simbody_INCLUDE_DIR})
 link_directories(${Simbody_LIB_DIR})
 
