@@ -264,7 +264,7 @@ IF(${CMAKE_C_COMPILER} MATCHES "cc" OR ${CMAKE_C_COMPILER} MATCHES "clang")
 
     # Unrolling fixed-count loops is a useful optimization for Simmatrix.
     # -fprofile-generate -fprofile-use -flto
-    SET(GCC_OPT_ENABLE "-funroll-loops -march=native -Wl,-q,-emit-relocs")
+    SET(GCC_OPT_ENABLE "-funroll-loops -march=native")
 
     # If you know of optimization bugs that affect SimTK in particular
     # gcc versions, this is the place to turn off those optimizations.
@@ -274,7 +274,7 @@ IF(${CMAKE_C_COMPILER} MATCHES "cc" OR ${CMAKE_C_COMPILER} MATCHES "clang")
     # should have these disabled.
     if (GCC_VERSION VERSION_GREATER 4.3 OR GCC_VERSION VERSION_EQUAL 4.3)
         SET(GCC_OPT_DISABLE 
-	"-fno-tree-vrp -fno-strict-aliasing -fno-guess-branch-probability")
+	"-fno-tree-vrp -fno-strict-aliasing") # @TODO clang -fno-guess-branch-probability does not exist
     endif()
 
     # C++
