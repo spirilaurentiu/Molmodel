@@ -4,6 +4,9 @@
 #include "SimTKcommon.h"
 #include <string>
 #include <vector>
+#include <string>
+#include <fstream>
+#include <streambuf>
 
 /**
  * This is the interface which must be implemented by a DLL which wants
@@ -72,13 +75,21 @@ public:
     // up search rule, which in this case is the lib/plugins directory
     // of the SimTK installation directory.
     OpenMMPlugin() : SimTK::Plugin("OpenMMPlugin") {
-        // Install directory is either the contents of this environment
-        // variable if it exists, or if not then it is the system default
-        // installation directory with /SimTK appended. Then /lib/plugins
-        // is added to that.
-        addSearchDirectory(SimTK::Pathname::getInstallDir("SimTK_INSTALL_DIR", "SimTK") 
-                            + "lib/plugins");
-	addSearchDirectory("/usr/local/lib/plugins/");
+        // // Install directory is either the contents of this environment
+        // // variable if it exists, or if not then it is the system default
+        // // installation directory with /SimTK appended. Then /lib/plugins
+        // // is added to that.
+        // addSearchDirectory(SimTK::Pathname::getInstallDir("SimTK_INSTALL_DIR", "SimTK") 
+        //                     + "lib/plugins");
+	    // addSearchDirectory("/usr/local/lib/plugins/");
+
+        // The above works for a standard installation. We don't do that here.
+        // When installing locally, we must look for the library locally.
+        // The build script writes a file containing the path to the plugin.
+        // We load that file and search the lib at the specified path.
+        std::ifstream fin(SimTK::Pathname::getThisExecutableDirectory() + "/openmmplugin");
+        std::string dir((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
+        addSearchDirectory(dir);
     }
 
     // This is the only defined exported method for this kind of plugin.
