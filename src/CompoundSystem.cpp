@@ -73,7 +73,7 @@ void buildUpRigidBody(Compound::AtomIndex atomId,
 
     // Store DuMM::Cluster id in Compound::Atom object
     CompoundAtom& atom = compoundRep.updAtom(atomId);
-    assert(!atom.getDuMMPrimaryClusterIndex().isValid());
+    // assert(!atom.getDuMMPrimaryClusterIndex().isValid()); // TODO why assert?
     atom.setDuMMPrimaryClusterIndex(clusterIx);
 
     assert(atomBondings.find(atomId) != atomBondings.end());
@@ -191,8 +191,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
         // Store DuMMAtomIndex in Compound::Atom object
         CompoundAtom& atom = compoundRep.updAtom(a);
 
-        assert(!atom.getDuMMPrimaryClusterIndex().isValid());
-        assert(!atom.getDuMMAtomIndex().isValid());
+        //assert(!atom.getDuMMPrimaryClusterIndex().isValid()); // TODO why assert?
+        //assert(!atom.getDuMMAtomIndex().isValid()); //TODO why assert
 
         atom.setDuMMAtomIndex(atomBonding.dummAtomIndex);
     }
