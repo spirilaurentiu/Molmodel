@@ -28,9 +28,9 @@
 # And there is no static version.
 #----------------------------------------------------
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.9.4)
 
-project(Molmodel)
+project(Molmodel C CXX)
 
 set(MOLMODEL_MAJOR_VERSION 3)
 set(MOLMODEL_MINOR_VERSION 0)
@@ -256,71 +256,72 @@ MARK_AS_ADVANCED( BUILD_INST_SET )
 ## Watch out for optimizer bugs in particular gcc versions!
 
 IF(${CMAKE_C_COMPILER} MATCHES "cc" OR ${CMAKE_C_COMPILER} MATCHES "clang")
-    string(TOLOWER ${BUILD_INST_SET} GCC_INST_SET)
+    # # string(TOLOWER ${BUILD_INST_SET} GCC_INST_SET)
+    # SET(GCC_INST_SET "-march=native -mtune=native") # use the native architecture, not some generic sse2 optimizations
 
-    # Get the gcc version number in major.minor.build format
-    execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
-                    OUTPUT_VARIABLE GCC_VERSION)
+    # # Get the gcc version number in major.minor.build format
+    # execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
+    #                 OUTPUT_VARIABLE GCC_VERSION)
 
-    # Unrolling fixed-count loops is a useful optimization for Simmatrix.
-    # -fprofile-generate -fprofile-use -flto
-    SET(GCC_OPT_ENABLE "-funroll-loops -march=native")
+    # # Unrolling fixed-count loops is a useful optimization for Simmatrix.
+    # SET(GCC_OPT_ENABLE "-funroll-loops ${ROBO_EXTRA_FLAGS}")
 
-    # If you know of optimization bugs that affect SimTK in particular
-    # gcc versions, this is the place to turn off those optimizations.
-    SET(GCC_OPT_DISABLE)
-    # We know Gcc 4.4.3 on Ubuntu 10 is buggy and that Snow Leopard's
-    # 4.2.1 is not. To be safe for now we'll assume anything over 4.3
-    # should have these disabled.
-    if (GCC_VERSION VERSION_GREATER 4.3 OR GCC_VERSION VERSION_EQUAL 4.3)
-        SET(GCC_OPT_DISABLE 
-	"-fno-tree-vrp -fno-strict-aliasing") # @TODO clang -fno-guess-branch-probability does not exist
-    endif()
+    # # If you know of optimization bugs that affect SimTK in particular
+    # # gcc versions, this is the place to turn off those optimizations.
+    # SET(GCC_OPT_DISABLE)
+    
+    # # # We know Gcc 4.4.3 on Ubuntu 10 is buggy and that Snow Leopard's
+    # # # 4.2.1 is not. To be safe for now we'll assume anything over 4.3
+    # # # should have these disabled.
+    # # if (GCC_VERSION VERSION_GREATER 4.3 OR GCC_VERSION VERSION_EQUAL 4.3)
+    # #     SET(GCC_OPT_DISABLE 
+	# # "-fno-tree-vrp -fno-strict-aliasing -fno-guess-branch-probability")
+    # # endif()
+    
+    # # C++
+    # SET(BUILD_CXX_FLAGS_DEBUG          "-g ${GCC_INST_SET}" 
+    #   CACHE STRING "g++ Debug build compile flags")
+    # SET(BUILD_CXX_FLAGS_RELEASE        
+    #   "-DNDEBUG -O3 ${GCC_OPT_ENABLE} ${GCC_OPT_DISABLE} ${GCC_INST_SET}" 
+    #   CACHE STRING "g++ Release build compile flags")
+    # SET(BUILD_CXX_FLAGS_RELWITHDEBINFO 
+    #   "-DNDEBUG -O3 -g ${GCC_OPT_ENABLE} ${GCC_OPT_DISABLE} ${GCC_INST_SET}" 
+    #   CACHE STRING "g++ RelWithDebInfo build compile flags")
+    # SET(BUILD_CXX_FLAGS_MINSIZEREL     "-DNDEBUG -Os ${GCC_INST_SET}" 
+    #   CACHE STRING "g++ MinSizeRel build compile flags")
 
-    # C++
-    SET(BUILD_CXX_FLAGS_DEBUG          "-g -m${GCC_INST_SET}" 
-      CACHE STRING "g++ Debug build compile flags")
-    SET(BUILD_CXX_FLAGS_RELEASE        
-      "-DNDEBUG -O3 ${GCC_OPT_ENABLE} ${GCC_OPT_DISABLE} -m${GCC_INST_SET}" 
-      CACHE STRING "g++ Release build compile flags")
-    SET(BUILD_CXX_FLAGS_RELWITHDEBINFO 
-      "-DNDEBUG -O3 -g ${GCC_OPT_ENABLE} ${GCC_OPT_DISABLE} -m${GCC_INST_SET}" 
-      CACHE STRING "g++ RelWithDebInfo build compile flags")
-    SET(BUILD_CXX_FLAGS_MINSIZEREL     "-DNDEBUG -Os -m${GCC_INST_SET}" 
-      CACHE STRING "g++ MinSizeRel build compile flags")
+    # # C
+    # SET(BUILD_C_FLAGS_DEBUG            "-g ${GCC_INST_SET}" 
+    #   CACHE STRING "gcc Debug build compile flags")
+    # SET(BUILD_C_FLAGS_RELEASE          
+    #   "-DNDEBUG -O3 ${GCC_OPT_ENABLE} ${GCC_OPT_DISABLE} ${GCC_INST_SET}" 
+    #   CACHE STRING "gcc Release build compile flags")
+    # SET(BUILD_C_FLAGS_RELWITHDEBINFO   
+    #   "-DNDEBUG -O3 -g ${GCC_OPT_ENABLE} ${GCC_OPT_DISABLE} ${GCC_INST_SET}" 
+    #   CACHE STRING "gcc RelWithDebInfo build compile flags")
+    # SET(BUILD_C_FLAGS_MINSIZEREL       "-DNDEBUG -Os ${GCC_INST_SET}" 
+    #   CACHE STRING "gcc MinSizeRel build compile flags")
 
-    # C
-    SET(BUILD_C_FLAGS_DEBUG            "-g -m${GCC_INST_SET}" 
-      CACHE STRING "gcc Debug build compile flags")
-    SET(BUILD_C_FLAGS_RELEASE          
-      "-DNDEBUG -O3 ${GCC_OPT_ENABLE} ${GCC_OPT_DISABLE} -m${GCC_INST_SET}" 
-      CACHE STRING "gcc Release build compile flags")
-    SET(BUILD_C_FLAGS_RELWITHDEBINFO   
-      "-DNDEBUG -O3 -g ${GCC_OPT_ENABLE} ${GCC_OPT_DISABLE} -m${GCC_INST_SET}" 
-      CACHE STRING "gcc RelWithDebInfo build compile flags")
-    SET(BUILD_C_FLAGS_MINSIZEREL       "-DNDEBUG -Os -m${GCC_INST_SET}" 
-      CACHE STRING "gcc MinSizeRel build compile flags")
+    # # C++
+    # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+    # SET(CMAKE_CXX_FLAGS_DEBUG ${BUILD_CXX_FLAGS_DEBUG}
+    #     CACHE STRING "Can't change here -- see BUILD_CXX..." FORCE)
+    # SET(CMAKE_CXX_FLAGS_RELEASE ${BUILD_CXX_FLAGS_RELEASE}
+    #     CACHE STRING "Can't change here -- see BUILD_CXX..." FORCE)
+    # SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO ${BUILD_CXX_FLAGS_RELWITHDEBINFO}
+    #     CACHE STRING "Can't change here -- see BUILD_CXX..." FORCE)
+    # SET(CMAKE_CXX_FLAGS_MINSIZEREL ${BUILD_CXX_FLAGS_MINSIZEREL}
+    #     CACHE STRING "Can't change here -- see BUILD_CXX..." FORCE)
 
-    # C++
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++17")
-    SET(CMAKE_CXX_FLAGS_DEBUG ${BUILD_CXX_FLAGS_DEBUG}
-        CACHE STRING "Can't change here -- see BUILD_CXX..." FORCE)
-    SET(CMAKE_CXX_FLAGS_RELEASE ${BUILD_CXX_FLAGS_RELEASE}
-        CACHE STRING "Can't change here -- see BUILD_CXX..." FORCE)
-    SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO ${BUILD_CXX_FLAGS_RELWITHDEBINFO}
-        CACHE STRING "Can't change here -- see BUILD_CXX..." FORCE)
-    SET(CMAKE_CXX_FLAGS_MINSIZEREL ${BUILD_CXX_FLAGS_MINSIZEREL}
-        CACHE STRING "Can't change here -- see BUILD_CXX..." FORCE)
-
-    # C
-    SET(CMAKE_C_FLAGS_DEBUG ${BUILD_C_FLAGS_DEBUG}
-        CACHE STRING "Can't change here -- see BUILD_C..." FORCE)
-    SET(CMAKE_C_FLAGS_RELEASE ${BUILD_C_FLAGS_RELEASE}         
-        CACHE STRING "Can't change here -- see BUILD_C..." FORCE)
-    SET(CMAKE_C_FLAGS_RELWITHDEBINFO ${BUILD_C_FLAGS_RELWITHDEBINFO}
-        CACHE STRING "Can't change here -- see BUILD_C..." FORCE)
-    SET(CMAKE_C_FLAGS_MINSIZEREL ${BUILD_C_FLAGS_MINSIZEREL}
-        CACHE STRING "Can't change here -- see BUILD_C..." FORCE)
+    # # C
+    # SET(CMAKE_C_FLAGS_DEBUG ${BUILD_C_FLAGS_DEBUG}
+    #     CACHE STRING "Can't change here -- see BUILD_C..." FORCE)
+    # SET(CMAKE_C_FLAGS_RELEASE ${BUILD_C_FLAGS_RELEASE}         
+    #     CACHE STRING "Can't change here -- see BUILD_C..." FORCE)
+    # SET(CMAKE_C_FLAGS_RELWITHDEBINFO ${BUILD_C_FLAGS_RELWITHDEBINFO}
+    #     CACHE STRING "Can't change here -- see BUILD_C..." FORCE)
+    # SET(CMAKE_C_FLAGS_MINSIZEREL ${BUILD_C_FLAGS_MINSIZEREL}
+    #     CACHE STRING "Can't change here -- see BUILD_C..." FORCE)
 
 ENDIF(${CMAKE_C_COMPILER} MATCHES "cc" OR ${CMAKE_C_COMPILER} MATCHES "clang")
 
@@ -359,7 +360,7 @@ IF(WIN32 AND ${CMAKE_C_COMPILER} MATCHES "cl")
         CACHE STRING "VC MinSizeRel build compile flags")
 
     ## C++
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++17")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
     SET(CMAKE_CXX_FLAGS_DEBUG ${BUILD_CXX_FLAGS_DEBUG}
         CACHE STRING "Can't change here -- see BUILD_CXX..." FORCE)
     SET(CMAKE_CXX_FLAGS_RELEASE ${BUILD_CXX_FLAGS_RELEASE}

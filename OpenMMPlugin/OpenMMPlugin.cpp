@@ -39,7 +39,7 @@
 #endif
 
 #include "SimTKcommon.h"
-#include "OpenMMPlugin.h"
+#include "../src/OpenMMPlugin.h"
 #include "DuMMForceFieldSubsystemRep.h"
 
 #include "OpenMM.h"
