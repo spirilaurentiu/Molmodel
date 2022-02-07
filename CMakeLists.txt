@@ -28,7 +28,8 @@
 # And there is no static version.
 #----------------------------------------------------
 
-cmake_minimum_required(VERSION 3.9.4)
+#cmake_minimum_required(VERSION 3.9.4)
+cmake_minimum_required(VERSION 3.5.1)
 
 project(Molmodel C CXX)
 

@@ -1227,7 +1227,7 @@ public:
         return *this;
     }
 
-    CompoundAtom& setMobilizedBodyIndex(MobilizedBodyIndex bodyIx) {
+    CompoundAtom& setMobilizedBodyIndex(const MobilizedBodyIndex bodyIx) {
         mobilizedBodyIndex = bodyIx;
         return *this;
     }

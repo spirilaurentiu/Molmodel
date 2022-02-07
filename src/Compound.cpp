@@ -842,6 +842,14 @@ CompoundRep& CompoundRep::setBiotypeIndex(const Compound::AtomName& atomName, Bi
     return *this;
 }
     
+// REX
+CompoundRep& CompoundRep::setAtomMobilizedBodyIndex(const Compound::AtomIndex& atomIndex, const MobilizedBodyIndex mbx) {
+    CompoundAtom& atom = updAtom(atomIndex);
+    atom.setMobilizedBodyIndex(mbx);
+
+    return *this;
+}
+    
 CompoundRep& CompoundRep::nameBondCenter(Compound::BondCenterName newName, Compound::BondCenterPathName oldName) {
     assert( hasBondCenter(oldName) );
     // assert( ! hasBondCenter(newName) );
@@ -2005,6 +2013,13 @@ Compound& Compound::setBiotypeIndex(const Compound::AtomName& atomName, BiotypeI
     updImpl().setBiotypeIndex(atomName, biotypeIx);
     return *this;
 }
+// REX
+Compound& Compound::setAtomMobilizedBodyIndex(const Compound::AtomIndex atomIndex, const MobilizedBodyIndex mbx) 
+{
+    updImpl().setAtomMobilizedBodyIndex(atomIndex, mbx);
+    return *this;
+}
+
 Compound& Compound::nameBondCenter(const Compound::BondCenterName& centerName, const BondCenterPathName& pathName) 
 {
     updImpl().nameBondCenter(centerName, pathName);

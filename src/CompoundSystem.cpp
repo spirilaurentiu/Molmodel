@@ -194,6 +194,9 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
         //assert(!atom.getDuMMPrimaryClusterIndex().isValid()); // TODO why assert?
         //assert(!atom.getDuMMAtomIndex().isValid()); //TODO why assert
 
+        std::cout << " AtomIndex dummAtomIndex "
+              << a << " " << atomBonding.dummAtomIndex << std::endl;
+
         atom.setDuMMAtomIndex(atomBonding.dummAtomIndex);
     }
 

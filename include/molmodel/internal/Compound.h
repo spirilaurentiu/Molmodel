@@ -1143,6 +1143,11 @@ public:
         ) const;
 
     /**
+     * REX
+     */
+    Compound & setAtomMobilizedBodyIndex(const Compound::AtomIndex, const MobilizedBodyIndex);
+
+    /**
      * \brief get the location of an Atom in the frame of the simbody MobilizedBody to which the Atom is attached
      *
      * Requires that this Compound has already been modeled in a CompoundSystem

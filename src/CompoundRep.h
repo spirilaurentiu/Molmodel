@@ -327,6 +327,9 @@ public:
 
     // setBiotype("C", Biotype::MethaneC);
     CompoundRep& setBiotypeIndex(const Compound::AtomName& atomName, BiotypeIndex biotype);
+
+    // REX
+    CompoundRep& setAtomMobilizedBodyIndex(const Compound::AtomIndex& atomIndex, const MobilizedBodyIndex mbx);
         
     CompoundRep& nameBondCenter(Compound::BondCenterName newName, Compound::BondCenterPathName oldName);
 
