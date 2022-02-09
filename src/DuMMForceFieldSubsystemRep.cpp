@@ -2049,7 +2049,7 @@ void DuMMForceFieldSubsystemRep::calcBodySubsetNonbondedForces
 
                 // Check for cutoffs on d2?
                 // QUICK DIRTY FIX FOR CUTOFF
-                if( d2 <= 1.44) {
+                if( d2 <= 10.44) {
 
                     //TRACE( (std::string(" r ") + std::to_string(std::sqrt(d2))).c_str() );
                     const Real ood = 1 / std::sqrt(d2); // approx 40 flops
@@ -3562,7 +3562,7 @@ void DuMMForceFieldSubsystemRep::CalcFullPotEnergyNonbonded
                 const Real d2 = r.normSqr();
 
                 // QUICK DIRTY FIX FOR DISTANCE CUTOFF
-                if( d2 <= 1.44){
+                if( d2 <= 10.44){
 
                     const Real ood = 1 / std::sqrt(d2);
                     const Real ood2 = ood * ood;
