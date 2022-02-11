@@ -54,8 +54,8 @@ try {
     system.adoptCompound(ethane2, Vec3( 0.5, 0, 0)); 
 
     // Show me a movie
-    Visualizer viz(system);
-    system.addEventReporter( new Visualizer::Reporter(viz, 0.050) );
+    // Visualizer viz(system);
+    // system.addEventReporter( new Visualizer::Reporter(viz, 0.050) );
 
     system.modelCompounds(); // finalize multibody system
 

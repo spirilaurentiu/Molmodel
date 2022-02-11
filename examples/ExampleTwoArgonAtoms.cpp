@@ -49,8 +49,8 @@ try {
     system.adoptCompound(argonAtom2, Vec3( 0.3, 0, 0)); 
 
     // Show me a movie
-    Visualizer viz(system);
-    system.addEventReporter( new Visualizer::Reporter(viz, 0.50) );
+    // Visualizer viz(system);
+    // system.addEventReporter( new Visualizer::Reporter(viz, 0.50) );
     
     system.modelCompounds(); // finalize multibody system
 

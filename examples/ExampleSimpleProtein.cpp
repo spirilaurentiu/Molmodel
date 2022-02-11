@@ -36,7 +36,7 @@ try {
     system.modelCompounds(); 
 
     // show me a movie
-    system.addEventReporter(new Visualizer::Reporter(system, 0.020));
+    // system.addEventReporter(new Visualizer::Reporter(system, 0.020));
 
     // Maintain a constant temperature. (This isn't a very good
     // thermostat -- consider NoseHooverThermostat instead.)
