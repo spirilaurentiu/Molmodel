@@ -51,6 +51,9 @@ using namespace SimTK;
 //#define TRACE(STR)
 //#endif
 
+//#define TRACE_OPENMM(STR) ;
+#define TRACE_OPENMM(STR) printf("%s", STR);
+
 
 // This is Coulomb's constant 1/(4*pi*e0) in units which convert
 // e^2/nm to kJ/mol.
@@ -1386,7 +1389,8 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
     // Using "while" here just so we can break out; this won't ever loop. If we
     // decide to use OpenMM, the flag usingOpenMM will be set true.
     mutableThis->usingOpenMM = false;
-    while (wantOpenMMAcceleration && getNumNonbondAtoms()) {
+//    while (wantOpenMMAcceleration && getNumNonbondAtoms()) {
+    while (wantOpenMMAcceleration ) {
         if (!mutableThis->openMMPlugin.load()) {
             if (tracing)
                 std::clog << "WARNING: DuMM: Failed to load OpenMM plugin with message: "
@@ -2046,13 +2050,12 @@ void DuMMForceFieldSubsystemRep::calcBodySubsetNonbondedForces
 
                 const Vec3  r  = a2Pos_G - a1Pos_G; // from a1 to a2 (3 flops)
                 const Real  d2 = r.normSqr() ;     // 5 flops
+                const Real  d = std::sqrt(d2);
 
-                // Check for cutoffs on d2?
-                // QUICK DIRTY FIX FOR CUTOFF
-                if( d2 <= 10.44) {
+                if( nonbondedMethod ==0 || ( nonbondedMethod ==1 && d <= nonbondedCutoff ) ) {
 
                     //TRACE( (std::string(" r ") + std::to_string(std::sqrt(d2))).c_str() );
-                    const Real ood = 1 / std::sqrt(d2); // approx 40 flops
+                    const Real ood = 1 / d; // approx 40 flops
                     const Real ood2 = ood * ood;        // 1 flop
 
                     // Coulombic electrostatic force
@@ -2363,54 +2366,59 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
 
         // BONDED FORCES //
 
-    const bool doStretch =    bondStretchGlobalScaleFactor != 0
-                           || customBondStretchGlobalScaleFactor != 0;
-    const bool doBend    =    bondBendGlobalScaleFactor != 0
-                           || customBondBendGlobalScaleFactor != 0;
-    const bool doTorsion =    bondTorsionGlobalScaleFactor != 0
-                           || customBondTorsionGlobalScaleFactor != 0;
-    const bool doImproper = amberImproperTorsionGlobalScaleFactor != 0;
+    if ( ! ( usingOpenMM && ! wantOpenMMCalcOnlyNonBonded ) ) {
 
-    for (DuMMIncludedBodyIndex incBodyIx(0);
-         incBodyIx < getNumIncludedBodies(); ++incBodyIx)
-    {
-        const IncludedBody& inclBody = includedBodies[incBodyIx];
-        assert(inclBody.isValid());
+        const bool doStretch = bondStretchGlobalScaleFactor != 0
+                               || customBondStretchGlobalScaleFactor != 0;
+        const bool doBend = bondBendGlobalScaleFactor != 0
+                            || customBondBendGlobalScaleFactor != 0;
+        const bool doTorsion = bondTorsionGlobalScaleFactor != 0
+                               || customBondTorsionGlobalScaleFactor != 0;
+        const bool doImproper = amberImproperTorsionGlobalScaleFactor != 0;
 
-        // For each atom on this body, deal with all the bonded forces for which
-        // it is atom 1 of a bond. See discussion elsewhere for how we avoid
-        // double counting.
-        for (DuMMBondStarterIndex bsx = inclBody.beginBondStarterAtoms;
-             bsx != inclBody.endBondStarterAtoms; ++bsx)
-        {
-            const DuMM::IncludedAtomIndex atom = bondStarterAtoms[bsx];
+        for (DuMMIncludedBodyIndex incBodyIx(0);
+             incBodyIx < getNumIncludedBodies(); ++incBodyIx) {
+            const IncludedBody &inclBody = includedBodies[incBodyIx];
+            assert(inclBody.isValid());
 
-            // Bond stretch (1-2)
-	        if (doStretch)
-                calcBondStretch(atom, inclAtomStation_G, inclAtomPos_G,
-                                bondStretchGlobalScaleFactor, customBondStretchGlobalScaleFactor,
-                                inclBodyForces_G, energy);
+            // For each atom on this body, deal with all the bonded forces for which
+            // it is atom 1 of a bond. See discussion elsewhere for how we avoid
+            // double counting.
+            for (DuMMBondStarterIndex bsx = inclBody.beginBondStarterAtoms;
+                 bsx != inclBody.endBondStarterAtoms; ++bsx) {
+                const DuMM::IncludedAtomIndex atom = bondStarterAtoms[bsx];
 
-            // Bond bend (1-2-3)
-            if (doBend)
-                calcBondBend(atom, inclAtomStation_G, inclAtomPos_G,
-                             bondBendGlobalScaleFactor, customBondBendGlobalScaleFactor,
-                             inclBodyForces_G, energy);
+                // Bond stretch (1-2)
+                if (doStretch)
+                    calcBondStretch(atom, inclAtomStation_G, inclAtomPos_G,
+                                    bondStretchGlobalScaleFactor, customBondStretchGlobalScaleFactor,
+                                    inclBodyForces_G, energy);
 
-             // Bond torsion (1-2-3-4)
-	        if (doTorsion)
-                calcBondTorsion(atom, inclAtomStation_G, inclAtomPos_G,
-                                bondTorsionGlobalScaleFactor, customBondTorsionGlobalScaleFactor,
-                                inclBodyForces_G, energy);
+                // Bond bend (1-2-3)
+                if (doBend)
+                    calcBondBend(atom, inclAtomStation_G, inclAtomPos_G,
+                                 bondBendGlobalScaleFactor, customBondBendGlobalScaleFactor,
+                                 inclBodyForces_G, energy);
 
-            // Amber improper torsion   2-1-3
-            //                             \4
-            if (doImproper)
-                calcAmberImproperTorsion(atom, inclAtomStation_G,
-                    inclAtomPos_G, amberImproperTorsionGlobalScaleFactor,
-                    inclBodyForces_G, energy);
+                // Bond torsion (1-2-3-4)
+                if (doTorsion)
+                    calcBondTorsion(atom, inclAtomStation_G, inclAtomPos_G,
+                                    bondTorsionGlobalScaleFactor, customBondTorsionGlobalScaleFactor,
+                                    inclBodyForces_G, energy);
+
+                // Amber improper torsion   2-1-3
+                //                             \4
+                if (doImproper)
+                    calcAmberImproperTorsion(atom, inclAtomStation_G,
+                                             inclAtomPos_G, amberImproperTorsionGlobalScaleFactor,
+                                             inclBodyForces_G, energy);
+            }
         }
+        TRACE_OPENMM (("CALC BONDED with DUMM: Ebonded = " + std::to_string(energy) +  " \n").c_str());
     }
+
+
+
 
                 // NONBONDED FORCES //
 
@@ -2427,9 +2435,12 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
 
             // Calculate forces and energy.
             // TODO: should calculate energy only when it is asked for.
-            openMMPluginIfc->calcOpenMMNonbondedAndGBSAForces(
+
+            TRACE_OPENMM (("BEFORE OpenMM\t" + std::to_string(energy) +  " \n").c_str());
+            openMMPluginIfc->calcOpenMMEnergyAndForces(
                 inclAtomStation_G, inclAtomPos_G, true /*forces*/, true /*energy*/,
                 inclBodyForces_G, energy);
+            TRACE_OPENMM (("AFTER OpenMM\t" + std::to_string(energy) +  " \n").c_str());
 
             // All done!
             markIncludedAtomForceCacheRealized(s);
@@ -2448,12 +2459,18 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
       //      TRACE(std::to_string(numThreadsInUse).c_str());
       //      TRACE(" threads\n");
             nonbondedExecutor->execute(task, Parallel2DExecutor::HalfMatrix);
+
+            TRACE_OPENMM (("CALC NONBONDED with DUMM Parallel2DExecutor: Energy = " + std::to_string(energy) +  " \n").c_str());
+
         } else {
             // Serial calculation in this thread.
       //      TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: begin serial calculation\n");
             if (!(coulombGlobalScaleFactor==0 && vdwGlobalScaleFactor==0)) {
       //          TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: scale factor not 0\n");
                 calcNonbondedForces(inclAtomPos_G, inclAtomForce_G, energy);
+
+                TRACE_OPENMM (("CALC NONBONDED with DUMM SingleThread: Energy = " + std::to_string(energy) +  " \n").c_str());
+
             }
         }
 
@@ -2461,6 +2478,7 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
         if (gbsaGlobalScaleFactor != 0) {
             calcGBSAForces(inclAtomStation_G, inclAtomPos_G, usingMultithreaded,
                            gbsaGlobalScaleFactor, inclBodyForces_G, energy);
+            TRACE_OPENMM (("CALC GBSA with DUMM : Energy = " + std::to_string(energy) +  " \n").c_str());
         }
     }
 
@@ -2475,6 +2493,8 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
             inclBodyForces_G[dbx] += SpatialVec(aStation_G % aFrc_G, aFrc_G);
         }
     }
+
+    TRACE_OPENMM (("FINAL ENERGY = " + std::to_string(energy) +  " \n").c_str());
 
     // Done.
     markIncludedAtomForceCacheRealized(s);
@@ -3560,12 +3580,13 @@ void DuMMForceFieldSubsystemRep::CalcFullPotEnergyNonbonded
 
                 const Vec3  r  = a2Pos_G - a1Pos_G;
                 const Real d2 = r.normSqr();
+                const Real  d = std::sqrt(d2);
 
-                // QUICK DIRTY FIX FOR DISTANCE CUTOFF
-                if( d2 <= 10.44){
+                if( nonbondedMethod ==0 || ( nonbondedMethod ==1 && d <= nonbondedCutoff ) ) {
 
-                    const Real ood = 1 / std::sqrt(d2);
-                    const Real ood2 = ood * ood;
+                    //TRACE( (std::string(" r ") + std::to_string(std::sqrt(d2))).c_str() );
+                    const Real ood = 1 / d; // approx 40 flops
+                    const Real ood2 = ood * ood;        // 1 flop
 
 
                     // Coulombic electrostatic force

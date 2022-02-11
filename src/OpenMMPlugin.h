@@ -34,7 +34,7 @@ public:
 
     // Calculates forces and/or energy and *adds* them into the output
     // parameters. This will throw an exception if something goes wrong.
-    virtual void calcOpenMMNonbondedAndGBSAForces
+    virtual void calcOpenMMEnergyAndForces
        (const SimTK::Vector_<SimTK::Vec3>&  atomStation_G,
         const SimTK::Vector_<SimTK::Vec3>&  atomPos_G,
         bool                                wantForces,
@@ -43,6 +43,8 @@ public:
         SimTK::Real&                        energy) const = 0;
 
 private:
+    std::string OpenMMPlatform;
+    std::string OpenMMGPUindex;
 };
 
 namespace SimTK {
@@ -79,9 +81,17 @@ public:
         // // variable if it exists, or if not then it is the system default
         // // installation directory with /SimTK appended. Then /lib/plugins
         // // is added to that.
-        // addSearchDirectory(SimTK::Pathname::getInstallDir("SimTK_INSTALL_DIR", "SimTK") 
-        //                     + "lib/plugins");
-	    // addSearchDirectory("/usr/local/lib/plugins/");
+
+
+        char * envvar = std::getenv("OpenMMPlugin_PATH");
+        if ( envvar != NULL ) { addSearchDirectory( envvar ); }
+
+        // Quick & dirty fix for Laurentiu
+        addSearchDirectory("/home/laurentiu/git4/Robosample/build/release/Molmodel/");
+
+         addSearchDirectory(SimTK::Pathname::getInstallDir("SimTK_INSTALL_DIR", "SimTK")
+                             + "lib/plugins");
+         addSearchDirectory("/usr/local/lib/plugins/");
 
         // The above works for a standard installation. We don't do that here.
         // When installing locally, we must look for the library locally.
@@ -98,6 +108,9 @@ public:
     SimTK_PLUGIN_DEFINE_FUNCTION1(OpenMMPluginInterface*,
                                   SimTK_createOpenMMPluginInterface,
                                   const SimTK::DuMMForceFieldSubsystemRep&);
+
+    std::string OpenMMPluginPATH;
+
 private:
 };
 

@@ -1492,11 +1492,16 @@ public:
         vdwScale12=coulombScale12=vdwScale13=coulombScale13 = 0;
         vdwScale14=coulombScale14=vdwScale15=coulombScale15 = 1;
 
+        nonbondedCutoff = 2.0;
+        nonbondedMethod = 0;
+
         tracing                     = true; // EU
+
         useMultithreadedComputation = true;
         numThreadsRequested         = 0; // let DuMM pick
 
         wantOpenMMAcceleration      = false;
+        wantOpenMMCalcOnlyNonBonded = true;
         allowOpenMMReference        = false;
 
         gbsaIncludeAceApproximation = true;
@@ -2378,7 +2383,11 @@ public:
     Real gbsaSolventDielectric; // typically 80 for water
     Real gbsaSoluteDielectric;  // typically 1 or 2 for protein
 
+    Real nonbondedCutoff;
+    int nonbondedMethod;
+
     bool tracing; // for debugging
+
 
     // Control use of multithreading.
     bool useMultithreadedComputation;
@@ -2386,6 +2395,7 @@ public:
 
     // Control use of OpenMM.
     bool wantOpenMMAcceleration;
+    bool wantOpenMMCalcOnlyNonBonded;
     bool allowOpenMMReference;
 
         // TOPOLOGICAL CACHE ENTRIES

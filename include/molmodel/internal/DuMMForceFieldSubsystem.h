@@ -1257,8 +1257,21 @@ void setAllGlobalScaleFactors(Real s) {
 	setCustomBondStretchGlobalScaleFactor(s);
 	setCustomBondBendGlobalScaleFactor(s);
 	setCustomBondTorsionGlobalScaleFactor(s);
+
 }
+
+
+// Added extra functions to customize OpenMM usage (Eliza)
+Real getNonbondedCutoff() const;                        ///< get current nonbonded cutoff (nm) used for LJ and Coulomb calculations
+void setNonbondedCutoff(Real);                          ///< set nonbonded cutoff (nm) used for LJ and Coulomb calculations
+int getNonbondedMethod() const;                         ///< get current nonbonded method used by OpenMM.
+void setNonbondedMethod(int);                           ///< set nonbonded nonbonded method used by OpenMM. (0 = nocutoff; 1=cutoffnonperiodic).
+
+
+
+
 /**@}**/
+
 
 
 
@@ -1304,6 +1317,19 @@ Platform provided by OpenMM, use setAllowOpenMMReference(). **/
 void setUseOpenMMAcceleration(bool);
 /** Return the current setting of the flag set by setUseOpenMMAcceleration(). **/
 bool getUseOpenMMAcceleration() const;
+
+
+
+/* Customize OpenMMPlugin */
+
+/** This determines whether we use OpenMM for calculating the nonbonded
+ energy & forces (van der Waals, Coulomb and GBSA ) or to calculate the
+ all the energy & forces terms (included the bonded terms: bonds, bends,
+ dihedral and impropers) **/
+void setUseOpenMMCalcOnlyNonBonded(bool);
+/** Return the current setting of the flag set by setUseOpenMMCalcOnlyNonBonded(). **/
+bool getUseOpenMMCalcOnlyNonBonded() const;
+
 
 
 /** This allows us to use OpenMM even if only the Reference platform is 
