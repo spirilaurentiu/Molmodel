@@ -54,8 +54,8 @@ using namespace SimTK;
 #define STRINGIZE(var) #var
 #define MAKE_VERSION_STRING(maj,min,build)  STRINGIZE(maj.min.build)
 
-//#define TRACE_OPENMM(STR) ;
-#define TRACE_OPENMM(STR) printf("%s", STR);
+#define TRACE_OPENMM(STR) ;
+//#define TRACE_OPENMM(STR) printf("%s", STR);
 
 /**
  * This is a concrete implementation of the OpenMMPluginInterface class defined

@@ -51,8 +51,8 @@ using namespace SimTK;
 //#define TRACE(STR)
 //#endif
 
-//#define TRACE_OPENMM(STR) ;
-#define TRACE_OPENMM(STR) printf("%s", STR);
+#define TRACE_OPENMM(STR) ;
+//#define TRACE_OPENMM(STR) printf("%s", STR);
 
 
 // This is Coulomb's constant 1/(4*pi*e0) in units which convert
