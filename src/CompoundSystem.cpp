@@ -114,6 +114,7 @@ void buildUpRigidBody(Compound::AtomIndex atomId,
                 || (bond.getMobility() == BondMobility::UniversalM) // NEWMOB
                 || (bond.getMobility() == BondMobility::Torsion)
                 || (bond.getMobility() == BondMobility::AnglePin) // NEWMOB
+                || (bond.getMobility() == BondMobility::BendStretch) // NEWMOB
                 || (bond.getMobility() == BondMobility::Slider) // NEWMOB
                 || (bond.getMobility() == BondMobility::Cylinder)
                 || (bond.getMobility() == BondMobility::Spherical) // NEWMOB
@@ -343,6 +344,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             case BondMobility::UniversalM:
             case BondMobility::Spherical:
             case BondMobility::AnglePin:
+            case BondMobility::BendStretch:
             case BondMobility::Slider:
                 {
                     // This might represent a parent/child relationship
@@ -720,8 +722,18 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             Transform anglePinX_BM = X_childBC_parentBC;
             Transform anglePinX_PF = oldX_PF * oldX_FM * oldX_MB * anglePinX_BM;
 
+            Transform bendStretchX_BM = anglePinX_BM;
+            Transform bendStretchX_PF = anglePinX_PF;
+
             Transform sliderX_BM = anglePinX_BM;
             Transform sliderX_PF = anglePinX_PF;
+
+            //Transform sphericalX_BM = newX_BM;
+            //Transform sphericalX_PF = newX_PF;
+            Transform sphericalX_BM = X_childBC_parentBC * Transform(M_X_pin) * Transform(Rotation(90*Deg2Rad, XAxis)) * Transform(Rotation(90*Deg2Rad, ZAxis));
+            Transform sphericalX_PF = oldX_PF * oldX_FM * oldX_MB * sphericalX_BM;
+            //Transform sphericalX_BM = oldX_BM;
+            //Transform sphericalX_PF = oldX_PF;
 
 	    // Special transform for free line
             Transform newX_BM_FreeLine;
@@ -802,6 +814,19 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                    unit.bodyId = anglePinBody.getMobilizedBodyIndex();
                    std::cout << " got AnglePin mobodIx " << unit.bodyId << std::endl;
 
+                }else if(bond.getMobility() == BondMobility::BendStretch) {
+
+                   MobilizedBody::BendStretch bendStretchBody(
+                           matter.updMobilizedBody(parentUnit.bodyId),
+                           bendStretchX_PF,
+                           dumm.calcClusterMassProperties(unit.clusterIx),
+                           bendStretchX_BM
+                   );
+
+                   bond.setBendStretchBody(bendStretchBody, 0, 0);
+                   unit.bodyId = bendStretchBody.getMobilizedBodyIndex();
+                   std::cout << " got BendStretch mobodIx " << unit.bodyId << std::endl;
+
                }else if(bond.getMobility() == BondMobility::Slider) {
 
                    MobilizedBody::Slider sliderBody(
@@ -845,11 +870,12 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 
                    MobilizedBody::SphericalCoords sphereBody(
                            matter.updMobilizedBody(parentUnit.bodyId),
-                           newX_PF,
+                           sphericalX_PF,
                            dumm.calcClusterMassProperties(unit.clusterIx),
-                           newX_BM
+                           sphericalX_BM
                    );
 
+                   sphereBody.setRadialAxis(XAxis);
                    bond.setSphericalBody(sphereBody, 0, 0, 0); // BAT coordinates
                    unit.bodyId = sphereBody.getMobilizedBodyIndex();
                    std::cout << " got Spherical mobodIx " << unit.bodyId << std::endl;

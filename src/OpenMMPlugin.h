@@ -87,7 +87,7 @@ public:
         if ( envvar != NULL ) { addSearchDirectory( envvar ); }
 
         // Quick & dirty fix for Laurentiu
-        addSearchDirectory("/home/laurentiu/git4/Robosample/build/release/Molmodel/");
+        addSearchDirectory("/home/pcuser/git4/Robosample/build/release/Molmodel/");
 
          addSearchDirectory(SimTK::Pathname::getInstallDir("SimTK_INSTALL_DIR", "SimTK")
                              + "lib/plugins");

@@ -176,6 +176,8 @@ public:
             //MobilizedBody::Pin &anglePin = (MobilizedBody::Pin &) matter.updMobilizedBody(pinJointId);
             //anglePin.setOneQ(state, 0, angleInRadians);
 
+        }else if(mobility == BondMobility::BendStretch) {
+
         }else if(mobility == BondMobility::Slider) { // NEWMOB
             // Do nothing
             //MobilizedBody::Slider &slider = (MobilizedBody::Slider &) matter.updMobilizedBody(pinJointId);
@@ -248,6 +250,15 @@ public:
         pinJointId = pin.getMobilizedBodyIndex();
 
         pin.setDefaultAngle(argDefaultDihedral);
+
+        return *this;
+    }
+
+    Bond& setBendStretchBody(MobilizedBody::BendStretch& cyl, Angle argDefaultDihedral, Real argDefaultLength)
+    {
+        pinJointId = cyl.getMobilizedBodyIndex();
+
+        cyl.setDefaultQ(Vec2(argDefaultDihedral, argDefaultLength));
 
         return *this;
     }
@@ -440,6 +451,11 @@ public:
         }else if(mobility == BondMobility::Cylinder){
 
             const MobilizedBody::Cylinder& cyl = (const MobilizedBody::Cylinder&) matter.getMobilizedBody(pinJointId);
+            return cyl.getOneQ(state, 0);
+
+        }else if(mobility == BondMobility::BendStretch){
+
+            const MobilizedBody::BendStretch& cyl = (const MobilizedBody::BendStretch&) matter.getMobilizedBody(pinJointId);
             return cyl.getOneQ(state, 0);
 
         }else if(mobility == BondMobility::Spherical){
