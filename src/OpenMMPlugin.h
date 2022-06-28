@@ -90,6 +90,7 @@ public:
         std::ifstream fin(SimTK::Pathname::getThisExecutableDirectory() + "/openmmplugin");
         std::string dir((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
         addSearchDirectory(dir);
+        addSearchDirectory("/usr/local/lib/plugins/");
     }
 
     // This is the only defined exported method for this kind of plugin.
