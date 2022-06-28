@@ -29,8 +29,10 @@ public:
     // This method will never throw an exception because failure just means
     // you shouldn't use OpenMM.
     virtual std::string initializeOpenMM
-       (bool                        allowReferencePlatform, 
-        std::vector<std::string>&   logMessages) throw() = 0;
+       (bool allowReferencePlatform, 
+        std::vector<std::string>& logMessages,
+        const std::vector<SimTK::Real>& lambda_sterics,
+        const std::vector<SimTK::Real>& lambda_electrostatics) throw() = 0;
 
     // Calculates forces and/or energy and *adds* them into the output
     // parameters. This will throw an exception if something goes wrong.
@@ -87,12 +89,12 @@ public:
         if ( envvar != NULL ) { addSearchDirectory( envvar ); }
 
         // Quick & dirty fix for Laurentiu
-        addSearchDirectory("/home/pcuser/git4/Robosample/build/release/Molmodel/");
-        addSearchDirectory("/home/laurentiu/git4/Robosample/build/release/Molmodel/");
+        //addSearchDirectory("/home/pcuser/git4/Robosample/build/release/Molmodel/");
+        //addSearchDirectory("/home/laurentiu/git4/Robosample/build/release/Molmodel/");
 
-         addSearchDirectory(SimTK::Pathname::getInstallDir("SimTK_INSTALL_DIR", "SimTK")
-                             + "lib/plugins");
-         addSearchDirectory("/usr/local/lib/plugins/");
+        // addSearchDirectory(SimTK::Pathname::getInstallDir("SimTK_INSTALL_DIR", "SimTK")
+        //                     + "lib/plugins");
+        addSearchDirectory("/usr/local/lib/plugins/");
 
         // The above works for a standard installation. We don't do that here.
         // When installing locally, we must look for the library locally.
