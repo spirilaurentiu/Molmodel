@@ -1429,9 +1429,11 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         
 
         std::vector<std::string> messages;
-        std::vector<SimTK::Real> lambda_sterics, lambda_electrostatics;
+        //std::vector<SimTK::Real> lambda_sterics, lambda_electrostatics;
+        
+
         mutableThis->openMMPlatformInUse =
-            openMMPluginIfc->initializeOpenMM(allowOpenMMReference, messages, lambda_sterics, lambda_electrostatics);
+            openMMPluginIfc->initializeOpenMM(allowOpenMMReference, messages);
 
         if (tracing)
             for (unsigned i=0; i < messages.size(); ++i)

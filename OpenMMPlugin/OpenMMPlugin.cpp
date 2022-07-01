@@ -82,9 +82,9 @@ public:
     // is the selected OpenMM Platform name.
     std::string initializeOpenMM(
         bool allowReferencePlatform, 
-        std::vector<std::string>& logMessages,
-        const std::vector<SimTK::Real>& lambda_sterics,
-        const std::vector<SimTK::Real>& lambda_electrostatics) throw();
+        std::vector<std::string>& logMessages ) throw();
+        //const std::vector<SimTK::Real>& lambda_sterics,
+        //const std::vector<SimTK::Real>& lambda_electrostatics) throw();
 
 
     // Calculates forces and/or energy and *adds* them into the output
@@ -106,6 +106,9 @@ public:
     std::string getOpenMMPlatform () const;            /// Get Platform to use for OpenMM ('CPU', 'CUDA', 'OpenCL')
     std::string getGPUindex () const;                  /// Get GPU index. Values: "0"/"1"/"0,1"
 
+    void updLambdaGlobal (Real lambda);
+    
+
 
 private:
     // Put this object back into its just-constructed condition.
@@ -121,6 +124,9 @@ private:
     OpenMM::System*             openMMSystem;
     OpenMM::Context*            openMMContext;
     OpenMM::Integrator*         openMMIntegrator; // dummy
+    int                         cBondForceIx=-1;
+    int                         cNonBondForceIx=-1;
+
 };
 
 //-----------------------------------------------------------------------------
@@ -141,9 +147,9 @@ SimTK_createOpenMMPluginInterface(const DuMMForceFieldSubsystemRep& dumm) {
 // sterge c_ dupa ce citesti din fisier
 std::string OpenMMInterface::
 initializeOpenMM(bool allowReferencePlatform, 
-        std::vector<std::string>& logMessages,
-        const std::vector<SimTK::Real>& c_lambda_sterics,
-        const std::vector<SimTK::Real>& c_lambda_electrostatics) throw()
+        std::vector<std::string>& logMessages) throw()
+        //const std::vector<SimTK::Real>& c_lambda_sterics,
+        //const std::vector<SimTK::Real>& c_lambda_electrostatics) throw()
 {
     logMessages.clear();
 
@@ -227,7 +233,7 @@ try {
         // Register all the 1-2 bonds between nonbond atoms for scaling.
         regularNonbondedForce->createExceptionsFromBonds
                             (ommBonds, dumm.coulombScale14, dumm.vdwScale14);
-        logMessages.push_back("Regular NB force initialized!");
+        //logMessages.push_back("Regular NB force initialized!");
 
     
         // CUSTOM NONBONDED FORCES //
@@ -270,6 +276,7 @@ try {
             const AtomClass&       aclass = dumm.atomClasses[atype.atomClassIx];
             const Real             charge = atype.partialCharge;
             const Real             sigma  = 2*aclass.vdwRadius*DuMM::Radius2Sigma;
+            Real                   lambda = dumm.lambdaGlobal;
             // const Real             lambda_sterics = 1;
             // const Real             lambda_electrostatics = 1;
             const Real             wellDepth = aclass.vdwWellDepth;
@@ -277,16 +284,18 @@ try {
             // Define particle; particle number will be the same as our
             // nonbond index number.
 
-            lambda_sterics.push_back(1);
-            lambda_electrostatics.push_back(1);
+            lambda_sterics.push_back(lambda);
+            lambda_electrostatics.push_back(lambda);
             
             NBparams[0] = sqrtCoulombScale*charge;
             NBparams[1] = dumm.vdwGlobalScaleFactor*wellDepth;
             NBparams[2] = sigma;
-            NBparams[3] = lambda_sterics[nax];
-            logMessages.push_back("NOTE: Lambda_sterics has a value of " + String(lambda_sterics[nax]) + " for particle number " + String(nax));
-            NBparams[4] = lambda_electrostatics[nax];
-            logMessages.push_back("NOTE: Lambda_electrostatics has a value of " + String(lambda_electrostatics[nax]) + " for particle number " + String(nax));
+            //NBparams[3] = lambda_sterics[nax];
+            NBparams[3] = lambda;
+            NBparams[4] = lambda;
+            logMessages.push_back("NOTE: Lambda_sterics has a value of " + String(NBparams[3]) + " for particle number " + String(nax));
+            //NBparams[4] = lambda_electrostatics[nax];
+            logMessages.push_back("NOTE: Lambda_electrostatics has a value of " + String(NBparams[4]) + " for particle number " + String(nax));
 
             customNonbondedForce->addParticle(NBparams);
 
@@ -332,17 +341,18 @@ try {
 
         std::vector<double> bondParams(5);
 
-        logMessages.push_back("Original NB Force has a number of " + String(regularNonbondedForce -> getNumExceptions()) + " nonbonded exceptions.");
+        //logMessages.push_back("Original NB Force has a number of " + String(regularNonbondedForce -> getNumExceptions()) + " nonbonded exceptions.");
         for (int i=0; i < regularNonbondedForce -> getNumExceptions(); ++i){
             int part1Exc=0;
             int part2Exc=0;
             double chargeProdExc=0.0;
             double sigmaExc=0.0;
             double epsilonExc=0.0;
+
             regularNonbondedForce -> getExceptionParameters(i, part1Exc, part2Exc,
                                             chargeProdExc, sigmaExc, epsilonExc);
 
-            logMessages.push_back("Exclusion added for particles " + String(part1Exc) + " and " + String(part2Exc) + ".");
+            //logMessages.push_back("Exclusion added for particles " + String(part1Exc) + " and " + String(part2Exc) + ".");
             customNonbondedForce -> addExclusion(part1Exc, part2Exc);
             
             bondParams[0] = chargeProdExc;
@@ -350,18 +360,27 @@ try {
             bondParams[2] = sigmaExc;
             bondParams[3] = std::max(lambda_sterics[part1Exc], lambda_sterics[part2Exc]);
             bondParams[4] = std::max(lambda_electrostatics[part1Exc], lambda_electrostatics[part2Exc]);
+            //bondParams[3] = std::max(lambda[part1Exc], lambda[part2Exc]);
+            //bondParams[4] = std::max(lambda[part1Exc], lambda[part2Exc]);
             customBondForce -> addBond(part1Exc, part2Exc, bondParams);
 
             std::string out = "bond sterics/electrostatics: ";
             out += std::to_string(bondParams[3]);
+            out += " ";
             out += std::to_string(bondParams[4]);
 
-            logMessages.push_back(out.c_str());
+            //logMessages.push_back(out.c_str());
         }
 
         // System takes over heap ownership of the force.
         openMMSystem->addForce(customNonbondedForce);
         openMMSystem->addForce(customBondForce);
+
+        cBondForceIx    = openMMSystem->getNumForces()-1;
+        cNonBondForceIx = openMMSystem->getNumForces()-2;
+        logMessages.push_back ("################## " +  String(cBondForceIx) + "##############");
+        //std::cout << cNonBondForceIx << std::endl;
+
 
     }
     
@@ -623,6 +642,10 @@ void OpenMMInterface::calcOpenMMEnergyAndForces
     if (wantEnergy)
         energy += openMMState.getPotentialEnergy();
     TRACE_OPENMM(("OpenMM_Energy\t" + std::to_string(openMMState.getPotentialEnergy()) +  "\n").c_str());
+}
+
+void OpenMMInterface::updLambdaGlobal(Real lambda){
+    ;
 }
 
 

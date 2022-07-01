@@ -1094,6 +1094,37 @@ void DuMMForceFieldSubsystem::setNonbondedMethod(int methodIndex) {
 }
 
 
+void DuMMForceFieldSubsystem::setLambdaGlobal(Real lambda) {
+    static const char* MethodName = "setLambdaGlobal";
+
+    //invalidateSubsystemTopologyCache();
+
+    DuMMForceFieldSubsystemRep& mm = updRep();
+
+    SimTK_APIARGCHECK1_ALWAYS( 0.0 <= lambda && 1.0 >= lambda, mm.ApiClassName, MethodName,
+                              "lambda value must be between 0 and 1, inclusive. (%g) was invalid", lambda
+                              );
+
+    mm.lambdaGlobal=lambda;
+}
+
+void DuMMForceFieldSubsystem::updLambdaGlobal(Real lambda) {
+    static const char* MethodName = "updLambdaGlobal";
+
+    //invalidateSubsystemTopologyCache();
+
+    DuMMForceFieldSubsystemRep& mm = updRep();
+
+    mm.openMMPluginIfc -> updLambdaGlobal(lambda);
+
+    SimTK_APIARGCHECK1_ALWAYS( 0.0 <= lambda && 1.0 >= lambda, mm.ApiClassName, MethodName,
+                              "lambda value must be between 0 and 1, inclusive. (%g) was invalid", lambda
+                              );
+
+    mm.lambdaGlobal=lambda;
+}
+
+
 
 void DuMMForceFieldSubsystem::setSolventDielectric(Real dielectric) {
     static const char* MethodName = "setSolventDielectric";
@@ -1291,6 +1322,7 @@ Real DuMMForceFieldSubsystem::getCustomBondTorsionGlobalScaleFactor() const {ret
 
 Real DuMMForceFieldSubsystem::getNonbondedCutoff()     const {return getRep().nonbondedCutoff;}
 int DuMMForceFieldSubsystem::getNonbondedMethod() const {return getRep().nonbondedMethod;}
+Real DuMMForceFieldSubsystem::getLambdaGlobal() const {return getRep().lambdaGlobal;}
 
 
 

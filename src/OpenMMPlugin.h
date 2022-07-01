@@ -30,9 +30,9 @@ public:
     // you shouldn't use OpenMM.
     virtual std::string initializeOpenMM
        (bool allowReferencePlatform, 
-        std::vector<std::string>& logMessages,
-        const std::vector<SimTK::Real>& lambda_sterics,
-        const std::vector<SimTK::Real>& lambda_electrostatics) throw() = 0;
+        std::vector<std::string>& logMessages) throw() = 0;
+        //const std::vector<SimTK::Real>& lambda_sterics,
+        //const std::vector<SimTK::Real>& lambda_electrostatics) throw() = 0;
 
     // Calculates forces and/or energy and *adds* them into the output
     // parameters. This will throw an exception if something goes wrong.
@@ -43,6 +43,9 @@ public:
         bool                                wantEnergy,
         SimTK::Vector_<SimTK::SpatialVec>&  forces,
         SimTK::Real&                        energy) const = 0;
+
+    virtual void updLambdaGlobal (SimTK::Real lambda);
+
 
 private:
     std::string OpenMMPlatform;
@@ -100,9 +103,9 @@ public:
         // When installing locally, we must look for the library locally.
         // The build script writes a file containing the path to the plugin.
         // We load that file and search the lib at the specified path.
-        std::ifstream fin(SimTK::Pathname::getThisExecutableDirectory() + "/openmmplugin");
-        std::string dir((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
-        addSearchDirectory(dir);
+        //std::ifstream fin(SimTK::Pathname::getThisExecutableDirectory() + "/openmmplugin");
+        //std::string dir((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
+        //addSearchDirectory(dir);
     }
 
     // This is the only defined exported method for this kind of plugin.

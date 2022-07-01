@@ -1494,6 +1494,7 @@ public:
 
         nonbondedCutoff = 2.0;
         nonbondedMethod = 0;
+        lambdaGlobal = 1;
 
         tracing                     = true; // EU
 
@@ -2385,6 +2386,7 @@ public:
 
     Real nonbondedCutoff;
     int nonbondedMethod;
+    Real lambdaGlobal;
 
     bool tracing; // for debugging
 
