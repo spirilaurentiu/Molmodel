@@ -44,7 +44,10 @@ public:
         SimTK::Vector_<SimTK::SpatialVec>&  forces,
         SimTK::Real&                        energy) const = 0;
 
-    virtual void updLambdaGlobal (SimTK::Real lambda);
+    //virtual void updLambdaGlobalIFC (SimTK::Real& lambda);
+    virtual void updLambdaGlobalIFC
+       (std::vector<SimTK::Real> lambdaPair) const = 0;
+    //virtual void updLambdaGlobalIFC ();
 
 
 private:
@@ -93,11 +96,18 @@ public:
 
         // Quick & dirty fix for Laurentiu
         //addSearchDirectory("/home/pcuser/git4/Robosample/build/release/Molmodel/");
-        //addSearchDirectory("/home/laurentiu/git4/Robosample/build/release/Molmodel/");
+        //addSearchDirectory("/home/teo/2022/SNEED/Robosample/build/release/Molmodel/");
 
         // addSearchDirectory(SimTK::Pathname::getInstallDir("SimTK_INSTALL_DIR", "SimTK")
         //                     + "lib/plugins");
-        addSearchDirectory("/usr/local/lib/plugins/");
+        //addSearchDirectory("/usr/local/lib/plugins/");
+        addSearchDirectory("/home/teo/2022/SNEED/Robosample/install/release/Simbody01/lib/plugins/");
+
+        std::cout << "BLABLA1" << getSearchPath();
+        /*std::cout << A;
+        for (auto a : A) {
+            std::cout << "SEARCH PATH: " << a << std::endl;
+        }*/
 
         // The above works for a standard installation. We don't do that here.
         // When installing locally, we must look for the library locally.

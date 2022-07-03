@@ -1266,12 +1266,7 @@ Real getNonbondedCutoff() const;                        ///< get current nonbond
 void setNonbondedCutoff(Real);                          ///< set nonbonded cutoff (nm) used for LJ and Coulomb calculations
 int getNonbondedMethod() const;                         ///< get current nonbonded method used by OpenMM.
 void setNonbondedMethod(int);                           ///< set nonbonded nonbonded method used by OpenMM. (0 = nocutoff; 1=cutoffnonperiodic).
-Real getLambdaGlobal() const;                         ///< get global lambda
-void setLambdaGlobal(Real);                           ///< set global lambda
-void updLambdaGlobal(Real);
-
-
-
+void updLambdaGlobal(std::vector<Real>);
 
 /**@}**/
 

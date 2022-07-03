@@ -1094,7 +1094,7 @@ void DuMMForceFieldSubsystem::setNonbondedMethod(int methodIndex) {
 }
 
 
-void DuMMForceFieldSubsystem::setLambdaGlobal(Real lambda) {
+/*void DuMMForceFieldSubsystem::setLambdaGlobal(Real lambda) {
     static const char* MethodName = "setLambdaGlobal";
 
     //invalidateSubsystemTopologyCache();
@@ -1105,23 +1105,29 @@ void DuMMForceFieldSubsystem::setLambdaGlobal(Real lambda) {
                               "lambda value must be between 0 and 1, inclusive. (%g) was invalid", lambda
                               );
 
-    mm.lambdaGlobal=lambda;
-}
+    //mm.lambdaGlobal=lambda;
+}*/
 
-void DuMMForceFieldSubsystem::updLambdaGlobal(Real lambda) {
+void DuMMForceFieldSubsystem::updLambdaGlobal(std::vector<Real> lambda) {
     static const char* MethodName = "updLambdaGlobal";
 
     //invalidateSubsystemTopologyCache();
 
+    //std::cout << "TEST 2 \n" << std::flush;
     DuMMForceFieldSubsystemRep& mm = updRep();
+    //std::cout << "TEST 3 \n" << std::flush;
 
-    mm.openMMPluginIfc -> updLambdaGlobal(lambda);
+    mm.openMMPluginIfc -> updLambdaGlobalIFC(lambda);
+    //std::cout << "TEST 5 \n" << std::flush;
 
-    SimTK_APIARGCHECK1_ALWAYS( 0.0 <= lambda && 1.0 >= lambda, mm.ApiClassName, MethodName,
-                              "lambda value must be between 0 and 1, inclusive. (%g) was invalid", lambda
+    SimTK_APIARGCHECK1_ALWAYS( 0.0 <= lambda[0] && 1.0 >= lambda[0], mm.ApiClassName, MethodName,
+                              "lambda value must be between 0 and 1, inclusive. (%g) (steric) was invalid", lambda[0]
                               );
+    SimTK_APIARGCHECK1_ALWAYS( 0.0 <= lambda[1] && 1.0 >= lambda[1], mm.ApiClassName, MethodName,
+                              "lambda value must be between 0 and 1, inclusive. (%g) (electrostatic) was invalid", lambda[1]
+                              );        
 
-    mm.lambdaGlobal=lambda;
+    //mm.lambdaGlobal=lambda;
 }
 
 
@@ -1322,11 +1328,6 @@ Real DuMMForceFieldSubsystem::getCustomBondTorsionGlobalScaleFactor() const {ret
 
 Real DuMMForceFieldSubsystem::getNonbondedCutoff()     const {return getRep().nonbondedCutoff;}
 int DuMMForceFieldSubsystem::getNonbondedMethod() const {return getRep().nonbondedMethod;}
-Real DuMMForceFieldSubsystem::getLambdaGlobal() const {return getRep().lambdaGlobal;}
-
-
-
-
 
 
 

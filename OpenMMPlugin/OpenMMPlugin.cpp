@@ -106,7 +106,9 @@ public:
     std::string getOpenMMPlatform () const;            /// Get Platform to use for OpenMM ('CPU', 'CUDA', 'OpenCL')
     std::string getGPUindex () const;                  /// Get GPU index. Values: "0"/"1"/"0,1"
 
-    void updLambdaGlobal (Real lambda);
+    //void updLambdaGlobalIFC (Real& lambda);
+    void updLambdaGlobalIFC
+       (std::vector<Real> lambdaPair) const;
     
 
 
@@ -121,11 +123,11 @@ private:
 private:
     const DuMMForceFieldSubsystemRep& dumm;
 
-    OpenMM::System*             openMMSystem;
-    OpenMM::Context*            openMMContext;
-    OpenMM::Integrator*         openMMIntegrator; // dummy
-    int                         cBondForceIx=-1;
-    int                         cNonBondForceIx=-1;
+    OpenMM::System*              openMMSystem;
+    OpenMM::Context*             openMMContext;
+    OpenMM::Integrator*          openMMIntegrator; // dummy
+    int                          cBondForceIx=-1;
+    int                          cNonBondForceIx=-1;
 
 };
 
@@ -148,8 +150,6 @@ SimTK_createOpenMMPluginInterface(const DuMMForceFieldSubsystemRep& dumm) {
 std::string OpenMMInterface::
 initializeOpenMM(bool allowReferencePlatform, 
         std::vector<std::string>& logMessages) throw()
-        //const std::vector<SimTK::Real>& c_lambda_sterics,
-        //const std::vector<SimTK::Real>& c_lambda_electrostatics) throw()
 {
     logMessages.clear();
 
@@ -293,9 +293,9 @@ try {
             //NBparams[3] = lambda_sterics[nax];
             NBparams[3] = lambda;
             NBparams[4] = lambda;
-            logMessages.push_back("NOTE: Lambda_sterics has a value of " + String(NBparams[3]) + " for particle number " + String(nax));
+            //logMessages.push_back("NOTE: Lambda_sterics has a value of " + String(NBparams[3]) + " for particle number " + String(nax));
             //NBparams[4] = lambda_electrostatics[nax];
-            logMessages.push_back("NOTE: Lambda_electrostatics has a value of " + String(NBparams[4]) + " for particle number " + String(nax));
+            //logMessages.push_back("NOTE: Lambda_electrostatics has a value of " + String(NBparams[4]) + " for particle number " + String(nax));
 
             customNonbondedForce->addParticle(NBparams);
 
@@ -339,15 +339,15 @@ try {
         customBondForce->addPerBondParameter("lambda_sterics");
         customBondForce->addPerBondParameter("lambda_electrostatics");
 
-        std::vector<double> bondParams(5);
+        std::vector<Real> bondParams(5);
 
         //logMessages.push_back("Original NB Force has a number of " + String(regularNonbondedForce -> getNumExceptions()) + " nonbonded exceptions.");
         for (int i=0; i < regularNonbondedForce -> getNumExceptions(); ++i){
-            int part1Exc=0;
-            int part2Exc=0;
-            double chargeProdExc=0.0;
-            double sigmaExc=0.0;
-            double epsilonExc=0.0;
+            int part1Exc=-1;
+            int part2Exc=-1;
+            Real chargeProdExc=0.0;
+            Real sigmaExc=0.0;
+            Real epsilonExc=0.0;
 
             regularNonbondedForce -> getExceptionParameters(i, part1Exc, part2Exc,
                                             chargeProdExc, sigmaExc, epsilonExc);
@@ -378,8 +378,9 @@ try {
 
         cBondForceIx    = openMMSystem->getNumForces()-1;
         cNonBondForceIx = openMMSystem->getNumForces()-2;
-        logMessages.push_back ("################## " +  String(cBondForceIx) + "##############");
-        //std::cout << cNonBondForceIx << std::endl;
+        //logMessages.push_back ("################## " +  String(cBondForceIx) + "##############");
+        std::cout << "################################# " << cNonBondForceIx << std::endl;
+        std::cout << "################################# " << cBondForceIx << std::endl;
 
 
     }
@@ -644,8 +645,76 @@ void OpenMMInterface::calcOpenMMEnergyAndForces
     TRACE_OPENMM(("OpenMM_Energy\t" + std::to_string(openMMState.getPotentialEnergy()) +  "\n").c_str());
 }
 
-void OpenMMInterface::updLambdaGlobal(Real lambda){
-    ;
+
+void OpenMMInterface::updLambdaGlobalIFC
+   (std::vector<Real> lambda) const
+{
+    std::cout << "### HREX: LAMBDA STERIC UPDATED TO " +  std::to_string(lambda[0]) + "\n";
+    std::cout << "### HREX: LAMBDA ELECTROSTATICS UPDATED TO " +  std::to_string(lambda[1]) + "\n";
+    OpenMM::CustomBondForce* CBondedForce = dynamic_cast<OpenMM::CustomBondForce*>(&openMMSystem -> getForce(cBondForceIx));
+    OpenMM::CustomNonbondedForce* CNonBondForce = dynamic_cast<OpenMM::CustomNonbondedForce*>(&openMMSystem -> getForce(cNonBondForceIx));
+    //std::cout << "TEST 4\n";
+    
+    // Change parameters for CustomBonds
+    for (int CBondIx; CBondIx < CBondedForce -> getNumBonds(); ++CBondIx){
+        int part1Ix = -1;
+        int part2Ix = -1;
+        std::vector<Real> bondParams(5);
+
+        CBondedForce -> getBondParameters(CBondIx, part1Ix, part2Ix,
+                                          bondParams);
+
+        //Change lambda params to whatever lambda value was passed to the function
+        bondParams[3] = lambda[0];
+        bondParams[4] = lambda[1];
+
+        CBondedForce -> setBondParameters(CBondIx, part1Ix, part2Ix,
+                                          bondParams);
+
+    // Test Parameter change
+    
+        CBondedForce -> getBondParameters(CBondIx, part1Ix, part2Ix,
+                                          bondParams);
+
+        //std::cout << "\nUPDLAMBDAGLOBAL BOND: \n" << "bondIx: " << CBondIx << "part1Ix: " << part1Ix << "part2Ix: " << part2Ix;
+        //std::cout << "bondIx: " << CBondIx << "\n";
+        //std::cout << "part1Ix: " << part1Ix << "\n";
+        //std::cout << "part2Ix: " << part2Ix << "\n";
+        //for (auto a: bondParams){
+        //    std::cout << " Bond param: " << a;
+        //}
+    }
+    for (int CNBondIx; CNBondIx < CNonBondForce -> getNumParticles(); ++CNBondIx){
+        int part1Ix = -1;
+        int part2Ix = -1;
+        std::vector<Real> bondParams(5);
+
+        CNonBondForce -> getParticleParameters(CNBondIx,bondParams);
+
+        //Change lambda params to whatever lambda value was passed to the function
+        bondParams[3] = lambda[0];
+        bondParams[4] = lambda[1];
+
+        CNonBondForce -> setParticleParameters(CNBondIx, bondParams);
+
+        // Test Parameter change
+
+        CNonBondForce -> getParticleParameters(CNBondIx,bondParams);
+        //std::cout << "\nUPDLAMBDAGLOBAL NONBOND: \n" << "particleIx: " << CNBondIx << " ";
+        //std::cout << "particleIx: " << CNBondIx << "\n";
+        //for (auto a: bondParams){
+        //    std::cout << " Particle param: " << a;
+        //}
+   
+    }
+ 
+   // Update parameters in context to match those in the force object
+    //CBondedForce  -> updateParametersInContext(dynamic_cast<OpenMM::Context&>(openMMContext));
+    //CNonBondForce -> updateParametersInContext(dynamic_cast<OpenMM::Context&>(openMMContext));
+    //CBondedForce  -> updateParametersInContext(static_cast<OpenMM::Context&>(openMMContext));
+    //CNonBondForce -> updateParametersInContext(static_cast<OpenMM::Context&>(openMMContext));
+
+    // Dirty Fix, but I couldn't figure out how to call "updateParametersInContext" for the
+    // two force objects.
+    openMMContext -> reinitialize(true);
 }
-
-
