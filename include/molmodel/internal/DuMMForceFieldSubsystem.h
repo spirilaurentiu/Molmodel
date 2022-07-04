@@ -1267,6 +1267,7 @@ void setNonbondedCutoff(Real);                          ///< set nonbonded cutof
 int getNonbondedMethod() const;                         ///< get current nonbonded method used by OpenMM.
 void setNonbondedMethod(int);                           ///< set nonbonded nonbonded method used by OpenMM. (0 = nocutoff; 1=cutoffnonperiodic).
 void updLambdaGlobal(std::vector<Real>);
+Real EvaluateHamiltonian(std::vector<Real> lambda, std::vector<Vec3>);
 
 /**@}**/
 

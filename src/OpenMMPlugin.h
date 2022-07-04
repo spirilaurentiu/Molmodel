@@ -48,8 +48,10 @@ public:
     virtual void updLambdaGlobalIFC
        (std::vector<SimTK::Real> lambdaPair) const = 0;
     //virtual void updLambdaGlobalIFC ();
-
-
+    virtual SimTK::Real EvaluateHamiltonian
+       (const std::vector<SimTK::Real>&            lambda,
+        const std::vector<SimTK::Vec3>&            positions) const = 0;
+    
 private:
     std::string OpenMMPlatform;
     std::string OpenMMGPUindex;

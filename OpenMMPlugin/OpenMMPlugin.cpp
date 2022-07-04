@@ -109,8 +109,12 @@ public:
     //void updLambdaGlobalIFC (Real& lambda);
     void updLambdaGlobalIFC
        (std::vector<Real> lambdaPair) const;
-    
 
+    Real EvaluateHamiltonian 
+    (const std::vector<SimTK::Real>&            lambda,
+     const std::vector<SimTK::Vec3>&            positions) const;
+
+    const std::vector<DuMM::AtomIndex>& getAtomIxList() const;
 
 private:
     // Put this object back into its just-constructed condition.
@@ -121,6 +125,7 @@ private:
     }
 
 private:
+    std::vector<DuMM::AtomIndex> atomIxList;
     const DuMMForceFieldSubsystemRep& dumm;
 
     OpenMM::System*              openMMSystem;
@@ -143,10 +148,13 @@ SimTK_createOpenMMPluginInterface(const DuMMForceFieldSubsystemRep& dumm) {
     return new OpenMMInterface(dumm);
 }
 
+const std::vector<DuMM::AtomIndex>& OpenMMInterface::getAtomIxList() const {
+    return atomIxList;
+}
+
 //-----------------------------------------------------------------------------
 //                              initializeOpenMM
 //-----------------------------------------------------------------------------
-// sterge c_ dupa ce citesti din fisier
 std::string OpenMMInterface::
 initializeOpenMM(bool allowReferencePlatform, 
         std::vector<std::string>& logMessages) throw()
@@ -206,14 +214,16 @@ try {
         // We will look at all the 1-2 bonds for each nonbond atom and keep 
         // those that connect to another nonbond atom.
         std::vector< std::pair<int, int> > ommBonds;
-        for (DuMM::NonbondAtomIndex nax(0); nax < dumm.getNumNonbondAtoms(); 
-                                                                        ++nax) 
-        {   const DuMMAtom&        a      = dumm.getAtom(dumm.getAtomIndexOfNonbondAtom(nax));
+        for (DuMM::NonbondAtomIndex nax(0); nax < dumm.getNumNonbondAtoms(); ++nax) 
+        {   
+            const DuMMAtom&        a      = dumm.getAtom(dumm.getAtomIndexOfNonbondAtom(nax));
             const ChargedAtomType& atype  = dumm.chargedAtomTypes[a.chargedAtomTypeIndex];
             const AtomClass&       aclass = dumm.atomClasses[atype.atomClassIx];
             const Real             charge = atype.partialCharge;
             const Real             sigma  = 2*aclass.vdwRadius*DuMM::Radius2Sigma;
             const Real             wellDepth = aclass.vdwWellDepth;
+
+            atomIxList.push_back(dumm.getAtomIndexOfNonbondAtom(nax));
 
             // Define particle; particle number will be the same as our
             // nonbond index number.
@@ -360,16 +370,8 @@ try {
             bondParams[2] = sigmaExc;
             bondParams[3] = std::max(lambda_sterics[part1Exc], lambda_sterics[part2Exc]);
             bondParams[4] = std::max(lambda_electrostatics[part1Exc], lambda_electrostatics[part2Exc]);
-            //bondParams[3] = std::max(lambda[part1Exc], lambda[part2Exc]);
-            //bondParams[4] = std::max(lambda[part1Exc], lambda[part2Exc]);
             customBondForce -> addBond(part1Exc, part2Exc, bondParams);
 
-            std::string out = "bond sterics/electrostatics: ";
-            out += std::to_string(bondParams[3]);
-            out += " ";
-            out += std::to_string(bondParams[4]);
-
-            //logMessages.push_back(out.c_str());
         }
 
         // System takes over heap ownership of the force.
@@ -378,7 +380,6 @@ try {
 
         cBondForceIx    = openMMSystem->getNumForces()-1;
         cNonBondForceIx = openMMSystem->getNumForces()-2;
-        //logMessages.push_back ("################## " +  String(cBondForceIx) + "##############");
         std::cout << "################################# " << cNonBondForceIx << std::endl;
         std::cout << "################################# " << cBondForceIx << std::endl;
 
@@ -718,3 +719,52 @@ void OpenMMInterface::updLambdaGlobalIFC
     // two force objects.
     openMMContext -> reinitialize(true);
 }
+
+
+Real OpenMMInterface::EvaluateHamiltonian 
+   (const std::vector<SimTK::Real>&            lambda,
+    const std::vector<SimTK::Vec3>&            in_positions) const
+{
+   
+    updLambdaGlobalIFC(lambda);
+    
+    // Change positions of context to whatever positions were supplied)
+    std::vector<OpenMM::Vec3> positions(in_positions.size());
+    //for (auto i : in_positions){
+    //    std::cout << "%%%%%%%%%% " << i << std::endl;
+    //}
+    //for (const auto& pos : in_positions) {
+    //    positions.emplace_back(OpenMM::Vec3(pos[0], pos[1], pos[2]));
+    //    std::cout << pos << std::endl;
+    //}
+
+    //std::cout << "%%%%%%%%%%%%%%%%% " << openMMSystem -> getNumParticles() << std::endl;
+
+    auto state = openMMContext->getState(OpenMM::State::Positions);
+    
+    //std::cout << "############" << in_positions.size() << std::endl;
+    //std::cout << "############" << state.getPositions().size() << std::endl;
+
+    for (auto i : state.getPositions()){
+        std::cout << "%%%%%%%%%% " << i << std::endl;
+    }
+
+    // gypsy code 2022. i hate teodor so much its unreal
+    auto pos = state.getPositions();
+    auto pos_backup = pos;
+    for (int i = 0; i < pos.size(); i++) {
+        pos[i][0] = in_positions[i][0];
+        pos[i][1] = in_positions[i][1];
+        pos[i][2] = in_positions[i][2];
+    }
+
+    openMMContext->setPositions(pos);
+    state = openMMContext->getState(OpenMM::State::Energy);
+    std::cout << "%%%%%%%%%%%%%%%%% " << state.getPotentialEnergy() << std::endl;
+    auto ep = state.getPotentialEnergy();
+    
+    openMMContext->setPositions(pos_backup);
+    return ep;
+}
+
+    
