@@ -650,8 +650,8 @@ void OpenMMInterface::calcOpenMMEnergyAndForces
 void OpenMMInterface::updLambdaGlobalIFC
    (std::vector<Real> lambda) const
 {
-    std::cout << "### HREX: LAMBDA STERIC UPDATED TO " +  std::to_string(lambda[0]) + "\n";
-    std::cout << "### HREX: LAMBDA ELECTROSTATICS UPDATED TO " +  std::to_string(lambda[1]) + "\n";
+    //std::cout << "### HREX: LAMBDA STERIC UPDATED TO " +  std::to_string(lambda[0]) + "\n";
+    //std::cout << "### HREX: LAMBDA ELECTROSTATICS UPDATED TO " +  std::to_string(lambda[1]) + "\n";
     OpenMM::CustomBondForce* CBondedForce = dynamic_cast<OpenMM::CustomBondForce*>(&openMMSystem -> getForce(cBondForceIx));
     OpenMM::CustomNonbondedForce* CNonBondForce = dynamic_cast<OpenMM::CustomNonbondedForce*>(&openMMSystem -> getForce(cNonBondForceIx));
     //std::cout << "TEST 4\n";
@@ -740,14 +740,20 @@ Real OpenMMInterface::EvaluateHamiltonian
 
     //std::cout << "%%%%%%%%%%%%%%%%% " << openMMSystem -> getNumParticles() << std::endl;
 
-    auto state = openMMContext->getState(OpenMM::State::Positions);
+    auto state = openMMContext->getState(OpenMM::State::Positions | OpenMM::State::Energy);
+
+    //std::cout << "%%%%%%%%%%%%%%%%% Previous Energy: " << state.getPotentialEnergy() << std::endl;
     
     //std::cout << "############" << in_positions.size() << std::endl;
     //std::cout << "############" << state.getPositions().size() << std::endl;
 
+
+    /*std::cout << "%%%%Previous Positions%%%% " << std::endl;
     for (auto i : state.getPositions()){
         std::cout << "%%%%%%%%%% " << i << std::endl;
     }
+
+    std::cout << "%%%%Previous Positions END%%%%\n " << std::endl;*/
 
     // gypsy code 2022. i hate teodor so much its unreal
     auto pos = state.getPositions();
@@ -759,11 +765,30 @@ Real OpenMMInterface::EvaluateHamiltonian
     }
 
     openMMContext->setPositions(pos);
-    state = openMMContext->getState(OpenMM::State::Energy);
-    std::cout << "%%%%%%%%%%%%%%%%% " << state.getPotentialEnergy() << std::endl;
+    state = openMMContext->getState(OpenMM::State::Positions | OpenMM::State::Energy);
+    /*std::cout << "%%%%Modified Positions%%%% " << std::endl;
+    for (auto i : state.getPositions()){
+        std::cout << "%%%%%%%%%% " << i << std::endl;
+    }
+
+    std::cout << "%%%%Modified Positions END%%%% \n" << std::endl;*/
+
+
+    //std::cout << "%%%%%%%%%%%%%%%%% Modified Energy: " << state.getPotentialEnergy() << std::endl;
     auto ep = state.getPotentialEnergy();
     
     openMMContext->setPositions(pos_backup);
+    /*state = openMMContext->getState(OpenMM::State::Positions | OpenMM::State::Energy);
+    std::cout << "%%%%Restored Positions%%%% " << std::endl;
+    for (auto i : state.getPositions()){
+        std::cout << "%%%%%%%%%% " << i << std::endl;
+    }
+    std::cout << "%%%%Restored Positions END%%%% \n" << std::endl;*/
+
+    state = openMMContext->getState(OpenMM::State::Positions | OpenMM::State::Energy);
+    //std::cout << "%%%%%%%%%%%%%%%%% Restored Energy: " << state.getPotentialEnergy() << "\n\n";
+
+
     return ep;
 }
 
