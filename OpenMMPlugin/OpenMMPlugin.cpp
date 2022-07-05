@@ -55,8 +55,8 @@ using namespace SimTK;
 #define STRINGIZE(var) #var
 #define MAKE_VERSION_STRING(maj,min,build)  STRINGIZE(maj.min.build)
 
-#define TRACE_OPENMM(STR) ;
-//#define TRACE_OPENMM(STR) printf("%s", STR);
+//#define TRACE_OPENMM(STR) ;
+#define TRACE_OPENMM(STR) printf("%s", STR);
 
 /**
  * This is a concrete implementation of the OpenMMPluginInterface class defined
@@ -229,6 +229,8 @@ try {
             // nonbond index number.
             regularNonbondedForce->addParticle(sqrtCoulombScale*charge, sigma, 
                                         dumm.vdwGlobalScaleFactor*wellDepth);
+
+            std::cout << "Particle # " << nax << " added!\n";
 
             // Collect 1-2 bonds to other nonbond atoms. Note that we 
             // don't care about bodies here -- every atom is considered
