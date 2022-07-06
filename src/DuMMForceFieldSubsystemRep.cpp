@@ -2420,7 +2420,7 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
             }
         }
         //TRACE_OPENMM (("CALC BONDED with DUMM: Ebonded = " + std::to_string(energy) +  " \n").c_str());
-        TRACE (("CALC BONDED with DUMM: Ebonded = " + std::to_string(energy) +  " \n").c_str());
+        //TRACE (("CALC BONDED with DUMM: Ebonded = " + std::to_string(energy) +  " \n").c_str());
     }
 
 
@@ -2443,12 +2443,12 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
             // TODO: should calculate energy only when it is asked for.
 
             //TRACE_OPENMM (("BEFORE OpenMM\t" + std::to_string(energy) +  " \n").c_str());
-            TRACE(("BEFORE OpenMM\t" + std::to_string(energy) +  " \n").c_str());
+            //TRACE(("BEFORE OpenMM\t" + std::to_string(energy) +  " \n").c_str());
             openMMPluginIfc->calcOpenMMEnergyAndForces(
                 inclAtomStation_G, inclAtomPos_G, true /*forces*/, true /*energy*/,
                 inclBodyForces_G, energy);
             //TRACE_OPENMM (("AFTER OpenMM\t" + std::to_string(energy) +  " \n").c_str());
-            TRACE (("AFTER OpenMM\t" + std::to_string(energy) +  " \n").c_str());
+            //TRACE (("AFTER OpenMM\t" + std::to_string(energy) +  " \n").c_str());
 
             // All done!
             markIncludedAtomForceCacheRealized(s);

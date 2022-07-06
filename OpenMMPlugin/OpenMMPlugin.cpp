@@ -230,7 +230,7 @@ try {
             regularNonbondedForce->addParticle(sqrtCoulombScale*charge, sigma, 
                                         dumm.vdwGlobalScaleFactor*wellDepth);
 
-            std::cout << "Particle # " << nax << " added!\n";
+            //std::cout << "Particle # " << nax << " added!\n";
 
             // Collect 1-2 bonds to other nonbond atoms. Note that we 
             // don't care about bodies here -- every atom is considered
@@ -645,7 +645,7 @@ void OpenMMInterface::calcOpenMMEnergyAndForces
 
     if (wantEnergy)
         energy += openMMState.getPotentialEnergy();
-    TRACE_OPENMM(("OpenMM_Energy\t" + std::to_string(openMMState.getPotentialEnergy()) +  "\n").c_str());
+    //TRACE_OPENMM(("OpenMM_Energy\t" + std::to_string(openMMState.getPotentialEnergy()) +  "\n").c_str());
 }
 
 
