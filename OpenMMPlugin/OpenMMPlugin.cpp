@@ -402,10 +402,10 @@ try {
 
     const int nPlatforms = OpenMM::Platform::getNumPlatforms();
     logMessages.push_back("NOTE: OpenMM has " + String(nPlatforms) + " Platforms registered: ");
-    for (int i = 0; i < nPlatforms; ++i) {
-        const OpenMM::Platform& platform = OpenMM::Platform::getPlatform(i);
-        logMessages.back() += " " + platform.getName();
-    }
+    //for (int i = 0; i < nPlatforms; ++i) {
+    //    const OpenMM::Platform& platform = OpenMM::Platform::getPlatform(i);
+    //    logMessages.back() += " " + platform.getName();
+    //}
 
     // This is just a dummy to keep OpenMM happy; we're not using it for anything
     // so it doesn't matter what kind of integrator we pick.
