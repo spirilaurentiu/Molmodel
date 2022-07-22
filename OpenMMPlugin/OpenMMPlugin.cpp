@@ -393,9 +393,11 @@ try {
 
     //const std::vector<std::string> pluginsLoaded = // RESTORE
     //    OpenMM::Platform::loadPluginsFromDirectory(OpenMM::Platform::getDefaultPluginsDirectory()); // RESTORE
-    std::cout << "Trying to force load " << OpenMM::Platform::getDefaultPluginsDirectory() + "/libOpenMMCUDA.so" // DEBUG
+    std::cout << "Trying to force load " // DEBUG
+	<< OpenMM::Platform::getDefaultPluginsDirectory() + "/libOpenMMCUDA.so and <same>libOpenMMOpenCL.so" // DEBUG
 	<< std::endl << std::flush; // DEBUG
-    OpenMM::Platform::loadPluginLibrary(OpenMM::Platform::getDefaultPluginsDirectory() + "/libOpenMMCUDA.so"); // DEBUG
+    //OpenMM::Platform::loadPluginLibrary(OpenMM::Platform::getDefaultPluginsDirectory() + "/libOpenMMCUDA.so"); // DEBUG
+    OpenMM::Platform::loadPluginLibrary(OpenMM::Platform::getDefaultPluginsDirectory() + "/libOpenMMOpenCL.so"); // DEBUG
     //logMessages.push_back("NOTE: Loaded " + String(pluginsLoaded.size()) + " OpenMM plugins:"); // RESTORE
     //for (unsigned i=0; i < pluginsLoaded.size(); ++i) // RESTORE
     //    logMessages.back() += " " + pluginsLoaded[i]; // RESTORE
@@ -411,7 +413,7 @@ try {
     // so it doesn't matter what kind of integrator we pick.
     openMMIntegrator = new OpenMM::VerletIntegrator(0.1);
     //openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator); // RESTORE
-    openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator, OpenMM::Platform::getPlatformByName("CUDA")); // DEBUG
+    openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator, OpenMM::Platform::getPlatformByName("OpenCL")); // DEBUG
     const std::string pname = openMMContext->getPlatform().getName();
     const double speed = openMMContext->getPlatform().getSpeed();
 
