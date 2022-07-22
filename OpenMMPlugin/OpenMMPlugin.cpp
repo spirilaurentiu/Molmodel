@@ -393,9 +393,9 @@ try {
 
     //const std::vector<std::string> pluginsLoaded = // RESTORE
     //    OpenMM::Platform::loadPluginsFromDirectory(OpenMM::Platform::getDefaultPluginsDirectory()); // RESTORE
-    std::cout << "Trying to force load " << OpenMM::Platform::getDefaultPluginsDirectory()[0] + "/libOpenMMCUDA.so" // DEBUG
+    std::cout << "Trying to force load " << OpenMM::Platform::getDefaultPluginsDirectory() + "/libOpenMMCUDA.so" // DEBUG
 	<< std::endl << std::flush; // DEBUG
-    OpenMM::Platform::loadPluginLibrary(OpenMM::Platform::getDefaultPluginsDirectory()[0] + "/libOpenMMCUDA.so"); // DEBUG
+    OpenMM::Platform::loadPluginLibrary(OpenMM::Platform::getDefaultPluginsDirectory() + "/libOpenMMCUDA.so"); // DEBUG
     //logMessages.push_back("NOTE: Loaded " + String(pluginsLoaded.size()) + " OpenMM plugins:"); // RESTORE
     //for (unsigned i=0; i < pluginsLoaded.size(); ++i) // RESTORE
     //    logMessages.back() += " " + pluginsLoaded[i]; // RESTORE
