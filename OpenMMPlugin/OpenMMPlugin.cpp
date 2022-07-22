@@ -391,11 +391,12 @@ try {
 
         // OpenMM CONTEXT //
 
-    const std::vector<std::string> pluginsLoaded = 
-        OpenMM::Platform::loadPluginsFromDirectory(OpenMM::Platform::getDefaultPluginsDirectory());
-    logMessages.push_back("NOTE: Loaded " + String(pluginsLoaded.size()) + " OpenMM plugins:");
-    for (unsigned i=0; i < pluginsLoaded.size(); ++i)
-        logMessages.back() += " " + pluginsLoaded[i];
+    //const std::vector<std::string> pluginsLoaded = // RESTORE
+    //    OpenMM::Platform::loadPluginsFromDirectory(OpenMM::Platform::getDefaultPluginsDirectory()); // RESTORE
+    OpenMM::Platform::loadPluginLibrary(OpenMM::Platform::getDefaultPluginsDirectory()[0] + "/libOpenMMCUDA.so"); // DEBUG
+    //logMessages.push_back("NOTE: Loaded " + String(pluginsLoaded.size()) + " OpenMM plugins:"); // RESTORE
+    //for (unsigned i=0; i < pluginsLoaded.size(); ++i) // RESTORE
+    //    logMessages.back() += " " + pluginsLoaded[i]; // RESTORE
 
     const int nPlatforms = OpenMM::Platform::getNumPlatforms();
     logMessages.push_back("NOTE: OpenMM has " + String(nPlatforms) + " Platforms registered: ");
