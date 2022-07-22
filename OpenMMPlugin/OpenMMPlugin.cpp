@@ -414,14 +414,14 @@ try {
     const std::string pname = openMMContext->getPlatform().getName();
     const double speed = openMMContext->getPlatform().getSpeed();
 
-    if (speed <= 1 && !allowReferencePlatform) {
-        logMessages.push_back(
-            "WARNING: DuMM: OpenMM not used: best available platform was "
-                  + pname + " with relative speed=" + String(speed)
-                  + ".\nCall setAllowOpenMMReference() if you want to use this anyway.\n");
-        deleteOpenMM();
-        return "";
-    }
+    //if (speed <= 1 && !allowReferencePlatform) {
+    //    logMessages.push_back(
+    //        "WARNING: DuMM: OpenMM not used: best available platform was "
+    //              + pname + " with relative speed=" + String(speed)
+    //              + ".\nCall setAllowOpenMMReference() if you want to use this anyway.\n");
+    //    deleteOpenMM();
+    //    return "";
+    //}
 
     return openMMContext->getPlatform().getName();
 } 
