@@ -410,7 +410,8 @@ try {
     // This is just a dummy to keep OpenMM happy; we're not using it for anything
     // so it doesn't matter what kind of integrator we pick.
     openMMIntegrator = new OpenMM::VerletIntegrator(0.1);
-    openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator);
+    //openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator); // RESTORE
+    openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator, OpenMM::Platform::getPlatformByName("CUDA")); // DEBUG
     const std::string pname = openMMContext->getPlatform().getName();
     const double speed = openMMContext->getPlatform().getSpeed();
 
