@@ -261,6 +261,7 @@ try {
 
         
         OpenMM::CustomNonbondedForce* customNonbondedForce = new OpenMM::CustomNonbondedForce(forceExpression);
+        //OpenMM::CustomNonbondedForce* customNonbondedForce = new OpenMM::CustomNonbondedForce("0");
          
 
         // Attempt to reproduce standard OpenMM NB energy, with code borrowed from
@@ -279,8 +280,8 @@ try {
         // Scale charges by sqrt of scale factor so that products of charges 
         // scale linearly.
 
-        std::vector<SimTK::Real> lambda_sterics, lambda_electrostatics; // sterge asta dupa ce citesti din fisier
-
+        //std::vector<SimTK::Real> lambda_sterics, lambda_electrostatics; // sterge asta dupa ce citesti din fisier
+        std::vector<SimTK::Real> lambda_sterics, lambda_electrostatics;
         for (DuMM::NonbondAtomIndex nax(0); nax < dumm.getNumNonbondAtoms(); ++nax) 
 
         {   const DuMMAtom&        a      = dumm.getAtom(dumm.getAtomIndexOfNonbondAtom(nax));
@@ -288,25 +289,27 @@ try {
             const AtomClass&       aclass = dumm.atomClasses[atype.atomClassIx];
             const Real             charge = atype.partialCharge;
             const Real             sigma  = 2*aclass.vdwRadius*DuMM::Radius2Sigma;
-            Real                   lambda = dumm.lambdaGlobal;
-            // const Real             lambda_sterics = 1;
-            // const Real             lambda_electrostatics = 1;
+            //Real                   lambda = dumm.lambdaGlobal;
+            const Real             lambda_steric = 1;
+            const Real             lambda_electrostatic = 1;
             const Real             wellDepth = aclass.vdwWellDepth;
 
             // Define particle; particle number will be the same as our
             // nonbond index number.
 
-            lambda_sterics.push_back(lambda);
-            lambda_electrostatics.push_back(lambda);
+            lambda_sterics.push_back(lambda_steric);
+            lambda_electrostatics.push_back(lambda_electrostatic);
             
             NBparams[0] = sqrtCoulombScale*charge;
             NBparams[1] = dumm.vdwGlobalScaleFactor*wellDepth;
             NBparams[2] = sigma;
-            //NBparams[3] = lambda_sterics[nax];
-            NBparams[3] = lambda;
-            NBparams[4] = lambda;
+            NBparams[3] = lambda_sterics[nax];
+            //NBparams[3] = lambda_sterics;
+            //NBparams[3] = lambda;
             //logMessages.push_back("NOTE: Lambda_sterics has a value of " + String(NBparams[3]) + " for particle number " + String(nax));
-            //NBparams[4] = lambda_electrostatics[nax];
+            //NBparams[4] = lambda;
+            NBparams[4] = lambda_electrostatics[nax];
+            //NBparams[4] = lambda_electrostatics;
             //logMessages.push_back("NOTE: Lambda_electrostatics has a value of " + String(NBparams[4]) + " for particle number " + String(nax));
 
             customNonbondedForce->addParticle(NBparams);
@@ -333,16 +336,31 @@ try {
         // It has the same expression as the CustomNonbondedForce, as we want it to simulate
         // that type of interaction
 
+        /*std::string bondForceExpression = "U_sterics+U_electrostatics;";
+        bondForceExpression += "U_electrostatics=((lambda_electrostatics)^1)*ONE_4PI_EPS0*chargeprod/reff_electrostatics;";
+        bondForceExpression += "reff_electrostatics=sigma*((0*(1.0-(lambda_electrostatics))^1+(r/sigma)^2))^(1/2);";
+        bondForceExpression += "U_sterics=((lambda_sterics)^1)*4*epsilon*x*(x-1.0);";
+        bondForceExpression += "x=(sigma/reff_sterics)^6;reff_sterics=sigma*((0.5*(1.0-(lambda_sterics))^1+(r/sigma)^6))^(1/6);"; */
+        // bondforceExpression += "lambda_sterics=max(lambda_sterics1,lambda_sterics2);";
+        // bondforceExpression += "lambda_electrostatics=max(lambda_electrostatics1,lambda_electrostatics2)";
+
         std::string bondForceExpression = "U_sterics+U_electrostatics;";
         bondForceExpression += "U_electrostatics=((lambda_electrostatics)^1)*ONE_4PI_EPS0*chargeprod/reff_electrostatics;";
         bondForceExpression += "reff_electrostatics=sigma*((0*(1.0-(lambda_electrostatics))^1+(r/sigma)^2))^(1/2);";
         bondForceExpression += "U_sterics=((lambda_sterics)^1)*4*epsilon*x*(x-1.0);";
         bondForceExpression += "x=(sigma/reff_sterics)^6;reff_sterics=sigma*((0.5*(1.0-(lambda_sterics))^1+(r/sigma)^6))^(1/6);";
-        // bondforceExpression += "lambda_sterics=max(lambda_sterics1,lambda_sterics2);";
-        // bondforceExpression += "lambda_electrostatics=max(lambda_electrostatics1,lambda_electrostatics2)";
+        //bondForceExpression += "chargeprod=charge1*charge2;epsilon=sqrt(epsilon1*epsilon2);sigma=0.5*(sigma1+sigma2);";
+        //bondForceExpression += "lambda_sterics=0;";
+        //bondForceExpression += "lambda_sterics=max(lambda_sterics1,lambda_sterics2);";
+        //bondForceExpression += "lambda_electrostatics=0";
+        //bondForceExpression += "lambda_electrostatics=max(lambda_electrostatics1,lambda_electrostatics2)";
 
-        OpenMM::CustomBondForce* customBondForce = new OpenMM::CustomBondForce("4*epsilon*((sigma/r)^12 - (sigma/r)^6) + ONE_4PI_EPS0*chargeprod/r;"
-        "ONE_4PI_EPS0 = 138.935456");
+
+
+        //OpenMM::CustomBondForce* customBondForce = new OpenMM::CustomBondForce("4*epsilon*((sigma/r)^12 - (sigma/r)^6) + ONE_4PI_EPS0*chargeprod/r;"
+        //"ONE_4PI_EPS0 = 138.935456");
+        OpenMM::CustomBondForce* customBondForce = new OpenMM::CustomBondForce(bondForceExpression);
+        //OpenMM::CustomBondForce* customBondForce = new OpenMM::CustomBondForce("0");
 
         // Define per bond parameters
         customBondForce->addPerBondParameter("chargeprod");
@@ -350,6 +368,7 @@ try {
         customBondForce->addPerBondParameter("sigma");
         customBondForce->addPerBondParameter("lambda_sterics");
         customBondForce->addPerBondParameter("lambda_electrostatics");
+        customBondForce->addGlobalParameter("ONE_4PI_EPS0", 138.935456);
 
         std::vector<Real> bondParams(5);
 
@@ -645,15 +664,15 @@ void OpenMMInterface::calcOpenMMEnergyAndForces
 
     if (wantEnergy)
         energy += openMMState.getPotentialEnergy();
-    //TRACE_OPENMM(("OpenMM_Energy\t" + std::to_string(openMMState.getPotentialEnergy()) +  "\n").c_str());
+    TRACE_OPENMM(("OpenMM_Energy\t" + std::to_string(openMMState.getPotentialEnergy()) +  "\n").c_str());
 }
 
 
 void OpenMMInterface::updLambdaGlobalIFC
    (std::vector<Real> lambda) const
 {
-    //std::cout << "### HREX: LAMBDA STERIC UPDATED TO " +  std::to_string(lambda[0]) + "\n";
-    //std::cout << "### HREX: LAMBDA ELECTROSTATICS UPDATED TO " +  std::to_string(lambda[1]) + "\n";
+    std::cout << "### HREX: LAMBDA STERIC UPDATED TO " +  std::to_string(lambda[0]) + "\n";
+    std::cout << "### HREX: LAMBDA ELECTROSTATICS UPDATED TO " +  std::to_string(lambda[1]) + "\n";
     OpenMM::CustomBondForce* CBondedForce = dynamic_cast<OpenMM::CustomBondForce*>(&openMMSystem -> getForce(cBondForceIx));
     OpenMM::CustomNonbondedForce* CNonBondForce = dynamic_cast<OpenMM::CustomNonbondedForce*>(&openMMSystem -> getForce(cNonBondForceIx));
     //std::cout << "TEST 4\n";
@@ -679,13 +698,13 @@ void OpenMMInterface::updLambdaGlobalIFC
         CBondedForce -> getBondParameters(CBondIx, part1Ix, part2Ix,
                                           bondParams);
 
-        //std::cout << "\nUPDLAMBDAGLOBAL BOND: \n" << "bondIx: " << CBondIx << "part1Ix: " << part1Ix << "part2Ix: " << part2Ix;
-        //std::cout << "bondIx: " << CBondIx << "\n";
-        //std::cout << "part1Ix: " << part1Ix << "\n";
-        //std::cout << "part2Ix: " << part2Ix << "\n";
-        //for (auto a: bondParams){
-        //    std::cout << " Bond param: " << a;
-        //}
+        std::cout << "\nUPDLAMBDAGLOBAL BOND: \n"; //<< "bondIx: " << CBondIx << "part1Ix: " << part1Ix << "part2Ix: " << part2Ix;
+        std::cout << "bondIx: " << CBondIx << "\n";
+        std::cout << "part1Ix: " << part1Ix << "\n";
+        std::cout << "part2Ix: " << part2Ix << "\n";
+        for (auto a: bondParams){
+            std::cout << "Bond param: " << a << "\n";
+        }
     }
     for (int CNBondIx; CNBondIx < CNonBondForce -> getNumParticles(); ++CNBondIx){
         int part1Ix = -1;
@@ -703,11 +722,11 @@ void OpenMMInterface::updLambdaGlobalIFC
         // Test Parameter change
 
         CNonBondForce -> getParticleParameters(CNBondIx,bondParams);
-        //std::cout << "\nUPDLAMBDAGLOBAL NONBOND: \n" << "particleIx: " << CNBondIx << " ";
-        //std::cout << "particleIx: " << CNBondIx << "\n";
-        //for (auto a: bondParams){
-        //    std::cout << " Particle param: " << a;
-        //}
+        std::cout << "\nUPDLAMBDAGLOBAL NONBOND: \n" << "particleIx: " << CNBondIx << " ";
+        std::cout << "particleIx: " << CNBondIx << "\n";
+        for (auto a: bondParams){
+           std::cout << " Particle param: " << a;
+        }
    
     }
  
@@ -757,7 +776,6 @@ Real OpenMMInterface::EvaluateHamiltonian
 
     std::cout << "%%%%Previous Positions END%%%%\n " << std::endl;*/
 
-    // gypsy code 2022. i hate teodor so much its unreal
     auto pos = state.getPositions();
     auto pos_backup = pos;
     for (int i = 0; i < pos.size(); i++) {
