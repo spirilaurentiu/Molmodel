@@ -54,6 +54,20 @@ using namespace SimTK;
 #define TRACE_OPENMM(STR) ;
 //#define TRACE_OPENMM(STR) printf("%s", STR);
 
+std::string exec(const char* cmd) {
+    std::array<char, 128> buffer;
+    std::string result;
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+    if (!pipe) {
+	printf ("No pipe with error: %s\n",strerror(errno));
+        throw std::runtime_error("popen() failed!");
+    }
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+    return result;
+}
+
 
 // This is Coulomb's constant 1/(4*pi*e0) in units which convert
 // e^2/nm to kJ/mol.
@@ -164,6 +178,7 @@ struct CrossBodyBondInfo {
 
 int DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl(State& s) const
 {
+	std::cout << "OS memory dumm.0\n" << exec("free") << std::endl;
     //std::cout << "DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl BEGIN" << std::endl;
     if(includedAtomStations.size()){
 
@@ -1572,6 +1587,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
 
     mutableThis->internalListsRealized = true;
 
+	std::cout << "OS memory dumm.-1\n" << exec("free") << std::endl;
     return 0;
 }
 //.............................REALIZE TOPOLOGY.................................

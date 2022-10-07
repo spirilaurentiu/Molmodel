@@ -391,40 +391,40 @@ try {
 
         // OpenMM CONTEXT //
 
-    //const std::vector<std::string> pluginsLoaded = // RESTORE
-    //    OpenMM::Platform::loadPluginsFromDirectory(OpenMM::Platform::getDefaultPluginsDirectory()); // RESTORE
-    std::cout << "Trying to force load " // DEBUG
-	<< OpenMM::Platform::getDefaultPluginsDirectory() + "/libOpenMMCUDA.so and <same>libOpenMMOpenCL.so" // DEBUG
-	<< std::endl << std::flush; // DEBUG
-    //OpenMM::Platform::loadPluginLibrary(OpenMM::Platform::getDefaultPluginsDirectory() + "/libOpenMMCUDA.so"); // DEBUG
-    OpenMM::Platform::loadPluginLibrary(OpenMM::Platform::getDefaultPluginsDirectory() + "/libOpenMMOpenCL.so"); // DEBUG
-    //logMessages.push_back("NOTE: Loaded " + String(pluginsLoaded.size()) + " OpenMM plugins:"); // RESTORE
-    //for (unsigned i=0; i < pluginsLoaded.size(); ++i) // RESTORE
-    //    logMessages.back() += " " + pluginsLoaded[i]; // RESTORE
+    const std::vector<std::string> pluginsLoaded = // RESTORE
+        OpenMM::Platform::loadPluginsFromDirectory(OpenMM::Platform::getDefaultPluginsDirectory()); // RESTORE
+    //std::cout << "Trying to force load " // BYHANDPATH
+    //	<< OpenMM::Platform::getDefaultPluginsDirectory() + "/libOpenMMCUDA.so and <same>libOpenMMOpenCL.so" // BYHANDPATH
+    //	<< std::endl << std::flush; // BYHANDPATH
+    //OpenMM::Platform::loadPluginLibrary(OpenMM::Platform::getDefaultPluginsDirectory() + "/libOpenMMCUDA.so"); // BYHANDPATH
+    //OpenMM::Platform::loadPluginLibrary(OpenMM::Platform::getDefaultPluginsDirectory() + "/libOpenMMOpenCL.so"); // BYHANDPATH
+    logMessages.push_back("NOTE: Loaded " + String(pluginsLoaded.size()) + " OpenMM plugins:"); // RESTORE
+    for (unsigned i=0; i < pluginsLoaded.size(); ++i) // RESTORE
+        logMessages.back() += " " + pluginsLoaded[i]; // RESTORE
 
     const int nPlatforms = OpenMM::Platform::getNumPlatforms();
     logMessages.push_back("NOTE: OpenMM has " + String(nPlatforms) + " Platforms registered: ");
-    //for (int i = 0; i < nPlatforms; ++i) {
-    //    const OpenMM::Platform& platform = OpenMM::Platform::getPlatform(i);
-    //    logMessages.back() += " " + platform.getName();
-    //}
+    for (int i = 0; i < nPlatforms; ++i) {
+        const OpenMM::Platform& platform = OpenMM::Platform::getPlatform(i);
+        logMessages.back() += " " + platform.getName();
+    }
 
     // This is just a dummy to keep OpenMM happy; we're not using it for anything
     // so it doesn't matter what kind of integrator we pick.
     openMMIntegrator = new OpenMM::VerletIntegrator(0.1);
-    //openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator); // RESTORE
-    openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator, OpenMM::Platform::getPlatformByName("OpenCL")); // DEBUG
+    openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator); // RESTORE
+    //openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator, OpenMM::Platform::getPlatformByName("OpenCL")); // BYHANDPATH
     const std::string pname = openMMContext->getPlatform().getName();
     const double speed = openMMContext->getPlatform().getSpeed();
 
-    //if (speed <= 1 && !allowReferencePlatform) {
-    //    logMessages.push_back(
-    //        "WARNING: DuMM: OpenMM not used: best available platform was "
-    //              + pname + " with relative speed=" + String(speed)
-    //              + ".\nCall setAllowOpenMMReference() if you want to use this anyway.\n");
-    //    deleteOpenMM();
-    //    return "";
-    //}
+    if (speed <= 1 && !allowReferencePlatform) {
+        logMessages.push_back(
+            "WARNING: DuMM: OpenMM not used: best available platform was "
+                  + pname + " with relative speed=" + String(speed)
+                  + ".\nCall setAllowOpenMMReference() if you want to use this anyway.\n");
+        deleteOpenMM();
+        return "";
+    }
 
     return openMMContext->getPlatform().getName();
 } 
