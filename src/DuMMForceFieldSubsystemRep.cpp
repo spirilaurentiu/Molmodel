@@ -273,6 +273,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
 // EU END
 {
 
+	std::cout << "OS memory dumm.0.1\n" << exec("free") << std::endl;
     // At realization time, we need to verify that every atom has a valid atom
     // class id. TODO: should apply only to included atoms.
     for (DuMM::AtomIndex anum(0); anum < atoms.size(); ++anum) {
@@ -349,6 +350,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
 
     std::set<MobilizedBodyIndex> allIncludedMobods;
 
+	std::cout << "OS memory dumm.1.\n" << exec("free") << std::endl;
 // for GMolModel
     std::set<MobilizedBodyIndex> allAllMobods;
 
@@ -391,6 +393,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         assert(getAtom(ax).isAttachedToBody()); // TODO catch unassigned atoms
     }
 
+	std::cout << "OS memory dumm.2.\n" << exec("free") << std::endl;
     //------- Process bonds -------
     // Now we're going to look at each atom again and find all interesting
     // bonded connections for which an atom serves as atom 1 in a 1-2, 1-2-3,
@@ -477,6 +480,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
     // arrays in a second pass where the included atom indices are known.
     Array_<CrossBodyBondInfo, DuMM::AtomIndex>  crossBodyBondInfo(atoms.size());
 
+	std::cout << "OS memory dumm.3.\n" << exec("free") << std::endl;
     // need to chase bonds to fill in the bonded data
     // Be sure to distinguish the *shortest* path between two atoms from
     // the set of all paths between atoms.
@@ -926,6 +930,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         }
     }
 
+	std::cout << "OS memory dumm.4.\n" << exec("free") << std::endl;
     // We have processed all the atoms and marked them included if they
     // will appear in any nonbonded or bonded force calculation. The
     // nonbond atoms have been separately marked. We have also created a
@@ -1013,6 +1018,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
 
     }
 
+	std::cout << "OS memory dumm.5.\n" << exec("free") << std::endl;
 
   // same for GMolModel
     mutableThis->AllBodies.resize((unsigned)allAllMobods.size());
@@ -1065,6 +1071,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
 
     }
 
+	std::cout << "OS memory dumm.6.\n" << exec("free") << std::endl;
 
     // Now that included atom index assignments have been made, we can
     // allocate the includedAtoms array and fill each IncludedAtom with
@@ -1204,6 +1211,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
     }
 
 
+	std::cout << "OS memory dumm.7.\n" << exec("free") << std::endl;
 
 // GMolModel - Same for AllAtomIndex ....this can be optimised
 
@@ -1314,6 +1322,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
     }
 
 
+	std::cout << "OS memory dumm.8.\n" << exec("free") << std::endl;
 
         /////////////////////////////
         // Fill in GBSA parameters //
@@ -1393,6 +1402,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         }
     }
 
+	std::cout << "OS memory dumm.9.\n" << exec("free") << std::endl;
         ///////////////////////////////////////////
         // Initialize OpenMM if it is being used //
         ///////////////////////////////////////////
@@ -1464,6 +1474,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         break; // don't loop
     }
 
+	std::cout << "OS memory dumm.10.\n" << exec("free") << std::endl;
     if (!usingOpenMM) {
         // If the caller specified how many threads to use, even if only one,
         // and says "useMultithreadedComputation" then we will use the
@@ -1501,6 +1512,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         }
     }
 
+	std::cout << "OS memory dumm.11.\n" << exec("free") << std::endl;
     // If we're not using openMM, but we are using multithreaded computation, create
     // Parallel2DExecutors for parallelizing expensive force calculations.
     mutableThis->numThreadsInUse = 1;
@@ -1535,6 +1547,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
                 new Parallel2DExecutor( AllBodies.size(), numThreadsInUse) ;
     }
 
+	std::cout << "OS memory dumm.12.\n" << exec("free") << std::endl;
     if (!(usingOpenMM || usingMultithreaded)) {
         if (tracing)
             // EU BEGIN COMMENT
@@ -1587,7 +1600,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
 
     mutableThis->internalListsRealized = true;
 
-	std::cout << "OS memory dumm.-1\n" << exec("free") << std::endl;
+	std::cout << "OS memory dumm.13.\n" << exec("free") << std::endl;
     return 0;
 }
 //.............................REALIZE TOPOLOGY.................................
