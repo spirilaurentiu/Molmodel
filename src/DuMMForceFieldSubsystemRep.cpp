@@ -297,6 +297,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
     // classes. We only fill in the diagonal and upper triangle; that is, each
     // class contains parameters for like classes and all classes whose
     // (arbitrary) class number is higher.
+    std::cout << "OS memory details " << "atomClasses.size " << atomClasses.size() << std::endl; 
     for (DuMM::AtomClassIndex i(0); i < atomClasses.size(); ++i) {
         if (!atomClasses[i].isValid()) continue;
         if (!atomClasses[i].isComplete()) continue;
@@ -312,6 +313,8 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
                                 iclass.vdwDij[j-i],  iclass.vdwEij[j-i]);
         }
     }
+    std::cout << "OS memory details " << "sizeof vdwDij " << sizeof( (mutableThis->atomClasses[ DuMM::AtomClassIndex(0) ]).vdwDij ) << std::endl; 
+    std::cout << "OS memory details " << "sizeof vdwEij " << sizeof( (mutableThis->atomClasses[ DuMM::AtomClassIndex(0) ]).vdwEij ) << std::endl; 
 
 	std::cout << "OS memory dumm.0.4\n" << exec("free") << std::endl;
         // molecule
