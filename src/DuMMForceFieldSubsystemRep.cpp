@@ -178,7 +178,7 @@ struct CrossBodyBondInfo {
 
 int DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl(State& s) const
 {
-	std::cout << "OS memory dumm.0\n" << exec("free") << std::endl;
+    //std::cout << "OS memory dumm.0\n" << exec("free") << std::endl;
     //std::cout << "DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl BEGIN" << std::endl;
     if(includedAtomStations.size()){
 
@@ -273,7 +273,6 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
 // EU END
 {
 
-	std::cout << "OS memory dumm.0.1\n" << exec("free") << std::endl;
     // At realization time, we need to verify that every atom has a valid atom
     // class id. TODO: should apply only to included atoms.
     for (DuMM::AtomIndex anum(0); anum < atoms.size(); ++anum) {
@@ -282,7 +281,6 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         }
     }
 
-	std::cout << "OS memory dumm.0.2\n" << exec("free") << std::endl;
     // We need to write once onto the 'cache' portion of the object once
     // the topology is known.
     DuMMForceFieldSubsystemRep* mutableThis =
@@ -290,14 +288,12 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
 
     mutableThis->invalidateAllTopologicalCacheEntries();
 
-	std::cout << "OS memory dumm.0.3\n" << exec("free") << std::endl;
         // force field
 
     // Calculate effective van der Waals parameters for all pairs of atom
     // classes. We only fill in the diagonal and upper triangle; that is, each
     // class contains parameters for like classes and all classes whose
     // (arbitrary) class number is higher.
-    std::cout << "OS memory details " << "atomClasses.size " << atomClasses.size() << std::endl; 
     for (DuMM::AtomClassIndex i(0); i < atomClasses.size(); ++i) {
         if (!atomClasses[i].isValid()) continue;
         if (!atomClasses[i].isComplete()) continue;
@@ -313,10 +309,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
                                 iclass.vdwDij[j-i],  iclass.vdwEij[j-i]);
         }
     }
-    std::cout << "OS memory details " << "sizeof vdwDij " << sizeof( (mutableThis->atomClasses[ DuMM::AtomClassIndex(0) ]).vdwDij ) << std::endl; 
-    std::cout << "OS memory details " << "sizeof vdwEij " << sizeof( (mutableThis->atomClasses[ DuMM::AtomClassIndex(0) ]).vdwEij ) << std::endl; 
 
-	std::cout << "OS memory dumm.0.4\n" << exec("free") << std::endl;
         // molecule
 
     // Process clusters & bodies (bodies are treated as top-level clusters)
@@ -329,7 +322,6 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         c.realizeTopologicalCache(*mutableThis);
     }
 
-	std::cout << "OS memory dumm.0.5\n" << exec("free") << std::endl;
     // Bodies, on the other hand, are always top level clusters and the
     // calculation here assumes that all the clusters have been processed.
     // Thus bodies need only read access to the main DuMM object,
@@ -342,7 +334,6 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         b.realizeTopologicalCache(*mutableThis);
     }
 
-	std::cout << "OS memory dumm.0.6\n" << exec("free") << std::endl;
     // Assign body & station to every atom that has been assigned to a body.
     // At the same time we can determine whether each atom will be involved
     // in nonbond force calculations. We hold off making assignments of nonbond
@@ -358,7 +349,6 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
 
     std::set<MobilizedBodyIndex> allIncludedMobods;
 
-	std::cout << "OS memory dumm.1.\n" << exec("free") << std::endl;
 // for GMolModel
     std::set<MobilizedBodyIndex> allAllMobods;
 
@@ -401,7 +391,6 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         assert(getAtom(ax).isAttachedToBody()); // TODO catch unassigned atoms
     }
 
-	std::cout << "OS memory dumm.2.\n" << exec("free") << std::endl;
     //------- Process bonds -------
     // Now we're going to look at each atom again and find all interesting
     // bonded connections for which an atom serves as atom 1 in a 1-2, 1-2-3,

@@ -728,12 +728,13 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             Transform sliderX_BM = anglePinX_BM;
             Transform sliderX_PF = anglePinX_PF;
 
-            //Transform sphericalX_BM = newX_BM;
-            //Transform sphericalX_PF = newX_PF;
-            Transform sphericalX_BM = X_childBC_parentBC * Transform(M_X_pin) * Transform(Rotation(90*Deg2Rad, XAxis)) * Transform(Rotation(90*Deg2Rad, ZAxis));
-            Transform sphericalX_PF = oldX_PF * oldX_FM * oldX_MB * sphericalX_BM;
             //Transform sphericalX_BM = oldX_BM;
             //Transform sphericalX_PF = oldX_PF;
+            //Transform sphericalX_BM = newX_BM;
+            //Transform sphericalX_PF = newX_PF;
+            //Transform sphericalX_BM = X_childBC_parentBC * Transform(M_X_pin) * Transform(Rotation(90*Deg2Rad, XAxis)) * Transform(Rotation(90*Deg2Rad, ZAxis));
+            Transform sphericalX_BM = X_childBC_parentBC * Transform(M_X_pin) * Transform(Rotation(-90*Deg2Rad, ZAxis));
+            Transform sphericalX_PF = oldX_PF * oldX_FM * oldX_MB * sphericalX_BM;
 
 	    // Special transform for free line
             Transform newX_BM_FreeLine;
@@ -875,7 +876,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                            sphericalX_BM
                    );
 
-                   sphereBody.setRadialAxis(XAxis);
+                   //sphereBody.setRadialAxis(XAxis);
                    bond.setSphericalBody(sphereBody, 0, 0, 0); // BAT coordinates
                    unit.bodyId = sphereBody.getMobilizedBodyIndex();
                    std::cout << " got Spherical mobodIx " << unit.bodyId << std::endl;
