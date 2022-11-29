@@ -1326,6 +1326,9 @@ int DuMMForceFieldSubsystem::getNumThreadsInUse() const
 bool DuMMForceFieldSubsystem::getUseOpenMMAcceleration() const
 {   return getRep().wantOpenMMAcceleration; }
 
+OpenMMPluginInterface* DuMMForceFieldSubsystem::getOpenMMPluginIfc() const
+{   return getRep().openMMPluginIfc; }
+
 void DuMMForceFieldSubsystem::setUseOpenMMAcceleration(bool use)
 {   invalidateSubsystemTopologyCache();
     updRep().wantOpenMMAcceleration = use; }
@@ -1339,6 +1342,42 @@ void DuMMForceFieldSubsystem::setUseOpenMMCalcOnlyNonBonded(bool use)
 {   invalidateSubsystemTopologyCache();
     updRep().wantOpenMMCalcOnlyNonBonded = use; }
 
+
+
+bool DuMMForceFieldSubsystem::getUseOpenMMIntegration() const
+{   return getRep().wantOpenMMIntegration; }
+
+void DuMMForceFieldSubsystem::setUseOpenMMIntegration(bool use)
+{   invalidateSubsystemTopologyCache();
+    updRep().wantOpenMMIntegration = use; }
+
+
+Real DuMMForceFieldSubsystem::OMM_calcPotentialEnergy() const
+{ return getRep().openMMPluginIfc->calcPotentialEnergy();} 
+
+Real DuMMForceFieldSubsystem::OMM_calcKineticEnergy() const
+{ return getRep().openMMPluginIfc->calcKineticEnergy();} 
+
+void DuMMForceFieldSubsystem::OMM_integrateTrajectory( int steps ) const
+{ return getRep().openMMPluginIfc->integrateTrajectory(steps);}  
+
+// SimTK::Vec3  DuMMForceFieldSubsystem::calcAtomLocationInGroundFrameThroughOMM( SimTK::DuMM::AtomIndex daix ) const
+// { return getRep().   }
+
+
+float DuMMForceFieldSubsystem::getOpenMMstepsize() const
+{   return getRep().stepsize; }
+
+void DuMMForceFieldSubsystem::setOpenMMstepsize(float value)
+{   invalidateSubsystemTopologyCache();
+    updRep().stepsize = value; }
+
+float DuMMForceFieldSubsystem::getOpenMMtemperature() const
+{   return getRep().temperature; }
+
+void DuMMForceFieldSubsystem::setOpenMMtemperature(float value)
+{   invalidateSubsystemTopologyCache();
+    updRep().temperature = value; }
 
 
 

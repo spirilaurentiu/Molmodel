@@ -42,6 +42,9 @@ provides molecular mechanics capability in a multibody framework. **/
 #include "molmodel/internal/common.h"
 #include "molmodel/internal/Biotype.h"
 
+#include "OpenMMPlugin.h"
+
+
 #include <cassert>
 
 
@@ -1330,7 +1333,20 @@ void setUseOpenMMCalcOnlyNonBonded(bool);
 /** Return the current setting of the flag set by setUseOpenMMCalcOnlyNonBonded(). **/
 bool getUseOpenMMCalcOnlyNonBonded() const;
 
+// Used for OpenMM integration
+void setUseOpenMMIntegration(bool);
+bool getUseOpenMMIntegration() const;
+void setOpenMMstepsize(float);
+float getOpenMMstepsize() const;
+void setOpenMMtemperature(float);
+float getOpenMMtemperature() const;
 
+void OMM_integrateTrajectory( int steps ) const;
+Real OMM_calcPotentialEnergy() const;
+Real OMM_calcKineticEnergy() const;
+
+/** Return OpennMMPluginIterface pointer**/
+OpenMMPluginInterface*  getOpenMMPluginIfc() const;
 
 /** This allows us to use OpenMM even if only the Reference platform is 
 available. This is for testing/debugging; one should never use the Reference

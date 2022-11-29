@@ -42,6 +42,16 @@ public:
         SimTK::Vector_<SimTK::SpatialVec>&  forces,
         SimTK::Real&                        energy) const = 0;
 
+
+    virtual void updateCoordInOpenMM
+       (const SimTK::Vector_<SimTK::Vec3>&  atomStation_G,
+        const SimTK::Vector_<SimTK::Vec3>&  atomPos_G) const = 0;
+
+    virtual SimTK::Real calcPotentialEnergy() =0;
+    virtual SimTK::Real calcKineticEnergy() =0;
+    virtual void integrateTrajectory( int steps ) = 0;
+
+
 private:
     std::string OpenMMPlatform;
     std::string OpenMMGPUindex;

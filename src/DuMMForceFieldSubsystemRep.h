@@ -1501,6 +1501,7 @@ public:
         numThreadsRequested         = 0; // let DuMM pick
 
         wantOpenMMAcceleration      = false;
+        wantOpenMMIntegration       = false;
         wantOpenMMCalcOnlyNonBonded = true;
         allowOpenMMReference        = false;
 
@@ -2395,8 +2396,11 @@ public:
 
     // Control use of OpenMM.
     bool wantOpenMMAcceleration;
+    bool wantOpenMMIntegration;
     bool wantOpenMMCalcOnlyNonBonded;
     bool allowOpenMMReference;
+    Real stepsize;
+    Real temperature;
 
         // TOPOLOGICAL CACHE ENTRIES
         //   These cache entries are allocated in realizeTopology().

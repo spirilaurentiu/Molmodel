@@ -44,6 +44,7 @@
 
 #include "OpenMM.h"
 
+
 #include <string>
 #include <vector>
 #include <exception>
@@ -94,6 +95,17 @@ public:
         Real&                   energy) const;
 
 
+    void updateCoordInOpenMM
+       (const SimTK::Vector_<SimTK::Vec3>&  atomStation_G,
+        const SimTK::Vector_<SimTK::Vec3>&  atomPos_G ) const;
+
+    SimTK::Vec3 getAtomPosition( SimTK::DuMM::AtomIndex dummAtomIndex );
+    Real calcPotentialEnergy();
+    Real calcKineticEnergy();
+    void integrateTrajectory(int steps);
+
+
+
     void setNonbondedCutoff (Real cutoff) ;            /// Set NonbondedCutoff for OpenMM
     void setOpenMMPlatform (std::string platform) ;    /// Set Platform to use for OpenMM ('CPU', 'CUDA', 'OpenCL')
     void setGPUindex (std::string GPUindex) ;          /// Set GPU index (if Platform CUDA/OpenCL). Values:"0"/"1"/"0,1"
@@ -102,7 +114,14 @@ public:
     std::string getOpenMMPlatform () const;            /// Get Platform to use for OpenMM ('CPU', 'CUDA', 'OpenCL')
     std::string getGPUindex () const;                  /// Get GPU index. Values: "0"/"1"/"0,1"
 
+    const DuMMForceFieldSubsystemRep& dumm;
 
+    OpenMM::System*             openMMSystem;
+    OpenMM::Context*            openMMContext;
+    OpenMM::Integrator*         openMMIntegrator;      
+    OpenMM::AndersenThermostat* openMMThermostat;
+
+    
 private:
     // Put this object back into its just-constructed condition.
     void deleteOpenMM() {
@@ -111,12 +130,12 @@ private:
         delete openMMSystem;     openMMSystem=0;
     }
 
-private:
-    const DuMMForceFieldSubsystemRep& dumm;
+// private:
+//     const DuMMForceFieldSubsystemRep& dumm;
 
-    OpenMM::System*             openMMSystem;
-    OpenMM::Context*            openMMContext;
-    OpenMM::Integrator*         openMMIntegrator; // dummy
+//     OpenMM::System*             openMMSystem;
+//     OpenMM::Context*            openMMContext;
+//     OpenMM::Integrator*         openMMIntegrator; // dummy
 };
 
 //-----------------------------------------------------------------------------
@@ -384,12 +403,11 @@ try {
         openMMSystem->addForce(bondStretch);
         openMMSystem->addForce(bondBend);
         openMMSystem->addForce(bondTorsion);
-
     }
 
 
 
-        // OpenMM CONTEXT //
+    // OpenMM CONTEXT //
 
     const std::vector<std::string> pluginsLoaded = // RESTORE
         OpenMM::Platform::loadPluginsFromDirectory(OpenMM::Platform::getDefaultPluginsDirectory()); // RESTORE
@@ -409,9 +427,20 @@ try {
         logMessages.back() += " " + platform.getName();
     }
 
-    // This is just a dummy to keep OpenMM happy; we're not using it for anything
-    // so it doesn't matter what kind of integrator we pick.
-    openMMIntegrator = new OpenMM::VerletIntegrator(0.1);
+
+
+    Real stepsize = 0.001;
+    if( dumm.wantOpenMMIntegration ) stepsize = dumm.stepsize;
+    openMMIntegrator = new OpenMM::VerletIntegrator(stepsize);
+
+
+    Real temperature = 300;
+    if( dumm.wantOpenMMIntegration) temperature = dumm.temperature;
+    openMMThermostat = new OpenMM::AndersenThermostat (temperature, 1);
+    openMMSystem->addForce(openMMThermostat);
+
+
+    
     openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator); // RESTORE
     //openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator, OpenMM::Platform::getPlatformByName("OpenCL")); // BYHANDPATH
     const std::string pname = openMMContext->getPlatform().getName();
@@ -425,6 +454,10 @@ try {
         deleteOpenMM();
         return "";
     }
+
+
+
+
 
     return openMMContext->getPlatform().getName();
 } 
@@ -440,6 +473,81 @@ catch (...) {
 }
 }
 
+
+
+
+//-----------------------------------------------------------------------------
+//                    updateCoordInOpenMM
+//-----------------------------------------------------------------------------
+void OpenMMInterface::updateCoordInOpenMM
+   (const Vector_<Vec3>&    includedAtomStation_G,
+    const Vector_<Vec3>&    includedAtomPos_G) const
+{
+    assert(includedAtomStation_G.size() == dumm.getNumIncludedAtoms());
+    assert(includedAtomPos_G.size()     == dumm.getNumIncludedAtoms());
+    assert(includedBodyForces_G.size()  == dumm.getNumIncludedBodies());
+
+
+    // Positions arrive in an array of all included atoms. Compress that down
+    // to just nonbond atoms and convert to OpenMM Vec3 type.
+    std::vector<OpenMM::Vec3> positions(dumm.getNumNonbondAtoms());
+    for (DuMM::NonbondAtomIndex nax(0); nax < dumm.getNumNonbondAtoms(); ++nax)
+    {   const Vec3& pos = 
+            includedAtomPos_G[dumm.getIncludedAtomIndexOfNonbondAtom(nax)];
+        positions[nax] = OpenMM::Vec3(pos[0], pos[1], pos[2]); 
+    }
+
+    openMMContext->setPositions(positions);
+
+}
+
+
+
+//-----------------------------------------------------------------------------
+//                    getAtomPosition
+//-----------------------------------------------------------------------------
+SimTK::Vec3 OpenMMInterface::getAtomPosition( SimTK::DuMM::AtomIndex dummAtomIndex )
+{
+
+    SimTK::DuMM::NonbondAtomIndex nonbondedAtomIndex = dumm.getAtom(dummAtomIndex).getNonbondAtomIndex();
+
+    const OpenMM::State openMMState = openMMContext->getState( OpenMM::State::Positions );
+    OpenMM::Vec3 position = openMMState.getPositions() [nonbondedAtomIndex]; 
+
+    return SimTK::Vec3 ( position[0], position[1], position[2] );
+
+}
+
+
+//-----------------------------------------------------------------------------
+//                    calcPotentialEnergy
+//-----------------------------------------------------------------------------
+Real OpenMMInterface::calcPotentialEnergy()
+{
+    const OpenMM::State openMMState = openMMContext->getState( OpenMM::State::Energy );
+    return openMMState.getPotentialEnergy();
+}
+
+//-----------------------------------------------------------------------------
+//                    calcKineticEnergy
+//-----------------------------------------------------------------------------
+Real OpenMMInterface::calcKineticEnergy()
+{
+    const OpenMM::State openMMState = openMMContext->getState( OpenMM::State::Energy );
+    return openMMState.getKineticEnergy();
+}
+
+//-----------------------------------------------------------------------------
+//                    integrateTrajectory
+//-----------------------------------------------------------------------------
+void OpenMMInterface::integrateTrajectory(int steps)
+{
+    std::cout<<"BEEEEEEEEEEEEEEG"<<std::endl << dumm.stepsize <<std::endl<< std::flush;
+    openMMIntegrator->step(steps); 
+    std::cout<<"ENNNNNNNNNNNNNND"<<std::endl << std::flush;
+}
+
+
 //-----------------------------------------------------------------------------
 //                    calcOpenMMNonbondedAndGBSAForces
 //-----------------------------------------------------------------------------
@@ -451,9 +559,6 @@ void OpenMMInterface::calcOpenMMEnergyAndForces
     Vector_<SpatialVec>&    includedBodyForces_G,
     Real&                   energy) const
 {
-    assert(includedAtomStation_G.size() == dumm.getNumIncludedAtoms());
-    assert(includedAtomPos_G.size()     == dumm.getNumIncludedAtoms());
-    assert(includedBodyForces_G.size()  == dumm.getNumIncludedBodies());
 
     if (!(wantForces || wantEnergy))
         return;
@@ -461,15 +566,8 @@ void OpenMMInterface::calcOpenMMEnergyAndForces
     if (!openMMContext) 
         throw std::runtime_error("ERROR: calcOpenMMNonbondedAndGBSAForces(): OpenMM has not been initialized.");
 
-    // Positions arrive in an array of all included atoms. Compress that down
-    // to just nonbond atoms and convert to OpenMM Vec3 type.
-    std::vector<OpenMM::Vec3> positions(dumm.getNumNonbondAtoms());
-    for (DuMM::NonbondAtomIndex nax(0); nax < dumm.getNumNonbondAtoms(); ++nax)
-    {   const Vec3& pos = 
-            includedAtomPos_G[dumm.getIncludedAtomIndexOfNonbondAtom(nax)];
-        positions[nax] = OpenMM::Vec3(pos[0], pos[1], pos[2]); }
-
-    openMMContext->setPositions(positions);
+    
+    updateCoordInOpenMM(includedAtomStation_G, includedAtomPos_G);
 
     // Ask for energy, forces, or both.
     const OpenMM::State openMMState = 
