@@ -440,6 +440,9 @@ try {
     openMMSystem->addForce(openMMThermostat);
 
 
+    std::cout<<"SETTING INTEGRATOR in OPENMM "<<std::endl << dumm.stepsize <<std::endl << dumm.temperature <<std::endl<< std::flush;
+
+
     
     openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator); // RESTORE
     //openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator, OpenMM::Platform::getPlatformByName("OpenCL")); // BYHANDPATH
@@ -542,7 +545,7 @@ Real OpenMMInterface::calcKineticEnergy()
 //-----------------------------------------------------------------------------
 void OpenMMInterface::integrateTrajectory(int steps)
 {
-    std::cout<<"BEEEEEEEEEEEEEEG"<<std::endl << dumm.stepsize <<std::endl<< std::flush;
+    std::cout<<"BEEEEEEEEEEEEEEG"<<std::endl <<"stepsize:"<< dumm.stepsize <<" temp "<< dumm.temperature << " steps: " << steps<< std::endl<< std::flush;
     openMMIntegrator->step(steps); 
     std::cout<<"ENNNNNNNNNNNNNND"<<std::endl << std::flush;
 }

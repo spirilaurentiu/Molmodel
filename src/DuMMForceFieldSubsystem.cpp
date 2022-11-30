@@ -1377,7 +1377,9 @@ float DuMMForceFieldSubsystem::getOpenMMtemperature() const
 
 void DuMMForceFieldSubsystem::setOpenMMtemperature(float value)
 {   invalidateSubsystemTopologyCache();
-    updRep().temperature = value; }
+    updRep().temperature = value;
+    std::cout<<"SETTING TEMPERATURE in DUMM "<<std::endl << getRep().temperature <<std::endl<< std::flush;
+}
 
 
 
