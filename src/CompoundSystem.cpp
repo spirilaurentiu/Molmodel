@@ -565,7 +565,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             // because it can handle six degrees of freedom.  (assuming all children
             // are attached by Pin Mobilizers.)  Also anything with three or more
             // non-colinear atoms can be a Free Mobilizer.
-            if ( (unit.clusterAtoms.size() > 2) || (unit.hasChild) ) 
+            //if ( (unit.clusterAtoms.size() > 2) || (unit.hasChild) )
+            if ( true ) // TEST
             {   
                 if (mobilizedBodyType.compare("Free") == 0) {
                     MobilizedBody::Free freeBody
@@ -618,7 +619,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                 }
                 dumm.attachClusterToBody(unit.clusterIx, unit.bodyId);
             }
-            else if (unit.clusterAtoms.size() == 1) // One atom, no children => Cartesian mobility
+            /* else if (unit.clusterAtoms.size() == 1) // One atom, no children => Cartesian mobility
             {
                 MobilizedBody::Cartesian particleBody(matter.Ground(), 
                                                       G_X_T * T_X_B, 
@@ -662,7 +663,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                 unit.bodyId = freeBody.getMobilizedBodyIndex();
                 dumm.attachClusterToBody(unit.clusterIx, unit.bodyId);
                 std::cout << " got FreeLine mobodIx " << unit.bodyId << std::endl;
-            }
+            } */
         }
 
         // Case B: rigid unit has a parent rigid unit

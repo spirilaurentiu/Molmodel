@@ -1673,15 +1673,16 @@ public:
         {
             Compound::AtomIndex atomIndex = tI->first;
             const Vec3& target = tI->second;
-            
+           
             // slow
             // Vec3 source = calcDefaultAtomLocationInGroundFrame(getAtomName(atomIndex));
-            
+
             // faster
             const Vec3 source = 
                     getTopLevelTransform() * atomSourceFrames[atomIndex].T();
 
             vecPairs.push_back(Vec3Pair(source, target, weight));
+
         }
 
         return Kabsch78::superpose(vecPairs);
