@@ -1131,6 +1131,23 @@ void defineBondTorsion_KA
 }
 
 
+/** Same as defineBondTorsion_KA() but takes integer class arguments for 
+backwards compatibility. **/
+void defineBondTorsion_KA
+    (int class1, int class2, int class3, int class4, 
+    int periodicity1, Real amp1InKcal, Real phase1InDegrees,
+    int periodicity2, Real amp2InKcal, Real phase2InDegrees,
+    int periodicity3, Real amp3InKcal, Real phase3InDegrees,
+    int periodicity4, Real amp4InKcal, Real phase4InDegrees)
+{
+    defineBondTorsion_KA
+            ((DuMM::AtomClassIndex)class1, (DuMM::AtomClassIndex)class2, (DuMM::AtomClassIndex)class3, (DuMM::AtomClassIndex)class4, 
+            periodicity1, amp1InKcal, phase1InDegrees,
+            periodicity2, amp2InKcal, phase2InDegrees,
+            periodicity3, amp3InKcal, phase3InDegrees,
+            periodicity4, amp4InKcal, phase4InDegrees);
+}
+
 /** Define a custom bond torsion term to be applied to the indicated quadruple 
 of atom classes whenever they are found in a 1-2-3-4 bonded sequence. Pass in a
 pointer to a newly-allocated CustomBondTorsion object; the subsystem takes over
