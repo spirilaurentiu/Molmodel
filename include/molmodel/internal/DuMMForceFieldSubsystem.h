@@ -1093,6 +1093,21 @@ void defineBondTorsion_KA
                         periodicity2, amp2InKcal * DuMM::Kcal2KJ, phase2InDegrees,
                         periodicity3, amp3InKcal * DuMM::Kcal2KJ, phase3InDegrees);
 }
+/** Same as defineBondTorsion_KA() but permits three torsion terms (with 
+different periods) to be specified simultaneously. **/
+void defineBondTorsion_KA
+    (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2, DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4, 
+    int periodicity1, Real amp1InKcal, Real phase1InDegrees,
+    int periodicity2, Real amp2InKcal, Real phase2InDegrees,
+    int periodicity3, Real amp3InKcal, Real phase3InDegrees,
+    int periodicity4, Real amp4InKcal, Real phase4InDegrees)
+{
+    defineBondTorsion(class1,class2,class3,class4,
+                        periodicity1, amp1InKcal * DuMM::Kcal2KJ, phase1InDegrees,
+                        periodicity2, amp2InKcal * DuMM::Kcal2KJ, phase2InDegrees,
+                        periodicity3, amp3InKcal * DuMM::Kcal2KJ, phase3InDegrees,
+                        periodicity4, amp4InKcal * DuMM::Kcal2KJ, phase4InDegrees);
+}
 /** Same as defineBondTorsion_KA() but takes integer class arguments for 
 backwards compatibility. **/
 void defineBondTorsion_KA
