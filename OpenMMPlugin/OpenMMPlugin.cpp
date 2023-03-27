@@ -409,16 +409,19 @@ try {
 
     // OpenMM CONTEXT //
 
-    const std::vector<std::string> pluginsLoaded = // RESTORE
-        OpenMM::Platform::loadPluginsFromDirectory(OpenMM::Platform::getDefaultPluginsDirectory()); // RESTORE
+    const std::vector<std::string> pluginsLoaded =
+        OpenMM::Platform::loadPluginsFromDirectory(
+            OpenMM::Platform::getDefaultPluginsDirectory());
+
     //std::cout << "Trying to force load " // BYHANDPATH
     //	<< OpenMM::Platform::getDefaultPluginsDirectory() + "/libOpenMMCUDA.so and <same>libOpenMMOpenCL.so" // BYHANDPATH
     //	<< std::endl << std::flush; // BYHANDPATH
     //OpenMM::Platform::loadPluginLibrary(OpenMM::Platform::getDefaultPluginsDirectory() + "/libOpenMMCUDA.so"); // BYHANDPATH
     //OpenMM::Platform::loadPluginLibrary(OpenMM::Platform::getDefaultPluginsDirectory() + "/libOpenMMOpenCL.so"); // BYHANDPATH
     logMessages.push_back("NOTE: Loaded " + String(pluginsLoaded.size()) + " OpenMM plugins:"); // RESTORE
-    for (unsigned i=0; i < pluginsLoaded.size(); ++i) // RESTORE
-        logMessages.back() += " " + pluginsLoaded[i]; // RESTORE
+    for (unsigned i=0; i < pluginsLoaded.size(); ++i){
+        logMessages.back() += " " + pluginsLoaded[i];
+    }
 
     const int nPlatforms = OpenMM::Platform::getNumPlatforms();
     logMessages.push_back("NOTE: OpenMM has " + String(nPlatforms) + " Platforms registered: ");
@@ -427,24 +430,33 @@ try {
         logMessages.back() += " " + platform.getName();
     }
 
+    // Print to stdout anyway
+    std::cout << "Loaded " + String(pluginsLoaded.size()) + " OpenMM plugins: ";
+    for (unsigned i=0; i < pluginsLoaded.size(); ++i){
+        std::cout << " " + pluginsLoaded[i] << std::endl;
+    }
+    std::cout << "OpenMM has " + String(nPlatforms) + " Platforms registered:" ;
+    for (int i = 0; i < nPlatforms; ++i) {
+        const OpenMM::Platform& platform = OpenMM::Platform::getPlatform(i);
+        std::cout <<  " " + platform.getName() << std::endl;
+    }
 
-
+    // Get an OpenMM integrator
     Real stepsize = 0.001;
     if( dumm.wantOpenMMIntegration ) stepsize = dumm.stepsize;
     openMMIntegrator = new OpenMM::VerletIntegrator(stepsize);
 
-
+    // Get an OpenMM thermostat
     Real temperature = 300;
     if( dumm.wantOpenMMIntegration) temperature = dumm.temperature;
     openMMThermostat = new OpenMM::AndersenThermostat (temperature, 1);
     openMMSystem->addForce(openMMThermostat);
 
+    std::cout<<"SETTING INTEGRATOR in OPENMM "
+    << dumm.stepsize << " " << dumm.temperature << std::endl;
 
-    std::cout<<"SETTING INTEGRATOR in OPENMM "<<std::endl << dumm.stepsize <<std::endl << dumm.temperature <<std::endl<< std::flush;
-
-
-    
-    openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator); // RESTORE
+    // Get the OpenMM Context
+    openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator);
     //openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator, OpenMM::Platform::getPlatformByName("OpenCL")); // BYHANDPATH
     const std::string pname = openMMContext->getPlatform().getName();
     const double speed = openMMContext->getPlatform().getSpeed();

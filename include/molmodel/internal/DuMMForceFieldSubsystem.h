@@ -1050,6 +1050,15 @@ void defineBondTorsion
     int periodicity2, Real amp2InKJ, Real phase2InDegrees,
     int periodicity3, Real amp3InKJ, Real phase3InDegrees);
 
+/** Same as defineBondTorsion() but permits four torsion terms (with different
+periods) to be specified simultaneously. **/
+void defineBondTorsion
+    (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2, DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4, 
+    int periodicity1, Real amp1InKJ, Real phase1InDegrees,
+    int periodicity2, Real amp2InKJ, Real phase2InDegrees,
+    int periodicity3, Real amp3InKJ, Real phase3InDegrees,
+    int periodicity4, Real amp4InKJ, Real phase4InDegrees);
+
 /** Same as defineBondTorsion() but permits takes the amplitude in kcal/mol 
 (but note that this is converted immediately to our MD unit system of 
 kJ/mol). **/
