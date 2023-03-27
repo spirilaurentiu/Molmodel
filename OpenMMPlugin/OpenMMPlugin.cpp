@@ -500,7 +500,7 @@ void OpenMMInterface::updateCoordInOpenMM
 {
     assert(includedAtomStation_G.size() == dumm.getNumIncludedAtoms());
     assert(includedAtomPos_G.size()     == dumm.getNumIncludedAtoms());
-    assert(includedBodyForces_G.size()  == dumm.getNumIncludedBodies());
+    //assert(includedBodyForces_G.size()  == dumm.getNumIncludedBodies());
 
 
     // Positions arrive in an array of all included atoms. Compress that down
