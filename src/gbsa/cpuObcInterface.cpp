@@ -373,6 +373,9 @@ extern "C" int getGbsaRadii( int numberOfAtoms, const int* atomicNumber,
 
    // loop over atoms
 
+   // Sulea T.A. has changed the values for most of these so they are similar to those used
+   // in the Amber forcefield, which was used as input to Robosample at time of writing (Q1-2023) 
+
    for( int atomI = 0; atomI < numberOfAtoms; atomI++ ){
 
       // branch based on atomic number
@@ -385,11 +388,14 @@ extern "C" int getGbsaRadii( int numberOfAtoms, const int* atomicNumber,
             // radius is modified if heavy atom is N or O
             assert(atomicNumberOfHCovalentPartner[atomI] > 0);
             if( atomicNumberOfHCovalentPartner[atomI] == 7 ){
-               radius = 1.15;
+               radius = 1.3;
             } else if( atomicNumberOfHCovalentPartner[atomI] == 8 ){
-               radius = 1.05;
-            } else {
-               radius = 1.25;
+               radius = 0.8;
+            }else if( atomicNumberOfHCovalentPartner[atomI] == 16 ){
+               radius = 0.8;
+            }
+            else {
+               radius = 1.2;
             }
             break;
 
@@ -401,31 +407,31 @@ extern "C" int getGbsaRadii( int numberOfAtoms, const int* atomicNumber,
          case 6: // C
 
             if( numberOfCovalentPartners[atomI] == 2 ){
-               radius = 1.825;
+               radius = 1.7;
             } else if( numberOfCovalentPartners[atomI] == 3 ){
-               radius = 1.875;
+               radius = 1.7;
             } else {
-               radius = 1.90;
+               radius = 1.7;
             }
             break;
 
          case 7: // N
 
             if( numberOfCovalentPartners[atomI] == 4 ){
-               radius = 1.625;
+               radius = 1.55;
             } else if( numberOfCovalentPartners[atomI] == 1 ){
-               radius = 1.60;
+               radius = 1.55;
             } else {
-               radius = 1.7063;
+               radius = 1.55;
             }
             break;
 
          case 8: // O
 
             if( numberOfCovalentPartners[atomI] == 1 ){
-               radius = 1.48;
+               radius = 1.5;
             } else {
-               radius = 1.535;
+               radius = 1.5;
             }
             break;
 
@@ -450,7 +456,7 @@ extern "C" int getGbsaRadii( int numberOfAtoms, const int* atomicNumber,
             radius = 1.87;
             break;
          case 16:
-            radius = 1.775;
+            radius = 11.8;
             break;
          case 17:
             radius = 1.735;
