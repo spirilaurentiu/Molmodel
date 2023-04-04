@@ -1777,12 +1777,16 @@ void DuMMForceFieldSubsystem::OMM_integrateTrajectory( int steps )
 
 SimTK::Vec3 DuMMForceFieldSubsystem::calcAtomLocationInGroundFrameThroughOMM( DuMM::AtomIndex daix ) const
 {
+<<<<<<< HEAD
     return getRep().openMMPlugin.getAtomPosition(daix);
 }
 
 const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::OMM_getPositions() const
 {
     return getRep().openMMPlugin.getPositions();
+=======
+    return getRep().openMMPluginIfc->getAtomPosition(daix);
+>>>>>>> 9ffb79c (merge attempt 1)
 }
 
 float DuMMForceFieldSubsystem::getOpenMMstepsize() const
