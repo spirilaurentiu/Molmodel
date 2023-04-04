@@ -99,7 +99,7 @@ public:
        (const SimTK::Vector_<SimTK::Vec3>&  atomStation_G,
         const SimTK::Vector_<SimTK::Vec3>&  atomPos_G ) const;
 
-    SimTK::Vec3 getAtomPosition( SimTK::DuMM::AtomIndex dummAtomIndex );
+    SimTK::Vec3 getAtomPosition( int dummAtomIndex );
     Real calcPotentialEnergy();
     Real calcKineticEnergy();
     void integrateTrajectory(int steps);
@@ -408,23 +408,31 @@ try {
 
 
     // OpenMM CONTEXT //
+    const char* dir = "/home/victor/Robosample/install/Debug/openmm/lib/plugins/";
+    const auto pluginsLoaded = OpenMM::Platform::loadPluginsFromDirectory(dir);
 
-    const std::vector<std::string> pluginsLoaded = // RESTORE
-        OpenMM::Platform::loadPluginsFromDirectory(OpenMM::Platform::getDefaultPluginsDirectory()); // RESTORE
-    //std::cout << "Trying to force load " // BYHANDPATH
-    //	<< OpenMM::Platform::getDefaultPluginsDirectory() + "/libOpenMMCUDA.so and <same>libOpenMMOpenCL.so" // BYHANDPATH
-    //	<< std::endl << std::flush; // BYHANDPATH
-    //OpenMM::Platform::loadPluginLibrary(OpenMM::Platform::getDefaultPluginsDirectory() + "/libOpenMMCUDA.so"); // BYHANDPATH
-    //OpenMM::Platform::loadPluginLibrary(OpenMM::Platform::getDefaultPluginsDirectory() + "/libOpenMMOpenCL.so"); // BYHANDPATH
-    logMessages.push_back("NOTE: Loaded " + String(pluginsLoaded.size()) + " OpenMM plugins:"); // RESTORE
-    for (unsigned i=0; i < pluginsLoaded.size(); ++i) // RESTORE
-        logMessages.back() += " " + pluginsLoaded[i]; // RESTORE
+    // We can also load one platform at a time
+    // OpenMM::Platform::loadPluginLibrary("libOpenMMCPU.so");
+    
+    logMessages.push_back("NOTE: Loaded " + String(pluginsLoaded.size()) + " OpenMM plugins:\n");
+    for (unsigned i = 0; i < pluginsLoaded.size(); ++i)
+    {
+        logMessages.back() += " (" + String(i + 1) + "/" + String(pluginsLoaded.size()) + ") " + pluginsLoaded[i];
+        if (i + 1 != pluginsLoaded.size())
+            logMessages.back() += "\n";
+    }
 
     const int nPlatforms = OpenMM::Platform::getNumPlatforms();
-    logMessages.push_back("NOTE: OpenMM has " + String(nPlatforms) + " Platforms registered: ");
+    std::vector<std::string> RegisteredPlatforms;
+    logMessages.push_back("NOTE: OpenMM has " + String(nPlatforms) + " Platforms registered:\n");
     for (int i = 0; i < nPlatforms; ++i) {
-        const OpenMM::Platform& platform = OpenMM::Platform::getPlatform(i);
-        logMessages.back() += " " + platform.getName();
+        const auto name = OpenMM::Platform::getPlatform(i).getName();
+
+        RegisteredPlatforms.emplace_back(name);
+        logMessages.back() += " (" + String(i + 1) + "/" + String(nPlatforms) + ") " + name;
+
+        if (i + 1 != nPlatforms)
+            logMessages.back() += "\n";
     }
 
 
@@ -441,26 +449,31 @@ try {
 
 
     std::cout<<"SETTING INTEGRATOR in OPENMM "<<std::endl << dumm.stepsize <<std::endl << dumm.temperature <<std::endl<< std::flush;
-
-
     
-    openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator); // RESTORE
-    //openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator, OpenMM::Platform::getPlatformByName("OpenCL")); // BYHANDPATH
-    const std::string pname = openMMContext->getPlatform().getName();
-    const double speed = openMMContext->getPlatform().getSpeed();
+    // try to create the context with the best platform
+    std::array<std::string, 4> AttemptedPlatforms = { "CUDA", "OpenCL", "CPU", "Reference" };
+    for (const auto& p : AttemptedPlatforms) {
+        
+        // is this requested platform registered
+        if (std::find(RegisteredPlatforms.begin(), RegisteredPlatforms.end(), p) != RegisteredPlatforms.end())
+        {
+            auto& platform = OpenMM::Platform::getPlatformByName(p);
+            openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator, platform);
+            const double speed = openMMContext->getPlatform().getSpeed();
 
-    if (speed <= 1 && !allowReferencePlatform) {
-        logMessages.push_back(
-            "WARNING: DuMM: OpenMM not used: best available platform was "
-                  + pname + " with relative speed=" + String(speed)
-                  + ".\nCall setAllowOpenMMReference() if you want to use this anyway.\n");
-        deleteOpenMM();
-        return "";
+            if (speed <= 1 && !allowReferencePlatform) {
+                logMessages.push_back(
+                    "WARNING: DuMM: OpenMM not used: best available platform was "
+                        + p + " with relative speed=" + String(speed)
+                        + ".\nCall setAllowOpenMMReference() if you want to use this anyway.\n");
+                deleteOpenMM();
+                return "";
+            }
+
+            logMessages.push_back("NOTE: Created OpenMM context with " + p + " platform");
+            break;
+        }
     }
-
-
-
-
 
     return openMMContext->getPlatform().getName();
 } 
@@ -490,6 +503,10 @@ void OpenMMInterface::updateCoordInOpenMM
     assert(includedAtomPos_G.size()     == dumm.getNumIncludedAtoms());
     // assert(includedBodyForces_G.size()  == dumm.getNumIncludedBodies());
 
+    for (int i = 0; i < includedAtomPos_G.size(); i++) {
+        std::cout << "updateCoordInOpenMM " << i << " " << includedAtomPos_G[i] << "\n";
+    }
+
 
     // Positions arrive in an array of all included atoms. Compress that down
     // to just nonbond atoms and convert to OpenMM Vec3 type.
@@ -509,10 +526,11 @@ void OpenMMInterface::updateCoordInOpenMM
 //-----------------------------------------------------------------------------
 //                    getAtomPosition
 //-----------------------------------------------------------------------------
-SimTK::Vec3 OpenMMInterface::getAtomPosition( SimTK::DuMM::AtomIndex dummAtomIndex )
+SimTK::Vec3 OpenMMInterface::getAtomPosition( int dummAtomIndex )
 {
 
-    SimTK::DuMM::NonbondAtomIndex nonbondedAtomIndex = dumm.getAtom(dummAtomIndex).getNonbondAtomIndex();
+    SimTK::DuMM::AtomIndex dummAtomIndex_ai(dummAtomIndex);
+    SimTK::DuMM::NonbondAtomIndex nonbondedAtomIndex = dumm.getAtom(dummAtomIndex_ai).getNonbondAtomIndex();
 
     const OpenMM::State openMMState = openMMContext->getState( OpenMM::State::Positions );
     OpenMM::Vec3 position = openMMState.getPositions() [nonbondedAtomIndex]; 
@@ -545,9 +563,19 @@ Real OpenMMInterface::calcKineticEnergy()
 //-----------------------------------------------------------------------------
 void OpenMMInterface::integrateTrajectory(int steps)
 {
+    OpenMM::State openMMState = openMMContext->getState( OpenMM::State::Positions );
+    for (const auto& p : openMMState.getPositions()) {
+        std::cout << "BEFORE " << p[0] << " " << p[1] << " " << p[2] << std::endl;
+    }
+
     std::cout<<"BEEEEEEEEEEEEEEG"<<std::endl <<"stepsize:"<< dumm.stepsize <<" temp "<< dumm.temperature << " steps: " << steps<< std::endl<< std::flush;
-    openMMIntegrator->step(steps); 
+    openMMIntegrator->step(steps);
     std::cout<<"ENNNNNNNNNNNNNND"<<std::endl << std::flush;
+
+    openMMState = openMMContext->getState( OpenMM::State::Positions );
+    for (const auto& p : openMMState.getPositions()) {
+        std::cout << "AFTER " << p[0] << " " << p[1] << " " << p[2] << std::endl;
+    }
 }
 
 

@@ -1361,9 +1361,10 @@ Real DuMMForceFieldSubsystem::OMM_calcKineticEnergy() const
 void DuMMForceFieldSubsystem::OMM_integrateTrajectory( int steps ) const
 { return getRep().openMMPluginIfc->integrateTrajectory(steps);}  
 
-// SimTK::Vec3  DuMMForceFieldSubsystem::calcAtomLocationInGroundFrameThroughOMM( SimTK::DuMM::AtomIndex daix ) const
-// { return getRep().   }
-
+SimTK::Vec3 DuMMForceFieldSubsystem::calcAtomLocationInGroundFrameThroughOMM( DuMM::AtomIndex daix ) const
+{
+    return getRep().openMMPluginIfc->getAtomPosition(daix);
+}
 
 float DuMMForceFieldSubsystem::getOpenMMstepsize() const
 {   return getRep().stepsize; }
@@ -1376,7 +1377,8 @@ float DuMMForceFieldSubsystem::getOpenMMtemperature() const
 {   return getRep().temperature; }
 
 void DuMMForceFieldSubsystem::setOpenMMtemperature(float value)
-{   invalidateSubsystemTopologyCache();
+{   
+    invalidateSubsystemTopologyCache();
     updRep().temperature = value;
     std::cout<<"SETTING TEMPERATURE in DUMM "<<std::endl << getRep().temperature <<std::endl<< std::flush;
 }
@@ -1388,7 +1390,8 @@ bool DuMMForceFieldSubsystem::getAllowOpenMMReference() const
 {   return getRep().allowOpenMMReference; }
 
 void DuMMForceFieldSubsystem::setAllowOpenMMReference(bool allow)
-{   invalidateSubsystemTopologyCache();
+{   
+    invalidateSubsystemTopologyCache();
     updRep().allowOpenMMReference = allow; }
 
 bool DuMMForceFieldSubsystem::isUsingOpenMM() const 

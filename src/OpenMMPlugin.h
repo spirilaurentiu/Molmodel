@@ -47,6 +47,7 @@ public:
        (const SimTK::Vector_<SimTK::Vec3>&  atomStation_G,
         const SimTK::Vector_<SimTK::Vec3>&  atomPos_G) const = 0;
 
+    virtual SimTK::Vec3 getAtomPosition( int dummAtomIndex ) = 0;
     virtual SimTK::Real calcPotentialEnergy() =0;
     virtual SimTK::Real calcKineticEnergy() =0;
     virtual void integrateTrajectory( int steps ) = 0;
@@ -87,30 +88,28 @@ public:
     // up search rule, which in this case is the lib/plugins directory
     // of the SimTK installation directory.
     OpenMMPlugin() : SimTK::Plugin("OpenMMPlugin") {
-        // // Install directory is either the contents of this environment
-        // // variable if it exists, or if not then it is the system default
-        // // installation directory with /SimTK appended. Then /lib/plugins
-        // // is added to that.
 
+        // The plugin is in the Molmodel build directory
+        // There are two flavours, one for each build configuration
+#ifndef NDEBUG
+        constexpr auto PLUGIN_DIR = "OPENMM_PLUGIN_DIR_DEBUG";
+#else
+        constexpr auto PLUGIN_DIR = "OPENMM_PLUGIN_DIR_RELEASE";
+#endif
 
-        char * envvar = std::getenv("OpenMMPlugin_PATH");
-        if ( envvar != NULL ) { addSearchDirectory( envvar ); }
-
-        // Quick & dirty fix for Laurentiu
-        addSearchDirectory("/home/pcuser/git4/Robosample/build/release/Molmodel/");
-        addSearchDirectory("/home/laurentiu/git4/Robosample/build/release/Molmodel/");
-
-         addSearchDirectory(SimTK::Pathname::getInstallDir("SimTK_INSTALL_DIR", "SimTK")
-                             + "lib/plugins");
-         addSearchDirectory("/usr/local/lib/plugins/");
-
-        // The above works for a standard installation. We don't do that here.
-        // When installing locally, we must look for the library locally.
-        // The build script writes a file containing the path to the plugin.
-        // We load that file and search the lib at the specified path.
-        std::ifstream fin(SimTK::Pathname::getThisExecutableDirectory() + "/openmmplugin");
-        std::string dir((std::istreambuf_iterator<char>(fin)), std::istreambuf_iterator<char>());
-        addSearchDirectory(dir);
+        char* dir = std::getenv(PLUGIN_DIR);
+        if (dir)
+        {
+            addSearchDirectory(dir);
+            std::cout << "NOTE: Searching " << PLUGIN_DIR << " ("<< dir << ") for the OpenMM plugin." << std::endl;
+        }
+        else
+        {
+            std::cout << "WARNING: " << PLUGIN_DIR << " not set." << std::endl;
+            std::cout << "         It should point to the OpenMM plugin's directory (Molmodel build directory)." << std::endl;
+            std::cout << "         To set it, use:" << std::endl;
+            std::cout << "         export " << PLUGIN_DIR << "=\"/path/to/plugin/\"" << std::endl;
+        }
     }
 
     // This is the only defined exported method for this kind of plugin.
@@ -120,7 +119,7 @@ public:
                                   SimTK_createOpenMMPluginInterface,
                                   const SimTK::DuMMForceFieldSubsystemRep&);
 
-    std::string OpenMMPluginPATH;
+    // std::string OpenMMPluginPATH;
 
 private:
 };
