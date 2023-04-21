@@ -305,6 +305,11 @@ extern "C" int getObcScaleFactors( int numberOfAtoms, const int* atomicNumber, R
             scaleFactor  = 0.85;
             break;
 
+         case 9: // Fluorine
+            
+            scaleFactor = 0.88;
+            break;
+
          case 12: // magnesium
 
             scaleFactor  = 0.85;
@@ -317,7 +322,7 @@ extern "C" int getObcScaleFactors( int numberOfAtoms, const int* atomicNumber, R
 
          case 16: // sulphur
 
-            scaleFactor  = 0.85;
+            scaleFactor  = 0.96;
             break;
 
          default:
@@ -402,16 +407,7 @@ extern "C" int getGbsaRadii( int numberOfAtoms, const int* atomicNumber,
 
          case 6: // C
 
-            if( numberOfCovalentPartners[atomI] == 1 ){
-               radius = 1.7;
-            } else if( numberOfCovalentPartners[atomI] == 2 ){
-               radius = 1.7;
-            } else if( numberOfCovalentPartners[atomI] == 3 ){
-               radius = 1.7;
-            
-            } else {
-               radius = 2.2;
-            }
+            radius = 1.7;
             break;
 
          case 7: // N
