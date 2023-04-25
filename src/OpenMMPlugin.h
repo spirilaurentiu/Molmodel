@@ -51,6 +51,7 @@ public:
     virtual SimTK::Real calcPotentialEnergy() =0;
     virtual SimTK::Real calcKineticEnergy() =0;
     virtual void integrateTrajectory( int steps ) = 0;
+    virtual void setVelocitiesToTemperature(double temperature) = 0;
 
 
 private:

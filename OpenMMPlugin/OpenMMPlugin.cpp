@@ -103,6 +103,7 @@ public:
     Real calcPotentialEnergy();
     Real calcKineticEnergy();
     void integrateTrajectory(int steps);
+    void setVelocitiesToTemperature(double temperature);
 
 
 
@@ -576,6 +577,12 @@ void OpenMMInterface::integrateTrajectory(int steps)
     for (const auto& p : openMMState.getPositions()) {
         std::cout << "AFTER " << p[0] << " " << p[1] << " " << p[2] << std::endl;
     }
+}
+
+
+
+void OpenMMInterface::setVelocitiesToTemperature(double temperature) {
+    openMMContext->setVelocitiesToTemperature(temperature);
 }
 
 

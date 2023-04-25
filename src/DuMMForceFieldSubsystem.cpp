@@ -1380,11 +1380,18 @@ void DuMMForceFieldSubsystem::setOpenMMtemperature(float value)
 {   
     invalidateSubsystemTopologyCache();
     updRep().temperature = value;
+
+    if (getRep().openMMPluginIfc != nullptr) {
+        getRep().openMMPluginIfc->setVelocitiesToTemperature(value);
+    }
+    
     std::cout<<"SETTING TEMPERATURE in DUMM "<<std::endl << getRep().temperature <<std::endl<< std::flush;
 }
 
-
-
+void DuMMForceFieldSubsystem::setOpenMMvelocities(float value)
+{
+    // getRep().openMMPluginIfc->setVelocitiesToTemperature(value);
+}
 
 bool DuMMForceFieldSubsystem::getAllowOpenMMReference() const
 {   return getRep().allowOpenMMReference; }
