@@ -1820,15 +1820,23 @@ void DuMMForceFieldSubsystem::setOpenMMtemperature(float value)
 void DuMMForceFieldSubsystem::setOpenMMvelocities(float value)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
     updRep().openMMPlugin.setVelocitiesToTemperature(value);
+=======
+    getRep().openMMPluginIfc->setVelocitiesToTemperature(value);
+>>>>>>> 7593573 (fixed for a single world)
 }
 
 void DuMMForceFieldSubsystem::OMM_updatePositions(const std::vector<SimTK::Vec3>& positions)
 {
+<<<<<<< HEAD
     updRep().openMMPlugin.updatePositions(positions);
 =======
     // getRep().openMMPluginIfc->setVelocitiesToTemperature(value);
 >>>>>>> e2d0903 (openmm fix attempt)
+=======
+    getRep().openMMPluginIfc->updatePositions(positions);
+>>>>>>> 7593573 (fixed for a single world)
 }
 
 bool DuMMForceFieldSubsystem::getAllowOpenMMReference() const
