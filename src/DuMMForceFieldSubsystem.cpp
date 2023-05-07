@@ -1390,7 +1390,12 @@ void DuMMForceFieldSubsystem::setOpenMMtemperature(float value)
 
 void DuMMForceFieldSubsystem::setOpenMMvelocities(float value)
 {
-    // getRep().openMMPluginIfc->setVelocitiesToTemperature(value);
+    getRep().openMMPluginIfc->setVelocitiesToTemperature(value);
+}
+
+void DuMMForceFieldSubsystem::OMM_updatePositions(const std::vector<SimTK::Vec3>& positions)
+{
+    getRep().openMMPluginIfc->updatePositions(positions);
 }
 
 bool DuMMForceFieldSubsystem::getAllowOpenMMReference() const

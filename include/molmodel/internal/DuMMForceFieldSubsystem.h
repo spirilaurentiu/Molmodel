@@ -1341,6 +1341,7 @@ float getOpenMMstepsize() const;
 void setOpenMMtemperature(float);
 float getOpenMMtemperature() const;
 void setOpenMMvelocities(float);
+void OMM_updatePositions(const std::vector<SimTK::Vec3>& positions);
 
 SimTK::Vec3 calcAtomLocationInGroundFrameThroughOMM( DuMM::AtomIndex daix ) const;
 void OMM_integrateTrajectory( int steps ) const;

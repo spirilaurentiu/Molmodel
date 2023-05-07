@@ -99,6 +99,8 @@ public:
        (const SimTK::Vector_<SimTK::Vec3>&  atomStation_G,
         const SimTK::Vector_<SimTK::Vec3>&  atomPos_G ) const;
 
+    void updatePositions(const std::vector<SimTK::Vec3>& positions);
+
     SimTK::Vec3 getAtomPosition( int dummAtomIndex );
     Real calcPotentialEnergy();
     Real calcKineticEnergy();
@@ -409,7 +411,7 @@ try {
 
 
     // OpenMM CONTEXT //
-    const char* dir = "/home/victor/Robosample/install/Debug/openmm/lib/plugins/";
+    const char* dir = "/home/victor/flex/Robosample/install/Debug/openmm/lib/plugins/";
     const auto pluginsLoaded = OpenMM::Platform::loadPluginsFromDirectory(dir);
 
     // We can also load one platform at a time
@@ -452,7 +454,8 @@ try {
     std::cout<<"SETTING INTEGRATOR in OPENMM "<<std::endl << dumm.stepsize <<std::endl << dumm.temperature <<std::endl<< std::flush;
     
     // try to create the context with the best platform
-    std::array<std::string, 4> AttemptedPlatforms = { "CUDA", "OpenCL", "CPU", "Reference" };
+    // std::array<std::string, 4> AttemptedPlatforms = { "CUDA", "OpenCL", "CPU", "Reference" };
+    std::array<std::string, 1> AttemptedPlatforms = { "CPU" };
     for (const auto& p : AttemptedPlatforms) {
         
         // is this requested platform registered
@@ -504,10 +507,6 @@ void OpenMMInterface::updateCoordInOpenMM
     assert(includedAtomPos_G.size()     == dumm.getNumIncludedAtoms());
     // assert(includedBodyForces_G.size()  == dumm.getNumIncludedBodies());
 
-    for (int i = 0; i < includedAtomPos_G.size(); i++) {
-        std::cout << "updateCoordInOpenMM " << i << " " << includedAtomPos_G[i] << "\n";
-    }
-
 
     // Positions arrive in an array of all included atoms. Compress that down
     // to just nonbond atoms and convert to OpenMM Vec3 type.
@@ -518,8 +517,20 @@ void OpenMMInterface::updateCoordInOpenMM
         positions[nax] = OpenMM::Vec3(pos[0], pos[1], pos[2]); 
     }
 
+    // for (int i = 0; i < includedAtomPos_G.size(); i++) {
+    //     std::cout << "updateCoordInOpenMM " << i << " " << includedAtomPos_G[i] << " " << positions[i] << "\n";
+    // }
+
     openMMContext->setPositions(positions);
 
+}
+
+void OpenMMInterface::updatePositions(const std::vector<SimTK::Vec3>& positions) {
+    std::vector<OpenMM::Vec3> p;
+    for (const auto& pos : positions) {
+        p.push_back(OpenMM::Vec3(pos[0], pos[1], pos[2]));
+    }
+    openMMContext->setPositions(p);
 }
 
 

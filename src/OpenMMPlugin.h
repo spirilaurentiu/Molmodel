@@ -47,6 +47,8 @@ public:
        (const SimTK::Vector_<SimTK::Vec3>&  atomStation_G,
         const SimTK::Vector_<SimTK::Vec3>&  atomPos_G) const = 0;
 
+    virtual void updatePositions(const std::vector<SimTK::Vec3>& positions) = 0;
+
     virtual SimTK::Vec3 getAtomPosition( int dummAtomIndex ) = 0;
     virtual SimTK::Real calcPotentialEnergy() =0;
     virtual SimTK::Real calcKineticEnergy() =0;
