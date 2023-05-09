@@ -305,6 +305,11 @@ extern "C" int getObcScaleFactors( int numberOfAtoms, const int* atomicNumber, R
             scaleFactor  = 0.85;
             break;
 
+         case 9: // Fluorine
+            
+            scaleFactor = 0.88;
+            break;
+
          case 12: // magnesium
 
             scaleFactor  = 0.85;
@@ -317,7 +322,7 @@ extern "C" int getObcScaleFactors( int numberOfAtoms, const int* atomicNumber, R
 
          case 16: // sulphur
 
-            scaleFactor  = 0.85;
+            scaleFactor  = 0.96;
             break;
 
          default:
@@ -373,6 +378,10 @@ extern "C" int getGbsaRadii( int numberOfAtoms, const int* atomicNumber,
 
    // loop over atoms
 
+   // Sulea T.A. has changed the values for most of these so they are similar to those used
+   // in the Amber forcefield, which was used as input to Robosample at time of writing (Q1-2023) 
+   // These are equivalent to the mbondi2 Generalized Born Parameter Set (iGBparm=6)
+
    for( int atomI = 0; atomI < numberOfAtoms; atomI++ ){
 
       // branch based on atomic number
@@ -385,108 +394,52 @@ extern "C" int getGbsaRadii( int numberOfAtoms, const int* atomicNumber,
             // radius is modified if heavy atom is N or O
             assert(atomicNumberOfHCovalentPartner[atomI] > 0);
             if( atomicNumberOfHCovalentPartner[atomI] == 7 ){
-               radius = 1.15;
+               radius = 1.3;
             } else if( atomicNumberOfHCovalentPartner[atomI] == 8 ){
-               radius = 1.05;
-            } else {
-               radius = 1.25;
+               radius = 1.2;
+            }else if( atomicNumberOfHCovalentPartner[atomI] == 16 ){
+               radius = 1.2;
             }
-            break;
-
-         case 3: // Li
-
-            radius = 2.432;
+            else {
+               radius = 1.2;
+            }
             break;
 
          case 6: // C
 
-            if( numberOfCovalentPartners[atomI] == 2 ){
-               radius = 1.825;
-            } else if( numberOfCovalentPartners[atomI] == 3 ){
-               radius = 1.875;
-            } else {
-               radius = 1.90;
-            }
+            radius = 1.7;
             break;
 
          case 7: // N
 
-            if( numberOfCovalentPartners[atomI] == 4 ){
-               radius = 1.625;
-            } else if( numberOfCovalentPartners[atomI] == 1 ){
-               radius = 1.60;
-            } else {
-               radius = 1.7063;
-            }
+            radius = 1.55;
             break;
 
          case 8: // O
 
-            if( numberOfCovalentPartners[atomI] == 1 ){
-               radius = 1.48;
-            } else {
-               radius = 1.535;
-            }
+            radius = 1.5;
             break;
 
-         case 9:
-            radius = 1.47;
+         case 9: // F
+            radius = 1.5;
             break;
-         case 10:
-            radius = 1.39;
+
+         case 14: // Si
+            radius = 2.1;
             break;
-         case 11:
-            radius = 1.992;
+
+         case 15: // P
+            radius = 1.85;
             break;
-         case 12:
-            //radius = 1.70;
-            // radius = 0.7926; // charged Mg +2
-        	radius = 1.527; // adjust to get -455.5 kcal/mol solvation free energy
+         case 16: // S
+            radius = 1.8;
             break;
-         case 14:
-            radius = 1.80;
+         case 17: // Cl
+            radius = 1.7;
             break;
-         case 15:
-            radius = 1.87;
-            break;
-         case 16:
-            radius = 1.775;
-            break;
-         case 17:
-            radius = 1.735;
-            break;
-         case 18:
-            radius = 1.70;
-            break;
-         case 19:
-            radius = 2.123;
-            break;
-         case 20:
-            radius = 1.817;
-            break;
-         case 35:
-            radius = 1.90;
-            break;
-         case 36:
-            radius = 1.812;
-            break;
-         case 37:
-            radius = 2.26;
-            break;
-         case 53:
-            radius = 2.10;
-            break;
-         case 54:
-            radius = 1.967;
-            break;
-         case 55:
-            radius = 2.507;
-            break;
-         case 56:
-            radius = 2.188;
-            break;
+
          default:
-            radius = 2.0;
+            radius = 1.5;
             break;
       }
          

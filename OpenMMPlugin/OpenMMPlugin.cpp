@@ -269,6 +269,28 @@ try {
                                       dumm.gbsaObcScaleFactors[nax]); 
         }
 
+    /* if (1){
+            std::cout << std::endl
+                      << "####\tGBSAOBCForce Info:\t####" << std::endl;
+            std::cout << "\tName: " << GBSAOBCForce->getName() << std::endl;
+            std::cout << "\tParticles present in GBSAOBCForce: " << GBSAOBCForce->getNumParticles() << std::endl;
+            std::cout << "\tUsesPBC: " << GBSAOBCForce->usesPeriodicBoundaryConditions() << std::endl;
+            std::cout << "\tgetCutoffDistance: " << GBSAOBCForce->getCutoffDistance() << std::endl;
+            std::cout << "\tgetNonbondedMethod: " << GBSAOBCForce->getNonbondedMethod() << std::endl;
+            std::cout << "\tgetSoluteDielectric: " << GBSAOBCForce->getSoluteDielectric() << std::endl;
+            std::cout << "\tgetSolventDielectric: " << GBSAOBCForce->getSolventDielectric() << std::endl;
+            std::cout << "\tgetSurfaceAreaEnergy: " << GBSAOBCForce->getSurfaceAreaEnergy() << std::endl;
+            for (int partIx = 0; partIx < GBSAOBCForce->getNumParticles(); partIx++)
+            {
+                double charge;
+                double radius;
+                double scaleFactor;
+                GBSAOBCForce->getParticleParameters(partIx, charge, radius, scaleFactor);
+                printf("\t%d %f %f %f \n", partIx, charge, radius, scaleFactor);
+            }
+            std::cout << std::endl;
+        } */
+
         // System takes over heap ownership of the force.
         openMMSystem->addForce(GBSAOBCForce);
     }
@@ -364,6 +386,7 @@ try {
                         if (bt.hasBuiltinTerm()) {
                             for ( int i=0; i < (int) bt.terms.size(); ++i)
                             {
+                                
                                 bondTorsion->addTorsion(a1num, a2num, a3num, a4num,
                                                         bt.terms[i].periodicity,
                                                         bt.terms[i].theta0,
@@ -380,28 +403,61 @@ try {
                     const IncludedAtom &a1 = dumm.getIncludedAtom(a1num);
 
                     // TODO: a1num is actually the 3rd one... check openmm order
-                    for (int b14=0; b14 < (int)a1.forceImproper14.size(); ++b14) {
+                    // for (int b14 = 0; b14 < (int)a1.forceImproper14.size(); ++b14)
+                    if ((int)a1.forceImproper14.size()>0)
+                    {
+                    for (int b14 = 0; b14 < 1; ++b14)
+                    {
+                        //printf("(size: %d)entered a1.forceImproper14: ", (int)a1.forceImproper14.size());
                         const DuMM::IncludedAtomIndex a2num = a1.forceImproper14[b14][0];
                         const DuMM::IncludedAtomIndex a3num = a1.forceImproper14[b14][1];
                         const DuMM::IncludedAtomIndex a4num = a1.forceImproper14[b14][2];
+
+                        /* printf("addImproper: a1num %d, a2num %d, a3num %d, a4num %d\n",
+                                a1num, a2num, a3num, a4num); */
 
                         const BondTorsion& bt = *a1.aImproperTorsion[b14];
 
                         if (bt.hasBuiltinTerm()) {
                             for ( int i=0; i < (int) bt.terms.size(); ++i)
                             {
-                                bondTorsion->addTorsion(a1num, a2num, a3num, a4num,
+                                //printf("%d %d %d %d\n", a2num, a3num, a1num, a4num);
+                                bondTorsion->addTorsion(a2num, a3num, a1num, a4num,
                                                         bt.terms[i].periodicity,
                                                         bt.terms[i].theta0,
                                                         bt.terms[i].amplitude);
                             }
                         }
                     }
+                    }
                 }
 
 
             }
         }
+
+        /* if (0){
+            std::cout << std::endl
+                      << "####\tPeriodicTorsionForce Info:\t####" << std::endl;
+            std::cout << "\tName: " << bondTorsion->getName() << std::endl;
+            std::cout << "\tTorsions present in bondTorsion: " << bondTorsion->getNumTorsions() << std::endl;
+            std::cout << "\tUsesPBC: " << bondTorsion->usesPeriodicBoundaryConditions() << std::endl
+                      << std::flush;
+            for (int torsionIx = 0; torsionIx < bondTorsion->getNumTorsions(); ++torsionIx)
+            {
+                int part1Ix;
+                int part2Ix;
+                int part3Ix;
+                int part4Ix;
+                int period;
+                double phase;
+                double k;
+                bondTorsion->getTorsionParameters(torsionIx, part1Ix, part2Ix, part3Ix, part4Ix, period, phase, k);
+                printf("\t%d %d %d %d %d %f %f \n", part1Ix, part2Ix, part3Ix, part4Ix, period, phase, k);
+            }
+            std::cout << std::endl;
+
+        } */
 
         openMMSystem->addForce(bondStretch);
         openMMSystem->addForce(bondBend);
@@ -438,18 +494,30 @@ try {
             logMessages.back() += "\n";
     }
 
+    // Print to stdout anyway
+    std::cout << "Loaded " + String(pluginsLoaded.size()) + " OpenMM plugins: ";
+    for (unsigned i=0; i < pluginsLoaded.size(); ++i){
+        std::cout << " " + pluginsLoaded[i] << std::endl;
+    }
+    std::cout << "OpenMM has " + String(nPlatforms) + " Platforms registered:" ;
+    for (int i = 0; i < nPlatforms; ++i) {
+        const OpenMM::Platform& platform = OpenMM::Platform::getPlatform(i);
+        std::cout <<  " " + platform.getName() << std::endl;
+    }
 
-
+    // Get an OpenMM integrator
     Real stepsize = 0.001;
     if( dumm.wantOpenMMIntegration ) stepsize = dumm.stepsize;
     openMMIntegrator = new OpenMM::VerletIntegrator(stepsize);
 
-
+    // Get an OpenMM thermostat
     Real temperature = 300;
     if( dumm.wantOpenMMIntegration) temperature = dumm.temperature;
     openMMThermostat = new OpenMM::AndersenThermostat (temperature, 1);
     openMMSystem->addForce(openMMThermostat);
 
+    std::cout<<"SETTING INTEGRATOR in OPENMM "
+    << dumm.stepsize << " " << dumm.temperature << std::endl;
 
     std::cout<<"SETTING INTEGRATOR in OPENMM "<<std::endl << dumm.stepsize <<std::endl << dumm.temperature <<std::endl<< std::flush;
     
@@ -505,7 +573,7 @@ void OpenMMInterface::updateCoordInOpenMM
 {
     assert(includedAtomStation_G.size() == dumm.getNumIncludedAtoms());
     assert(includedAtomPos_G.size()     == dumm.getNumIncludedAtoms());
-    // assert(includedBodyForces_G.size()  == dumm.getNumIncludedBodies());
+    //assert(includedBodyForces_G.size()  == dumm.getNumIncludedBodies());
 
 
     // Positions arrive in an array of all included atoms. Compress that down
