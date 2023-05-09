@@ -575,19 +575,19 @@ Real OpenMMInterface::calcKineticEnergy()
 //-----------------------------------------------------------------------------
 void OpenMMInterface::integrateTrajectory(int steps)
 {
-    OpenMM::State openMMState = openMMContext->getState( OpenMM::State::Positions );
-    for (const auto& p : openMMState.getPositions()) {
-        std::cout << "BEFORE " << p[0] << " " << p[1] << " " << p[2] << std::endl;
-    }
+    // OpenMM::State openMMState = openMMContext->getState( OpenMM::State::Positions );
+    // for (const auto& p : openMMState.getPositions()) {
+    //     std::cout << "BEFORE " << p[0] << " " << p[1] << " " << p[2] << std::endl;
+    // }
 
     std::cout<<"BEEEEEEEEEEEEEEG"<<std::endl <<"stepsize:"<< dumm.stepsize <<" temp "<< dumm.temperature << " steps: " << steps<< std::endl<< std::flush;
     openMMIntegrator->step(steps);
     std::cout<<"ENNNNNNNNNNNNNND"<<std::endl << std::flush;
 
-    openMMState = openMMContext->getState( OpenMM::State::Positions );
-    for (const auto& p : openMMState.getPositions()) {
-        std::cout << "AFTER " << p[0] << " " << p[1] << " " << p[2] << std::endl;
-    }
+    // openMMState = openMMContext->getState( OpenMM::State::Positions );
+    // for (const auto& p : openMMState.getPositions()) {
+    //     std::cout << "AFTER " << p[0] << " " << p[1] << " " << p[2] << std::endl;
+    // }
 }
 
 
