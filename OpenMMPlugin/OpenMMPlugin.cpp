@@ -470,7 +470,7 @@ try {
 #ifndef NDEBUG
     constexpr auto PLATFORM_DIR = "OPENMM_PLUGIN_PLATFORMS_DEBUG";
 #else
-    constexpr auto PLUGIN_DIR = "OPENMM_PLUGIN_PLATFORMS_RELEASE";
+    constexpr auto PLATFORM_DIR = "OPENMM_PLUGIN_PLATFORMS_RELEASE";
 #endif
 
     char* dir = std::getenv(PLATFORM_DIR);
