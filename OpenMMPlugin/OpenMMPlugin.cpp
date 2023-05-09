@@ -467,7 +467,22 @@ try {
 
 
     // OpenMM CONTEXT //
-    const char* dir = "/home/victor/flex/Robosample/install/Debug/openmm/lib/plugins/";
+#ifndef NDEBUG
+    constexpr auto PLATFORM_DIR = "OPENMM_PLUGIN_PLATFORMS_DEBUG";
+#else
+    constexpr auto PLUGIN_DIR = "OPENMM_PLUGIN_PLATFORMS_RELEASE";
+#endif
+
+    char* dir = std::getenv(PLATFORM_DIR);
+    if (!dir)
+    {
+        logMessages.push_back("ERROR: " + std::string(PLATFORM_DIR) + " not set.\n");
+        logMessages.back() += "         It should point to the OpenMM platforms directory (OpenMM install directory).\n";
+        logMessages.back() += "         To set it, use:\n";
+        logMessages.back() += "         export " + std::string(PLATFORM_DIR) + "=\"/path/to/platforms/\"\n";
+        throw std::runtime_error("ERROR: " + std::string(PLATFORM_DIR) + " not set.");
+    }
+
     const auto pluginsLoaded = OpenMM::Platform::loadPluginsFromDirectory(dir);
 
     // We can also load one platform at a time
@@ -522,29 +537,40 @@ try {
     std::cout<<"SETTING INTEGRATOR in OPENMM "<<std::endl << dumm.stepsize <<std::endl << dumm.temperature <<std::endl<< std::flush;
     
     // try to create the context with the best platform
-    // std::array<std::string, 4> AttemptedPlatforms = { "CUDA", "OpenCL", "CPU", "Reference" };
-    std::array<std::string, 1> AttemptedPlatforms = { "CPU" };
+    std::array<std::string, 4> AttemptedPlatforms = { "CUDA", "OpenCL", "CPU", "Reference" };
+    bool created = false;
     for (const auto& p : AttemptedPlatforms) {
         
         // is this requested platform registered
         if (std::find(RegisteredPlatforms.begin(), RegisteredPlatforms.end(), p) != RegisteredPlatforms.end())
         {
-            auto& platform = OpenMM::Platform::getPlatformByName(p);
-            openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator, platform);
-            const double speed = openMMContext->getPlatform().getSpeed();
+            try {
+                auto& platform = OpenMM::Platform::getPlatformByName(p);
+                openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator, platform);
+                const double speed = openMMContext->getPlatform().getSpeed();
 
-            if (speed <= 1 && !allowReferencePlatform) {
-                logMessages.push_back(
-                    "WARNING: DuMM: OpenMM not used: best available platform was "
-                        + p + " with relative speed=" + String(speed)
-                        + ".\nCall setAllowOpenMMReference() if you want to use this anyway.\n");
-                deleteOpenMM();
-                return "";
+                if (speed <= 1 && !allowReferencePlatform) {
+                    logMessages.push_back(
+                        "WARNING: DuMM: OpenMM not used: best available platform was "
+                            + p + " with relative speed=" + String(speed)
+                            + ".\nCall setAllowOpenMMReference() if you want to use this anyway.\n");
+                    deleteOpenMM();
+                    return "";
+                }
+
+                logMessages.push_back("NOTE: Created OpenMM context with " + p + " platform");
+                created = true;
+                break;
+            } catch (const std::exception& e) {
+                // Could not create this platform so log and try the next one
+                logMessages.push_back(std::string("WARNING: OpenMM error during initialization: ") + e.what());
+                continue;
             }
-
-            logMessages.push_back("NOTE: Created OpenMM context with " + p + " platform");
-            break;
         }
+    }
+
+    if (!created) {
+        throw std::runtime_error("ERROR: Not OpenMM platform could be created.");
     }
 
     return openMMContext->getPlatform().getName();
