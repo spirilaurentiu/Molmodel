@@ -246,6 +246,12 @@ try {
         nonbondedForce->createExceptionsFromBonds
                             (ommBonds, dumm.coulombScale14, dumm.vdwScale14);
 
+        // As per the OpenMM API, if we use both GBSA and a Nonbonded Cutoff
+        // we must disable the Reaction Field Approximation
+        if (dumm.gbsaGlobalScaleFactor != 0 && dumm.nonbondedMethod == 1) {
+                nonbondedForce->setReactionFieldDielectric(1.0);
+            }
+
         // System takes over heap ownership of the force.
         openMMSystem->addForce(nonbondedForce);
     }
@@ -256,6 +262,9 @@ try {
         OpenMM::GBSAOBCForce* GBSAOBCForce   = new OpenMM::GBSAOBCForce();
         GBSAOBCForce->setSolventDielectric(dumm.gbsaSolventDielectric);
         GBSAOBCForce->setSoluteDielectric(dumm.gbsaSoluteDielectric);
+
+        GBSAOBCForce->setCutoffDistance(dumm.nonbondedCutoff);
+        GBSAOBCForce->setNonbondedMethod(OpenMM::GBSAOBCForce::NonbondedMethod(dumm.nonbondedMethod));
 
         // Watch the units here. OpenMM works exclusively in MD (nm, kJ/mol). 
         // CPU GBSA uses Angstrom, kCal/mol.
