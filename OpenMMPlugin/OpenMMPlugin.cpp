@@ -65,10 +65,13 @@ using namespace SimTK;
 
 class OpenMMInterface : public OpenMMPluginInterface {
 public:
-    OpenMMInterface(const DuMMForceFieldSubsystemRep& dumm) 
-    : dumm(dumm), openMMSystem(0), openMMContext(0), openMMIntegrator(0) {}
+    OpenMMInterface(const DuMMForceFieldSubsystemRep& dumm) : dumm(dumm)
+    {
+    }
 
-    ~OpenMMInterface() {deleteOpenMM();}
+    ~OpenMMInterface() {
+        deleteOpenMM();
+    }
 
     // This reports the version of Molmodel which was current at the time
     // this plugin was compiled.
@@ -119,26 +122,27 @@ public:
 
     const DuMMForceFieldSubsystemRep& dumm;
 
-    OpenMM::System*             openMMSystem;
-    OpenMM::Context*            openMMContext;
-    OpenMM::Integrator*         openMMIntegrator;      
-    OpenMM::AndersenThermostat* openMMThermostat;
-
+    std::unique_ptr<OpenMM::System> openMMSystem;
+    std::unique_ptr<OpenMM::Context> openMMContext;
+    std::unique_ptr<OpenMM::Integrator> openMMIntegrator;      
+    std::unique_ptr<OpenMM::AndersenThermostat> openMMThermostat;
+    std::unique_ptr<OpenMM::NonbondedForce> nonbondedForce;
+    std::unique_ptr<OpenMM::GBSAOBCForce> GBSAOBCForce;
+    std::unique_ptr<OpenMM::HarmonicBondForce> bondStretch;
+    std::unique_ptr<OpenMM::HarmonicAngleForce> bondBend;
+    std::unique_ptr<OpenMM::PeriodicTorsionForce> bondTorsion;
     
 private:
     // Put this object back into its just-constructed condition.
     void deleteOpenMM() {
-        delete openMMIntegrator; openMMIntegrator=0;
-        delete openMMContext;    openMMContext=0;
-        delete openMMSystem;     openMMSystem=0;
+        // reset everything in the reverse order
+        // openmm takes ownership of the other pointers and get deleted here
+        // TODO however, they still seem to leak memory
+        openMMContext.reset();
+        openMMIntegrator.reset();
+        GBSAOBCForce.reset();
+        openMMSystem.reset();
     }
-
-// private:
-//     const DuMMForceFieldSubsystemRep& dumm;
-
-//     OpenMM::System*             openMMSystem;
-//     OpenMM::Context*            openMMContext;
-//     OpenMM::Integrator*         openMMIntegrator; // dummy
 };
 
 //-----------------------------------------------------------------------------
@@ -187,19 +191,17 @@ initializeOpenMM(bool allowReferencePlatform,
 
 try {
 
-        // OpenMM SYSTEM //
-
-    openMMSystem = new OpenMM::System();
+    // OpenMM SYSTEM //
+    openMMSystem = std::make_unique<OpenMM::System>();
     for (DuMM::NonbondAtomIndex nax(0); nax < dumm.getNumNonbondAtoms(); ++nax) {
         const Element& e = Element::getByAtomicNumber
            (dumm.getAtomElementNum(dumm.getAtomIndexOfNonbondAtom(nax)));
         openMMSystem->addParticle(e.getMass());
     }
 
-        // NONBONDED FORCES //
-
+    // NONBONDED FORCES //
     if (dumm.coulombGlobalScaleFactor!=0 || dumm.vdwGlobalScaleFactor!=0) {
-        OpenMM::NonbondedForce* nonbondedForce = new OpenMM::NonbondedForce();
+        nonbondedForce = std::make_unique<OpenMM::NonbondedForce>();
 
         nonbondedForce->setNonbondedMethod( OpenMM::NonbondedForce::NonbondedMethod( dumm.nonbondedMethod ) );
         nonbondedForce->setCutoffDistance( dumm.nonbondedCutoff );
@@ -250,21 +252,21 @@ try {
                             (ommBonds, dumm.coulombScale14, dumm.vdwScale14);
 
         // System takes over heap ownership of the force.
-        openMMSystem->addForce(nonbondedForce);
+        openMMSystem->addForce(nonbondedForce.get());
+        nonbondedForce.release();
     }
 
-        // GBSA //
-
+    // GBSA //
     if (dumm.gbsaGlobalScaleFactor != 0) {
-        OpenMM::GBSAOBCForce* GBSAOBCForce   = new OpenMM::GBSAOBCForce();
+        GBSAOBCForce = std::make_unique<OpenMM::GBSAOBCForce>();
         GBSAOBCForce->setSolventDielectric(dumm.gbsaSolventDielectric);
         GBSAOBCForce->setSoluteDielectric(dumm.gbsaSoluteDielectric);
 
         // Watch the units here. OpenMM works exclusively in MD (nm, kJ/mol). 
         // CPU GBSA uses Angstrom, kCal/mol.
-        for (DuMM::NonbondAtomIndex nax(0); nax < dumm.getNumNonbondAtoms(); 
-                                                                        ++nax) 
-        {   GBSAOBCForce->addParticle(dumm.gbsaAtomicPartialCharges[nax],
+        for (DuMM::NonbondAtomIndex nax(0); nax < dumm.getNumNonbondAtoms(); ++nax) 
+        {
+            GBSAOBCForce->addParticle(dumm.gbsaAtomicPartialCharges[nax],
                                       dumm.gbsaRadii[nax]*OpenMM::NmPerAngstrom,
                                       dumm.gbsaObcScaleFactors[nax]); 
         }
@@ -292,24 +294,20 @@ try {
         } */
 
         // System takes over heap ownership of the force.
-        openMMSystem->addForce(GBSAOBCForce);
+        openMMSystem->addForce(GBSAOBCForce.get());
+        GBSAOBCForce.release();
     }
 
-
-
-
     // BONDED
-
     if( ! dumm.wantOpenMMCalcOnlyNonBonded ){
 
         // TODO !!!!!
         // Be sure that nonbonded index order is equivalent...and all bonded atoms were added as particles
         // As it is now, it should work only with a fully flexible setup
 
-        OpenMM::HarmonicBondForce *bondStretch = new OpenMM::HarmonicBondForce();
-        OpenMM::HarmonicAngleForce     *bondBend    = new OpenMM::HarmonicAngleForce();
-        OpenMM::PeriodicTorsionForce   *bondTorsion = new OpenMM::PeriodicTorsionForce();
-
+        bondStretch = std::make_unique<OpenMM::HarmonicBondForce>();
+        bondBend = std::make_unique<OpenMM::HarmonicAngleForce>();
+        bondTorsion = std::make_unique<OpenMM::PeriodicTorsionForce>();
 
         for (DuMMIncludedBodyIndex incBodyIx(0);
              incBodyIx < dumm.getNumIncludedBodies(); ++incBodyIx) {
@@ -459,9 +457,14 @@ try {
 
         } */
 
-        openMMSystem->addForce(bondStretch);
-        openMMSystem->addForce(bondBend);
-        openMMSystem->addForce(bondTorsion);
+        openMMSystem->addForce(bondStretch.get());
+        bondStretch.release();
+
+        openMMSystem->addForce(bondBend.get());
+        bondBend.release();
+
+        openMMSystem->addForce(bondTorsion.get());
+        bondTorsion.release();
     }
 
 
@@ -488,7 +491,7 @@ try {
     // We can also load one platform at a time
     // OpenMM::Platform::loadPluginLibrary("libOpenMMCPU.so");
     
-    logMessages.push_back("NOTE: Loaded " + String(pluginsLoaded.size()) + " OpenMM plugins:\n");
+    logMessages.push_back("NOTE: Loaded " + String(pluginsLoaded.size()) + " OpenMM plugins from " + std::string(dir) + ":\n");
     for (unsigned i = 0; i < pluginsLoaded.size(); ++i)
     {
         logMessages.back() += " (" + String(i + 1) + "/" + String(pluginsLoaded.size()) + ") " + pluginsLoaded[i];
@@ -509,27 +512,28 @@ try {
             logMessages.back() += "\n";
     }
 
-    // Print to stdout anyway
-    std::cout << "Loaded " + String(pluginsLoaded.size()) + " OpenMM plugins: ";
-    for (unsigned i=0; i < pluginsLoaded.size(); ++i){
-        std::cout << " " + pluginsLoaded[i] << std::endl;
-    }
-    std::cout << "OpenMM has " + String(nPlatforms) + " Platforms registered:" ;
-    for (int i = 0; i < nPlatforms; ++i) {
-        const OpenMM::Platform& platform = OpenMM::Platform::getPlatform(i);
-        std::cout <<  " " + platform.getName() << std::endl;
-    }
+    // // Print to stdout anyway
+    // std::cout << "Loaded " + String(pluginsLoaded.size()) + " OpenMM plugins: ";
+    // for (unsigned i=0; i < pluginsLoaded.size(); ++i){
+    //     std::cout << " " + pluginsLoaded[i] << std::endl;
+    // }
+    // std::cout << "OpenMM has " + String(nPlatforms) + " Platforms registered:" ;
+    // for (int i = 0; i < nPlatforms; ++i) {
+    //     const OpenMM::Platform& platform = OpenMM::Platform::getPlatform(i);
+    //     std::cout <<  " " + platform.getName() << std::endl;
+    // }
 
     // Get an OpenMM integrator
     Real stepsize = 0.001;
     if( dumm.wantOpenMMIntegration ) stepsize = dumm.stepsize;
-    openMMIntegrator = new OpenMM::VerletIntegrator(stepsize);
+    openMMIntegrator = std::make_unique<OpenMM::VerletIntegrator>(stepsize);
 
     // Get an OpenMM thermostat
     Real temperature = 300;
     if( dumm.wantOpenMMIntegration) temperature = dumm.temperature;
-    openMMThermostat = new OpenMM::AndersenThermostat (temperature, 1);
-    openMMSystem->addForce(openMMThermostat);
+    openMMThermostat = std::make_unique<OpenMM::AndersenThermostat>(temperature, 1);
+    openMMSystem->addForce(openMMThermostat.get());
+    openMMThermostat.release();
 
     std::cout<<"SETTING INTEGRATOR in OPENMM "
     << dumm.stepsize << " " << dumm.temperature << std::endl;
@@ -546,7 +550,7 @@ try {
         {
             try {
                 auto& platform = OpenMM::Platform::getPlatformByName(p);
-                openMMContext = new OpenMM::Context(*openMMSystem, *openMMIntegrator, platform);
+                openMMContext = std::make_unique<OpenMM::Context>(*openMMSystem, *openMMIntegrator, platform);
                 const double speed = openMMContext->getPlatform().getSpeed();
 
                 if (speed <= 1 && !allowReferencePlatform) {
