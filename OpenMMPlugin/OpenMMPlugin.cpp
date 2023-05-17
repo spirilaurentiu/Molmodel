@@ -526,9 +526,7 @@ try {
     // Get an OpenMM integrator
     Real stepsize = 0.001;
     if( dumm.wantOpenMMIntegration ) stepsize = dumm.stepsize;
-    std::cout << "[---------------------------] openMMIntegrator was " << openMMIntegrator.get() << std::endl;
     openMMIntegrator = std::make_unique<OpenMM::VerletIntegrator>(stepsize);
-    std::cout << "[---------------------------] openMMIntegrator is " << openMMIntegrator.get() << std::endl;
 
     // Get an OpenMM thermostat
     Real temperature = 300;
