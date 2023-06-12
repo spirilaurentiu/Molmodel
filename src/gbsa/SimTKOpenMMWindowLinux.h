@@ -23,7 +23,7 @@
  */
 
 
-#ifndef __SimTKOpenMMWindowLinux_H_
+#ifndef __SimTKOpenMMWindowLinux_H__
 #define __SimTKOpenMMWindowLinux_H__
 
 #ifdef _WIN32

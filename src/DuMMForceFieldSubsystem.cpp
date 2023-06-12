@@ -1519,8 +1519,6 @@ int DuMMForceFieldSubsystem::getNumThreadsInUse() const
 bool DuMMForceFieldSubsystem::getUseOpenMMAcceleration() const
 {   return getRep().wantOpenMMAcceleration; }
 
-OpenMMPluginInterface* DuMMForceFieldSubsystem::getOpenMMPluginIfc() const
-{   return getRep().openMMPluginIfc; }
 
 void DuMMForceFieldSubsystem::setUseOpenMMAcceleration(bool use)
 {   invalidateSubsystemTopologyCache();
@@ -1546,17 +1544,22 @@ void DuMMForceFieldSubsystem::setUseOpenMMIntegration(bool use)
 
 
 Real DuMMForceFieldSubsystem::OMM_calcPotentialEnergy() const
-{ return getRep().openMMPluginIfc->calcPotentialEnergy();} 
+{ return getRep().openMMPlugin.calcPotentialEnergy();} 
 
 Real DuMMForceFieldSubsystem::OMM_calcKineticEnergy() const
-{ return getRep().openMMPluginIfc->calcKineticEnergy();} 
+{ return getRep().openMMPlugin.calcKineticEnergy();} 
 
-void DuMMForceFieldSubsystem::OMM_integrateTrajectory( int steps ) const
-{ return getRep().openMMPluginIfc->integrateTrajectory(steps);}  
+void DuMMForceFieldSubsystem::OMM_integrateTrajectory( int steps )
+{ return updRep().openMMPlugin.integrateTrajectory(steps);}  
 
 SimTK::Vec3 DuMMForceFieldSubsystem::calcAtomLocationInGroundFrameThroughOMM( DuMM::AtomIndex daix ) const
 {
-    return getRep().openMMPluginIfc->getAtomPosition(daix);
+    return getRep().openMMPlugin.getAtomPosition(daix);
+}
+
+const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::OMM_getPositions() const
+{
+    return getRep().openMMPlugin.getPositions();
 }
 
 float DuMMForceFieldSubsystem::getOpenMMstepsize() const
@@ -1573,22 +1576,19 @@ void DuMMForceFieldSubsystem::setOpenMMtemperature(float value)
 {   
     invalidateSubsystemTopologyCache();
     updRep().temperature = value;
-
-    if (getRep().openMMPluginIfc != nullptr) {
-        getRep().openMMPluginIfc->setVelocitiesToTemperature(value);
-    }
+    updRep().openMMPlugin.setVelocitiesToTemperature(value);
     
-    std::cout<<"SETTING TEMPERATURE in DUMM "<<std::endl << getRep().temperature <<std::endl<< std::flush;
+    // std::cout<<"SETTING TEMPERATURE in DUMM "<<std::endl << getRep().temperature <<std::endl<< std::flush;
 }
 
 void DuMMForceFieldSubsystem::setOpenMMvelocities(float value)
 {
-    getRep().openMMPluginIfc->setVelocitiesToTemperature(value);
+    updRep().openMMPlugin.setVelocitiesToTemperature(value);
 }
 
 void DuMMForceFieldSubsystem::OMM_updatePositions(const std::vector<SimTK::Vec3>& positions)
 {
-    getRep().openMMPluginIfc->updatePositions(positions);
+    updRep().openMMPlugin.updatePositions(positions);
 }
 
 bool DuMMForceFieldSubsystem::getAllowOpenMMReference() const

@@ -50,7 +50,7 @@
 #include "gbsa/ObcParameters.h"
 #include "gbsa/CpuObc.h"
 
-#include "OpenMMPlugin.h"
+#include "molmodel/internal/OpenMMPlugin.h"
 
 #include <string>
 #include <vector>
@@ -1512,7 +1512,6 @@ public:
         gbsaCpuObc = 0;
 
         usingOpenMM     = false;
-        openMMPluginIfc = 0;
 
         usingMultithreaded = false;
         numThreadsInUse   = 0;
@@ -1534,7 +1533,6 @@ public:
         delete gbsaExecutor;
         delete executor;
         delete gbsaCpuObc;
-        delete openMMPluginIfc;
     }
 
     // common checks when defining improper and proper torsions
@@ -1859,7 +1857,10 @@ public:
     // Override virtual methods from Subsystem::Guts class.
 
     DuMMForceFieldSubsystemRep* cloneImpl() const {
-        return new DuMMForceFieldSubsystemRep(*this);
+        // return new DuMMForceFieldSubsystemRep(*this);
+        // TODO fix this please
+        assert(!"NOT IMPLEMENTED");
+        return nullptr;
     }
 
     // Figure out the molecular topology and how the atoms are mapped
@@ -2130,8 +2131,6 @@ private:
 
         usingOpenMM = false;
         openMMPlatformInUse.clear();
-        delete openMMPluginIfc;     openMMPluginIfc = 0;
-        openMMPlugin.unload();  // nothing happens if it wasn't loaded
 
         usingMultithreaded = false;
         numThreadsInUse    = 0;
@@ -2489,8 +2488,7 @@ public:
     // Used for OpenMM acceleration
     bool                    usingOpenMM;
     std::string             openMMPlatformInUse; // empty if none
-    OpenMMPlugin            openMMPlugin;        // the DLL 
-    OpenMMPluginInterface*  openMMPluginIfc;     // the interface it provided
+    OpenMMPluginInterface   openMMPlugin;
 
     CacheEntryIndex         inclAtomStationCacheIndex;
     CacheEntryIndex         inclAtomPositionCacheIndex;

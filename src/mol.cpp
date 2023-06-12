@@ -12,7 +12,7 @@
  * molecule model module.                                     *
  *------------------------------------------------------------*/
 
-#include "mol.h"
+#include "molmodel/internal/mol.h"
 #include <iostream>
 /*============================================================*
  *                          a t o m                           *

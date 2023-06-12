@@ -54,19 +54,19 @@ using namespace SimTK;
 #define TRACE_OPENMM(STR) ;
 //#define TRACE_OPENMM(STR) printf("%s", STR);
 
-std::string exec(const char* cmd) {
-    std::array<char, 128> buffer;
-    std::string result;
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
-    if (!pipe) {
-	printf ("No pipe with error: %s\n",strerror(errno));
-        throw std::runtime_error("popen() failed!");
-    }
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-        result += buffer.data();
-    }
-    return result;
-}
+// std::string exec(const char* cmd) {
+    // std::array<char, 128> buffer;
+    // std::string result;
+    // std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+    // if (!pipe) {
+	// printf ("No pipe with error: %s\n",strerror(errno));
+        // throw std::runtime_error("popen() failed!");
+    // }
+    // while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        // result += buffer.data();
+    // }
+    // return result;
+// }
 
 
 // This is Coulomb's constant 1/(4*pi*e0) in units which convert
@@ -1404,64 +1404,18 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
     // Using "while" here just so we can break out; this won't ever loop. If we
     // decide to use OpenMM, the flag usingOpenMM will be set true.
     mutableThis->usingOpenMM = false;
-//    while (wantOpenMMAcceleration && getNumNonbondAtoms()) {
-    while (wantOpenMMAcceleration ) {
-        if (!mutableThis->openMMPlugin.load()) {
-            if (tracing)
-                std::clog << "WARNING: DuMM: Failed to load OpenMM plugin with message: "
-                    << openMMPlugin.getLastErrorMessage() << std::endl;
-            break;
-        }
-
-        if (tracing)
-            std::clog << "NOTE: DuMM: successfully loaded OpenMM plugin\n";
-
-        if (!openMMPlugin.has_SimTK_createOpenMMPluginInterface()) {
-            if (tracing)
-                std::clog
-                    << "WARNING: DuMM: OpenMM plugin "
-                    << openMMPlugin.getLoadedPathname()
-                    << " did not export required function SimTK_createOpenMMPluginInterface()"
-                    << " so can't be used.\n";
-            mutableThis->openMMPlugin.unload();
-            break;
-        }
-
-        mutableThis->openMMPluginIfc = openMMPlugin.SimTK_createOpenMMPluginInterface(*this);
-        if (!openMMPluginIfc) {
-            if (tracing)
-                std::clog << "WARNING: DuMM: Failed to get OpenMM interface from plugin.\n";
-            mutableThis->openMMPlugin.unload();
-            break;
-        }
-
-        if (tracing) {
-            std::clog << "NOTE: DuMM: successfully obtained OpenMM interface from plugin.\n";
-            std::clog << "NOTE: DuMM: OpenMM plugin was built with Molmodel version "
-                << openMMPluginIfc->getMolmodelVersion() << std::endl;
-        }
-
-        std::vector<std::string> messages;
-        mutableThis->openMMPlatformInUse =
-            openMMPluginIfc->initializeOpenMM(allowOpenMMReference, messages);
-
-        if (tracing)
-            for (unsigned i=0; i < messages.size(); ++i)
-                std::clog << messages[i] << std::endl;
+    if (wantOpenMMAcceleration ) {
+        mutableThis->openMMPlatformInUse = mutableThis->openMMPlugin.initializeOpenMM(allowOpenMMReference, this);
 
         if (openMMPlatformInUse.empty()) {
             if (tracing)
-                std::clog << "WARNING: DuMM: failed to initialize OpenMM\n";
-            delete mutableThis->openMMPluginIfc; mutableThis->openMMPluginIfc=0;
-            mutableThis->openMMPlugin.unload();
-            break;
+                std::cout << "WARNING: DuMM: failed to initialize OpenMM\n";
         }
 
         if (tracing)
-            std::clog << "NOTE: DuMM: using OpenMM platform '" << openMMPlatformInUse << "'\n";
+            std::cout << "NOTE: DuMM: using OpenMM platform '" << openMMPlatformInUse << "'\n";
 
         mutableThis->usingOpenMM = true;
-        break; // don't loop
     }
 
     if (!usingOpenMM) {
@@ -2445,14 +2399,13 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
 
         if (usingOpenMM) {
     //        TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: using OpenMM\n");
-            assert(openMMPluginIfc);
      //       TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: assert passed\n");
 
             // Calculate forces and energy.
             // TODO: should calculate energy only when it is asked for.
 
             TRACE_OPENMM (("BEFORE OpenMM\t" + std::to_string(energy) +  " \n").c_str());
-            openMMPluginIfc->calcOpenMMEnergyAndForces(
+            openMMPlugin.calcOpenMMEnergyAndForces(
                 inclAtomStation_G, inclAtomPos_G, true /*forces*/, true /*energy*/,
                 inclBodyForces_G, energy);
             TRACE_OPENMM (("AFTER OpenMM\t" + std::to_string(energy) +  " \n").c_str());

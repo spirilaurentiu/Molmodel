@@ -23,7 +23,7 @@
  */
 
 
-#ifndef __RealSimTk_H_
+#ifndef __RealSimTk_H__
 #define __RealSimTk_H__
 
 // Set RealOpenMMType to 2 for double precision, 1 for float

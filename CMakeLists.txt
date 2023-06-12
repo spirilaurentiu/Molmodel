@@ -69,8 +69,7 @@ set(LIBRARY_OUTPUT_PATH ${BUILD_BINARY_DIR})
 
 # Static libraries, tests, and examples won't be built unless this 
 # is set.
-SET(BUILD_STATIC_LIBRARIES FALSE CACHE BOOL
-"Build '_static' versions of libraries in addition to dynamic libraries?")
+SET(BUILD_STATIC_LIBRARIES TRUE)
 
 # Use this to generate a private set of libraries whose names
 # won't conflict with installed versions.
@@ -98,30 +97,30 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
 
 set(CMAKE_VERBOSE_MAKEFILE OFF CACHE BOOL "Control volume of build output" )
 
-set(OpenMM_ON OFF)
-find_package(OpenMM)
-if(OpenMM_FOUND)
-    set(OpenMM_ON ON)
-endif()
-set(MOLMODEL_USE_OpenMM ${OpenMM_ON} CACHE BOOL
-    "Control whether Molmodel builds the OpenMM Plugin (requires that OpenMM is installed on the build machine)." )
+# set(OpenMM_ON OFF)
+# find_package(OpenMM)
+# if(OpenMM_FOUND)
+#     set(OpenMM_ON ON)
+# endif()
+# set(MOLMODEL_USE_OpenMM ${OpenMM_ON} CACHE BOOL
+#     "Control whether Molmodel builds the OpenMM Plugin (requires that OpenMM is installed on the build machine)." )
 
 # Caution: this variable is automatically created by the CMake
 # ENABLE_TESTING() command, but we'll take it over here for
 # our own purposes too.
-set(BUILD_TESTING ON CACHE BOOL
+set(BUILD_TESTING OFF CACHE BOOL
 	"Control building of Molmodel test programs." )
 
-set(BUILD_EXAMPLES ON CACHE BOOL
+set(BUILD_EXAMPLES OFF CACHE BOOL
 	"Control building of Molmodel example programs." )
 
 # Turning this off reduces the build time (and space) substantially,
 # but you may miss the occasional odd bug. Also currently on Windows it
 # is easier to debug the static tests than the DLL-liked ones.
-SET( BUILD_TESTING_STATIC ON CACHE BOOL
+SET( BUILD_TESTING_STATIC OFF CACHE BOOL
     "If building static libraries, build static test and example programs too?" )
 
-SET( BUILD_TESTING_SHARED ON CACHE BOOL
+SET( BUILD_TESTING_SHARED OFF CACHE BOOL
     "If building test or example programs, include dynamically-linked ones?" )
 
 #
@@ -229,34 +228,35 @@ IF(UNIX AND NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE Release CACHE STRING "Debug or Release build" FORCE)
 ENDIF (UNIX AND NOT CMAKE_BUILD_TYPE)
 
+# # This will be initialized to the environment variable of the same name
+# # if it is set, otherwise it will be empty.
+# SET(ENV{SimTK_INSTALL_DIR} ${SimTK_INSTALL_PREFIX})
+# SET(SimTK_INSTALL_DIR $ENV{SimTK_INSTALL_DIR} CACHE
+#   PATH "Where to look for the Simbody libraries; you can change this.")
 
-# This will be initialized to the environment variable of the same name
-# if it is set, otherwise it will be empty.
-SET(ENV{SimTK_INSTALL_DIR} ${SimTK_INSTALL_PREFIX})
-SET(SimTK_INSTALL_DIR $ENV{SimTK_INSTALL_DIR} CACHE
-  PATH "Where to look for the Simbody libraries; you can change this.")
-
-# This should find Simbody in SimTK_SDK if it is set, otherwise hunt for it.
-find_package(Simbody REQUIRED) # CONFIG
+# # This should find Simbody in SimTK_SDK if it is set, otherwise hunt for it.
+# find_package(Simbody REQUIRED) # CONFIG
 include_directories(${Simbody_INCLUDE_DIR})
 link_directories(${Simbody_LIB_DIR})
 
-## Choose the maximum level of x86 instruction set that the compiler is 
-## allowed to use. SSE2 is ubiquitous enough now that we don't mind
-## abandoning machines that can't handle those instructions. SSE3 migh
-## also be reasonable by now (April 2009) so this default should be
-## revisited soon. This can be set to a different value by the person
-## running CMake.
-set(BUILD_INST_SET "sse2"  # use SSE2 instruction set by default
-    CACHE STRING "CPU instruction level compiler is permitted to use.")
-MARK_AS_ADVANCED( BUILD_INST_SET )
+INCLUDE_DIRECTORIES(${OpenMM_INCLUDE_DIR})
+
+# ## Choose the maximum level of x86 instruction set that the compiler is 
+# ## allowed to use. SSE2 is ubiquitous enough now that we don't mind
+# ## abandoning machines that can't handle those instructions. SSE3 migh
+# ## also be reasonable by now (April 2009) so this default should be
+# ## revisited soon. This can be set to a different value by the person
+# ## running CMake.
+# set(BUILD_INST_SET "sse2"  # use SSE2 instruction set by default
+#     CACHE STRING "CPU instruction level compiler is permitted to use.")
+# MARK_AS_ADVANCED( BUILD_INST_SET )
 
 ## When building in any of the Release modes, tell gcc to use full optimization and
 ## to generate SSE2 floating point instructions. Here we are specifying *all* of the
 ## Release flags, overriding CMake's defaults.
 ## Watch out for optimizer bugs in particular gcc versions!
 
-IF(${CMAKE_C_COMPILER} MATCHES "cc" OR ${CMAKE_C_COMPILER} MATCHES "clang")
+# IF(${CMAKE_C_COMPILER} MATCHES "cc" OR ${CMAKE_C_COMPILER} MATCHES "clang")
     # # string(TOLOWER ${BUILD_INST_SET} GCC_INST_SET)
     # SET(GCC_INST_SET "-march=native -mtune=native") # use the native architecture, not some generic sse2 optimizations
 
@@ -324,75 +324,75 @@ IF(${CMAKE_C_COMPILER} MATCHES "cc" OR ${CMAKE_C_COMPILER} MATCHES "clang")
     # SET(CMAKE_C_FLAGS_MINSIZEREL ${BUILD_C_FLAGS_MINSIZEREL}
     #     CACHE STRING "Can't change here -- see BUILD_C..." FORCE)
 
-ENDIF(${CMAKE_C_COMPILER} MATCHES "cc" OR ${CMAKE_C_COMPILER} MATCHES "clang")
+# ENDIF(${CMAKE_C_COMPILER} MATCHES "cc" OR ${CMAKE_C_COMPILER} MATCHES "clang")
 
 ## When building in any of the Release modes, tell VC++ cl compiler to use intrinsics 
 ## (i.e. sqrt instruction rather than sqrt subroutine) with flag /Oi.
 
-IF(WIN32 AND ${CMAKE_C_COMPILER} MATCHES "cl")
-    STRING(TOUPPER ${BUILD_INST_SET} CL_INST_SET)
+# IF(WIN32 AND ${CMAKE_C_COMPILER} MATCHES "cl")
+#     STRING(TOUPPER ${BUILD_INST_SET} CL_INST_SET)
 
-    ## C++
-    SET(BUILD_CXX_FLAGS_DEBUG        
-	"/D _DEBUG /MDd /Od /Ob0 /RTC1 /Zi /GS- /arch:${CL_INST_SET}" 
-        CACHE STRING "VC++ Debug build compile flags")
-    SET(BUILD_CXX_FLAGS_RELEASE        
-	"/D NDEBUG /MD  /O2 /Ob2 /Oi /GS- /arch:${CL_INST_SET}" 
-        CACHE STRING "VC++ Release build compile flags")
-    SET(BUILD_CXX_FLAGS_RELWITHDEBINFO 
-	"/D NDEBUG /MD  /O2 /Ob2 /Oi /Zi /GS- /arch:${CL_INST_SET}" 
-        CACHE STRING "VC++ RelWithDebInfo build compile flags")
-    SET(BUILD_CXX_FLAGS_MINSIZEREL 
-	"/D NDEBUG /MD  /O1 /Ob1 /Oi /GS- /arch:${CL_INST_SET}" 
-        CACHE STRING "VC++ MinSizeRel build compile flags")
+#     ## C++
+#     SET(BUILD_CXX_FLAGS_DEBUG        
+# 	"/D _DEBUG /MDd /Od /Ob0 /RTC1 /Zi /GS- /arch:${CL_INST_SET}" 
+#         CACHE STRING "VC++ Debug build compile flags")
+#     SET(BUILD_CXX_FLAGS_RELEASE        
+# 	"/D NDEBUG /MD  /O2 /Ob2 /Oi /GS- /arch:${CL_INST_SET}" 
+#         CACHE STRING "VC++ Release build compile flags")
+#     SET(BUILD_CXX_FLAGS_RELWITHDEBINFO 
+# 	"/D NDEBUG /MD  /O2 /Ob2 /Oi /Zi /GS- /arch:${CL_INST_SET}" 
+#         CACHE STRING "VC++ RelWithDebInfo build compile flags")
+#     SET(BUILD_CXX_FLAGS_MINSIZEREL 
+# 	"/D NDEBUG /MD  /O1 /Ob1 /Oi /GS- /arch:${CL_INST_SET}" 
+#         CACHE STRING "VC++ MinSizeRel build compile flags")
 
-    ## C
-    SET(BUILD_C_FLAGS_DEBUG        
-	"/D _DEBUG /MDd /Od /Ob0 /RTC1 /Zi /GS- /arch:${CL_INST_SET}" 
-        CACHE STRING "VC Debug build compile flags")
-    SET(BUILD_C_FLAGS_RELEASE        
-	"/D NDEBUG /MD  /O2 /Ob2 /Oi /GS- /arch:${CL_INST_SET}" 
-        CACHE STRING "VC Release build compile flags")
-    SET(BUILD_C_FLAGS_RELWITHDEBINFO 
-	"/D NDEBUG /MD  /O2 /Ob2 /Oi /Zi /GS- /arch:${CL_INST_SET}" 
-        CACHE STRING "VC RelWithDebInfo build compile flags")
-    SET(BUILD_C_FLAGS_MINSIZEREL 
-	"/D NDEBUG /MD  /O1 /Ob1 /Oi /GS- /arch:${CL_INST_SET}" 
-        CACHE STRING "VC MinSizeRel build compile flags")
+#     ## C
+#     SET(BUILD_C_FLAGS_DEBUG        
+# 	"/D _DEBUG /MDd /Od /Ob0 /RTC1 /Zi /GS- /arch:${CL_INST_SET}" 
+#         CACHE STRING "VC Debug build compile flags")
+#     SET(BUILD_C_FLAGS_RELEASE        
+# 	"/D NDEBUG /MD  /O2 /Ob2 /Oi /GS- /arch:${CL_INST_SET}" 
+#         CACHE STRING "VC Release build compile flags")
+#     SET(BUILD_C_FLAGS_RELWITHDEBINFO 
+# 	"/D NDEBUG /MD  /O2 /Ob2 /Oi /Zi /GS- /arch:${CL_INST_SET}" 
+#         CACHE STRING "VC RelWithDebInfo build compile flags")
+#     SET(BUILD_C_FLAGS_MINSIZEREL 
+# 	"/D NDEBUG /MD  /O1 /Ob1 /Oi /GS- /arch:${CL_INST_SET}" 
+#         CACHE STRING "VC MinSizeRel build compile flags")
 
-    ## C++
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-    SET(CMAKE_CXX_FLAGS_DEBUG ${BUILD_CXX_FLAGS_DEBUG}
-        CACHE STRING "Can't change here -- see BUILD_CXX..." FORCE)
-    SET(CMAKE_CXX_FLAGS_RELEASE ${BUILD_CXX_FLAGS_RELEASE}
-        CACHE STRING "Can't change here -- see BUILD_CXX..." FORCE)
-    SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO ${BUILD_CXX_FLAGS_RELWITHDEBINFO}
-        CACHE STRING "Can't change here -- see BUILD_CXX..." FORCE)
-    SET(CMAKE_CXX_FLAGS_MINSIZEREL ${BUILD_CXX_FLAGS_MINSIZEREL}
-        CACHE STRING "Can't change here -- see BUILD_CXX..." FORCE)
+#     ## C++
+#     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+#     SET(CMAKE_CXX_FLAGS_DEBUG ${BUILD_CXX_FLAGS_DEBUG}
+#         CACHE STRING "Can't change here -- see BUILD_CXX..." FORCE)
+#     SET(CMAKE_CXX_FLAGS_RELEASE ${BUILD_CXX_FLAGS_RELEASE}
+#         CACHE STRING "Can't change here -- see BUILD_CXX..." FORCE)
+#     SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO ${BUILD_CXX_FLAGS_RELWITHDEBINFO}
+#         CACHE STRING "Can't change here -- see BUILD_CXX..." FORCE)
+#     SET(CMAKE_CXX_FLAGS_MINSIZEREL ${BUILD_CXX_FLAGS_MINSIZEREL}
+#         CACHE STRING "Can't change here -- see BUILD_CXX..." FORCE)
 
-    ## C
-    SET(CMAKE_C_FLAGS_DEBUG ${BUILD_C_FLAGS_DEBUG}
-        CACHE STRING "Can't change here -- see BUILD_C_..." FORCE)
-    SET(CMAKE_C_FLAGS_RELEASE ${BUILD_C_FLAGS_RELEASE}
-        CACHE STRING "Can't change here -- see BUILD_C_..." FORCE)
-    SET(CMAKE_C_FLAGS_RELWITHDEBINFO ${BUILD_C_FLAGS_RELWITHDEBINFO}
-        CACHE STRING "Can't change here -- see BUILD_C_..." FORCE)
-    SET(CMAKE_C_FLAGS_MINSIZEREL ${BUILD_C_FLAGS_MINSIZEREL}
-        CACHE STRING "Can't change here -- see BUILD_C_..." FORCE)
+#     ## C
+#     SET(CMAKE_C_FLAGS_DEBUG ${BUILD_C_FLAGS_DEBUG}
+#         CACHE STRING "Can't change here -- see BUILD_C_..." FORCE)
+#     SET(CMAKE_C_FLAGS_RELEASE ${BUILD_C_FLAGS_RELEASE}
+#         CACHE STRING "Can't change here -- see BUILD_C_..." FORCE)
+#     SET(CMAKE_C_FLAGS_RELWITHDEBINFO ${BUILD_C_FLAGS_RELWITHDEBINFO}
+#         CACHE STRING "Can't change here -- see BUILD_C_..." FORCE)
+#     SET(CMAKE_C_FLAGS_MINSIZEREL ${BUILD_C_FLAGS_MINSIZEREL}
+#         CACHE STRING "Can't change here -- see BUILD_C_..." FORCE)
 
-ENDIF(WIN32 AND ${CMAKE_C_COMPILER} MATCHES "cl")
+# ENDIF(WIN32 AND ${CMAKE_C_COMPILER} MATCHES "cl")
 
-MARK_AS_ADVANCED(
-    BUILD_CXX_FLAGS_DEBUG
-    BUILD_CXX_FLAGS_RELEASE
-    BUILD_CXX_FLAGS_RELWITHDEBINFO
-    BUILD_CXX_FLAGS_MINSIZEREL
-    BUILD_C_FLAGS_DEBUG
-    BUILD_C_FLAGS_RELEASE
-    BUILD_C_FLAGS_RELWITHDEBINFO
-    BUILD_C_FLAGS_MINSIZEREL
-)
+# MARK_AS_ADVANCED(
+#     BUILD_CXX_FLAGS_DEBUG
+#     BUILD_CXX_FLAGS_RELEASE
+#     BUILD_CXX_FLAGS_RELWITHDEBINFO
+#     BUILD_CXX_FLAGS_MINSIZEREL
+#     BUILD_C_FLAGS_DEBUG
+#     BUILD_C_FLAGS_RELEASE
+#     BUILD_C_FLAGS_RELWITHDEBINFO
+#     BUILD_C_FLAGS_MINSIZEREL
+# )
 
 # The source is organized into subdirectories, but we handle them all from
 # this CMakeLists file rather than letting CMake visit them as SUBDIRS.
@@ -544,46 +544,47 @@ FOREACH(subdir ${MOLMODEL_SOURCE_SUBDIRS})
 ENDFOREACH(subdir)
 
 INCLUDE_DIRECTORIES(BEFORE ${PROJECT_SOURCE_DIR}/src)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/Molmodel/src)
 
 #
 # Allow automated build and dashboard.
 #
 INCLUDE (Dart)
 
-IF (BUILD_TESTING)
-    #IF (UNIX AND NOT CYGWIN AND NOT APPLE)
-    #  IF (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE MATCHES Debug)
-    #    ADD_DEFINITIONS(-fprofile-arcs -ftest-coverage)
-    #    LINK_LIBRARIES(gcov)
-    #  ENDIF (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE MATCHES Debug)
-    #ENDIF (UNIX AND NOT CYGWIN AND NOT APPLE)
+# IF (BUILD_TESTING)
+#     #IF (UNIX AND NOT CYGWIN AND NOT APPLE)
+#     #  IF (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE MATCHES Debug)
+#     #    ADD_DEFINITIONS(-fprofile-arcs -ftest-coverage)
+#     #    LINK_LIBRARIES(gcov)
+#     #  ENDIF (NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE MATCHES Debug)
+#     #ENDIF (UNIX AND NOT CYGWIN AND NOT APPLE)
 
-    #
-    # Testing
-    #
-    ENABLE_TESTING()
+#     #
+#     # Testing
+#     #
+#     ENABLE_TESTING()
 
-ENDIF (BUILD_TESTING)
+# ENDIF (BUILD_TESTING)
 
-INCLUDE(ApiDoxygen.cmake)
+# INCLUDE(ApiDoxygen.cmake)
 
-# libraries are installed from their subdirectories; headers here
+# # libraries are installed from their subdirectories; headers here
 
-# install headers
-FILE(GLOB CORE_HEADERS     include/*.h                  */include/*.h)
-#HOREA this hack is to provide to gmodmodel access to some internal headers... practically... a hack
-FILE(GLOB CORE_HEADERS_APP	   src/*h                       */src/*h )
-FILE(GLOB TOP_HEADERS      include/molmodel/*.h          */include/molmodel/*.h)
-FILE(GLOB INTERNAL_HEADERS include/molmodel/internal/*.h */include/molmodel/internal/*.h)
-INSTALL_FILES(/include/                 FILES ${CORE_HEADERS})
-#HOREA
-INSTALL_FILES(/include/			FILES ${CORE_HEADERS_APP})
-INSTALL_FILES(/include/molmodel/         FILES ${TOP_HEADERS})
-INSTALL_FILES(/include/molmodel/internal FILES ${INTERNAL_HEADERS})
+# # install headers
+# FILE(GLOB CORE_HEADERS     include/*.h                  */include/*.h)
+# #HOREA this hack is to provide to gmodmodel access to some internal headers... practically... a hack
+# FILE(GLOB CORE_HEADERS_APP	   src/*h                       */src/*h )
+# FILE(GLOB TOP_HEADERS      include/molmodel/*.h          */include/molmodel/*.h)
+# FILE(GLOB INTERNAL_HEADERS include/molmodel/internal/*.h */include/molmodel/internal/*.h)
+# INSTALL_FILES(/include/                 FILES ${CORE_HEADERS})
+# #HOREA
+# INSTALL_FILES(/include/			FILES ${CORE_HEADERS_APP})
+# INSTALL_FILES(/include/molmodel/         FILES ${TOP_HEADERS})
+# INSTALL_FILES(/include/molmodel/internal FILES ${INTERNAL_HEADERS})
 
-# Install documents.
-FILE(GLOB TOPLEVEL_DOCS doc/*.pdf doc/*.txt)
-INSTALL(FILES ${TOPLEVEL_DOCS} DESTINATION doc)
+# # Install documents.
+# FILE(GLOB TOPLEVEL_DOCS doc/*.pdf doc/*.txt)
+# INSTALL(FILES ${TOPLEVEL_DOCS} DESTINATION doc)
 
 # These are at the end because we want them processed after
 # all the various variables have been set above.
@@ -591,18 +592,14 @@ INSTALL(FILES ${TOPLEVEL_DOCS} DESTINATION doc)
 IF(BUILD_STATIC_LIBRARIES)
         ADD_SUBDIRECTORY( staticTarget )
 ENDIF()
-ADD_SUBDIRECTORY( sharedTarget )
+# ADD_SUBDIRECTORY( sharedTarget )
 
-IF (MOLMODEL_USE_OpenMM)
-    ADD_SUBDIRECTORY( OpenMMPlugin )
-ENDIF (MOLMODEL_USE_OpenMM)
+# IF( BUILD_EXAMPLES )
+#   ADD_SUBDIRECTORY( examples )
+# ENDIF()
 
-IF( BUILD_EXAMPLES )
-  ADD_SUBDIRECTORY( examples )
-ENDIF()
-
-IF( BUILD_TESTING )
-  ADD_SUBDIRECTORY( tests )
-ENDIF()
+# IF( BUILD_TESTING )
+#   ADD_SUBDIRECTORY( tests )
+# ENDIF()
 
 
