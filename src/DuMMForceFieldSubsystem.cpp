@@ -1778,15 +1778,21 @@ void DuMMForceFieldSubsystem::OMM_integrateTrajectory( int steps )
 SimTK::Vec3 DuMMForceFieldSubsystem::calcAtomLocationInGroundFrameThroughOMM( DuMM::AtomIndex daix ) const
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b67f988 (unified build)
     return getRep().openMMPlugin.getAtomPosition(daix);
 }
 
 const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::OMM_getPositions() const
 {
     return getRep().openMMPlugin.getPositions();
+<<<<<<< HEAD
 =======
     return getRep().openMMPluginIfc->getAtomPosition(daix);
 >>>>>>> 9ffb79c (merge attempt 1)
+=======
+>>>>>>> b67f988 (unified build)
 }
 
 float DuMMForceFieldSubsystem::getOpenMMstepsize() const
@@ -1804,6 +1810,7 @@ void DuMMForceFieldSubsystem::setOpenMMtemperature(float value)
     invalidateSubsystemTopologyCache();
     updRep().temperature = value;
 <<<<<<< HEAD
+<<<<<<< HEAD
     updRep().openMMPlugin.setVelocitiesToTemperature(value);
     
     // std::cout<<"SETTING TEMPERATURE in DUMM "<<std::endl << getRep().temperature <<std::endl<< std::flush;
@@ -1815,20 +1822,30 @@ void DuMMForceFieldSubsystem::setOpenMMtemperature(float value)
     
     std::cout<<"SETTING TEMPERATURE in DUMM "<<std::endl << getRep().temperature <<std::endl<< std::flush;
 >>>>>>> e2d0903 (openmm fix attempt)
+=======
+    updRep().openMMPlugin.setVelocitiesToTemperature(value);
+    
+    // std::cout<<"SETTING TEMPERATURE in DUMM "<<std::endl << getRep().temperature <<std::endl<< std::flush;
+>>>>>>> b67f988 (unified build)
 }
 
 void DuMMForceFieldSubsystem::setOpenMMvelocities(float value)
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     updRep().openMMPlugin.setVelocitiesToTemperature(value);
 =======
     getRep().openMMPluginIfc->setVelocitiesToTemperature(value);
 >>>>>>> 7593573 (fixed for a single world)
+=======
+    updRep().openMMPlugin.setVelocitiesToTemperature(value);
+>>>>>>> b67f988 (unified build)
 }
 
 void DuMMForceFieldSubsystem::OMM_updatePositions(const std::vector<SimTK::Vec3>& positions)
 {
+<<<<<<< HEAD
 <<<<<<< HEAD
     updRep().openMMPlugin.updatePositions(positions);
 =======
@@ -1837,6 +1854,9 @@ void DuMMForceFieldSubsystem::OMM_updatePositions(const std::vector<SimTK::Vec3>
 =======
     getRep().openMMPluginIfc->updatePositions(positions);
 >>>>>>> 7593573 (fixed for a single world)
+=======
+    updRep().openMMPlugin.updatePositions(positions);
+>>>>>>> b67f988 (unified build)
 }
 
 bool DuMMForceFieldSubsystem::getAllowOpenMMReference() const

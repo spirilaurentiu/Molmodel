@@ -576,10 +576,17 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                              Transform());
                     unit.bodyId = freeBody.getMobilizedBodyIndex();
 <<<<<<< HEAD
+<<<<<<< HEAD
                     // std::cout << " got obligated Free mobodIx " << unit.bodyId << std::endl;
 =======
                     //std::cout << " got obligated Free mobodIx " << unit.bodyId << std::endl;
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
+=======
+                    //std::cout << " got obligated Free mobodIx " << unit.bodyId << std::endl;
+=======
+                    // std::cout << " got obligated Free mobodIx " << unit.bodyId << std::endl;
+>>>>>>> 1717afc (unified build)
+>>>>>>> b67f988 (unified build)
                 }else if (mobilizedBodyType.compare("Cartesian") == 0) {
                         MobilizedBody::Translation cartesianBody
                                 (matter.Ground(),
@@ -588,10 +595,17 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                                  Transform());
                         unit.bodyId = cartesianBody.getMobilizedBodyIndex();
 <<<<<<< HEAD
+<<<<<<< HEAD
                         // std::cout << " got initial Cartesian mobodIx " << unit.bodyId << std::endl;
 =======
                         //std::cout << " got initial Cartesian mobodIx " << unit.bodyId << std::endl;
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
+=======
+                        //std::cout << " got initial Cartesian mobodIx " << unit.bodyId << std::endl;
+=======
+                        // std::cout << " got initial Cartesian mobodIx " << unit.bodyId << std::endl;
+>>>>>>> 1717afc (unified build)
+>>>>>>> b67f988 (unified build)
                 } else if (mobilizedBodyType.compare("Weld") == 0) {
 		            MobilizedBody::Weld weldBody
                        (matter.Ground(), 
@@ -600,10 +614,17 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 					    Transform());
 		            unit.bodyId = weldBody.getMobilizedBodyIndex();
 <<<<<<< HEAD
+<<<<<<< HEAD
                     // std::cout << " got Weld mobodIx " << unit.bodyId << std::endl;
 =======
                     //std::cout << " got Weld mobodIx " << unit.bodyId << std::endl;
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
+=======
+                    //std::cout << " got Weld mobodIx " << unit.bodyId << std::endl;
+=======
+                    // std::cout << " got Weld mobodIx " << unit.bodyId << std::endl;
+>>>>>>> 1717afc (unified build)
+>>>>>>> b67f988 (unified build)
                 }else if (mobilizedBodyType.compare("FreeLine") == 0) {
                     MobilizedBody::FreeLine freeLineBody
                             (matter.Ground(),
@@ -612,10 +633,17 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                              Transform());
                     unit.bodyId = freeLineBody.getMobilizedBodyIndex();
 <<<<<<< HEAD
+<<<<<<< HEAD
                     // std::cout << " got Weld mobodIx " << unit.bodyId << std::endl;
 =======
                     //std::cout << " got Weld mobodIx " << unit.bodyId << std::endl;
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
+=======
+                    //std::cout << " got Weld mobodIx " << unit.bodyId << std::endl;
+=======
+                    // std::cout << " got Weld mobodIx " << unit.bodyId << std::endl;
+>>>>>>> 1717afc (unified build)
+>>>>>>> b67f988 (unified build)
                 }else if (mobilizedBodyType.compare("Ball") == 0) {
                     MobilizedBody::Ball ballBody
                             (matter.Ground(),
@@ -624,10 +652,17 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                              Transform());
                     unit.bodyId = ballBody.getMobilizedBodyIndex();
 <<<<<<< HEAD
+<<<<<<< HEAD
                     // std::cout << " got Ball mobodIx " << unit.bodyId << std::endl;
 =======
                     //std::cout << " got Ball mobodIx " << unit.bodyId << std::endl;
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
+=======
+                    //std::cout << " got Ball mobodIx " << unit.bodyId << std::endl;
+=======
+                    // std::cout << " got Ball mobodIx " << unit.bodyId << std::endl;
+>>>>>>> 1717afc (unified build)
+>>>>>>> b67f988 (unified build)
                 }else if (mobilizedBodyType.compare("Pin") == 0) {
                     MobilizedBody::Pin pinBody
                             (matter.Ground(),
@@ -636,10 +671,17 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                              Transform());
                     unit.bodyId = pinBody.getMobilizedBodyIndex();
 <<<<<<< HEAD
+<<<<<<< HEAD
                     // std::cout << " got Pin mobodIx " << unit.bodyId << std::endl;
 =======
                     //std::cout << " got Pin mobodIx " << unit.bodyId << std::endl;
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
+=======
+                    //std::cout << " got Pin mobodIx " << unit.bodyId << std::endl;
+=======
+                    // std::cout << " got Pin mobodIx " << unit.bodyId << std::endl;
+>>>>>>> 1717afc (unified build)
+>>>>>>> b67f988 (unified build)
                 }
                 dumm.attachClusterToBody(unit.clusterIx, unit.bodyId);
             }
@@ -824,11 +866,19 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                     torsionBody.setDefaultAngle(0); // no chem change to 0 for chem
                     unit.bodyId = torsionBody.getMobilizedBodyIndex();
 <<<<<<< HEAD
+<<<<<<< HEAD
                     // std::cout << " got Pin mobodIx " << unit.bodyId << std::endl;
 =======
                     //std::cout << " got Pin mobodIx " << unit.bodyId << std::endl;
                     std::cout << " Pin";
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
+=======
+                    //std::cout << " got Pin mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " Pin";
+=======
+                    // std::cout << " got Pin mobodIx " << unit.bodyId << std::endl;
+>>>>>>> 1717afc (unified build)
+>>>>>>> b67f988 (unified build)
                     // GMOL END */
 
                 }else if(bond.getMobility() == BondMobility::AnglePin) {
@@ -843,11 +893,19 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                    bond.setAnglePinBody(anglePinBody, 0);
                    unit.bodyId = anglePinBody.getMobilizedBodyIndex();
 <<<<<<< HEAD
+<<<<<<< HEAD
                    // std::cout << " got AnglePin mobodIx " << unit.bodyId << std::endl;
 =======
                    //std::cout << " got AnglePin mobodIx " << unit.bodyId << std::endl;
                     std::cout << " aPin";
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
+=======
+                   //std::cout << " got AnglePin mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " aPin";
+=======
+                   // std::cout << " got AnglePin mobodIx " << unit.bodyId << std::endl;
+>>>>>>> 1717afc (unified build)
+>>>>>>> b67f988 (unified build)
 
                 }else if(bond.getMobility() == BondMobility::BendStretch) {
 
@@ -861,11 +919,19 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                    bond.setBendStretchBody(bendStretchBody, 0, 0);
                    unit.bodyId = bendStretchBody.getMobilizedBodyIndex();
 <<<<<<< HEAD
+<<<<<<< HEAD
                    // std::cout << " got BendStretch mobodIx " << unit.bodyId << std::endl;
 =======
                    //std::cout << " got BendStretch mobodIx " << unit.bodyId << std::endl;
                     std::cout << " BeSt";
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
+=======
+                   //std::cout << " got BendStretch mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " BeSt";
+=======
+                   // std::cout << " got BendStretch mobodIx " << unit.bodyId << std::endl;
+>>>>>>> 1717afc (unified build)
+>>>>>>> b67f988 (unified build)
 
                }else if(bond.getMobility() == BondMobility::Slider) {
 
@@ -879,11 +945,19 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                    bond.setSliderBody(sliderBody, 0);
                    unit.bodyId = sliderBody.getMobilizedBodyIndex();
 <<<<<<< HEAD
+<<<<<<< HEAD
                    // std::cout << " got Slider mobodIx " << unit.bodyId << std::endl;
 =======
                    //std::cout << " got Slider mobodIx " << unit.bodyId << std::endl;
                     std::cout << " Sli";
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
+=======
+                   //std::cout << " got Slider mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " Sli";
+=======
+                   // std::cout << " got Slider mobodIx " << unit.bodyId << std::endl;
+>>>>>>> 1717afc (unified build)
+>>>>>>> b67f988 (unified build)
 
                } else if(bond.getMobility() == BondMobility::BallF) {
 
@@ -895,15 +969,26 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                     );
 
 <<<<<<< HEAD
+<<<<<<< HEAD
                         bond.setBallFBody(ballBody, 0);
                         unit.bodyId = ballBody.getMobilizedBodyIndex();
                         // std::cout << " got BallF mobodIx " << unit.bodyId << std::endl;
 =======
+=======
+>>>>>>> b67f988 (unified build)
                     bond.setBallFBody(ballBody, 0);
                     unit.bodyId = ballBody.getMobilizedBodyIndex();
                     //std::cout << " got BallF mobodIx " << unit.bodyId << std::endl;
                     std::cout << " BalF";
+<<<<<<< HEAD
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
+=======
+=======
+                        bond.setBallFBody(ballBody, 0);
+                        unit.bodyId = ballBody.getMobilizedBodyIndex();
+                        // std::cout << " got BallF mobodIx " << unit.bodyId << std::endl;
+>>>>>>> 1717afc (unified build)
+>>>>>>> b67f988 (unified build)
 
                 }else if(bond.getMobility() == BondMobility::BallM) {
 
@@ -917,11 +1002,19 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                    bond.setBallMBody(ballBody, 0);
                    unit.bodyId = ballBody.getMobilizedBodyIndex();
 <<<<<<< HEAD
+<<<<<<< HEAD
                    // std::cout << " got BallM mobodIx " << unit.bodyId << std::endl;
 =======
                    //std::cout << " got BallM mobodIx " << unit.bodyId << std::endl;
                     std::cout << " BalM";
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
+=======
+                   //std::cout << " got BallM mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " BalM";
+=======
+                   // std::cout << " got BallM mobodIx " << unit.bodyId << std::endl;
+>>>>>>> 1717afc (unified build)
+>>>>>>> b67f988 (unified build)
 
                }else if(bond.getMobility() == BondMobility::Spherical) {
 
@@ -936,11 +1029,19 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                    bond.setSphericalBody(sphereBody, 0, 0, 0); // BAT coordinates
                    unit.bodyId = sphereBody.getMobilizedBodyIndex();
 <<<<<<< HEAD
+<<<<<<< HEAD
                    // std::cout << " got Spherical mobodIx " << unit.bodyId << std::endl;
 =======
                    //std::cout << " got Spherical mobodIx " << unit.bodyId << std::endl;
                     std::cout << " Sphe";
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
+=======
+                   //std::cout << " got Spherical mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " Sphe";
+=======
+                   // std::cout << " got Spherical mobodIx " << unit.bodyId << std::endl;
+>>>>>>> 1717afc (unified build)
+>>>>>>> b67f988 (unified build)
 
                }else if(bond.getMobility() == BondMobility::UniversalM) {
 
@@ -954,11 +1055,19 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                    bond.setUniversalMBody(universalMBody, 0);
                    unit.bodyId = universalMBody.getMobilizedBodyIndex();
 <<<<<<< HEAD
+<<<<<<< HEAD
                    // std::cout << " got UniversalM mobodIx " << unit.bodyId << std::endl;
 =======
                    //std::cout << " got UniversalM mobodIx " << unit.bodyId << std::endl;
                     std::cout << " Univ";
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
+=======
+                   //std::cout << " got UniversalM mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " Univ";
+=======
+                   // std::cout << " got UniversalM mobodIx " << unit.bodyId << std::endl;
+>>>>>>> 1717afc (unified build)
+>>>>>>> b67f988 (unified build)
 
                }else if(bond.getMobility() == BondMobility::Translation) {
 
@@ -972,11 +1081,19 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                    bond.setTransBody(transBody, 0);
                    unit.bodyId = transBody.getMobilizedBodyIndex();
 <<<<<<< HEAD
+<<<<<<< HEAD
                    // std::cout << " got Trans mobodIx " << unit.bodyId << std::endl;
 =======
                    //std::cout << " got Trans mobodIx " << unit.bodyId << std::endl;
                     std::cout << " Trans";
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
+=======
+                   //std::cout << " got Trans mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " Trans";
+=======
+                   // std::cout << " got Trans mobodIx " << unit.bodyId << std::endl;
+>>>>>>> 1717afc (unified build)
+>>>>>>> b67f988 (unified build)
 
                }else if(bond.getMobility() == BondMobility::FreeLine) {
                    MobilizedBody::FreeLine freeLineBody(
@@ -989,11 +1106,19 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                    bond.setFreeLineBody(freeLineBody, 0, 0);
                    unit.bodyId = freeLineBody.getMobilizedBodyIndex();
 <<<<<<< HEAD
+<<<<<<< HEAD
                    // std::cout << " got FreeLine mobodIx " << unit.bodyId << std::endl;
 =======
                    //std::cout << " got FreeLine mobodIx " << unit.bodyId << std::endl;
                     std::cout << " FreeL";
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
+=======
+                   //std::cout << " got FreeLine mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " FreeL";
+=======
+                   // std::cout << " got FreeLine mobodIx " << unit.bodyId << std::endl;
+>>>>>>> 1717afc (unified build)
+>>>>>>> b67f988 (unified build)
 
                }else if(bond.getMobility() == BondMobility::LineOrientationF) {
                    MobilizedBody::LineOrientation lineOrientationFBody(
@@ -1006,11 +1131,19 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                    bond.setLineOrientationFBody(lineOrientationFBody, 0);
                    unit.bodyId = lineOrientationFBody.getMobilizedBodyIndex();
 <<<<<<< HEAD
+<<<<<<< HEAD
                    // std::cout << " got LineOrientationF mobodIx " << unit.bodyId << std::endl;
 =======
                    //std::cout << " got LineOrientationF mobodIx " << unit.bodyId << std::endl;
                     std::cout << " LiOF";
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
+=======
+                   //std::cout << " got LineOrientationF mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " LiOF";
+=======
+                   // std::cout << " got LineOrientationF mobodIx " << unit.bodyId << std::endl;
+>>>>>>> 1717afc (unified build)
+>>>>>>> b67f988 (unified build)
 
                }else if(bond.getMobility() == BondMobility::LineOrientationM) {
                    MobilizedBody::LineOrientation lineOrientationMBody(
@@ -1023,11 +1156,19 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                    bond.setLineOrientationMBody(lineOrientationMBody, 0);
                    unit.bodyId = lineOrientationMBody.getMobilizedBodyIndex();
 <<<<<<< HEAD
+<<<<<<< HEAD
                    // std::cout << " got LineOrientationM mobodIx " << unit.bodyId << std::endl;
 =======
                    //std::cout << " got LineOrientationM mobodIx " << unit.bodyId << std::endl;
                     std::cout << " LiOM";
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
+=======
+                   //std::cout << " got LineOrientationM mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " LiOM";
+=======
+                   // std::cout << " got LineOrientationM mobodIx " << unit.bodyId << std::endl;
+>>>>>>> 1717afc (unified build)
+>>>>>>> b67f988 (unified build)
 
                }else if(bond.getMobility() == BondMobility::Free) {
 
@@ -1041,11 +1182,19 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                    bond.setFreeBody(freeBody, 0, 0);
                    unit.bodyId = freeBody.getMobilizedBodyIndex();
 <<<<<<< HEAD
+<<<<<<< HEAD
                    // std::cout << " got Free mobodIx " << unit.bodyId << std::endl;
 =======
                    //std::cout << " got Free mobodIx " << unit.bodyId << std::endl;
                     std::cout << " Free";
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
+=======
+                   //std::cout << " got Free mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " Free";
+=======
+                   // std::cout << " got Free mobodIx " << unit.bodyId << std::endl;
+>>>>>>> 1717afc (unified build)
+>>>>>>> b67f988 (unified build)
 
                }else if(bond.getMobility() == BondMobility::Cylinder) {
                     MobilizedBody::Cylinder cylinderBody(
@@ -1060,13 +1209,17 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                     bond.setCylinderBody(cylinderBody, 0, 0);
                     unit.bodyId = cylinderBody.getMobilizedBodyIndex();
 <<<<<<< HEAD
+<<<<<<< HEAD
                     // std::cout << " got Cylinder mobodIx " << unit.bodyId << std::endl;
                 }
 =======
+=======
+>>>>>>> b67f988 (unified build)
                     //std::cout << " got Cylinder mobodIx " << unit.bodyId << std::endl;
                      std::cout << " Cyl";
 
                }
+<<<<<<< HEAD
 <<<<<<< HEAD
 
                 std::cout << std::endl;
@@ -1074,6 +1227,12 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
 =======
 >>>>>>> dcf1b97 (print joints one line)
+=======
+=======
+                    // std::cout << " got Cylinder mobodIx " << unit.bodyId << std::endl;
+                }
+>>>>>>> 1717afc (unified build)
+>>>>>>> b67f988 (unified build)
             }
             
             dumm.attachClusterToBody(unit.clusterIx, unit.bodyId);
