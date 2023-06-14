@@ -692,7 +692,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
         "class3=%d which is not a valid atom class Index", (int) class3);
     SimTK_APIARGCHECK1_ALWAYS(isValidAtomClass(class4), ApiClassName, CallingMethodName,
         "class4=%d which is not a valid atom class Index", (int) class4);
-    SimTK_APIARGCHECK_ALWAYS(periodicity1!=-1 || periodicity2!=-1 || periodicity3!=-1,
+    SimTK_APIARGCHECK_ALWAYS(periodicity1!=-1 || periodicity2!=-1 || periodicity3!=-1 || periodicity4!=-1,
         ApiClassName, CallingMethodName, "must be at least one torsion term supplied");
 
 
@@ -755,7 +755,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
             "amplitude3(%g) is not valid: must be nonnegative", amp3InKJ);*/
 
         SimTK_APIARGCHECK1_ALWAYS(0 <= phase4InDegrees && phase4InDegrees <= 180, ApiClassName, CallingMethodName,
-            "phaseAngle3(%g) is not valid: must be between 0 and 180 degrees, inclusive", phase4InDegrees);
+            "phaseAngle4(%g) is not valid: must be between 0 and 180 degrees, inclusive", phase4InDegrees);
             // (we've already checked for any possible repeats)
     }
 
@@ -830,7 +830,201 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
                 "atom class quad (%d,%d,%d,%d) already had a different term with periodicity %d",
                 (int)class1,(int)class2,(int)class3,(int)class4,periodicity4);
         } else
+            bondTorsionEntry.addBuiltinTerm(TorsionTerm(periodicity4, amp4InKJ, phase4InDegrees));
+    }
+}
+
+// 
+// This is a utility method that checks for invalid inputs to the defineBondTorsion() and
+// defineAmberImproperTorsion() functions, and then inserts the built in torsion terms
+// if they are legitimate. Written by S.A.T. for dihedral with 5 periodicities.
+//
+void DuMMForceFieldSubsystemRep::defineAnyTorsion 
+   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2, 
+    DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4,
+    bool shouldCanonicalizeClassOrder,
+    int periodicity1, Real amp1InKJ, Real phase1InDegrees,
+    int periodicity2, Real amp2InKJ, Real phase2InDegrees,
+    int periodicity3, Real amp3InKJ, Real phase3InDegrees,
+    int periodicity4, Real amp4InKJ, Real phase4InDegrees,
+    int periodicity5, Real amp5InKJ, Real phase5InDegrees,
+    std::map<AtomClassIndexQuad,BondTorsion>& torsionMap,
+    const char* CallingMethodName) const
+{
+        // Watch for nonsense arguments.
+    SimTK_APIARGCHECK1_ALWAYS(isValidAtomClass(class1), ApiClassName, CallingMethodName,
+        "class1=%d which is not a valid atom class Index", (int) class1);
+    SimTK_APIARGCHECK1_ALWAYS(isValidAtomClass(class2), ApiClassName, CallingMethodName,
+        "class2=%d which is not a valid atom class Index", (int) class2);
+    SimTK_APIARGCHECK1_ALWAYS(isValidAtomClass(class3), ApiClassName, CallingMethodName,
+        "class3=%d which is not a valid atom class Index", (int) class3);
+    SimTK_APIARGCHECK1_ALWAYS(isValidAtomClass(class4), ApiClassName, CallingMethodName,
+        "class4=%d which is not a valid atom class Index", (int) class4);
+    SimTK_APIARGCHECK_ALWAYS(periodicity1!=-1 || periodicity2!=-1 || periodicity3!=-1 || periodicity4!=-1 || periodicity5!=-1,
+        ApiClassName, CallingMethodName, "must be at least one torsion term supplied");
+
+
+    if (periodicity1 != -1) {
+            // No nonsense.
+        SimTK_APIARGCHECK1_ALWAYS(1 <= periodicity1 && periodicity1 <= 6, ApiClassName, CallingMethodName,
+            "periodicity1(%d) is invalid: we require 1 <= periodicity <= 6", periodicity1);
+
+        // GMOL Amber allows negative dihedral energy
+        /*        SimTK_APIARGCHECK1_ALWAYS(amp1InKJ >= 0, ApiClassName, CallingMethodName,
+            "amplitude1(%g) is not valid: must be nonnegative", amp1InKJ);*/
+        //scf changed 0 to -180 to allow NAST right handed helices
+
+        SimTK_APIARGCHECK1_ALWAYS(-180 <= phase1InDegrees && phase1InDegrees <= 180, ApiClassName, CallingMethodName,
+            "phaseAngle1(%g) is not valid: must be between -180 and 180 degrees, inclusive", phase1InDegrees);
+
+            // No repeats.
+        SimTK_APIARGCHECK1_ALWAYS((periodicity2 != periodicity1) && (periodicity3 != periodicity1),
+            ApiClassName, CallingMethodName,
+            "only one term with a given periodicity may be specified (periodicity %d was repeated)",
+            periodicity1);
+    }
+    if (periodicity2 != -1) {
+            // No nonsense.
+        SimTK_APIARGCHECK1_ALWAYS(1 <= periodicity2 && periodicity2 <= 6, ApiClassName, CallingMethodName,
+            "periodicity2(%d) is invalid: we require 1 <= periodicity <= 6", periodicity2);
+
+        // GMOL Amber allows negative dihedral energy
+        /*        SimTK_APIARGCHECK1_ALWAYS(amp2InKJ >= 0, ApiClassName, CallingMethodName,
+            "amplitude2(%g) is not valid: must be nonnegative", amp2InKJ);*/
+
+        SimTK_APIARGCHECK1_ALWAYS(0 <= phase2InDegrees && phase2InDegrees <= 180, ApiClassName, CallingMethodName,
+            "phaseAngle2(%g) is not valid: must be between 0 and 180 degrees, inclusive", phase2InDegrees);
+
+            // No repeats.
+        SimTK_APIARGCHECK1_ALWAYS(periodicity3 != periodicity2, ApiClassName, CallingMethodName,
+            "only one term with a given periodicity may be specified (periodicity %d was repeated)",
+            periodicity2);
+    }
+    if (periodicity3 != -1) {
+            // No nonsense.
+        SimTK_APIARGCHECK1_ALWAYS(1 <= periodicity3 && periodicity3 <= 6, ApiClassName, CallingMethodName,
+            "periodicity3(%d) is invalid: we require 1 <= periodicity <= 6", periodicity3);
+
+        // GMOL Amber allows negative dihedral energy
+        /*        SimTK_APIARGCHECK1_ALWAYS(amp3InKJ >= 0, ApiClassName, CallingMethodName,
+            "amplitude3(%g) is not valid: must be nonnegative", amp3InKJ);*/
+
+        SimTK_APIARGCHECK1_ALWAYS(0 <= phase3InDegrees && phase3InDegrees <= 180, ApiClassName, CallingMethodName,
+            "phaseAngle3(%g) is not valid: must be between 0 and 180 degrees, inclusive", phase3InDegrees);
+            // (we've already checked for any possible repeats)
+    }
+    if (periodicity4 != -1) {
+            // No nonsense.
+        SimTK_APIARGCHECK1_ALWAYS(1 <= periodicity4 && periodicity4 <= 6, ApiClassName, CallingMethodName,
+            "periodicity4(%d) is invalid: we require 1 <= periodicity <= 6", periodicity4);
+
+        // GMOL Amber allows negative dihedral energy
+        /*        SimTK_APIARGCHECK1_ALWAYS(amp3InKJ >= 0, ApiClassName, CallingMethodName,
+            "amplitude3(%g) is not valid: must be nonnegative", amp3InKJ);*/
+
+        SimTK_APIARGCHECK1_ALWAYS(0 <= phase4InDegrees && phase4InDegrees <= 180, ApiClassName, CallingMethodName,
+            "phaseAngle4(%g) is not valid: must be between 0 and 180 degrees, inclusive", phase4InDegrees);
+            // (we've already checked for any possible repeats)
+    }
+    if (periodicity5 != -1) {
+            // No nonsense.
+        SimTK_APIARGCHECK1_ALWAYS(1 <= periodicity5 && periodicity5 <= 6, ApiClassName, CallingMethodName,
+            "periodicity5(%d) is invalid: we require 1 <= periodicity <= 6", periodicity4);
+
+        // GMOL Amber allows negative dihedral energy
+        /*        SimTK_APIARGCHECK1_ALWAYS(amp3InKJ >= 0, ApiClassName, CallingMethodName,
+            "amplitude3(%g) is not valid: must be nonnegative", amp3InKJ);*/
+
+        SimTK_APIARGCHECK1_ALWAYS(0 <= phase5InDegrees && phase5InDegrees <= 180, ApiClassName, CallingMethodName,
+            "phaseAngle5(%g) is not valid: must be between 0 and 180 degrees, inclusive", phase4InDegrees);
+            // (we've already checked for any possible repeats)
+    }
+
+
+        // Canonicalize atom class quad by reversing order if necessary so that the
+        // first class Index is numerically no larger than the fourth. Amber improper
+        // torsions should not be canonicalized because order matters.
+    const AtomClassIndexQuad key(class1, class2, class3, class4, shouldCanonicalizeClassOrder);
+
+        // Attempt to create a new bond torsion entry containing no valid
+        // terms. If there was already an entry it will be returned instead
+        // and no insertion is performed.
+    std::pair<std::map<AtomClassIndexQuad,BondTorsion>::iterator, bool> ret = 
+      torsionMap.insert(std::pair<AtomClassIndexQuad,BondTorsion>
+        (key, BondTorsion(key)));
+
+    BondTorsion& bondTorsionEntry = ret.first->second;
+
+    // A new entry or one that just had a custom term in it won't have a built in
+    // term so we can load it up and we're done.
+    if (!bondTorsionEntry.hasBuiltinTerm()) {
+        if (periodicity1 != -1)
+            bondTorsionEntry.addBuiltinTerm(TorsionTerm(periodicity1, amp1InKJ, phase1InDegrees));
+        if (periodicity2 != -1)
+            bondTorsionEntry.addBuiltinTerm(TorsionTerm(periodicity2, amp2InKJ, phase2InDegrees));
+        if (periodicity3 != -1)
             bondTorsionEntry.addBuiltinTerm(TorsionTerm(periodicity3, amp3InKJ, phase3InDegrees));
+        if (periodicity4 != -1)
+            bondTorsionEntry.addBuiltinTerm(TorsionTerm(periodicity4, amp4InKJ, phase4InDegrees));
+        if (periodicity5 != -1)
+            bondTorsionEntry.addBuiltinTerm(TorsionTerm(periodicity5, amp5InKJ, phase5InDegrees));
+        return;
+    }
+
+    // If we get here we have discovered that there is already a built in torsion
+    // term present for this atom class quad. We can still insert new terms, and we'll
+    // allow duplicates if they are identical.
+
+    if (periodicity1 != -1) {
+        const TorsionTerm& term1 = bondTorsionEntry.getTermWithPeriod(periodicity1);
+        if (term1.isValid()) {
+            SimTK_APIARGCHECK5_ALWAYS(term1.amplitude==amp1InKJ && term1.theta0==phase1InDegrees,
+                ApiClassName, CallingMethodName,
+                "atom class quad (%d,%d,%d,%d) already had a different term with periodicity %d",
+                (int)class1,(int)class2,(int)class3,(int)class4,periodicity1);
+        } else
+            bondTorsionEntry.addBuiltinTerm(TorsionTerm(periodicity1, amp1InKJ, phase1InDegrees));
+    }
+    if (periodicity2 != -1) {
+        const TorsionTerm& term2 = bondTorsionEntry.getTermWithPeriod(periodicity2);
+        if (term2.isValid()) {
+            SimTK_APIARGCHECK5_ALWAYS(term2.amplitude==amp2InKJ && term2.theta0==phase2InDegrees,
+                ApiClassName, CallingMethodName,
+                "atom class quad (%d,%d,%d,%d) already had a different term with periodicity %d",
+                (int)class1,(int)class2,(int)class3,(int)class4,periodicity2);
+        } else
+            bondTorsionEntry.addBuiltinTerm(TorsionTerm(periodicity2, amp2InKJ, phase2InDegrees));
+    }
+    if (periodicity3 != -1) {
+        const TorsionTerm& term3 = bondTorsionEntry.getTermWithPeriod(periodicity3);
+        if (term3.isValid()) {
+            SimTK_APIARGCHECK5_ALWAYS(term3.amplitude==amp3InKJ && term3.theta0==phase3InDegrees,
+                ApiClassName, CallingMethodName,
+                "atom class quad (%d,%d,%d,%d) already had a different term with periodicity %d",
+                (int)class1,(int)class2,(int)class3,(int)class4,periodicity3);
+        } else
+            bondTorsionEntry.addBuiltinTerm(TorsionTerm(periodicity3, amp3InKJ, phase3InDegrees));
+    }
+    if (periodicity4 != -1) {
+        const TorsionTerm& term4 = bondTorsionEntry.getTermWithPeriod(periodicity4);
+        if (term4.isValid()) {
+            SimTK_APIARGCHECK5_ALWAYS(term4.amplitude==amp4InKJ && term4.theta0==phase4InDegrees,
+                ApiClassName, CallingMethodName,
+                "atom class quad (%d,%d,%d,%d) already had a different term with periodicity %d",
+                (int)class1,(int)class2,(int)class3,(int)class4,periodicity4);
+        } else
+            //bondTorsionEntry.addBuiltinTerm(TorsionTerm(periodicity3, amp3InKJ, phase3InDegrees)); //Laurentiu Code
+            bondTorsionEntry.addBuiltinTerm(TorsionTerm(periodicity4, amp4InKJ, phase4InDegrees)); // Teodor Code
+    }
+    if (periodicity5 != -1) {
+        const TorsionTerm& term5 = bondTorsionEntry.getTermWithPeriod(periodicity5);
+        if (term5.isValid()) {
+            SimTK_APIARGCHECK5_ALWAYS(term5.amplitude==amp5InKJ && term5.theta0==phase5InDegrees,
+                ApiClassName, CallingMethodName,
+                "atom class quad (%d,%d,%d,%d) already had a different term with periodicity %d",
+                (int)class1,(int)class2,(int)class3,(int)class4,periodicity5);
+        } else
+            bondTorsionEntry.addBuiltinTerm(TorsionTerm(periodicity5, amp5InKJ, phase5InDegrees));
     }
 }
 
@@ -861,7 +1055,7 @@ void DuMMForceFieldSubsystem::defineBondTorsion
 }
 
 // 
-// We allow up to 3 terms in a single torsion function, with three different
+// We allow up to 4 terms in a single torsion function, with three different
 // periodicities. If any of these are unused, set the corresponding periodicity
 // to -1.
 //
@@ -883,6 +1077,35 @@ void DuMMForceFieldSubsystem::defineBondTorsion
                      periodicity2, amp2InKJ, phase2InDegrees,
                      periodicity3, amp3InKJ, phase3InDegrees,
                      periodicity4, amp4InKJ, phase4InDegrees,
+                     mm.bondTorsion,
+                     MethodName);
+}
+
+
+// 
+// Torsion with up to five terms (Added by S.A.T., as it is needed
+// when simulating lipids).
+//
+void DuMMForceFieldSubsystem::defineBondTorsion
+   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2, 
+    DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4, 
+    int periodicity1, Real amp1InKJ, Real phase1InDegrees,
+    int periodicity2, Real amp2InKJ, Real phase2InDegrees,
+    int periodicity3, Real amp3InKJ, Real phase3InDegrees,
+    int periodicity4, Real amp4InKJ, Real phase4InDegrees,
+    int periodicity5, Real amp5InKJ, Real phase5InDegrees)
+{
+    static const char* MethodName = "defineBondTorsion";
+
+    invalidateSubsystemTopologyCache();
+
+    DuMMForceFieldSubsystemRep& mm = updRep();
+    mm.defineAnyTorsion(class1, class2, class3, class4, true, // canonicalize 
+                     periodicity1, amp1InKJ, phase1InDegrees,
+                     periodicity2, amp2InKJ, phase2InDegrees,
+                     periodicity3, amp3InKJ, phase3InDegrees,
+                     periodicity4, amp4InKJ, phase4InDegrees,
+                     periodicity5, amp5InKJ, phase5InDegrees,
                      mm.bondTorsion,
                      MethodName);
 }
