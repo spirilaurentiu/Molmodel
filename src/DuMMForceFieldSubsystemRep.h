@@ -1558,6 +1558,21 @@ public:
         std::map<AtomClassIndexQuad,BondTorsion>& torsionMap,
         const char* CallingMethodName) const;
 
+    // Common checks when defining improper and proper torsions
+    // using 5 parameters.
+    void defineAnyTorsion 
+       (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2, 
+        DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4,
+        bool shouldCanonicalizeClassOrder,
+        int periodicity1, Real amp1InKJ, Real phase1InDegrees,
+        int periodicity2, Real amp2InKJ, Real phase2InDegrees,
+        int periodicity3, Real amp3InKJ, Real phase3InDegrees,
+        int periodicity4, Real amp4InKJ, Real phase4InDegrees,
+        int periodicity5, Real amp5InKJ, Real phase5InDegrees,
+        std::map<AtomClassIndexQuad,BondTorsion>& torsionMap,
+        const char* CallingMethodName) const;
+
+
     bool isValidElement(int atomicNumber) const {
         if (1 > atomicNumber) return false;
         try {
