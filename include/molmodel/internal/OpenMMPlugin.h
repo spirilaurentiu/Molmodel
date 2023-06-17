@@ -47,39 +47,29 @@ public:
     void integrateTrajectory(int steps);
     void setVelocitiesToTemperature(double temperature);
 
-    void setNonbondedCutoff (SimTK::Real cutoff) ;            /// Set NonbondedCutoff for OpenMM
-    void setOpenMMPlatform (std::string platform) ;    /// Set Platform to use for OpenMM ('CPU', 'CUDA', 'OpenCL')
-    void setGPUindex (std::string GPUindex) ;          /// Set GPU index (if Platform CUDA/OpenCL). Values:"0"/"1"/"0,1"
+    // void setNonbondedCutoff (SimTK::Real cutoff) ;            /// Set NonbondedCutoff for OpenMM
+    // void setOpenMMPlatform (std::string platform) ;    /// Set Platform to use for OpenMM ('CPU', 'CUDA', 'OpenCL')
+    // void setGPUindex (std::string GPUindex) ;          /// Set GPU index (if Platform CUDA/OpenCL). Values:"0"/"1"/"0,1"
 
-    SimTK::Real getNonbondedCutoff () const;                  /// Get NonbondedCutoff for OpenMM
-    std::string getOpenMMPlatform () const;            /// Get Platform to use for OpenMM ('CPU', 'CUDA', 'OpenCL')
-    std::string getGPUindex () const;                  /// Get GPU index. Values: "0"/"1"/"0,1"
+    // SimTK::Real getNonbondedCutoff () const;                  /// Get NonbondedCutoff for OpenMM
+    // std::string getOpenMMPlatform () const;            /// Get Platform to use for OpenMM ('CPU', 'CUDA', 'OpenCL')
+    // std::string getGPUindex () const;                  /// Get GPU index. Values: "0"/"1"/"0,1"
 
 private:
     void updateCoordInOpenMM(const SimTK::Vector_<SimTK::Vec3>& includedAtomPos_G) const;
 
-    std::string OpenMMPlatform;
-    std::string OpenMMGPUindex;
-
-    mutable OpenMM::State openMMState;
+    // std::string OpenMMPlatform;
+    // std::string OpenMMGPUindex;
 
     // mutable is ugly, but we are forced to use it as some functions must be declared const
     mutable std::vector<OpenMM::Vec3> NonbondAtomsPositionsCache;
+    mutable OpenMM::State openMMState;
     std::vector<OpenMM::Vec3> PositionsCache;
 
     std::unique_ptr<OpenMM::System> openMMSystem;
     std::unique_ptr<OpenMM::Context> openMMContext;
-    std::unique_ptr<OpenMM::Integrator> openMMIntegrator;      
-    // std::unique_ptr<OpenMM::AndersenThermostat> openMMThermostat;
-    // 
-    // std::unique_ptr<OpenMM::GBSAOBCForce> GBSAOBCForce;
-    // std::unique_ptr<OpenMM::HarmonicBondForce> bondStretch;
-    // std::unique_ptr<OpenMM::HarmonicAngleForce> bondBend;
-    // std::unique_ptr<OpenMM::PeriodicTorsionForce> bondTorsion;
-
-    // OpenMM::System* openMMSystem = nullptr;
-    // OpenMM::VerletIntegrator* openMMIntegrator = nullptr;
-    // OpenMM::Context* openMMContext = nullptr;
+    std::unique_ptr<OpenMM::Integrator> openMMIntegrator;
+    std::unique_ptr<OpenMM::Platform> platform;
 
     const SimTK::DuMMForceFieldSubsystemRep* dumm = nullptr;
 };

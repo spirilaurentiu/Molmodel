@@ -258,40 +258,37 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
 
                 // ADD BONDED IMPROPERS (1-2-3-4)
                 if (dumm->amberImproperTorsionGlobalScaleFactor != 0) {
-
                     const IncludedAtom &a1 = dumm->getIncludedAtom(a1num);
 
                     // TODO: a1num is actually the 3rd one... check openmm order
                     // for (int b14 = 0; b14 < (int)a1.forceImproper14.size(); ++b14)
                     if ((int)a1.forceImproper14.size()>0)
                     {
-                    for (int b14 = 0; b14 < 1; ++b14)
-                    {
-                        //printf("(size: %d)entered a1.forceImproper14: ", (int)a1.forceImproper14.size());
-                        const DuMM::IncludedAtomIndex a2num = a1.forceImproper14[b14][0];
-                        const DuMM::IncludedAtomIndex a3num = a1.forceImproper14[b14][1];
-                        const DuMM::IncludedAtomIndex a4num = a1.forceImproper14[b14][2];
+                        for (int b14 = 0; b14 < 1; ++b14)
+                        {
+                            //printf("(size: %d)entered a1.forceImproper14: ", (int)a1.forceImproper14.size());
+                            const DuMM::IncludedAtomIndex a2num = a1.forceImproper14[b14][0];
+                            const DuMM::IncludedAtomIndex a3num = a1.forceImproper14[b14][1];
+                            const DuMM::IncludedAtomIndex a4num = a1.forceImproper14[b14][2];
 
-                        /* printf("addImproper: a1num %d, a2num %d, a3num %d, a4num %d\n",
-                                a1num, a2num, a3num, a4num); */
+                            /* printf("addImproper: a1num %d, a2num %d, a3num %d, a4num %d\n",
+                                    a1num, a2num, a3num, a4num); */
 
-                        const BondTorsion& bt = *a1.aImproperTorsion[b14];
+                            const BondTorsion& bt = *a1.aImproperTorsion[b14];
 
-                        if (bt.hasBuiltinTerm()) {
-                            for ( int i=0; i < (int) bt.terms.size(); ++i)
-                            {
-                                //printf("%d %d %d %d\n", a2num, a3num, a1num, a4num);
-                                bondTorsion->addTorsion(a2num, a3num, a1num, a4num,
-                                                        bt.terms[i].periodicity,
-                                                        bt.terms[i].theta0,
-                                                        bt.terms[i].amplitude);
+                            if (bt.hasBuiltinTerm()) {
+                                for ( int i=0; i < (int) bt.terms.size(); ++i)
+                                {
+                                    //printf("%d %d %d %d\n", a2num, a3num, a1num, a4num);
+                                    bondTorsion->addTorsion(a2num, a3num, a1num, a4num,
+                                                            bt.terms[i].periodicity,
+                                                            bt.terms[i].theta0,
+                                                            bt.terms[i].amplitude);
+                                }
                             }
                         }
                     }
-                    }
                 }
-
-
             }
         }
 
@@ -316,27 +313,31 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
     openMMIntegrator = std::make_unique<OpenMM::VerletIntegrator>(stepsize); // should release?
 
     // Get the platform
+    // By default, OpenMM builds a .so for each platform (CPU, OpenCL and CUDA)
+    // When loading that .so, two functions get called
+    // 1. registerPlatform() which does what you see below
+    // 2. registerKernelFactories() which is used for Drude, Pme, Rpmd and other plugins (which we do not need as of right now)
 #if OPENMM_PLATFORM_CPU
     if(OpenMM::Platform::getNumPlatforms() == 1)
     {
-        auto cpu = new OpenMM::CpuPlatform();
-        OpenMM::Platform::registerPlatform(cpu);
+        platform = std::make_unique<OpenMM::CpuPlatform>();
+        OpenMM::Platform::registerPlatform(platform.get());
     }
     constexpr auto PLATFORM_NAME = "CPU";
 
 #elif OPENMM_PLATFORM_CUDA
     if(OpenMM::Platform::getNumPlatforms() == 1)
     {
-        auto cuda = new OpenMM::CudaPlatform();
-        OpenMM::Platform::registerPlatform(cuda);
+        platform = std::make_unique<OpenMM::CudaPlatform>();
+        OpenMM::Platform::registerPlatform(platform.get());
     }
     constexpr auto PLATFORM_NAME = "CUDA";
 
 #elif OPENMM_PLATFORM_OPENCL
     if(OpenMM::Platform::getNumPlatforms() == 1)
     {
-        auto opencl = new OpenMM::OpenCLPlatform();
-        OpenMM::Platform::registerPlatform(opencl);
+        platform = std::make_unique<OpenMM::OpenCLPlatform>();
+        OpenMM::Platform::registerPlatform(platform.get());
     }
     constexpr auto PLATFORM_NAME = "OpenCL";
     
@@ -509,31 +510,31 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
     TRACE_OPENMM(("OpenMM_Energy\t" + std::to_string(openMMState.getPotentialEnergy()) +  "\n").c_str());
 }
 
-void OpenMMPluginInterface::setNonbondedCutoff (SimTK::Real cutoff) {
-    assert(!"Not implemented!");
-}
+// void OpenMMPluginInterface::setNonbondedCutoff (SimTK::Real cutoff) {
+//     assert(!"Not implemented!");
+// }
 
-void OpenMMPluginInterface::setOpenMMPlatform (std::string platform) {
-    assert(!"Not implemented!");
-}
+// void OpenMMPluginInterface::setOpenMMPlatform (std::string platform) {
+//     assert(!"Not implemented!");
+// }
 
-void OpenMMPluginInterface::setGPUindex(std::string GPUindex) {
-    assert(!"Not implemented!");
-}
+// void OpenMMPluginInterface::setGPUindex(std::string GPUindex) {
+//     assert(!"Not implemented!");
+// }
 
-SimTK::Real OpenMMPluginInterface::getNonbondedCutoff() const {
-    assert(!"Not implemented!");
-    return -1;
-}
+// SimTK::Real OpenMMPluginInterface::getNonbondedCutoff() const {
+//     assert(!"Not implemented!");
+//     return -1;
+// }
 
-std::string OpenMMPluginInterface::getOpenMMPlatform() const {
-    assert(!"Not implemented!");
-    return "";
-}
+// std::string OpenMMPluginInterface::getOpenMMPlatform() const {
+//     assert(!"Not implemented!");
+//     return "";
+// }
 
-std::string OpenMMPluginInterface::getGPUindex() const {
-    assert(!"Not implemented!");
-    return "";
-}
+// std::string OpenMMPluginInterface::getGPUindex() const {
+//     assert(!"Not implemented!");
+//     return "";
+// }
 
 
