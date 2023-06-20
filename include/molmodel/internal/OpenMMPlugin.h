@@ -66,10 +66,10 @@ private:
     mutable OpenMM::State openMMState;
     std::vector<OpenMM::Vec3> PositionsCache;
 
+    std::unique_ptr<OpenMM::Platform> platform;
     std::unique_ptr<OpenMM::System> openMMSystem;
     std::unique_ptr<OpenMM::Context> openMMContext;
     std::unique_ptr<OpenMM::Integrator> openMMIntegrator;
-    std::unique_ptr<OpenMM::Platform> platform;
 
     const SimTK::DuMMForceFieldSubsystemRep* dumm = nullptr;
 };
