@@ -318,26 +318,29 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
     // 1. registerPlatform() which does what you see below
     // 2. registerKernelFactories() which is used for Drude, Pme, Rpmd and other plugins (which we do not need as of right now)
 #if OPENMM_PLATFORM_CPU
-    if(OpenMM::Platform::getNumPlatforms() == 1)
+    // if(OpenMM::Platform::getNumPlatforms() == 1)
     {
         platform = std::make_unique<OpenMM::CpuPlatform>();
         OpenMM::Platform::registerPlatform(platform.get());
+        platform.release();
     }
     constexpr auto PLATFORM_NAME = "CPU";
 
 #elif OPENMM_PLATFORM_CUDA
-    if(OpenMM::Platform::getNumPlatforms() == 1)
+    // if(OpenMM::Platform::getNumPlatforms() == 1)
     {
         platform = std::make_unique<OpenMM::CudaPlatform>();
         OpenMM::Platform::registerPlatform(platform.get());
+        platform.release();
     }
     constexpr auto PLATFORM_NAME = "CUDA";
 
 #elif OPENMM_PLATFORM_OPENCL
-    if(OpenMM::Platform::getNumPlatforms() == 1)
+    // if(OpenMM::Platform::getNumPlatforms() == 1)
     {
         platform = std::make_unique<OpenMM::OpenCLPlatform>();
         OpenMM::Platform::registerPlatform(platform.get());
+        platform.release();
     }
     constexpr auto PLATFORM_NAME = "OpenCL";
     
