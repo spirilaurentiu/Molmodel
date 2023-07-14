@@ -666,6 +666,16 @@ void OpenMMInterface::calcOpenMMEnergyAndForces
             const Vec3 f(ommForce[0], ommForce[1], ommForce[2]);
             includedBodyForces_G[ibx] += 
                 SpatialVec(includedAtomStation_G[iax] % f, f);
+
+            const IncludedBody dummBody = dumm.getIncludedBody(ibx);
+            MobilizedBodyIndex mbx = dummBody.mobodIx;
+            MobilizedBody mobod = dumm.getMultibodySystem().getMatterSubsystem().getMobilizedBody(mbx);
+
+   /*          std::cout << "\nIncluded Atom: " << iax
+                      << "\nDuMMIncludedBodyIndex: " << ibx
+                      << "\nopenmmForce: " << f 
+                      << "\n\n";
+ */
         }
     }
 
