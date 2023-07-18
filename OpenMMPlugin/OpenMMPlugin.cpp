@@ -526,6 +526,8 @@ try {
     const std::string pname = openMMContext->getPlatform().getName();
     const double speed = openMMContext->getPlatform().getSpeed();
 
+    std::cout << "OpenMMPlugin using OpenMM platform " << pname << std::endl;
+
     if (speed <= 1 && !allowReferencePlatform) {
         logMessages.push_back(
             "WARNING: DuMM: OpenMM not used: best available platform was "
@@ -671,11 +673,11 @@ void OpenMMInterface::calcOpenMMEnergyAndForces
             MobilizedBodyIndex mbx = dummBody.mobodIx;
             MobilizedBody mobod = dumm.getMultibodySystem().getMatterSubsystem().getMobilizedBody(mbx);
 
-   /*          std::cout << "\nIncluded Atom: " << iax
+            /* std::cout << "\nIncluded Atom: " << iax
                       << "\nDuMMIncludedBodyIndex: " << ibx
                       << "\nopenmmForce: " << f 
-                      << "\n\n";
- */
+                      << "\n\n"; */
+
         }
     }
 
