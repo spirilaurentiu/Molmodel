@@ -792,7 +792,6 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             //Angle parentBondCenterDihedral = parentBondCenter.getDefaultDihedralAngle();*/
             // GMOL END
 
-
             // CMB -- temporarily comment out Pin mobilizer while we test 
             // function based mobilizer for ribose pseudorotation
             if (testRiboseMobilizer) {
@@ -813,8 +812,6 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             }
             else {
 ///*
-                std::cout << "CompoundSysytem:" ;
-
                if(bond.getMobility() == BondMobility::Torsion) {
                     // GMOL BIG RB ======
                     MobilizedBody::Pin torsionBody(
@@ -1070,10 +1067,13 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                      std::cout << " Cyl";
 
                }
+<<<<<<< HEAD
 
                 std::cout << std::endl;
 
 >>>>>>> 6737c1c (trace articulation type and openmm platform)
+=======
+>>>>>>> dcf1b97 (print joints one line)
             }
             
             dumm.attachClusterToBody(unit.clusterIx, unit.bodyId);
@@ -1087,6 +1087,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
         }
 
     }
+    std::cout << std::endl;
+
 
     if (showDebugMessages) cout << "Step 9 create decorations" << endl;
     // 9) Create nice visualization geometry
