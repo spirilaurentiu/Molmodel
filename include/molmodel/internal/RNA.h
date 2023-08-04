@@ -637,6 +637,7 @@ public:
                 return normalInGroundFrame;
 	    }
 
+        return Vec3(SimTK::NaN, SimTK::NaN, SimTK::NaN);
     }
 
 private:
