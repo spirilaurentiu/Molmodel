@@ -575,7 +575,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                              dumm.calcClusterMassProperties(unit.clusterIx),
                              Transform());
                     unit.bodyId = freeBody.getMobilizedBodyIndex();
-                    // std::cout << " got obligated Free mobodIx " << unit.bodyId << std::endl;
+                    //std::cout << " got obligated Free mobodIx " << unit.bodyId << std::endl;
                 }else if (mobilizedBodyType.compare("Cartesian") == 0) {
                         MobilizedBody::Translation cartesianBody
                                 (matter.Ground(),
@@ -583,7 +583,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                                  dumm.calcClusterMassProperties(unit.clusterIx),
                                  Transform());
                         unit.bodyId = cartesianBody.getMobilizedBodyIndex();
-                        // std::cout << " got initial Cartesian mobodIx " << unit.bodyId << std::endl;
+                        //std::cout << " got initial Cartesian mobodIx " << unit.bodyId << std::endl;
                 } else if (mobilizedBodyType.compare("Weld") == 0) {
 		            MobilizedBody::Weld weldBody
                        (matter.Ground(), 
@@ -591,7 +591,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 					    dumm.calcClusterMassProperties(unit.clusterIx), 
 					    Transform());
 		            unit.bodyId = weldBody.getMobilizedBodyIndex();
-                    // std::cout << " got Weld mobodIx " << unit.bodyId << std::endl;
+                    //std::cout << " got Weld mobodIx " << unit.bodyId << std::endl;
                 }else if (mobilizedBodyType.compare("FreeLine") == 0) {
                     MobilizedBody::FreeLine freeLineBody
                             (matter.Ground(),
@@ -599,7 +599,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                              dumm.calcClusterMassProperties(unit.clusterIx),
                              Transform());
                     unit.bodyId = freeLineBody.getMobilizedBodyIndex();
-                    // std::cout << " got Weld mobodIx " << unit.bodyId << std::endl;
+                    //std::cout << " got Weld mobodIx " << unit.bodyId << std::endl;
                 }else if (mobilizedBodyType.compare("Ball") == 0) {
                     MobilizedBody::Ball ballBody
                             (matter.Ground(),
@@ -607,7 +607,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                              dumm.calcClusterMassProperties(unit.clusterIx),
                              Transform());
                     unit.bodyId = ballBody.getMobilizedBodyIndex();
-                    // std::cout << " got Ball mobodIx " << unit.bodyId << std::endl;
+                    //std::cout << " got Ball mobodIx " << unit.bodyId << std::endl;
                 }else if (mobilizedBodyType.compare("Pin") == 0) {
                     MobilizedBody::Pin pinBody
                             (matter.Ground(),
@@ -615,7 +615,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                              dumm.calcClusterMassProperties(unit.clusterIx),
                              Transform());
                     unit.bodyId = pinBody.getMobilizedBodyIndex();
-                    // std::cout << " got Pin mobodIx " << unit.bodyId << std::endl;
+                    //std::cout << " got Pin mobodIx " << unit.bodyId << std::endl;
                 }
                 dumm.attachClusterToBody(unit.clusterIx, unit.bodyId);
             }
@@ -768,7 +768,6 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             //Angle parentBondCenterDihedral = parentBondCenter.getDefaultDihedralAngle();*/
             // GMOL END
 
-
             // CMB -- temporarily comment out Pin mobilizer while we test 
             // function based mobilizer for ribose pseudorotation
             if (testRiboseMobilizer) {
@@ -800,7 +799,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                     bond.setPinBody(torsionBody, 0);
                     torsionBody.setDefaultAngle(0); // no chem change to 0 for chem
                     unit.bodyId = torsionBody.getMobilizedBodyIndex();
-                    // std::cout << " got Pin mobodIx " << unit.bodyId << std::endl;
+                    //std::cout << " got Pin mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " Pin";
                     // GMOL END */
 
                 }else if(bond.getMobility() == BondMobility::AnglePin) {
@@ -814,7 +814,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 
                    bond.setAnglePinBody(anglePinBody, 0);
                    unit.bodyId = anglePinBody.getMobilizedBodyIndex();
-                   // std::cout << " got AnglePin mobodIx " << unit.bodyId << std::endl;
+                   //std::cout << " got AnglePin mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " aPin";
 
                 }else if(bond.getMobility() == BondMobility::BendStretch) {
 
@@ -827,7 +828,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 
                    bond.setBendStretchBody(bendStretchBody, 0, 0);
                    unit.bodyId = bendStretchBody.getMobilizedBodyIndex();
-                   // std::cout << " got BendStretch mobodIx " << unit.bodyId << std::endl;
+                   //std::cout << " got BendStretch mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " BeSt";
 
                }else if(bond.getMobility() == BondMobility::Slider) {
 
@@ -840,20 +842,22 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 
                    bond.setSliderBody(sliderBody, 0);
                    unit.bodyId = sliderBody.getMobilizedBodyIndex();
-                   // std::cout << " got Slider mobodIx " << unit.bodyId << std::endl;
+                   //std::cout << " got Slider mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " Sli";
 
                } else if(bond.getMobility() == BondMobility::BallF) {
 
-                        MobilizedBody::Ball ballBody(
-                                matter.updMobilizedBody(parentUnit.bodyId),
-                                oldX_PF,
-                                dumm.calcClusterMassProperties(unit.clusterIx),
-                                oldX_BM
-                        );
+                    MobilizedBody::Ball ballBody(
+                            matter.updMobilizedBody(parentUnit.bodyId),
+                            oldX_PF,
+                            dumm.calcClusterMassProperties(unit.clusterIx),
+                            oldX_BM
+                    );
 
-                        bond.setBallFBody(ballBody, 0);
-                        unit.bodyId = ballBody.getMobilizedBodyIndex();
-                        // std::cout << " got BallF mobodIx " << unit.bodyId << std::endl;
+                    bond.setBallFBody(ballBody, 0);
+                    unit.bodyId = ballBody.getMobilizedBodyIndex();
+                    //std::cout << " got BallF mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " BalF";
 
                 }else if(bond.getMobility() == BondMobility::BallM) {
 
@@ -866,7 +870,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 
                    bond.setBallMBody(ballBody, 0);
                    unit.bodyId = ballBody.getMobilizedBodyIndex();
-                   // std::cout << " got BallM mobodIx " << unit.bodyId << std::endl;
+                   //std::cout << " got BallM mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " BalM";
 
                }else if(bond.getMobility() == BondMobility::Spherical) {
 
@@ -880,7 +885,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                    //sphereBody.setRadialAxis(XAxis);
                    bond.setSphericalBody(sphereBody, 0, 0, 0); // BAT coordinates
                    unit.bodyId = sphereBody.getMobilizedBodyIndex();
-                   // std::cout << " got Spherical mobodIx " << unit.bodyId << std::endl;
+                   //std::cout << " got Spherical mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " Sphe";
 
                }else if(bond.getMobility() == BondMobility::UniversalM) {
 
@@ -893,7 +899,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 
                    bond.setUniversalMBody(universalMBody, 0);
                    unit.bodyId = universalMBody.getMobilizedBodyIndex();
-                   // std::cout << " got UniversalM mobodIx " << unit.bodyId << std::endl;
+                   //std::cout << " got UniversalM mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " Univ";
 
                }else if(bond.getMobility() == BondMobility::Translation) {
 
@@ -906,7 +913,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 
                    bond.setTransBody(transBody, 0);
                    unit.bodyId = transBody.getMobilizedBodyIndex();
-                   // std::cout << " got Trans mobodIx " << unit.bodyId << std::endl;
+                   //std::cout << " got Trans mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " Trans";
 
                }else if(bond.getMobility() == BondMobility::FreeLine) {
                    MobilizedBody::FreeLine freeLineBody(
@@ -918,7 +926,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 
                    bond.setFreeLineBody(freeLineBody, 0, 0);
                    unit.bodyId = freeLineBody.getMobilizedBodyIndex();
-                   // std::cout << " got FreeLine mobodIx " << unit.bodyId << std::endl;
+                   //std::cout << " got FreeLine mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " FreeL";
 
                }else if(bond.getMobility() == BondMobility::LineOrientationF) {
                    MobilizedBody::LineOrientation lineOrientationFBody(
@@ -930,7 +939,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 
                    bond.setLineOrientationFBody(lineOrientationFBody, 0);
                    unit.bodyId = lineOrientationFBody.getMobilizedBodyIndex();
-                   // std::cout << " got LineOrientationF mobodIx " << unit.bodyId << std::endl;
+                   //std::cout << " got LineOrientationF mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " LiOF";
 
                }else if(bond.getMobility() == BondMobility::LineOrientationM) {
                    MobilizedBody::LineOrientation lineOrientationMBody(
@@ -942,7 +952,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 
                    bond.setLineOrientationMBody(lineOrientationMBody, 0);
                    unit.bodyId = lineOrientationMBody.getMobilizedBodyIndex();
-                   // std::cout << " got LineOrientationM mobodIx " << unit.bodyId << std::endl;
+                   //std::cout << " got LineOrientationM mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " LiOM";
 
                }else if(bond.getMobility() == BondMobility::Free) {
 
@@ -955,7 +966,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 
                    bond.setFreeBody(freeBody, 0, 0);
                    unit.bodyId = freeBody.getMobilizedBodyIndex();
-                   // std::cout << " got Free mobodIx " << unit.bodyId << std::endl;
+                   //std::cout << " got Free mobodIx " << unit.bodyId << std::endl;
+                    std::cout << " Free";
 
                }else if(bond.getMobility() == BondMobility::Cylinder) {
                     MobilizedBody::Cylinder cylinderBody(
@@ -969,8 +981,10 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                     // NOTE - setPinBody automatically sets the torsionBody default torsion angle
                     bond.setCylinderBody(cylinderBody, 0, 0);
                     unit.bodyId = cylinderBody.getMobilizedBodyIndex();
-                    // std::cout << " got Cylinder mobodIx " << unit.bodyId << std::endl;
-                }
+                    //std::cout << " got Cylinder mobodIx " << unit.bodyId << std::endl;
+                     std::cout << " Cyl";
+
+               }
             }
             
             dumm.attachClusterToBody(unit.clusterIx, unit.bodyId);
@@ -984,6 +998,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
         }
 
     }
+    std::cout << std::endl;
+
 
     if (showDebugMessages) cout << "Step 9 create decorations" << endl;
     // 9) Create nice visualization geometry
