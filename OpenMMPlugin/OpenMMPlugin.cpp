@@ -402,7 +402,6 @@ try {
                     }
                 }
 
-
                 // ADD BONDED IMPROPERS (1-2-3-4)
                 if (dumm.amberImproperTorsionGlobalScaleFactor != 0) {
 
@@ -642,7 +641,9 @@ void OpenMMInterface::calcOpenMMEnergyAndForces
     Real&                   energy) const
 {
 
-    if (!(wantForces || wantEnergy))
+    bool wantLS_Forces = false;
+
+    if (!(wantForces || wantEnergy || wantLS_Forces))
         return;
 
     if (!openMMContext) 
@@ -654,21 +655,31 @@ void OpenMMInterface::calcOpenMMEnergyAndForces
     // Ask for energy, forces, or both.
     const OpenMM::State openMMState = 
         openMMContext->getState(  (wantForces?OpenMM::State::Forces:0)
-                                | (wantEnergy?OpenMM::State::Energy:0));
+                                | (wantEnergy?OpenMM::State::Energy:0)
+                                | (wantLS_Forces?OpenMM::State::LS_Forces:0));
 
     if (wantForces) {
-        const std::vector<OpenMM::Vec3>& openMMForces = openMMState.getForces();
-        for (DuMM::NonbondAtomIndex nax(0); nax < dumm.getNumNonbondAtoms(); 
-                                                                        ++nax)
-        {   const DuMM::IncludedAtomIndex iax = 
+
+        // Get OpenMM forces
+        const std::vector<OpenMM::Vec3>& openMMForces = openMMState.getForces();        
+
+        for (DuMM::NonbondAtomIndex nax(0); nax < dumm.getNumNonbondAtoms(); ++nax)
+        {   
+            // Get DuMMIncludedBodyIndex
+            const DuMM::IncludedAtomIndex iax = 
                 dumm.getIncludedAtomIndexOfNonbondAtom(nax);          
             const IncludedAtom& a = dumm.getIncludedAtom(iax);
             const DuMMIncludedBodyIndex ibx = a.inclBodyIndex;
+
+            // Get OpenMM force
             const OpenMM::Vec3& ommForce = openMMForces[nax];
             const Vec3 f(ommForce[0], ommForce[1], ommForce[2]);
+
+            // Calculate spatial force
             includedBodyForces_G[ibx] += 
                 SpatialVec(includedAtomStation_G[iax] % f, f);
 
+            // Extra
             const IncludedBody dummBody = dumm.getIncludedBody(ibx);
             MobilizedBodyIndex mbx = dummBody.mobodIx;
             MobilizedBody mobod = dumm.getMultibodySystem().getMatterSubsystem().getMobilizedBody(mbx);
@@ -677,8 +688,26 @@ void OpenMMInterface::calcOpenMMEnergyAndForces
                       << "\nDuMMIncludedBodyIndex: " << ibx
                       << "\nopenmmForce: " << f 
                       << "\n\n"; */
-
         }
+
+        if(wantLS_Forces){
+            // Get OpenMM special forces
+            const std::vector<OpenMM::Vec3>& LS_Forces = openMMState.getLS_Forces();
+
+            for (DuMM::NonbondAtomIndex nax(0); nax < dumm.getNumNonbondAtoms(); ++nax){
+
+                // Get included atom index
+                const DuMM::IncludedAtomIndex iax = 
+                    dumm.getIncludedAtomIndexOfNonbondAtom(nax);          
+                const IncludedAtom& a = dumm.getIncludedAtom(iax);            
+
+                const OpenMM::Vec3& LS_force = LS_Forces[nax];
+                std::cout << "OpenMMInterface::calcOpenMMEnergyAndForces LS_force " << nax << LS_force << std::endl;
+            
+            }
+        }
+
+
     }
 
     if (wantEnergy)
