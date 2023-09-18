@@ -641,7 +641,7 @@ void OpenMMInterface::calcOpenMMEnergyAndForces
     Real&                   energy) const
 {
 
-    bool wantLS_Forces = false;
+    bool wantLS_Forces = true;
 
     if (!(wantForces || wantEnergy || wantLS_Forces))
         return;
@@ -691,7 +691,7 @@ void OpenMMInterface::calcOpenMMEnergyAndForces
         }
 
         if(wantLS_Forces){
-            // Get OpenMM special forces
+            /* // Get OpenMM special forces
             const std::vector<OpenMM::Vec3>& LS_Forces = openMMState.getLS_Forces();
 
             for (DuMM::NonbondAtomIndex nax(0); nax < dumm.getNumNonbondAtoms(); ++nax){
@@ -704,7 +704,7 @@ void OpenMMInterface::calcOpenMMEnergyAndForces
                 const OpenMM::Vec3& LS_force = LS_Forces[nax];
                 std::cout << "OpenMMInterface::calcOpenMMEnergyAndForces LS_force " << nax << LS_force << std::endl;
             
-            }
+            } */
         }
 
 
