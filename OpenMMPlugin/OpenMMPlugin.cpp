@@ -656,7 +656,8 @@ void OpenMMInterface::calcOpenMMEnergyAndForces
     const OpenMM::State openMMState = 
         openMMContext->getState(  (wantForces?OpenMM::State::Forces:0)
                                 | (wantEnergy?OpenMM::State::Energy:0)
-                                | (wantLS_Forces?OpenMM::State::LS_Forces:0));
+                                //| (wantLS_Forces?OpenMM::State::LS_Forces:0)
+                                );
 
     if (wantForces) {
 
