@@ -3417,7 +3417,7 @@ CalcFullPotEnergyIncludingRigidBodiesRep(const State& s) const {
             AllAtomStation_G[iax] = p_BS_G;
             AllAtomPos_G[iax]     = p_GB + p_BS_G;
 
-	    iax_count++;
+            iax_count++;
         }
 
 	    // iterate all bond forming atoms within currentBody
@@ -3431,18 +3431,18 @@ CalcFullPotEnergyIncludingRigidBodiesRep(const State& s) const {
 	
 	    if ( bondStretchGlobalScaleFactor !=0 
 	    || customBondStretchGlobalScaleFactor != 0 ){
-		eStretch += CalcFullPotEnergyBondStretch( a1num, AllAtomPos_G );
+            eStretch += CalcFullPotEnergyBondStretch( a1num, AllAtomPos_G );
 	    }
 	    if ( bondBendGlobalScaleFactor !=0 
 	    || customBondTorsionGlobalScaleFactor != 0 ){
-		eBend += CalcFullPotEnergyBondBend( a1num, AllAtomPos_G );
+            eBend += CalcFullPotEnergyBondBend( a1num, AllAtomPos_G );
 	    }
 	    if ( bondTorsionGlobalScaleFactor !=0 
 	    || customBondTorsionGlobalScaleFactor != 0 ){
-		eTorsion += CalcFullPotEnergyBondTorsion( a1num, AllAtomPos_G );
+            eTorsion += CalcFullPotEnergyBondTorsion( a1num, AllAtomPos_G );
 	    }
 	    if ( amberImproperTorsionGlobalScaleFactor !=0 ){
-		eImproper += CalcFullPotEnergyBondImproper( a1num, AllAtomPos_G );
+            eImproper += CalcFullPotEnergyBondImproper( a1num, AllAtomPos_G );
 	    }
 
 
