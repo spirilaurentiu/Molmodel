@@ -393,6 +393,7 @@ public:
                 return normalInGroundFrame;
 	    }
 
+        return Vec3(0, 0, 0);
     }
 
 private:
