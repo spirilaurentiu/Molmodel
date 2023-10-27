@@ -518,6 +518,7 @@ public:
         //String atom3Name = getAtomName(atomIndex3);
         //String atom4Name = getAtomName(atomIndex4);
         //std::cout << atom1Name << "->" << atom2Name << "->" << atom3Name << "->" << atom4Name << std::endl;
+        //std::cout << "RECONSTRUCT STEP 1.0.1 " << offsetAngle4 << std::endl << std::flush;
 
         return setDefaultDihedralAngle( angle, bondCenterInfo21.getIndex(), bondCenterInfo34.getIndex() );
     }
@@ -640,8 +641,11 @@ public:
 
         Angle offsetAngle = offsetAngle4 - offsetAngle1;
 
-        while ( -SimTK::Pi >= offsetAngle ) offsetAngle += 2 * SimTK::Pi;
-        while ( SimTK::Pi < offsetAngle ) offsetAngle -= 2 * SimTK::Pi;
+        if(offsetAngle4 != std::numeric_limits<Angle>::max()) {
+            while ( -SimTK::Pi >= offsetAngle ) offsetAngle += 2 * SimTK::Pi;
+            while ( SimTK::Pi < offsetAngle ) offsetAngle -= 2 * SimTK::Pi;
+        }
+        //std::cout << "RECONSTRUCT STEP 1.0.3 " << offsetAngle4 << std::endl << std::flush;
 
         // debugging
         //std::cout << "  total offset = " << offsetAngle * DuMM::Rad2Deg;
@@ -676,10 +680,17 @@ public:
         BondInfo& bondInfo23 = updBondInfo(atomInfo2, atomInfo3);
         Bond& bond23 = updBond(bondInfo23);
 
-        Angle internalDihedralAngle = angle - calcDefaultInternalDihedralOffsetAngle(bondCenterIndex21, bondCenterIndex34);
+        Angle internalDihedralOffsetAngle = calcDefaultInternalDihedralOffsetAngle(bondCenterIndex21, bondCenterIndex34);
 
-        while ( -SimTK::Pi >= internalDihedralAngle ) internalDihedralAngle += 2 * SimTK::Pi;
-        while ( SimTK::Pi < internalDihedralAngle ) internalDihedralAngle -= 2 * SimTK::Pi;
+        Angle internalDihedralAngle = angle - internalDihedralOffsetAngle;
+
+        if(internalDihedralOffsetAngle != std::numeric_limits<Angle>::max()) {
+            while ( -SimTK::Pi >= internalDihedralAngle ) internalDihedralAngle += 2 * SimTK::Pi;
+            while ( SimTK::Pi < internalDihedralAngle ) internalDihedralAngle -= 2 * SimTK::Pi;
+        }else{
+            internalDihedralAngle = std::numeric_limits<Angle>::max();
+        }
+        //std::cout << "RECONSTRUCT STEP 1.0.2 " << offsetAngle4 << std::endl << std::flush;
 
         //std::cout << "old internal angle = " << bond23.getDefaultDihedralAngle() * DuMM::Rad2Deg << std::endl;
         //std::cout << "new internal angle = " << internalDihedralAngle * DuMM::Rad2Deg << std::endl;
@@ -1635,6 +1646,7 @@ public:
             std::cout<<" , "<< atomIndex3;
             std::cout << ":"<<getAtomName(atomIndex3)  <<" , "<< atomIndex4;
             std::cout << ":"<<getAtomName(atomIndex4)   <<std::endl;*/
+            //std::cout << "RECONSTRUCT STEP 1.0.0 " << offsetAngle4 << std::endl << std::flush;
             setDefaultDihedralAngle( 
                 angle, 
                 atomIndex1, 
