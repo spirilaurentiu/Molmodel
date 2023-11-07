@@ -1797,7 +1797,7 @@ float DuMMForceFieldSubsystem::getOpenMMtemperature() const
 
 void DuMMForceFieldSubsystem::setOpenMMtemperature(float value)
 {   
-    invalidateSubsystemTopologyCache();
+    //invalidateSubsystemTopologyCache();
     updRep().temperature = value;
     updRep().openMMPlugin.setVelocitiesToTemperature(value);
     
