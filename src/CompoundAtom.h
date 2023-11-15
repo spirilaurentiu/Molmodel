@@ -189,6 +189,8 @@ public:
 
         }else if(mobility == BondMobility::Spherical) { // NEWMOB
             MobilizedBody::SphericalCoords &sphere = (MobilizedBody::SphericalCoords &) matter.updMobilizedBody(pinJointId);
+            //sphere.setRadialAxis(CoordinateAxis::XCoordinateAxis()); // set translation along X
+            //sphere.setNegateRadial(); // common convention for BAT : translation along -Z
             sphere.setOneQ(state, 0, angleInRadians); // azimuth angle
 
         }else if((mobility == BondMobility::BallF) || (mobility == BondMobility::BallM)){ // Gmol NEWMOB
