@@ -575,7 +575,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                              dumm.calcClusterMassProperties(unit.clusterIx),
                              Transform());
                     unit.bodyId = freeBody.getMobilizedBodyIndex();
-                    //std::cout << " got obligated Free mobodIx " << unit.bodyId << std::endl;
+                    std::cout << "First body Free mobodIx " << unit.bodyId << std::endl;
                 }else if (mobilizedBodyType.compare("Cartesian") == 0) {
                         MobilizedBody::Translation cartesianBody
                                 (matter.Ground(),
@@ -583,7 +583,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                                  dumm.calcClusterMassProperties(unit.clusterIx),
                                  Transform());
                         unit.bodyId = cartesianBody.getMobilizedBodyIndex();
-                        //std::cout << " got initial Cartesian mobodIx " << unit.bodyId << std::endl;
+                        std::cout << "First body Cartesian mobodIx " << unit.bodyId << std::endl;
                 } else if (mobilizedBodyType.compare("Weld") == 0) {
 		            MobilizedBody::Weld weldBody
                        (matter.Ground(), 
@@ -591,7 +591,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 					    dumm.calcClusterMassProperties(unit.clusterIx), 
 					    Transform());
 		            unit.bodyId = weldBody.getMobilizedBodyIndex();
-                    //std::cout << " got Weld mobodIx " << unit.bodyId << std::endl;
+                    std::cout << "First body Weld mobodIx " << unit.bodyId << std::endl;
                 }else if (mobilizedBodyType.compare("FreeLine") == 0) {
                     MobilizedBody::FreeLine freeLineBody
                             (matter.Ground(),
@@ -599,7 +599,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                              dumm.calcClusterMassProperties(unit.clusterIx),
                              Transform());
                     unit.bodyId = freeLineBody.getMobilizedBodyIndex();
-                    //std::cout << " got Weld mobodIx " << unit.bodyId << std::endl;
+                    std::cout << "First body FreeLine mobodIx " << unit.bodyId << std::endl;
                 }else if (mobilizedBodyType.compare("Ball") == 0) {
                     MobilizedBody::Ball ballBody
                             (matter.Ground(),
@@ -607,7 +607,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                              dumm.calcClusterMassProperties(unit.clusterIx),
                              Transform());
                     unit.bodyId = ballBody.getMobilizedBodyIndex();
-                    //std::cout << " got Ball mobodIx " << unit.bodyId << std::endl;
+                    std::cout << "First body Ball mobodIx " << unit.bodyId << std::endl;
                 }else if (mobilizedBodyType.compare("Pin") == 0) {
                     MobilizedBody::Pin pinBody
                             (matter.Ground(),
@@ -615,7 +615,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                              dumm.calcClusterMassProperties(unit.clusterIx),
                              Transform());
                     unit.bodyId = pinBody.getMobilizedBodyIndex();
-                    //std::cout << " got Pin mobodIx " << unit.bodyId << std::endl;
+                    std::cout << "First body Pin mobodIx " << unit.bodyId << std::endl;
                 }
                 dumm.attachClusterToBody(unit.clusterIx, unit.bodyId);
             }
