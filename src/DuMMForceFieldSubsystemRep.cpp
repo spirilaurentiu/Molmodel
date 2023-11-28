@@ -51,8 +51,6 @@ using namespace SimTK;
 //#define TRACE(STR)
 //#endif
 
-#define TRACE_OPENMM(STR) ;
-//#define TRACE_OPENMM(STR) printf("%s", STR);
 
 // std::string exec(const char* cmd) {
     // std::array<char, 128> buffer;

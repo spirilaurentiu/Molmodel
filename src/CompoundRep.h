@@ -183,7 +183,7 @@ public:
         // (at the time of this writing)
 
         const CompoundRep& scRep = compound.getImpl();
-        Compound::AtomName atomName = scRep.atomIdsByName.begin()->first;
+        Compound::AtomName atomName = scRep.atomName_To_atomId.begin()->first;
 
         bondCompound(atomName, compound, parentBondName);
         inheritAtomNames(atomName);
@@ -338,13 +338,13 @@ public:
     CompoundRep& inheritBondCenterNames(const Compound::Name& scName);
 
     bool hasDihedral(const Compound::DihedralName& angleName) const {
-        return ( dihedralAnglesByName.find(angleName) != dihedralAnglesByName.end() );
+        return ( AtomName_To_dihedralAngles.find(angleName) != AtomName_To_dihedralAngles.end() );
     }
 
     bool atomsAreBonded(const AtomInfo& atom1, const AtomInfo& atom2) const 
     {
         std::pair<Compound::AtomIndex, Compound::AtomIndex> key(atom1.getIndex(), atom2.getIndex());
-        return (bondIndicesByAtomIndexPair.find(key) != bondIndicesByAtomIndexPair.end());
+        return (AIxPair_To_BondIx.find(key) != AIxPair_To_BondIx.end());
     }
 
 
@@ -398,11 +398,11 @@ public:
         Angle nomenclatureOffset
         )
     {
-        assert(dihedralAnglesByName.find(angleName) == dihedralAnglesByName.end());
+        assert(AtomName_To_dihedralAngles.find(angleName) == AtomName_To_dihedralAngles.end());
     
-        dihedralAnglesByName[angleName] = DihedralAngle(bond1.getIndex(), bond2.getIndex(), nomenclatureOffset);
+        AtomName_To_dihedralAngles[angleName] = DihedralAngle(bond1.getIndex(), bond2.getIndex(), nomenclatureOffset);
 
-        assert(dihedralAnglesByName.find(angleName) != dihedralAnglesByName.end());
+        assert(AtomName_To_dihedralAngles.find(angleName) != AtomName_To_dihedralAngles.end());
 
         //// Define internal offset
         //DihedralAngle& dihedral = dihedralAnglesByName.find(angleName)->second;
@@ -467,8 +467,8 @@ public:
 
     Bond& updBondByDihedralName(const String& bondName) 
     {
-        assert( dihedralAnglesByName.find(bondName) != dihedralAnglesByName.end() );
-        DihedralAngle& dihedral = dihedralAnglesByName.find(bondName)->second;
+        assert( AtomName_To_dihedralAngles.find(bondName) != AtomName_To_dihedralAngles.end() );
+        DihedralAngle& dihedral = AtomName_To_dihedralAngles.find(bondName)->second;
         return  updBondByDihedral(dihedral);
     }
 
@@ -488,9 +488,9 @@ public:
     }
 
     const Bond& getBondByDihedralName(const String& dihedralName) const {
-        assert( dihedralAnglesByName.find(dihedralName) != dihedralAnglesByName.end() );
+        assert( AtomName_To_dihedralAngles.find(dihedralName) != AtomName_To_dihedralAngles.end() );
 
-        const DihedralAngle& dihedral = dihedralAnglesByName.find(dihedralName)->second;
+        const DihedralAngle& dihedral = AtomName_To_dihedralAngles.find(dihedralName)->second;
 
         return getBondByDihedral(dihedral);
     }
@@ -714,7 +714,7 @@ public:
     CompoundRep& setDefaultDihedralAngle(const String& dihedralName, Angle finalNominalAngle) 
     {
         //Bond& bond = updBondByDihedralName(dihedralName);
-        DihedralAngle& dihedral = dihedralAnglesByName.find(dihedralName)->second;
+        DihedralAngle& dihedral = AtomName_To_dihedralAngles.find(dihedralName)->second;
 
         // internal = nominal - offset
         Angle angle = finalNominalAngle - dihedral.getNomenclatureOffset();
@@ -808,9 +808,9 @@ public:
 
     Angle calcDefaultDihedralAngle(const String& dihedralName) const 
     {
-        assert( dihedralAnglesByName.find(dihedralName) != dihedralAnglesByName.end() );
+        assert( AtomName_To_dihedralAngles.find(dihedralName) != AtomName_To_dihedralAngles.end() );
 
-        const DihedralAngle& dihedral = dihedralAnglesByName.find(dihedralName)->second;
+        const DihedralAngle& dihedral = AtomName_To_dihedralAngles.find(dihedralName)->second;
 
         return calcDefaultDihedralAngle(dihedral);
     }
@@ -856,7 +856,7 @@ public:
     {
         assert(ownerSystem != NULL);
         Bond& bond = updBondByDihedralName(dihedralName);
-        DihedralAngle& dihedral = dihedralAnglesByName.find(dihedralName)->second;
+        DihedralAngle& dihedral = AtomName_To_dihedralAngles.find(dihedralName)->second;
 
         // case1 : Pin dihedral
         if (bond.getPinJointId().isValid()) {
@@ -1970,13 +1970,13 @@ public:
 
     const BondInfo& getBondInfo(const AtomInfo& a1, const AtomInfo& a2) const {
         std::pair<Compound::AtomIndex, Compound::AtomIndex> key(a1.getIndex(), a2.getIndex());
-        Compound::BondIndex bi = bondIndicesByAtomIndexPair.find(key)->second;
+        Compound::BondIndex bi = AIxPair_To_BondIx.find(key)->second;
 
         return allBonds[bi];
     }
     BondInfo& updBondInfo(const AtomInfo& a1, const AtomInfo& a2) {
         std::pair<Compound::AtomIndex, Compound::AtomIndex> key(a1.getIndex(), a2.getIndex());
-        Compound::BondIndex bi = bondIndicesByAtomIndexPair.find(key)->second;
+        Compound::BondIndex bi = AIxPair_To_BondIx.find(key)->second;
 
         return allBonds[bi];
     }
@@ -2058,7 +2058,7 @@ public:
     const AtomInfo& getAtomInfo(const Compound::AtomName& name) const {
         // assert(CompoundPathName::isValidAtomName(name));
         assert(hasAtom(name));
-        return getAtomInfo(atomIdsByName.find(name)->second);
+        return getAtomInfo(atomName_To_atomId.find(name)->second);
     }
 
     AtomInfo& updAtomInfo(Compound::AtomIndex);
@@ -2382,8 +2382,8 @@ public:
             key1(outboardBondCenterInfo.getAtomIndex(), inboardBondCenterInfo.getAtomIndex());
         std::pair<Compound::AtomIndex, Compound::AtomIndex> 
             key2(inboardBondCenterInfo.getAtomIndex(), outboardBondCenterInfo.getAtomIndex());
-        bondIndicesByAtomIndexPair[key1] = bondIndex;
-        bondIndicesByAtomIndexPair[key2] = bondIndex;
+        AIxPair_To_BondIx[key1] = bondIndex;
+        AIxPair_To_BondIx[key2] = bondIndex;
 
         assert( outboardBondCenter.isBonded() );
         assert( inboardBondCenter.isBonded() );
@@ -2485,9 +2485,9 @@ protected:
 
     Angle calcDihedralAngle(const State& state, const String& dihedralName) const
     {
-        assert( dihedralAnglesByName.find(dihedralName) != dihedralAnglesByName.end() );
+        assert( AtomName_To_dihedralAngles.find(dihedralName) != AtomName_To_dihedralAngles.end() );
 
-        const DihedralAngle& dihedral = dihedralAnglesByName.find(dihedralName)->second;
+        const DihedralAngle& dihedral = AtomName_To_dihedralAngles.find(dihedralName)->second;
 
         return calcDihedralAngle(state, dihedral);
     }
@@ -2639,7 +2639,7 @@ protected:
     // AtomInfo references
     std::vector<AtomInfo>                          allAtoms;    // [Compound::AtomIndex]
     // std::vector<CompoundAtom>                              localAtoms;  // [Compound::LocalAtomIndex]
-    std::map<Compound::AtomName, Compound::AtomIndex> atomIdsByName;
+    std::map<Compound::AtomName, Compound::AtomIndex> atomName_To_atomId;
 
     // bool haveParentCompound;
 
@@ -2669,17 +2669,17 @@ private:
 
     // BondCenters
     std::vector<BondCenterInfo>              allBondCenters; // [Compound::BondCenterIndex]
-    std::map<String, Compound::BondCenterIndex> bondCenterIndicesByName;
+    std::map<String, Compound::BondCenterIndex> BCName_To_BCIx;
     BondCenterInfo::AtomKeyMap               bondCenterIndicesByAtomKey;
 
     // Bonds
     // bonds do not contain subcompounds
     std::vector<BondInfo> allBonds; // [Compound::BondIndex]
     std::map< std::pair<Compound::AtomIndex, Compound::AtomIndex>, Compound::BondIndex > 
-                          bondIndicesByAtomIndexPair;
+                          AIxPair_To_BondIx;
 
     // Dihedral Angles
-    std::map<String, DihedralAngle> dihedralAnglesByName;
+    std::map<String, DihedralAngle> AtomName_To_dihedralAngles;
 
     int    pdbResidueNumber;
     String pdbResidueName;

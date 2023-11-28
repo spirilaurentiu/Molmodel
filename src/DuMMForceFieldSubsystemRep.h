@@ -83,7 +83,8 @@ SimTK_DEFINE_UNIQUE_INDEX_TYPE(DuMMIncludedBodyIndex);
 // bond for which we are going to compute a bond force at run time.
 SimTK_DEFINE_UNIQUE_INDEX_TYPE(DuMMBondStarterIndex);
 
-
+#define TRACE_OPENMM(STR) ;
+//#define TRACE_OPENMM(STR) printf("%s", STR);
 
 //-----------------------------------------------------------------------------
 //                                INDEX PAIR

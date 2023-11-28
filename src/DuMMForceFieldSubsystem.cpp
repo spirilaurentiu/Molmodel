@@ -1775,9 +1775,16 @@ Real DuMMForceFieldSubsystem::OMM_calcKineticEnergy() const
 void DuMMForceFieldSubsystem::OMM_integrateTrajectory( int steps )
 { return updRep().openMMPlugin.integrateTrajectory(steps);}  
 
-SimTK::Vec3 DuMMForceFieldSubsystem::calcAtomLocationInGroundFrameThroughOMM( DuMM::AtomIndex daix ) const
+SimTK::Vec3 DuMMForceFieldSubsystem::calcAtomLocationInGroundFrameThroughOMM(
+    DuMM::AtomIndex daix ) const
 {
     return getRep().openMMPlugin.getAtomPosition(daix);
+}
+
+// Needed in Gmolmodel
+const Vector_<Vec3>&
+DuMMForceFieldSubsystem::getIncludedAtomPositionsInG(const State& s) const {
+    return getRep().getIncludedAtomPositionsInG(s);
 }
 
 const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::OMM_getPositions() const
@@ -1795,11 +1802,10 @@ void DuMMForceFieldSubsystem::setOpenMMstepsize(float value)
 float DuMMForceFieldSubsystem::getOpenMMtemperature() const
 {   return getRep().temperature; }
 
-void DuMMForceFieldSubsystem::setOpenMMtemperature(float value)
+void DuMMForceFieldSubsystem::setDuMMTemperature(float value)
 {   
-    //invalidateSubsystemTopologyCache();
     updRep().temperature = value;
-    updRep().openMMPlugin.setVelocitiesToTemperature(value);
+    //updRep().openMMPlugin.setVelocitiesToTemperature(value);
     
     // std::cout<<"SETTING TEMPERATURE in DUMM "<<std::endl << getRep().temperature <<std::endl<< std::flush;
 }
@@ -1809,9 +1815,9 @@ void DuMMForceFieldSubsystem::setOpenMMvelocities(float value)
     updRep().openMMPlugin.setVelocitiesToTemperature(value);
 }
 
-void DuMMForceFieldSubsystem::OMM_updatePositions(const std::vector<SimTK::Vec3>& positions)
+void DuMMForceFieldSubsystem::OMM_setOpenMMPositions(const std::vector<SimTK::Vec3>& positions)
 {
-    updRep().openMMPlugin.updatePositions(positions);
+    updRep().openMMPlugin.setOpenMMPositions(positions);
 }
 
 bool DuMMForceFieldSubsystem::getAllowOpenMMReference() const

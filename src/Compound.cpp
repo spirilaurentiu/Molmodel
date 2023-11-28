@@ -554,7 +554,7 @@ CompoundRep& CompoundRep::addFirstBondCenter(
     const CompoundAtom::BondCenterIndex centerIndex = updAtom(atomId).addFirstBondCenter();
 
     addBondCenterInfo(atomId, centerIndex);
-    bondCenterIndicesByName[centerName] = getBondCenterInfo(atomId, centerIndex).getIndex();
+    BCName_To_BCIx[centerName] = getBondCenterInfo(atomId, centerIndex).getIndex();
 
     assert (hasBondCenter(centerName));
 
@@ -576,7 +576,7 @@ CompoundRep& CompoundRep::addSecondBondCenter(
     const CompoundAtom::BondCenterIndex centerIndex = updAtom(atomId).addSecondBondCenter(bondAngle1);
 
     addBondCenterInfo(atomId, centerIndex);
-    bondCenterIndicesByName[centerName] = getBondCenterInfo(atomId, centerIndex).getIndex();
+    BCName_To_BCIx[centerName] = getBondCenterInfo(atomId, centerIndex).getIndex();
 
     assert (hasBondCenter(centerName));
 
@@ -601,8 +601,8 @@ CompoundRep& CompoundRep::addFirstTwoBondCenters(
     addBondCenterInfo(atomId, centerIndeces[0]);
     addBondCenterInfo(atomId, centerIndeces[1]);
 
-    bondCenterIndicesByName[centerName1] = getBondCenterInfo(atomId, centerIndeces[0]).getIndex();
-    bondCenterIndicesByName[centerName2] = getBondCenterInfo(atomId, centerIndeces[1]).getIndex();
+    BCName_To_BCIx[centerName1] = getBondCenterInfo(atomId, centerIndeces[0]).getIndex();
+    BCName_To_BCIx[centerName2] = getBondCenterInfo(atomId, centerIndeces[1]).getIndex();
 
     assert (hasBondCenter(centerName1));
     assert (hasBondCenter(centerName2));
@@ -626,7 +626,7 @@ CompoundRep& CompoundRep::addPlanarBondCenter(
     const CompoundAtom::BondCenterIndex centerIndex = updAtom(atomId).addPlanarBondCenter(bondAngle1, bondAngle2);
 
     addBondCenterInfo(atomId, centerIndex);
-    bondCenterIndicesByName[centerName] = getBondCenterInfo(atomId, centerIndex).getIndex();
+    BCName_To_BCIx[centerName] = getBondCenterInfo(atomId, centerIndex).getIndex();
 
     assert (hasBondCenter(centerName));
 
@@ -649,7 +649,7 @@ CompoundRep& CompoundRep::addRightHandedBondCenter(
     const CompoundAtom::BondCenterIndex centerIndex = updAtom(atomId).addRightHandedBondCenter(bondAngle1, bondAngle2);
 
     addBondCenterInfo(atomId, centerIndex);
-    bondCenterIndicesByName[centerName] = getBondCenterInfo(atomId, centerIndex).getIndex();
+    BCName_To_BCIx[centerName] = getBondCenterInfo(atomId, centerIndex).getIndex();
 
     assert (hasBondCenter(centerName));
 
@@ -672,7 +672,7 @@ CompoundRep& CompoundRep::addLeftHandedBondCenter(
     const CompoundAtom::BondCenterIndex centerIndex = updAtom(atomId).addLeftHandedBondCenter(bondAngle1, bondAngle2);
 
     addBondCenterInfo(atomId, centerIndex);
-    bondCenterIndicesByName[centerName] = getBondCenterInfo(atomId, centerIndex).getIndex();
+    BCName_To_BCIx[centerName] = getBondCenterInfo(atomId, centerIndex).getIndex();
 
     assert (hasBondCenter(centerName));
 
@@ -816,7 +816,7 @@ CompoundRep& CompoundRep::nameAtom(const Compound::AtomName& newName, Compound::
     // NOTE - most recent name is the official name
     atomInfo.addName(newName);
 
-    atomIdsByName[newName] = atomId;
+    atomName_To_atomId[newName] = atomId;
 
     assert( hasAtom(atomId) );
     assert( hasAtom(newName) );
@@ -855,7 +855,7 @@ CompoundRep& CompoundRep::nameBondCenter(Compound::BondCenterName newName, Compo
     // assert( ! hasBondCenter(newName) );
 
     const BondCenterInfo& bondCenterInfo = getBondCenterInfo(oldName);
-    bondCenterIndicesByName[newName] = bondCenterInfo.getIndex();
+    BCName_To_BCIx[newName] = bondCenterInfo.getIndex();
     // bondCenterInfo.setName(newName);
 
     assert( hasBondCenter(newName) );
@@ -866,7 +866,7 @@ CompoundRep& CompoundRep::nameBondCenter(Compound::BondCenterName newName, Compo
 Compound::BondCenterIndex CompoundRep::getBondCenterIndex(const Compound::BondCenterName& name) const
 {
     assert(hasBondCenter(name));
-    return bondCenterIndicesByName.find(name)->second;
+    return BCName_To_BCIx.find(name)->second;
 }
 
 BondCenterInfo& CompoundRep::updBondCenterInfo(const Compound::BondCenterName& name) 
@@ -904,8 +904,8 @@ BondCenterInfo& CompoundRep::updBondCenterInfo(const Compound::AtomName& atom1, 
 const BondCenterInfo& CompoundRep::getBondCenterInfo(const AtomInfo& atom1, const AtomInfo& atom2) const 
 {
     const std::pair<Compound::AtomIndex, Compound::AtomIndex> key( atom1.getIndex(), atom2.getIndex() );
-    assert( bondIndicesByAtomIndexPair.find(key)!= bondIndicesByAtomIndexPair.end() );
-    Compound::BondIndex bondIndex = bondIndicesByAtomIndexPair.find(key)->second;
+    assert( AIxPair_To_BondIx.find(key)!= AIxPair_To_BondIx.end() );
+    Compound::BondIndex bondIndex = AIxPair_To_BondIx.find(key)->second;
 
     const BondInfo& bondInfo = getBondInfo(bondIndex);
     const BondCenterInfo& bc1 = getBondCenterInfo( bondInfo.getParentBondCenterIndex() );
@@ -925,8 +925,8 @@ const BondCenterInfo& CompoundRep::getBondCenterInfo(const AtomInfo& atom1, cons
 BondCenterInfo& CompoundRep::updBondCenterInfo(const AtomInfo& atom1, const AtomInfo& atom2) 
 {
     const std::pair<Compound::AtomIndex, Compound::AtomIndex> key( atom1.getIndex(), atom2.getIndex() );
-    assert( bondIndicesByAtomIndexPair.find(key)!= bondIndicesByAtomIndexPair.end() );
-    const Compound::BondIndex bondIndex = bondIndicesByAtomIndexPair.find(key)->second;
+    assert( AIxPair_To_BondIx.find(key)!= AIxPair_To_BondIx.end() );
+    const Compound::BondIndex bondIndex = AIxPair_To_BondIx.find(key)->second;
 
     const BondInfo& bondInfo = getBondInfo(bondIndex);
     BondCenterInfo& bc1 = updBondCenterInfo( bondInfo.getParentBondCenterIndex() );
@@ -971,7 +971,7 @@ bool CompoundRep::hasBondCenter(Compound::BondCenterIndex id) const {
 }
 
 bool CompoundRep::hasBondCenter(const Compound::BondCenterName& name) const {
-    return ( bondCenterIndicesByName.find(name) != bondCenterIndicesByName.end() );
+    return ( BCName_To_BCIx.find(name) != BCName_To_BCIx.end() );
 }
 
 // Use atoms names as found in subcompound
@@ -981,7 +981,7 @@ CompoundRep& CompoundRep::inheritAtomNames(const Compound::Name& scName)
     std::string prefix(scName + "/");
     std::set<Compound::AtomName> newNames; // for evaluating bond center names
     std::map<Compound::AtomName, Compound::AtomIndex>::const_iterator anI;
-    for (anI = atomIdsByName.begin(); anI != atomIdsByName.end(); ++anI) {
+    for (anI = atomName_To_atomId.begin(); anI != atomName_To_atomId.end(); ++anI) {
         if (anI->first.find(prefix) != 0) continue;
         Compound::AtomName newName = anI->first.substr(prefix.length());
         // But don't inherit sub-sub names
@@ -992,7 +992,7 @@ CompoundRep& CompoundRep::inheritAtomNames(const Compound::Name& scName)
 
     // TODO - also inherit bond center names with atoms in them
     std::map<String, Compound::BondCenterIndex>::const_iterator scBc;
-    for (scBc = bondCenterIndicesByName.begin(); scBc != bondCenterIndicesByName.end(); ++scBc) 
+    for (scBc = BCName_To_BCIx.begin(); scBc != BCName_To_BCIx.end(); ++scBc) 
     {
         // Ensure bond center name begins with this subcompound name
         if (scBc->first.find(prefix) != 0) continue;
@@ -1016,7 +1016,7 @@ CompoundRep& CompoundRep::inheritBondCenterNames(const Compound::Name& scName)
 {
     std::string prefix(scName + "/");
     std::map<String, Compound::BondCenterIndex>::const_iterator scBc;
-    for (scBc = bondCenterIndicesByName.begin(); scBc != bondCenterIndicesByName.end(); ++scBc) 
+    for (scBc = BCName_To_BCIx.begin(); scBc != BCName_To_BCIx.end(); ++scBc) 
     {
         if (scBc->first.find(prefix) != 0) continue;
 
@@ -1077,7 +1077,7 @@ std::ostream& CompoundRep::writePdb(const State& state, std::ostream& os, int& n
 // protected:
 
 bool CompoundRep::hasInboardBondCenter() const {
-    return bondCenterIndicesByName.find(InboardBondName) != bondCenterIndicesByName.end();
+    return BCName_To_BCIx.find(InboardBondName) != BCName_To_BCIx.end();
 }
 
 CompoundRep& CompoundRep::convertInboardBondCenterToOutboard() 
@@ -1088,7 +1088,7 @@ CompoundRep& CompoundRep::convertInboardBondCenterToOutboard()
     if (hasInboardBondCenter()) {
         assert(!getInboardBondCenter().isBonded());
         updInboardBondCenter().setInboard(false);
-        bondCenterIndicesByName.erase(InboardBondName);
+        BCName_To_BCIx.erase(InboardBondName);
     }
     return *this;
 };
@@ -1126,7 +1126,7 @@ CompoundRep& CompoundRep::setInboardBondCenter(const Compound::BondCenterName& n
 
     bondCenter.setInboard(true);
 
-    bondCenterIndicesByName[InboardBondName] = bondCenterInfo.getIndex();
+    BCName_To_BCIx[InboardBondName] = bondCenterInfo.getIndex();
 
     assert(hasInboardBondCenter());
 
@@ -1146,7 +1146,7 @@ CompoundRep& CompoundRep::setInboardBondCenter(Compound::BondCenterIndex id)
     const BondCenterInfo& bondCenterInfo = getBondCenterInfo(id);
     assert(! updBondCenter(id).isBonded() );
 
-    bondCenterIndicesByName[InboardBondName] = bondCenterInfo.getIndex();
+    BCName_To_BCIx[InboardBondName] = bondCenterInfo.getIndex();
 
     assert(hasInboardBondCenter());
 
@@ -1180,82 +1180,114 @@ Compound::BondCenterIndex CompoundRep::absorbSubcompound(
     const Compound& subcompound,
     bool isBaseCompound)
 {
+    // We need Subcompound's implementation
     const CompoundRep& subcompoundRep  = subcompound.getImpl();
 
-    // copy atoms
-    std::map<Compound::AtomIndex, Compound::AtomIndex> parentAtomIndicesBySubcompoundAtomIndex;
-    for (Compound::AtomIndex a(0); a < subcompound.getNumAtoms(); ++a) {
-        const CompoundAtom& childAtom = subcompoundRep.getAtom(a);
-        const AtomInfo& childAtomInfo = subcompoundRep.getAtomInfo(a);
+    // Create a parent-child map with (key = aIx) and (value = parentAIx)
+    std::map<Compound::AtomIndex, Compound::AtomIndex>
+        atomId_To_parentAtomId;
 
+    // Add all Subcompound atomInfos to the this Comopound list of atomInfos
+    // and populate the parent-child map
+    for (Compound::AtomIndex scAIx(0); scAIx < subcompound.getNumAtoms(); ++scAIx) {
+        const CompoundAtom& childAtom = subcompoundRep.getAtom(scAIx);
+        const AtomInfo& childAtomInfo = subcompoundRep.getAtomInfo(scAIx);
+
+        // Get the last atom index in this Compound and set it as parent
         const Compound::AtomIndex parentAtomIndex = Compound::AtomIndex(allAtoms.size());
         bool isBase = childAtomInfo.isBaseAtom();
         if (!isBaseCompound) isBase = false;
         const AtomInfo atomInfo(parentAtomIndex, childAtom, isBase);
 
+        // Insert atom info
         allAtoms.push_back(atomInfo);
-        parentAtomIndicesBySubcompoundAtomIndex[a] = parentAtomIndex;
-    }
-    // Copy atom names
-    std::map<Compound::AtomName, Compound::AtomIndex>::const_iterator an;
-    for (an = subcompoundRep.atomIdsByName.begin(); an != subcompoundRep.atomIdsByName.end(); ++an)
-    {
-        Compound::AtomIndex parentIx = parentAtomIndicesBySubcompoundAtomIndex[an->second];
-        Compound::AtomName parentName = scName + "/" + an->first;
-        AtomInfo& parentAtomInfo = updAtomInfo(parentIx);
-        parentAtomInfo.addName(parentName);
-        atomIdsByName[parentName] = parentIx;
-    }
-    // Set "main" atom name last, to make it stick
-    for (Compound::AtomIndex a(0); a < subcompound.getNumAtoms(); ++a) {
-        const AtomInfo& childAtomInfo = subcompoundRep.getAtomInfo(a);
-        Compound::AtomIndex parentIx = parentAtomIndicesBySubcompoundAtomIndex[a];
-        AtomInfo& parentAtomInfo = updAtomInfo(parentIx);
-        Compound::AtomName parentName = scName + "/" + childAtomInfo.getName();
-        parentAtomInfo.addName(parentName);
-        atomIdsByName[parentName] = parentIx;
+
+        // Add an entry to the parent-child map
+        atomId_To_parentAtomId[scAIx] = parentAtomIndex;
     }
 
-    // copy bondCenters
+    // Generate names = "SubcompoundName + / + atomName" and add them 
+    // to AtomInfos of the Subcompound
+    // Add all Subcompound atomNames to the Subcompound atomIdsByName
+    std::map<Compound::AtomName,
+             Compound::AtomIndex>::const_iterator atomName_To_atomId_It;
+
+    for ( atomName_To_atomId_It  = subcompoundRep.atomName_To_atomId.begin();
+          atomName_To_atomId_It != subcompoundRep.atomName_To_atomId.end();
+        ++atomName_To_atomId_It)
+    {
+        Compound::AtomIndex parentIx = 
+            atomId_To_parentAtomId[atomName_To_atomId_It->second];
+
+        Compound::AtomName parentName = scName + "/" + atomName_To_atomId_It->first;
+
+        AtomInfo& parentAtomInfo = updAtomInfo(parentIx);
+        parentAtomInfo.addName(parentName);
+        atomName_To_atomId[parentName] = parentIx;
+    }
+
+    // Set "main" atom name last, to make it stick
+    for ( Compound::AtomIndex scAIx(0); scAIx < subcompound.getNumAtoms(); ++scAIx)
+    {
+        const AtomInfo& childAtomInfo =
+            subcompoundRep.getAtomInfo(scAIx);
+        Compound::AtomIndex parentIx = atomId_To_parentAtomId[scAIx];
+
+        Compound::AtomName parentName = scName + "/" + childAtomInfo.getName();
+
+        AtomInfo& parentAtomInfo = updAtomInfo(parentIx);
+        parentAtomInfo.addName(parentName);
+        atomName_To_atomId[parentName] = parentIx;
+    }
+
+    // Create a map of parentBC[childBC] scBCIx_To_parentBCIx
     // copy even bonded centers, for use in dihedral nomenclature
-    std::map<Compound::BondCenterIndex, Compound::BondCenterIndex> parentBondCenterIndicesBySubcompoundBondCenterIndex;
-    for (Compound::BondCenterIndex bond(0); bond < subcompound.getNumBondCenters(); ++bond) 
+    std::map<Compound::BondCenterIndex, Compound::BondCenterIndex>
+        scBCIx_To_parentBCIx;
+    for (Compound::BondCenterIndex BCIx(0); BCIx < subcompound.getNumBondCenters(); ++BCIx) 
     {
         //const BondCenter&   scBc     = subcompoundRep.getBondCenter(bond);
-        const BondCenterInfo&     scBcInfo = subcompoundRep.getBondCenterInfo(bond);
+        const BondCenterInfo&     scBcInfo = subcompoundRep.getBondCenterInfo(BCIx);
 
-        const AtomInfo& atomInfo = getAtomInfo(parentAtomIndicesBySubcompoundAtomIndex[scBcInfo.getAtomIndex()]);
+        const AtomInfo& atomInfo = getAtomInfo(atomId_To_parentAtomId[scBcInfo.getAtomIndex()]);
 
         addBondCenterInfo( atomInfo.getIndex(), scBcInfo.getAtomBondCenterIndex() );
-        const BondCenterInfo& parentBondCenterInfo = getBondCenterInfo( atomInfo.getIndex(), scBcInfo.getAtomBondCenterIndex() );
 
-        parentBondCenterIndicesBySubcompoundBondCenterIndex[bond] = parentBondCenterInfo.getIndex();
+        const BondCenterInfo& parentBondCenterInfo =
+            getBondCenterInfo( atomInfo.getIndex(), scBcInfo.getAtomBondCenterIndex() );
+
+        scBCIx_To_parentBCIx[BCIx] = parentBondCenterInfo.getIndex();
     }
-    // copy BondCenter names
-    std::map<String, Compound::BondCenterIndex>::const_iterator bcn;
-    for (bcn = subcompoundRep.bondCenterIndicesByName.begin(); bcn != subcompoundRep.bondCenterIndicesByName.end(); ++bcn)
+
+    // Insert Bond center names into BCName_To_BCIx map
+    std::map<String, Compound::BondCenterIndex>::const_iterator
+        BCName_To_BCIx_It;
+    for (   BCName_To_BCIx_It  = subcompoundRep.BCName_To_BCIx.begin();
+            BCName_To_BCIx_It != subcompoundRep.BCName_To_BCIx.end();
+          ++BCName_To_BCIx_It)
     {
-        Compound::BondCenterIndex parentIx = parentBondCenterIndicesBySubcompoundBondCenterIndex[bcn->second];
-        Compound::BondCenterName parentName = scName + "/" + bcn->first;
-        bondCenterIndicesByName[parentName] = parentIx;
+        Compound::BondCenterIndex parentBCIx = scBCIx_To_parentBCIx[BCName_To_BCIx_It->second];
+        Compound::BondCenterName parentBCName = scName + "/" + BCName_To_BCIx_It->first;
+        BCName_To_BCIx[parentBCName] = parentBCIx;
     }
 
     // copy bonds
-    std::map<Compound::BondIndex, Compound::BondIndex> parentBondIndicesBySubcompoundBondIndex;
-    for (Compound::BondIndex bond(0); bond < subcompoundRep.getNumBonds(); ++bond)
+    // Create a map of parentBondIx[childBondIx] scBondIx_To_parentBondIx
+    std::map<Compound::BondIndex, Compound::BondIndex> scBondIx_To_parentBondIx;
+    for (Compound::BondIndex bondIx(0); bondIx < subcompoundRep.getNumBonds(); ++bondIx)
     {
         // 1) Index Info relative to subcompound
-        const BondInfo&       scBondInfo = subcompoundRep.getBondInfo(bond);
-        const BondCenterInfo& scBc1      = subcompoundRep.getBondCenterInfo( scBondInfo.getParentBondCenterIndex() );
-        const BondCenterInfo& scBc2      = subcompoundRep.getBondCenterInfo( scBondInfo.getChildBondCenterIndex() );
+        const BondInfo&       scBondInfo = subcompoundRep.getBondInfo(bondIx);
+        const BondCenterInfo& scBCInfo1      = subcompoundRep.getBondCenterInfo( scBondInfo.getParentBondCenterIndex() );
+        const BondCenterInfo& scBCInfo2      = subcompoundRep.getBondCenterInfo( scBondInfo.getChildBondCenterIndex() );
         //const AtomInfo&       scAtom1    = subcompoundRep.getAtomInfo(scBc1.getAtomIndex());
         //const AtomInfo&       scAtom2    = subcompoundRep.getAtomInfo(scBc2.getAtomIndex());
 
         // 2) Index Info relative to parent compound
-        const AtomInfo& atom1Info = getAtomInfo(parentAtomIndicesBySubcompoundAtomIndex[scBc1.getAtomIndex()]);
-        const AtomInfo& atom2Info = getAtomInfo(parentAtomIndicesBySubcompoundAtomIndex[scBc2.getAtomIndex()]);
-        BondCenterInfo& bc1Info   = updBondCenterInfo(atom1Info.getIndex(), scBc1.getAtomBondCenterIndex());
-        BondCenterInfo& bc2Info   = updBondCenterInfo(atom2Info.getIndex(), scBc2.getAtomBondCenterIndex());
+        const AtomInfo& atom1Info = getAtomInfo(atomId_To_parentAtomId[scBCInfo1.getAtomIndex()]);
+        const AtomInfo& atom2Info = getAtomInfo(atomId_To_parentAtomId[scBCInfo2.getAtomIndex()]);
+        BondCenterInfo& bc1Info   = updBondCenterInfo(atom1Info.getIndex(), scBCInfo1.getAtomBondCenterIndex());
+        BondCenterInfo& bc2Info   = updBondCenterInfo(atom2Info.getIndex(), scBCInfo2.getAtomBondCenterIndex());
 
         const Compound::BondIndex bondIndex = Compound::BondIndex(allBonds.size());
         allBonds.push_back( BondInfo(
@@ -1266,7 +1298,7 @@ Compound::BondCenterIndex CompoundRep::absorbSubcompound(
             ) );
         //const BondInfo& bondInfo = getBondInfo(bondIndex);
 
-        parentBondIndicesBySubcompoundBondIndex[bond] = bondIndex;
+        scBondIx_To_parentBondIx[bondIx] = bondIndex;
 
         // Update cross references in BondCenters
         bc1Info.setBondIndex(bondIndex);
@@ -1277,38 +1309,41 @@ Compound::BondCenterIndex CompoundRep::absorbSubcompound(
         // map bonds to atomId pairs
         const std::pair<Compound::AtomIndex, Compound::AtomIndex> key1(atom1Info.getIndex(), atom2Info.getIndex());
         const std::pair<Compound::AtomIndex, Compound::AtomIndex> key2(atom2Info.getIndex(), atom1Info.getIndex());
-        bondIndicesByAtomIndexPair[key1] = bondIndex;
-        bondIndicesByAtomIndexPair[key2] = bondIndex;
+        AIxPair_To_BondIx[key1] = bondIndex;
+        AIxPair_To_BondIx[key2] = bondIndex;
     }
 
     // copy dihedral angles
-    std::map<String, DihedralAngle>::const_iterator dn;
-    for (dn = subcompoundRep.dihedralAnglesByName.begin(); dn != subcompoundRep.dihedralAnglesByName.end(); ++dn)
+    std::map<String, DihedralAngle>::const_iterator
+        AtomName_To_dihedralAngles_It;
+    for (   AtomName_To_dihedralAngles_It = subcompoundRep.AtomName_To_dihedralAngles.begin();
+            AtomName_To_dihedralAngles_It != subcompoundRep.AtomName_To_dihedralAngles.end();
+          ++AtomName_To_dihedralAngles_It)
     {
-        const DihedralAngle& scAngle = dn->second;
-        Compound::BondCenterIndex bc1 = parentBondCenterIndicesBySubcompoundBondCenterIndex[scAngle.getBondCenter1Id()];
-        Compound::BondCenterIndex bc2 = parentBondCenterIndicesBySubcompoundBondCenterIndex[scAngle.getBondCenter2Id()];
+        const DihedralAngle& scAngle = AtomName_To_dihedralAngles_It->second;
+        Compound::BondCenterIndex bc1 = scBCIx_To_parentBCIx[scAngle.getBondCenter1Id()];
+        Compound::BondCenterIndex bc2 = scBCIx_To_parentBCIx[scAngle.getBondCenter2Id()];
 
-        Compound::AtomName parentName = scName + "/" + dn->first;
-        dihedralAnglesByName[parentName] = DihedralAngle(bc1, bc2, scAngle.getNomenclatureOffset());
+        Compound::AtomName parentName = scName + "/" + AtomName_To_dihedralAngles_It->first;
+        AtomName_To_dihedralAngles[parentName] = DihedralAngle(bc1, bc2, scAngle.getNomenclatureOffset());
     }
 
     if (!subcompoundRep.hasInboardBondCenter())
         return Compound::BondCenterIndex(); // invalid index
     else
-        return parentBondCenterIndicesBySubcompoundBondCenterIndex[subcompoundRep.getInboardBondCenterInfo().getIndex()];
+        return scBCIx_To_parentBCIx[subcompoundRep.getInboardBondCenterInfo().getIndex()];
 }
 
 
 bool CompoundRep::hasAtom(const Compound::AtomName& atomName) const 
 {
-    return atomIdsByName.find(atomName) != atomIdsByName.end();
+    return atomName_To_atomId.find(atomName) != atomName_To_atomId.end();
 }
 
 
 Compound::AtomIndex CompoundRep::getAtomIndex(const Compound::AtomName& atomName) const {
     assert(hasAtom(atomName));
-    return atomIdsByName.find(atomName)->second;
+    return atomName_To_atomId.find(atomName)->second;
 }
 
 AtomInfo& CompoundRep::updAtomInfo(const Compound::AtomName& atomName) {

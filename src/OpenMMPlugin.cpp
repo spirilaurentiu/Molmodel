@@ -40,8 +40,6 @@
         #include "OpenCLPlatform.h"
 #endif
 
-#define TRACE_OPENMM(STR) ;
-//#define TRACE_OPENMM(STR) printf("%s", STR);
 
 std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform, const SimTK::DuMMForceFieldSubsystemRep* inDumm)
 {
@@ -376,7 +374,8 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
 //-----------------------------------------------------------------------------
 //                    updateCoordInOpenMM
 //-----------------------------------------------------------------------------
-void OpenMMPluginInterface::updateCoordInOpenMM(const SimTK::Vector_<SimTK::Vec3>& includedAtomPos_G)const
+void OpenMMPluginInterface::setOpenMMPositions(
+    const SimTK::Vector_<SimTK::Vec3>& includedAtomPos_G ) const
 {
     assert(NonbondAtomsPositionsCache.size() == dumm->getNumNonbondAtoms());
     assert(includedAtomPos_G.size() == dumm->getNumIncludedAtoms());
@@ -393,7 +392,9 @@ void OpenMMPluginInterface::updateCoordInOpenMM(const SimTK::Vector_<SimTK::Vec3
     openMMContext->setPositions(NonbondAtomsPositionsCache);
 }
 
-void OpenMMPluginInterface::updatePositions(const std::vector<SimTK::Vec3>& positions) {
+void OpenMMPluginInterface::setOpenMMPositions(
+    const std::vector<SimTK::Vec3>& positions)
+{
     // Make sure the memory cache is good
     assert(PositionsCache.size() == positions.size());
 
@@ -488,7 +489,7 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
         throw std::runtime_error("ERROR: calcOpenMMNonbondedAndGBSAForces(): OpenMM has not been initialized.");
 
     
-    updateCoordInOpenMM(includedAtomPos_G);
+    setOpenMMPositions(includedAtomPos_G);
 
     // Ask for energy, forces, or both.
     openMMState = openMMContext->getState((wantForces?OpenMM::State::Forces:0) | (wantEnergy?OpenMM::State::Energy:0));

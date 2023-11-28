@@ -38,7 +38,7 @@ public:
         SimTK::Vector_<SimTK::SpatialVec>&    includedBodyForce_G,
         SimTK::Real&                   energy) const;
 
-    void updatePositions(const std::vector<SimTK::Vec3>& positions);
+    void setOpenMMPositions(const std::vector<SimTK::Vec3>& positions);
     const std::vector<OpenMM::Vec3>& getPositions() const;
 
     SimTK::Vec3 getAtomPosition( int dummAtomIndex ) const;
@@ -56,7 +56,7 @@ public:
     // std::string getGPUindex () const;                  /// Get GPU index. Values: "0"/"1"/"0,1"
 
 private:
-    void updateCoordInOpenMM(const SimTK::Vector_<SimTK::Vec3>& includedAtomPos_G) const;
+    void setOpenMMPositions(const SimTK::Vector_<SimTK::Vec3>& includedAtomPos_G) const;
 
     // std::string OpenMMPlatform;
     // std::string OpenMMGPUindex;
