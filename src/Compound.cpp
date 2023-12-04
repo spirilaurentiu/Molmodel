@@ -901,6 +901,7 @@ BondCenterInfo& CompoundRep::updBondCenterInfo(const Compound::AtomName& atom1, 
     return updBondCenterInfo(getAtomInfo(atom1), getAtomInfo(atom2));
 }
 
+// Get bond, then parent-child BCs and return atom1 atom1's BC
 const BondCenterInfo& CompoundRep::getBondCenterInfo(const AtomInfo& atom1, const AtomInfo& atom2) const 
 {
     const std::pair<Compound::AtomIndex, Compound::AtomIndex> key( atom1.getIndex(), atom2.getIndex() );
@@ -908,17 +909,17 @@ const BondCenterInfo& CompoundRep::getBondCenterInfo(const AtomInfo& atom1, cons
     Compound::BondIndex bondIndex = AIxPair_To_BondIx.find(key)->second;
 
     const BondInfo& bondInfo = getBondInfo(bondIndex);
-    const BondCenterInfo& bc1 = getBondCenterInfo( bondInfo.getParentBondCenterIndex() );
-    const BondCenterInfo& bc2 = getBondCenterInfo( bondInfo.getChildBondCenterIndex() );
+    const BondCenterInfo& parentBC = getBondCenterInfo( bondInfo.getParentBondCenterIndex() );
+    const BondCenterInfo& childBC = getBondCenterInfo( bondInfo.getChildBondCenterIndex() );
 
-    assert(bc1.isBonded());
-    assert(bc2.isBonded());
+    assert(parentBC.isBonded());
+    assert(childBC.isBonded());
 
-    if (bc1.getAtomIndex() == atom1.getIndex()) return bc1;
-    else if (bc2.getAtomIndex() == atom1.getIndex()) return bc2;
+    if (parentBC.getAtomIndex() == atom1.getIndex()) return parentBC;
+    else if (childBC.getAtomIndex() == atom1.getIndex()) return childBC;
     else {
         assert(!"neither bond center belonged to atom1");
-        return bc1; // to make compiler happy
+        return parentBC; // to make compiler happy
     }
 }
 

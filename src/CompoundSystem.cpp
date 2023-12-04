@@ -331,7 +331,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 
                     // child body frame in top compound frame including default dihedral rotation
                     Transform T_X_Mr =
-                            compoundRep.calcDefaultBondCenterFrameInCompoundFrame(compoundRep.getBondCenterInfo(childUnit.inboardBondCenterIndex), defaultAtomFrames);
+                        compoundRep.calcDefaultBondCenterFrameInCompoundFrame(compoundRep.getBondCenterInfo(childUnit.inboardBondCenterIndex), defaultAtomFrames);
 
                     childUnit.frameInTopCompoundFrame = T_X_Mr;
 		}

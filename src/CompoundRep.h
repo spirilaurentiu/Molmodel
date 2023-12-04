@@ -846,7 +846,10 @@ public:
             Compound::AtomIndex atomIndex3, 
             Compound::AtomIndex atomIndex4)
     {
+        // This belongs to atom2
         const BondCenterInfo& bondCenterInfo21 = getBondCenterInfo( getAtomInfo(atomIndex2), getAtomInfo(atomIndex1) );
+
+        // This belong to atom3
         const BondCenterInfo& bondCenterInfo34 = getBondCenterInfo( getAtomInfo(atomIndex3), getAtomInfo(atomIndex4) );
 
         return calcDefaultDihedralAngle( bondCenterInfo21.getIndex(), bondCenterInfo34.getIndex() );
@@ -946,33 +949,42 @@ public:
         const AtomInfo&        atom2Info = getAtomInfo(atom2Id);
 
         // go through bond centers on atom2
-        CompoundAtom::BondCenterIndex center1Id;
-        CompoundAtom::BondCenterIndex center3Id;
-        for (CompoundAtom::BondCenterIndex b(0); b < atom2.getNumBonds(); ++b) {
-            const BondCenterInfo& bondCenterInfo = getBondCenterInfo(atom2Info.getIndex(), b);
-            if (bondCenterInfo.isBonded()) {
+        // and establish which one is linked to atom1 and which to atom3
+        CompoundAtom::BondCenterIndex atom2BondCenterIx_to_atom1;
+        CompoundAtom::BondCenterIndex atom2BondCenterIx_to_atom3;
+        for (CompoundAtom::BondCenterIndex
+                              atom2BondCenterIndex(0);
+                              atom2BondCenterIndex < atom2.getNumBonds();
+                            ++atom2BondCenterIndex)
+        {
+            const BondCenterInfo& atom2BondCenterInfo =
+                getBondCenterInfo(atom2Info.getIndex(), atom2BondCenterIndex);
+
+            if (atom2BondCenterInfo.isBonded()) {
                 const BondCenterInfo& partnerBondCenterInfo = 
-                    getBondCenterInfo(bondCenterInfo.getBondPartnerBondCenterIndex());
+                    getBondCenterInfo(atom2BondCenterInfo.getBondPartnerBondCenterIndex());
                 if (partnerBondCenterInfo.getAtomIndex() == atom1Id)
-                    center1Id = b;
+                    atom2BondCenterIx_to_atom1 = atom2BondCenterIndex;
                 else if (partnerBondCenterInfo.getAtomIndex() == atom3Id)
-                    center3Id = b;
+                    atom2BondCenterIx_to_atom3 = atom2BondCenterIndex;
             }
         }
 
-        assert(center1Id.isValid());
-        assert(center3Id.isValid());
-        assert(center1Id != center3Id);
+        assert(atom2BondCenterIx_to_atom1.isValid());
+        assert(atom2BondCenterIx_to_atom3.isValid());
+        assert(atom2BondCenterIx_to_atom1 != atom2BondCenterIx_to_atom3);
 
+        // Get order relationship between atom1- and atom3- BC indexes
         CompoundAtom::BondCenterIndex largerId, smallerId;
-        if (center1Id > center3Id) {
-            largerId = center1Id;
-            smallerId = center3Id;
+        if (atom2BondCenterIx_to_atom1 > atom2BondCenterIx_to_atom3) {
+            largerId = atom2BondCenterIx_to_atom1;
+            smallerId = atom2BondCenterIx_to_atom3;
         } else {
-            largerId = center3Id;
-            smallerId = center1Id;
+            largerId = atom2BondCenterIx_to_atom3;
+            smallerId = atom2BondCenterIx_to_atom1;
         }
 
+        // The smallest BCIx dictates the bond angles inside BCs 
         // one of the bond centers must be bond1 or bond2
         // assert(smallerId < 2);
 
