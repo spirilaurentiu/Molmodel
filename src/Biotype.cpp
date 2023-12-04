@@ -125,8 +125,7 @@ static std::map<BiotypeKey, BiotypeIndex> biotypeIxsByKey;
     if (Biotype::exists(residueName, atomName, ordinality))
     {
         std::cout << "Biotype already exists: " << residueName << " " << atomName << " " << ordinality << std::endl;
-        std::cout << "BiotypeIndex: " << Biotype::get(residueName, atomName, ordinality).getIndex() << std::endl;
-        // assert(false);
+        assert(false);
     }
 
     BiotypeIndex biotypeIndex = nextUnusedBiotypeIndex;
