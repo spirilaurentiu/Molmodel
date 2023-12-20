@@ -43,6 +43,7 @@
 
 std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform, const SimTK::DuMMForceFieldSubsystemRep* inDumm)
 {
+
     // read atoms from dumm
     dumm = inDumm;
 
@@ -364,6 +365,10 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
         std::cout << "ERROR: OpenMM error during initialization: " << e.what() << std::endl;
         return "";
     }
+
+    std::cout << "OpenMMPluginInterface loaded "
+        << openMMContext->getPlatform().getName()
+        << std::endl;
 
     return openMMContext->getPlatform().getName();
 }

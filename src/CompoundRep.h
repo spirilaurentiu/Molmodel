@@ -728,62 +728,90 @@ public:
     }
 
 // EU BEGIN
-  Angle bgetDefaultDihedralAngle(Compound::BondIndex bondIx) const 
-  {
-    const BondInfo& bondInfo = getBondInfo(bondIx);
-    const Bond& bond = getBond(bondInfo);
-    Angle angle = -111111;
-    if (bond.isRingClosingBond()){ // ring closing bonds cannot be part of tree structure
-      return angle;
+    Angle bgetDefaultDihedralAngle(Compound::BondIndex bondIx) const 
+    {
+        const BondInfo& bondInfo = getBondInfo(bondIx);
+        const Bond& bond = getBond(bondInfo);
+        Angle angle = -111111;
+        if (bond.isRingClosingBond()){ // ring closing bonds cannot be part of tree structure
+        return angle;
+        }
+        if (bond.getMobility() == BondMobility::Free){
+        return angle;
+        }
+        else if (bond.getMobility() == BondMobility::Rigid){
+        return angle;
+        }
+        else if (bond.getMobility() == BondMobility::Torsion){
+        angle = bond.getDefaultDihedralAngle();
+        }
+        return angle;
     }
-    if (bond.getMobility() == BondMobility::Free){
-      return angle;
+
+
+    Angle bgetDefaultInboardDihedralAngle(Compound::AtomIndex atomIx) const 
+    {
+        // Get atom
+        const CompoundAtom& atom = getAtom(atomIx);
+
+        // Get inboard bond index (in Compound not in Atom)
+        CompoundAtom::BondCenterIndex inboardBondCenterIx = atom.getInboardBondCenterIndex();
+        const BondCenterInfo& inboardBondCenterInfo = getBondCenterInfo(atomIx, inboardBondCenterIx);
+        Compound::BondIndex inboardBondIndex = inboardBondCenterInfo.getBondIndex();
+        //const BondInfo& inboardBondInfo = getBondInfo((getBondCenterInfo(atomIx, (atom.getInboardBondCenterIndex()))).getBondIndex());
+
+        // Get the inboard bond
+        //const BondInfo& inboardBondInfo = getBondInfo(inboardBondIndex);
+        //const Bond& inboardBond = getBond(inboardBondInfo);
+        return bgetDefaultDihedralAngle(inboardBondIndex);
     }
-    else if (bond.getMobility() == BondMobility::Rigid){
-      return angle;
+
+    const Transform& getFrameInMobilizedBodyFrame(Compound::AtomIndex atomIx) const
+    {
+        const CompoundAtom& atom = getAtom(atomIx);
+        return atom.getFrameInMobilizedBodyFrame();
     }
-    else if (bond.getMobility() == BondMobility::Torsion){
-      angle = bond.getDefaultDihedralAngle();
+
+    const Transform& bgetLocalTransform(Compound::AtomIndex atomIx) const
+    {
+        const CompoundAtom& atom = getAtom(atomIx);
+        return atom.getDefaultFrameInCompoundFrame();
     }
-    return angle;
-  }
 
+    CompoundRep& bsetFrameInMobilizedBodyFrame(Compound::AtomIndex atomIx, Transform B_X_atom)
+    {
+        CompoundAtom& atom = updAtom(atomIx);
+        atom.setFrameInMobilizedBodyFrame(B_X_atom);
+        return *this;
+    }
 
-  Angle bgetDefaultInboardDihedralAngle(Compound::AtomIndex atomIx) const 
-  {
-    // Get atom
-    const CompoundAtom& atom = getAtom(atomIx);
+    /*!
+    <!-- WIP Get the inboard atom index of a given atom implementation -->
+    */
+    Compound::AtomIndex getInboardAtomIndex(Compound::AtomIndex& atomIx) const
+    {
+        const CompoundAtom& atom = getAtom(atomIx);
+        const CompoundAtom::BondCenterIndex inboardBondCenterIx =
+            atom.getInboardBondCenterIndex();
+        const BondCenterInfo& inboardBondCenterInfo =
+            getBondCenterInfo(atomIx, inboardBondCenterIx);
+        const Compound::BondIndex inboardBondIndex =
+            inboardBondCenterInfo.getBondIndex();
 
-    // Get inboard bond index (in Compound not in Atom)
-    CompoundAtom::BondCenterIndex inboardBondCenterIx = atom.getInboardBondCenterIndex();
-    const BondCenterInfo& inboardBondCenterInfo = getBondCenterInfo(atomIx, inboardBondCenterIx);
-    Compound::BondIndex inboardBondIndex = inboardBondCenterInfo.getBondIndex();
-    //const BondInfo& inboardBondInfo = getBondInfo((getBondCenterInfo(atomIx, (atom.getInboardBondCenterIndex()))).getBondIndex());
+        // Get the inboard bond
+        // const BondInfo& inboardBondInfo = getBondInfo(inboardBondIndex);
+        // const Bond& inboardBond = getBond(inboardBondInfo);
+        // const Compound::BondIndex inboardBondIx = inboardBondInfo.getIndex();
+        // const Compound::BondCenterIndex parentBCIx = 
+        //     inboardBondInfo.getParentBondCenterIndex();
+        
+        // Aparently 0 is parent and 1 is child
+        int pbc = 0;
+        const Compound::AtomIndex inboardAIx = getBondAtomIndex(inboardBondIndex, pbc);
+        return inboardAIx;
 
-    // Get the inboard bond
-    //const BondInfo& inboardBondInfo = getBondInfo(inboardBondIndex);
-    //const Bond& inboardBond = getBond(inboardBondInfo);
-    return bgetDefaultDihedralAngle(inboardBondIndex);
-  }
+    }
 
-  const Transform& getFrameInMobilizedBodyFrame(Compound::AtomIndex atomIx) const
-  {
-    const CompoundAtom& atom = getAtom(atomIx);
-    return atom.getFrameInMobilizedBodyFrame();
-  }
-
-  const Transform& bgetLocalTransform(Compound::AtomIndex atomIx) const
-  {
-    const CompoundAtom& atom = getAtom(atomIx);
-    return atom.getDefaultFrameInCompoundFrame();
-  }
-
-  CompoundRep& bsetFrameInMobilizedBodyFrame(Compound::AtomIndex atomIx, Transform B_X_atom)
-  {
-    CompoundAtom& atom = updAtom(atomIx);
-    atom.setFrameInMobilizedBodyFrame(B_X_atom);
-    return *this;
-  }
 
 // EU END
 
@@ -797,12 +825,12 @@ public:
       CompoundAtom::BondCenterIndex inboardBondCenterIx = atom.getInboardBondCenterIndex();
       const BondCenterInfo& inboardBondCenterInfo = getBondCenterInfo(atomIx, inboardBondCenterIx);
       Compound::BondIndex inboardBondIndex = inboardBondCenterInfo.getBondIndex();
-      //const BondInfo& inboardBondInfo = getBondInfo((getBondCenterInfo(atomIx, (atom.getInboardBondCenterIndex()))).getBondIndex());
 
       // Get the inboard bond
       const BondInfo& inboardBondInfo = getBondInfo(inboardBondIndex);
       const Bond& inboardBond = getBond(inboardBondInfo);
       return inboardBond.getDefaultBondLength();
+
   }
 // GMolmodel END */
 
@@ -1088,6 +1116,10 @@ public:
     Transform calcDefaultBondCenterFrameInCompoundFrame(const BondCenterInfo& info) const;
 
     Transform calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex atomId) const;
+
+    /*!
+    * <!-- for O(n) version of all atom Frame computation -->
+    */ 
     // Version with caching for O(n) performance
     const Transform& calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex atomId, std::vector<Transform>& atomFrameCache) const;
 
@@ -2026,7 +2058,12 @@ public:
     Transform calcDefaultBondCenterFrameInAtomFrame(const BondCenterInfo& info) const;
     const Transform calcDefaultBondCenterFrameInCompoundFrame(const Compound::BondCenterName name) const;
 
-    const Transform calcDefaultBondCenterFrameInCompoundFrame(const BondCenterInfo& info, std::vector<Transform>& atomFrameCache) const;
+    /*!
+    * <!-- Cache method used in O(n) all atom Frame computation --> 
+    */
+    const Transform calcDefaultBondCenterFrameInCompoundFrame(
+        const BondCenterInfo& info,
+        std::vector<Transform>& atomFrameCache) const;
 
     Compound::BondCenterIndex getBondCenterIndex(const Compound::BondCenterName& name) const;
 

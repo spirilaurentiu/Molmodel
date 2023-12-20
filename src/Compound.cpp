@@ -1392,8 +1392,13 @@ Transform CompoundRep::calcDefaultBondCenterFrameInAtomFrame(const BondCenterInf
     return getAtom(info.getAtomIndex()).calcDefaultBondCenterFrameInAtomFrame(info.getAtomBondCenterIndex());
 }
 
-// Cache method used in O(n) all atom Frame computation
-const Transform CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(const BondCenterInfo& info, std::vector<Transform>& atomFrameCache) const
+
+/*!
+ * <!-- Cache method used in O(n) all atom Frame computation --> 
+*/
+const Transform CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(
+    const BondCenterInfo& info,
+    std::vector<Transform>& atomFrameCache) const
 {
     Transform X_compound_center;
     const BondCenter& bondCenter = getBondCenter(info);
@@ -1457,8 +1462,12 @@ Transform CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(const BondCente
     return X_compound_center;
 }
 
-// for O(n) version of all atom Frame computation
-const Transform& CompoundRep::calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex atomId, std::vector<Transform>& atomFrameCache) const
+/*!
+ * <!-- for O(n) version of all atom Frame computation -->
+*/ 
+const Transform& CompoundRep::calcDefaultAtomFrameInCompoundFrame(
+    Compound::AtomIndex atomId,
+    std::vector<Transform>& atomFrameCache) const
 {
     // Is it already cached?
     Transform& candidate = atomFrameCache[atomId];
@@ -1937,6 +1946,16 @@ Compound& Compound::bsetFrameInMobilizedBodyFrame(Compound::AtomIndex atomIx, Tr
     updImpl().bsetFrameInMobilizedBodyFrame(atomIx, B_X_atom);
     return *this;
 }
+
+/*!
+<!-- Get the inboard atom of a given atom -->
+*/
+Compound::AtomIndex Compound::getInboardAtomIndex(
+    Compound::AtomIndex& aIx) const
+{
+    return getImpl().getInboardAtomIndex(aIx);
+}
+
 // EU END
 
 Angle Compound::calcDefaultDihedralAngle(const String& bondName) const {

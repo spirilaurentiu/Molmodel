@@ -648,6 +648,14 @@ public:
    const Transform& getFrameInMobilizedBodyFrame(Compound::AtomIndex atomIx) const;
    const Transform& bgetLocalTransform(Compound::AtomIndex atomIx) const;
    Compound& bsetFrameInMobilizedBodyFrame(Compound::AtomIndex atomIx, Transform);
+
+   /**
+	* @brief Get the inboard atom of a given atom
+	* @param Given AtomIndex
+	* @return Inboard AtomIndex
+   */
+    Compound::AtomIndex getInboardAtomIndex(Compound::AtomIndex& aIx) const;
+
    // EU END
  
    /**
