@@ -348,10 +348,15 @@ Compound::BondCenterIndex CompoundRep::setBaseCompound(
     return inboardIndex;
 }
 
-// Add a subcompound containing exactly one atom, so the Compound::AtomName can be reused for the Compound::Name
-// This atom is connected to existing material
+/*!
+ * <!-- Bonds the new atom compound, absorbs the compound and asimilates its
+* names. -->
+*/
+// Add a subcompound containing exactly one atom, so the Compound::AtomName
+// can be reused for the Compound::Name. This atom is connected to existing
+// material
 CompoundRep& CompoundRep::bondAtom(
-    const Compound::SingleAtom&   compound, 
+    const Compound::SingleAtom&   atomCompound, 
     const Compound::BondCenterPathName& parentBondName, 
     mdunits::Length                      distance,
     Angle                         dihedral,
@@ -360,10 +365,16 @@ CompoundRep& CompoundRep::bondAtom(
 {
     // Only top level compounds can construct new topology
     // assert(! hasParentCompound() );
-    // assert(! compound.getImpl().hasParentCompound() );
+    // assert(! atomCompound.getImpl().hasParentCompound() );
 
-    const Compound::AtomName atomName = compound.getAtomName(Compound::AtomIndex(0));
-    bondCompound(atomName, compound, parentBondName, distance, dihedral, mobility);
+    // Bond atom as any other compound
+    const Compound::AtomName atomName =
+        atomCompound.getAtomName(Compound::AtomIndex(0));
+
+    bondCompound(atomName, atomCompound, parentBondName,
+        distance, dihedral, mobility);
+
+    // Add atom name and bond center names to this compound
     inheritAtomNames(atomName);
 
     return *this;
@@ -399,8 +410,12 @@ Vec3 CompoundRep::calcDefaultAtomLocationInGroundFrame(const Compound::AtomName&
     return calcDefaultAtomFrameInGroundFrame(name).p();
 }
 
-// Add a subcompound attached by a bond to an existing atom
-// bondCompound("H1", MonovalentAtom(Element::Hydrogen()), "bond", "C/bond2", C_Hdistance );
+/*!
+ * <!-- Absorbs the compound and deals with the bond -->
+*/
+// Add a subcompound attached by a bond to an existing atom. Ex:
+// bondCompound("H1", MonovalentAtom(Element::Hydrogen()), "bond", "C/bond2",
+// C_Hdistance );
 CompoundRep& CompoundRep::bondCompound(
     const Compound::Name&           name, 
     const Compound&                 subcompoundArg, 
@@ -410,32 +425,44 @@ CompoundRep& CompoundRep::bondCompound(
     BondMobility::Mobility          mobility
     ) 
 {
+    // Assert dihedral is not nan
     assert(! isNaN(dihedral) );
 
+    // Absorb the new compound
     const Compound::BondCenterIndex inboardBondCenterIndex = 
         absorbSubcompound(name, subcompoundArg, false);
 
     // Get atoms to bond
-    const Compound::BondCenterIndex outboardBondCenterIndex = getBondCenterInfo(parentBondName).getIndex();
+    const Compound::BondCenterIndex outboardBondCenterIndex =
+        getBondCenterInfo(parentBondName).getIndex();
 
     // Don't bond this compound's official inboard bond center as outboard
     if (hasInboardBondCenter()) {
-        const Compound::BondCenterIndex primaryInboardId = getInboardBondCenterInfo().getIndex();
-        if (primaryInboardId == outboardBondCenterIndex) {
+
+        const Compound::BondCenterIndex primaryInboardId =
+            getInboardBondCenterInfo().getIndex();
+
+        if (primaryInboardId == outboardBondCenterIndex)
+        {
             convertInboardBondCenterToOutboard();
             // either that, or raise an exception...            
         }
     }
     assert( ! getBondCenter(outboardBondCenterIndex).isInboard() );
 
-    // update bond info using subcompound
+    // Update bond info using subcompound
     Compound::BondIndex bondIndex(allBonds.size());
-    allBonds.push_back(BondInfo(bondIndex, outboardBondCenterIndex, inboardBondCenterIndex, Bond(distance, dihedral, false)));
+    allBonds.push_back(BondInfo(bondIndex,
+        outboardBondCenterIndex,
+        inboardBondCenterIndex,
+        Bond(distance, dihedral, false)));
+    
     indexNewBond(updBondInfo(bondIndex));
 
     //const Compound::BondIndex bondIndex = 
-    //    bondBondCenters(outboardBondCenterIndex, inboardBondCenterIndex, distance, dihedral);
-
+    //      bondBondCenters(outboardBondCenterIndex, inboardBondCenterIndex,
+    //      distance, dihedral);
+    //
     //const BondInfo& bondInfo = getBondInfo(bondIndex);
 
     // Set bond mobility
@@ -1175,7 +1202,15 @@ Compound::BondCenterIndex CompoundRep::addLocalCompound(
     return inboardIndex;
 }
 
-
+/*!
+ * <!-- Absorb Compound
+ *  1) Add all Subcompound atomInfos to the this Comopound
+ *  2) Generate names = "SubcompoundName + / + atomName"
+ *  3) Insert Bond center names into BCName_To_BCIx map
+ *  4) Copy bonds
+ *  5) Copy dihedral angles
+ * -->
+*/
 Compound::BondCenterIndex CompoundRep::absorbSubcompound(
     const Compound::Name& scName,
     const Compound& subcompound,

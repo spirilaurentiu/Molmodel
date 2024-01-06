@@ -616,7 +616,16 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
                              Transform());
                     unit.bodyId = pinBody.getMobilizedBodyIndex();
                     std::cout << "First body Pin mobodIx " << unit.bodyId << std::endl;
+                }else{
+		            MobilizedBody::Weld weldBody
+                       (matter.Ground(), 
+					    G_X_T * T_X_B, 
+					    dumm.calcClusterMassProperties(unit.clusterIx), 
+					    Transform());
+		            unit.bodyId = weldBody.getMobilizedBodyIndex();
+                    std::cout << "First body implicitly Weld mobodIx " << unit.bodyId << std::endl;                    
                 }
+                
                 dumm.attachClusterToBody(unit.clusterIx, unit.bodyId);
             }
             /* else if (unit.clusterAtoms.size() == 1) // One atom, no children => Cartesian mobility
