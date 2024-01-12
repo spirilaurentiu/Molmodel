@@ -1432,6 +1432,7 @@ bool getUseOpenMMCalcOnlyNonBonded() const;
     float getOpenMMtemperature() const;
     void setOpenMMvelocities(float);
     void OMM_setOpenMMPositions(const std::vector<SimTK::Vec3>& positions);
+    void setOpenMMparticleMass(DuMM::NonbondAtomIndex nax, SimTK::Real mass);
 
     // Needed in Gmolmodel
     const Vector_<Vec3>& getIncludedAtomPositionsInG(const State& s) const;

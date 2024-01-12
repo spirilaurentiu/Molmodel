@@ -1820,6 +1820,11 @@ void DuMMForceFieldSubsystem::OMM_setOpenMMPositions(const std::vector<SimTK::Ve
     updRep().openMMPlugin.setOpenMMPositions(positions);
 }
 
+void DuMMForceFieldSubsystem::setOpenMMparticleMass(DuMM::NonbondAtomIndex nax, SimTK::Real mass) {
+    const int ix = getAtomIndexOfNonbondAtom(nax);
+    updRep().openMMPlugin.setParticleMass(ix, mass);
+}
+
 bool DuMMForceFieldSubsystem::getAllowOpenMMReference() const
 {   return getRep().allowOpenMMReference; }
 

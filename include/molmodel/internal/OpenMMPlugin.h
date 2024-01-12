@@ -46,6 +46,7 @@ public:
     SimTK::Real calcKineticEnergy() const;
     void integrateTrajectory(int steps);
     void setVelocitiesToTemperature(double temperature);
+    void setParticleMass(int index, double mass);
 
     // void setNonbondedCutoff (SimTK::Real cutoff) ;            /// Set NonbondedCutoff for OpenMM
     // void setOpenMMPlatform (std::string platform) ;    /// Set Platform to use for OpenMM ('CPU', 'CUDA', 'OpenCL')

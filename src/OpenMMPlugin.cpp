@@ -474,6 +474,10 @@ void OpenMMPluginInterface::setVelocitiesToTemperature(double temperature) {
         openMMContext->setVelocitiesToTemperature(temperature);
 }
 
+void OpenMMPluginInterface::setParticleMass(int index, double mass) {
+    openMMSystem->setParticleMass(index, mass);
+}
+
 
 //-----------------------------------------------------------------------------
 //                    calcOpenMMNonbondedAndGBSAForces
