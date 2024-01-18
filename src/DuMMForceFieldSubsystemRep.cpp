@@ -177,7 +177,7 @@ struct CrossBodyBondInfo {
 int DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl(State& s) const
 {
     //std::cout << "OS memory dumm.0\n" << exec("free") << std::endl;
-    //std::cout << "DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl BEGIN" << std::endl;
+    std::cout << "LAB DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl BEGIN" << std::endl;
     if(includedAtomStations.size()){
 
         // At realization time, we need to verify that every atom has a valid atom
@@ -968,15 +968,18 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
     mutableThis->includedAtoms.resize(numIncludedAtoms);
     mutableThis->includedAtomStations.resize(numIncludedAtoms);
 
-
-
     DuMMIncludedBodyIndex   nextInclBodyIx(0);
     DuMM::IncludedAtomIndex nextInclAtomIx(0);
-    for (std::set<MobodIndex>::const_iterator p = allIncludedMobods.begin();
-         p != allIncludedMobods.end(); ++p, ++nextInclBodyIx)
-    {
+
+    for (std::set<MobodIndex>::const_iterator
+    allIncludedMobodsIt = allIncludedMobods.begin();
+    allIncludedMobodsIt != allIncludedMobods.end();
+    ++allIncludedMobodsIt, ++nextInclBodyIx){
+
+        // Set included bodies from allIncludedMobods
         IncludedBody& inclBody = mutableThis->includedBodies[nextInclBodyIx];
-        inclBody.mobodIx = *p;
+        inclBody.mobodIx = *allIncludedMobodsIt;
+
         inclBody.beginIncludedAtoms    = inclBody.endIncludedAtoms =
             DuMM::IncludedAtomIndex(nextInclAtomIx);
         inclBody.beginNonbondAtoms     = inclBody.endNonbondAtoms =
@@ -984,33 +987,43 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         inclBody.beginBondStarterAtoms = inclBody.endBondStarterAtoms =
             DuMMBondStarterIndex(bondStarterAtoms.size());
 
-        const Array_<DuMM::AtomIndex>& inclBodAtoms = inclBods2Atoms[*p];
+        const Array_<DuMM::AtomIndex>& inclBodAtoms = inclBods2Atoms[*allIncludedMobodsIt];
+
         for (unsigned i=0; i < inclBodAtoms.size(); ++i, ++nextInclAtomIx) {
-            DuMMAtom& a = mutableThis->atoms[inclBodAtoms[i]];
-            assert(a.atomIndex == inclBodAtoms[i]);
-            assert(a.inclAtomIndex.isValid()); // should have been marked "1"
-            a.inclAtomIndex = nextInclAtomIx;
-            a.inclBodyIndex = nextInclBodyIx;
-            IncludedAtom& ia = mutableThis->includedAtoms[nextInclAtomIx];
+
+            DuMMAtom& dummAtom = mutableThis->atoms[inclBodAtoms[i]];
+            assert(dummAtom.atomIndex == inclBodAtoms[i]);
+            assert(dummAtom.inclAtomIndex.isValid()); // should have been marked "1"
+
+            dummAtom.inclAtomIndex = nextInclAtomIx;
+            dummAtom.inclBodyIndex = nextInclBodyIx;
+            IncludedAtom& includedAtom = mutableThis->includedAtoms[nextInclAtomIx];
             Vec3&         station_B = mutableThis->includedAtomStations[nextInclAtomIx];
-            ia.setIndices(a.inclAtomIndex, a.inclBodyIndex,
-                          a.atomIndex, a.chargedAtomTypeIndex);
-            station_B = a.station_B;
+            includedAtom.setIndices(dummAtom.inclAtomIndex, dummAtom.inclBodyIndex,
+                          dummAtom.atomIndex, dummAtom.chargedAtomTypeIndex);
+            station_B = dummAtom.station_B;
             ++inclBody.endIncludedAtoms;
-            if (a.nonbondAtomIndex.isValid()) {
-                a.nonbondAtomIndex = DuMM::NonbondAtomIndex(nonbondAtoms.size());
-                mutableThis->nonbondAtoms.push_back(a.inclAtomIndex);
+
+            if (dummAtom.nonbondAtomIndex.isValid()) {
+                dummAtom.nonbondAtomIndex = DuMM::NonbondAtomIndex(nonbondAtoms.size());
+                mutableThis->nonbondAtoms.push_back(dummAtom.inclAtomIndex);
                 ++inclBody.endNonbondAtoms;
             }
-            if (a.bondStarterIndex.isValid()) {
-                a.bondStarterIndex = DuMMBondStarterIndex(bondStarterAtoms.size());
-                mutableThis->bondStarterAtoms.push_back(a.inclAtomIndex);
+
+            if (dummAtom.bondStarterIndex.isValid()) {
+                dummAtom.bondStarterIndex = DuMMBondStarterIndex(bondStarterAtoms.size());
+                mutableThis->bondStarterAtoms.push_back(dummAtom.inclAtomIndex);
                 ++inclBody.endBondStarterAtoms;
             }
+
+            std::cout << "SP_NEW_LAB i dAIx inclDAIx nbDAIx " << i <<" "
+                << dummAtom.atomIndex <<" " << dummAtom.inclAtomIndex <<" "
+                << dummAtom.nonbondAtomIndex << std::endl;
+
         }
 
-    }
 
+    }
 
   // same for GMolModel
     mutableThis->AllBodies.resize((unsigned)allAllMobods.size());

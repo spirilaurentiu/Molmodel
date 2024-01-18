@@ -52,11 +52,11 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
     PositionsCache = std::vector<OpenMM::Vec3>(dumm->getNumAtoms());
 
     // instantiate forces
-    auto nonbondedForce = std::make_unique<OpenMM::NonbondedForce>();
-    auto GBSAOBCForce = std::make_unique<OpenMM::GBSAOBCForce>();
-    auto bondStretch = std::make_unique<OpenMM::HarmonicBondForce>();
-    auto bondBend = std::make_unique<OpenMM::HarmonicAngleForce>();
-    auto bondTorsion = std::make_unique<OpenMM::PeriodicTorsionForce>();
+    auto ommNonbondedForce = std::make_unique<OpenMM::NonbondedForce>();
+    auto ommGBSAOBCForce = std::make_unique<OpenMM::GBSAOBCForce>();
+    auto ommHarmonicBondStretch = std::make_unique<OpenMM::HarmonicBondForce>();
+    auto ommHarmonicAngleForce = std::make_unique<OpenMM::HarmonicAngleForce>();
+    auto ommPeriodicTorsionForce = std::make_unique<OpenMM::PeriodicTorsionForce>();
 
     // instantiate the thermostat with adjusted temperature
     Real temperature = 300;
@@ -92,8 +92,8 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
 
     // nonbonded forces
     if (dumm->coulombGlobalScaleFactor!=0 || dumm->vdwGlobalScaleFactor!=0) {
-        nonbondedForce->setNonbondedMethod( OpenMM::NonbondedForce::NonbondedMethod( dumm->nonbondedMethod ) );
-        nonbondedForce->setCutoffDistance( dumm->nonbondedCutoff );
+        ommNonbondedForce->setNonbondedMethod( OpenMM::NonbondedForce::NonbondedMethod( dumm->nonbondedMethod ) );
+        ommNonbondedForce->setCutoffDistance( dumm->nonbondedCutoff );
         // nonbondedForce->setUseSwitchingFunction( 0 );
 
 
@@ -113,8 +113,8 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
         std::vector< std::pair<int, int> > ommBonds;
         for (DuMM::NonbondAtomIndex nax(0); nax < dumm->getNumNonbondAtoms(); 
                                                                         ++nax) 
-        {   const DuMMAtom&        a      = dumm->getAtom(dumm->getAtomIndexOfNonbondAtom(nax));
-            const ChargedAtomType& atype  = dumm->chargedAtomTypes[a.chargedAtomTypeIndex];
+        {   const DuMMAtom&        dummAtom = dumm->getAtom(dumm->getAtomIndexOfNonbondAtom(nax));
+            const ChargedAtomType& atype  = dumm->chargedAtomTypes[dummAtom.chargedAtomTypeIndex];
             const AtomClass&       aclass = dumm->atomClasses[atype.atomClassIx];
             const Real             charge = atype.partialCharge;
             const Real             sigma  = 2*aclass.vdwRadius*DuMM::Radius2Sigma;
@@ -122,14 +122,20 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
 
             // Define particle; particle number will be the same as our
             // nonbond index number.
-            nonbondedForce->addParticle(sqrtCoulombScale*charge, sigma, 
+            ommNonbondedForce->addParticle(sqrtCoulombScale*charge, sigma, 
                                         dumm->vdwGlobalScaleFactor*wellDepth);
+
+            // std::cout << "SP_NEW_LABommp "
+            //     << nax <<" " << sqrtCoulombScale <<" "
+            //     << charge <<" " << sigma <<" " 
+            //     << dumm->vdwGlobalScaleFactor <<" " << wellDepth <<" "
+            //     << std::endl;
 
             // Collect 1-2 bonds to other nonbond atoms. Note that we 
             // don't care about bodies here -- every atom is considered
             // independent.
-            for (unsigned short i=0; i < a.bond12.size(); ++i) {
-                const DuMMAtom& b = dumm->getAtom(a.bond12[i]);
+            for (unsigned short i=0; i < dummAtom.bond12.size(); ++i) {
+                const DuMMAtom& b = dumm->getAtom(dummAtom.bond12[i]);
                 if (!b.nonbondAtomIndex.isValid())
                     continue;
                 ommBonds.emplace_back(std::make_pair(nax, b.nonbondAtomIndex));
@@ -137,30 +143,30 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
         }
 
         // Register all the 1-2 bonds between nonbond atoms for scaling.
-        nonbondedForce->createExceptionsFromBonds(ommBonds, dumm->coulombScale14, dumm->vdwScale14);
+        ommNonbondedForce->createExceptionsFromBonds(ommBonds, dumm->coulombScale14, dumm->vdwScale14);
 
         // System takes over heap ownership of the force.
-        openMMSystem->addForce(nonbondedForce.get());
-        nonbondedForce.release();
+        openMMSystem->addForce(ommNonbondedForce.get());
+        ommNonbondedForce.release();
     }
 
     // GBSA
     if (dumm->gbsaGlobalScaleFactor != 0) {
-        GBSAOBCForce->setSolventDielectric(dumm->gbsaSolventDielectric);
-        GBSAOBCForce->setSoluteDielectric(dumm->gbsaSoluteDielectric);
+        ommGBSAOBCForce->setSolventDielectric(dumm->gbsaSolventDielectric);
+        ommGBSAOBCForce->setSoluteDielectric(dumm->gbsaSoluteDielectric);
 
         // Watch the units here. OpenMM works exclusively in MD (nm, kJ/mol). 
         // CPU GBSA uses Angstrom, kCal/mol.
         for (DuMM::NonbondAtomIndex nax(0); nax < dumm->getNumNonbondAtoms(); ++nax) 
         {
-            GBSAOBCForce->addParticle(dumm->gbsaAtomicPartialCharges[nax],
+            ommGBSAOBCForce->addParticle(dumm->gbsaAtomicPartialCharges[nax],
                                       dumm->gbsaRadii[nax]*OpenMM::NmPerAngstrom,
                                       dumm->gbsaObcScaleFactors[nax]); 
         }
 
         // System takes over heap ownership of the force.
-        openMMSystem->addForce(GBSAOBCForce.get());
-        GBSAOBCForce.release();
+        openMMSystem->addForce(ommGBSAOBCForce.get());
+        ommGBSAOBCForce.release();
     }
 
     // Bonded
@@ -184,23 +190,27 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
 
 
                 // ADD BONDED STRETCHES (1-2)
-                if (dumm->bondStretchGlobalScaleFactor != 0
-                    || dumm->customBondStretchGlobalScaleFactor != 0) {
+                if ((dumm->bondStretchGlobalScaleFactor != 0) ||
+                    (dumm->customBondStretchGlobalScaleFactor != 0)) {
 
                     for (DuMM::IncludedAtomIndex b12(0); b12 < a1.force12.size(); ++b12) {
 
                         const DuMM::IncludedAtomIndex a2num = a1.force12[b12];
-                        const BondStretch &bs = *a1.stretch[b12];
+                        const BondStretch &bondStretch = *a1.stretch[b12];
 
-                        if (bs.hasBuiltinTerm()) {
+                        if (bondStretch.hasBuiltinTerm()) {
 
                             // TODO check units: Ang and KcalPerAngstrom2 ??
-                            bondStretch->addBond(a1num, a2num,
-                                                 bs.d0,
+                            ommHarmonicBondStretch->addBond(a1num, a2num,
+                                                 bondStretch.d0,
 //                                                * OpenMM::NmPerAngstrom,
-                                                 bs.k * 2.0);
+                                                 bondStretch.k * 2.0);
 //                                                * OpenMM::KJPerKcal
 //                                                * OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm);
+
+                            std::cout << a1num <<" " << a2num <<" "
+                                << bondStretch.d0 <<" " << bondStretch.k * 2.0 << std::endl;
+
                         }
                     }
                 }
@@ -221,7 +231,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
 
                             // TODO: check atom order !!! which should be the central atom?
                             // TODO: check units: degreess and kcal/rad2 ??
-                            bondBend->addAngle(a1num, a2num, a3num,
+                            ommHarmonicAngleForce->addAngle(a1num, a2num, a3num,
                                                bb.theta0,
                                                bb.k * 2 );
                             // * OpenMM::KJPerKcal);
@@ -245,7 +255,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                         if (bt.hasBuiltinTerm()) {
                             for ( int i=0; i < (int) bt.terms.size(); ++i)
                             {
-                                bondTorsion->addTorsion(a1num, a2num, a3num, a4num,
+                                ommPeriodicTorsionForce->addTorsion(a1num, a2num, a3num, a4num,
                                                         bt.terms[i].periodicity,
                                                         bt.terms[i].theta0,
                                                         bt.terms[i].amplitude);
@@ -279,7 +289,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                                 for ( int i=0; i < (int) bt.terms.size(); ++i)
                                 {
                                     //printf("%d %d %d %d\n", a2num, a3num, a1num, a4num);
-                                    bondTorsion->addTorsion(a2num, a3num, a1num, a4num,
+                                    ommPeriodicTorsionForce->addTorsion(a2num, a3num, a1num, a4num,
                                                             bt.terms[i].periodicity,
                                                             bt.terms[i].theta0,
                                                             bt.terms[i].amplitude);
@@ -291,14 +301,14 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
             }
         }
 
-        openMMSystem->addForce(bondStretch.get());
-        bondStretch.release();
+        openMMSystem->addForce(ommHarmonicBondStretch.get());
+        ommHarmonicBondStretch.release();
 
-        openMMSystem->addForce(bondBend.get());
-        bondBend.release();
+        openMMSystem->addForce(ommHarmonicAngleForce.get());
+        ommHarmonicAngleForce.release();
 
-        openMMSystem->addForce(bondTorsion.get());
-        bondTorsion.release();
+        openMMSystem->addForce(ommPeriodicTorsionForce.get());
+        ommPeriodicTorsionForce.release();
     }
 
     // Get the thermostat
@@ -389,8 +399,10 @@ void OpenMMPluginInterface::setOpenMMPositions(
     // to just nonbond atoms and convert to OpenMM Vec3 type.
     for (DuMM::NonbondAtomIndex nax(0); nax < dumm->getNumNonbondAtoms(); ++nax)
     {
-        const auto& p = includedAtomPos_G[dumm->getIncludedAtomIndexOfNonbondAtom(nax)];
-        NonbondAtomsPositionsCache[nax] = OpenMM::Vec3(p[0], p[1], p[2]);
+        const auto& pos_G =
+            includedAtomPos_G[dumm->getIncludedAtomIndexOfNonbondAtom(nax)];
+        NonbondAtomsPositionsCache[nax] =
+            OpenMM::Vec3(pos_G[0], pos_G[1], pos_G[2]);
     }
 
     // Pass the converted positions to OpenMM
@@ -509,18 +521,25 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
         {
             const DuMM::IncludedAtomIndex iax = 
                 dumm->getIncludedAtomIndexOfNonbondAtom(nax);          
-            const IncludedAtom& a = dumm->getIncludedAtom(iax);
-            const DuMMIncludedBodyIndex ibx = a.inclBodyIndex;
+            const IncludedAtom& includedAtom = dumm->getIncludedAtom(iax);
+            const DuMMIncludedBodyIndex ibx = includedAtom.inclBodyIndex;
             const OpenMM::Vec3& ommForce = openMMForces[nax];
-            const Vec3 f(ommForce[0], ommForce[1], ommForce[2]);
-            includedBodyForces_G[ibx] += SpatialVec(includedAtomStation_G[iax] % f, f);
+            const Vec3 simForce(ommForce[0], ommForce[1], ommForce[2]);
+            includedBodyForces_G[ibx] += SpatialVec(includedAtomStation_G[iax] % simForce, simForce);
+
+            // Print
+            // const DuMM::AtomIndex& dAIx = includedAtom.atomIndex;
+            // const DuMMAtom& dummAtom = dumm->getAtom(dAIx);
+
         }
     }
 
     if (wantEnergy)
         energy += openMMState.getPotentialEnergy();
 
-    TRACE_OPENMM(("OpenMM_Energy\t" + std::to_string(openMMState.getPotentialEnergy()) +  "\n").c_str());
+    TRACE_OPENMM(("OpenMM_Energy\t" +
+        std::to_string(openMMState.getPotentialEnergy()) + 
+        "\n").c_str());
 }
 
 // void OpenMMPluginInterface::setNonbondedCutoff (SimTK::Real cutoff) {

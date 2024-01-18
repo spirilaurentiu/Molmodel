@@ -1185,14 +1185,23 @@ public:
     {
         Compound::AtomIndex atomIndex = getAtomIndex(atomName);
         
-        if ( ! Biotype::exists(biotypeResidueName, biotypeAtomName, ordinality) )
+        if ( ! Biotype::exists(biotypeResidueName, biotypeAtomName, ordinality) ) {
 			Biotype::defineBiotype(
                 getAtomElement(atomIndex),
                 getNumBondCenters(atomIndex), 
                 biotypeResidueName, 
                 biotypeAtomName, 
-                ordinality
-            );
+                ordinality);
+            // std::cout << "SP_NEW_LAB Compound::setAtomBiotype does not exist."
+            //     << atomName <<" " << biotypeResidueName <<" " << biotypeAtomName <<" "
+            //     << std::endl;
+        }
+        // else{
+
+        //     std::cout << "SP_NEW_LAB Compound::setAtomBiotype exists."
+        //         << atomName <<" " << biotypeResidueName <<" " << biotypeAtomName <<" "            
+        //         << std::endl;
+        // }
         
         const Biotype& biotype = Biotype::get(biotypeResidueName, biotypeAtomName, ordinality);
         

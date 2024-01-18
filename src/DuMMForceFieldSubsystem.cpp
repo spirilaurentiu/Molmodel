@@ -1860,7 +1860,11 @@ DuMM::AtomIndex DuMMForceFieldSubsystem::addAtom(DuMM::ChargedAtomTypeIndex char
 
     const DuMM::AtomIndex atomIndex = (const DuMM::AtomIndex)mm.atoms.size();
     mm.atoms.push_back(DuMMAtom(chargedAtomTypeIndex, atomIndex));
-    TRACE((std::string("DuMM::addAtom") + std::to_string(atomIndex) + std::string("\n")).c_str());
+
+    // std::cout << "DuMM::addAtom chargedAtomTypeIndex atomIndex=atoms.size "
+    //     << chargedAtomTypeIndex <<" " << atomIndex <<" "
+    //     << std::endl;
+
     return atomIndex;
 }
 

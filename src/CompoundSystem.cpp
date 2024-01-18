@@ -175,14 +175,14 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
 
     if (showDebugMessages) cout << "Step 1 create atomBonds" << endl;
     // 1) Create initial atomBonds data structure for each atom (no bonds are cached in this loop)
-    for (Compound::AtomIndex a(0); a < compound.getNumAtoms(); ++a) 
+    for (Compound::AtomIndex cACnt(0); cACnt < compound.getNumAtoms(); ++cACnt) 
     {
         // Create AtomBonding object
-        atomBonds[a] = AtomBonding(a);
-        AtomBonding& atomBonding = atomBonds[a];
+        atomBonds[cACnt] = AtomBonding(cACnt);
+        AtomBonding& atomBonding = atomBonds[cACnt];
 
         // Assign DuMM::AtomIndex for linking to simbody
-        BiotypeIndex biotypeIx = compound.getAtomBiotypeIndex(a);
+        BiotypeIndex biotypeIx = compound.getAtomBiotypeIndex(cACnt);
         assert(biotypeIx.isValid());
         DuMM::ChargedAtomTypeIndex chargedTypeId = dumm.getBiotypeChargedAtomType(biotypeIx);
         assert(chargedTypeId.isValid());
@@ -190,13 +190,18 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
         assert(atomBonding.dummAtomIndex.isValid());
 
         // Store DuMMAtomIndex in Compound::Atom object
-        CompoundAtom& atom = compoundRep.updAtom(a);
+        CompoundAtom& atom = compoundRep.updAtom(cACnt);
 
         //assert(!atom.getDuMMPrimaryClusterIndex().isValid()); // TODO why assert?
         //assert(!atom.getDuMMAtomIndex().isValid()); //TODO why assert
 
-        //std::cout << " AtomIndex dummAtomIndex "
-        //      << a << " " << atomBonding.dummAtomIndex << std::endl;
+        if (showDebugMessages){
+            
+            std::cout << "SP_NEW_LAB cAIx dAIx bioIx chATIx "
+                << cACnt << " " << atomBonding.dummAtomIndex <<" " 
+                << biotypeIx <<" " << chargedTypeId <<" "
+                << std::endl;
+        }
 
         atom.setDuMMAtomIndex(atomBonding.dummAtomIndex);
     }
