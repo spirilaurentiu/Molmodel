@@ -1026,7 +1026,7 @@ public:
 
         const BondCenterIndex bondCenterIndex = BondCenterIndex(bondCenters.size());
         assert( ! hasBondCenter(bondCenterIndex) );
-
+    
         bondCenters.push_back(BondCenter(bond1Angle, bond2Angle, refY, BondCenter::RightHanded));
 
         // NEWMOB BEGIN

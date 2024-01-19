@@ -436,8 +436,11 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
         }
     }
 
-    if (showDebugMessages) cout << "Step 5 set ground frames" << endl;
-    // 5) Set body frames lacking parent bodies relative to Ground
+    // --------------------------------------------------------------------
+    //  (5) Set body frames lacking parent bodies relative to Ground 
+    // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+    if (showDebugMessages) {std::cout << "Step 5 set ground frames" << std::endl;}
     for (rigidUnitI = rigidUnits.begin(); rigidUnitI != rigidUnits.end(); ++rigidUnitI)
     {
         RigidUnit& rigidUnit = rigidUnitI->second;
@@ -570,6 +573,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             // because it can handle six degrees of freedom.  (assuming all children
             // are attached by Pin Mobilizers.)  Also anything with three or more
             // non-colinear atoms can be a Free Mobilizer.
+
             //if ( (unit.clusterAtoms.size() > 2) || (unit.hasChild) )
             if ( true ) // TEST
             {   
@@ -681,18 +685,17 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
         }
 
         // Case B: rigid unit has a parent rigid unit
-        else // unit has a parent body
+        else // Unit has a parent body
         {
-            //std::cout << "CompoundSystem: Step 8: Case B : clusterIx = "
-            //          << unit.clusterIx << " ; mobodIx = " << unit.bodyId << std::endl;
-            //std::cout << " unit.parentId.isValid " << unit.parentId.isValid() << std::endl;
 
+            // Get the parent rigid unit
             DuMM::ClusterIndex parentClusterIndex = unit.parentId;
             RigidUnit& parentUnit = rigidUnits.find(parentClusterIndex)->second;
 
             // If this assertion fails I may need to create a recursive method --CMB
             assert(parentUnit.bodyId.isValid());
 
+            // Get
             Transform P_X_M = unit.frameInParentFrame;
 
             // Move rotation axis (x) to z-axis
@@ -704,7 +707,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             bool testRiboseMobilizer = false;
 
             // GMOL BIG RB =====================
-            // Get the atom indeces at the origin of the bodies
+
+            // Get the atom indecx at the origin of the Rigid Unit
             Compound::AtomIndex originAtomId(*unit.clusterAtoms.begin());
             //Compound::AtomIndex parentOriginAtomId(*parentUnit.clusterAtoms.begin());
 
@@ -719,6 +723,11 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId, String mobilized
             const BondInfo& bondInfo = compoundRep.getBondInfo(originAtomInfo, parentAtomInfo);
             //const Bond BMBond = bondInfo.getBond();
 
+
+            // Get parent BC to child BC transform:
+            //     1) rotate about x-axis by dihedral angle
+            //     2) translate along x-axis by bond length
+            //     3) rotate 180 degrees about y-axis to face the parent bond center
             Transform X_parentBC_childBC = bondInfo.getBond().getDefaultBondCenterFrameInOtherBondCenterFrame();
             Transform X_childBC_parentBC = ~X_parentBC_childBC;
 
