@@ -545,13 +545,13 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
         assert(rootAtomPtr->clusterIx == rigidUnit.clusterIx);
         
         // Get it's Top frame from the already calculated frames at step 0
-        const Transform& T_X_atom = defaultAtomFrames[rootAtomPtr->atomId];
+        const Transform& T_X_rootAtom = defaultAtomFrames[rootAtomPtr->atomId];
         
         const Transform& G_X_T = compoundRep.getTopLevelTransform();
-        Transform G_X_atom = G_X_T * T_X_atom;
+        Transform G_X_rootAtom = G_X_T * T_X_rootAtom;
 
-        rigidUnit.frameInTopCompoundFrame = T_X_atom;
-        rigidUnit.frameInParentFrame = G_X_atom;
+        rigidUnit.frameInTopCompoundFrame = T_X_rootAtom;
+        rigidUnit.frameInParentFrame = G_X_rootAtom;
 
     } // every rigid unit
 
@@ -644,14 +644,17 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
     if (showDebugMessages) cout << "Step 8 create mobilized bodies" << endl;
     
     // Iterate rigid units
-    for (rigidUnitI = rigidUnits.begin(); rigidUnitI != rigidUnits.end(); ++rigidUnitI)
+    for (rigidUnitI = rigidUnits.begin(); rigidUnitI != rigidUnits.end();
+    ++rigidUnitI)
     {
         RigidUnit& unit = rigidUnitI->second;
 
         // skip this body if MobilizedBodyIndex is already defined
         if (unit.bodyId.isValid()) continue;
 
+        ///////////////////////////////////////////////////////////////////////
         ////////////////// Case A: body to be attached to Ground //////////////
+        ///////////////////////////////////////////////////////////////////////
         if (!unit.parentId.isValid())
         {
             assert (unit.clusterAtoms.size() > 0);
@@ -770,84 +773,114 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
             } */
         }
 
+        ///////////////////////////////////////////////////////////////////////
         //////////////// Case B: rigid unit has a parent rigid unit ///////////
+        ///////////////////////////////////////////////////////////////////////
         else // Unit has a parent body
         {
-
-            // Get the parent rigid unit
-            DuMM::ClusterIndex parentClusterIndex = unit.parentId;
-            RigidUnit& parentUnit = rigidUnits.find(parentClusterIndex)->second;
-
-            // If this assertion fails I may need to create a recursive method --CMB
-            assert(parentUnit.bodyId.isValid());
-
-            // Get
-            Transform P_X_M = unit.frameInParentFrame;
-
-            // Move rotation axis (x) to z-axis
-            Transform M_X_pin = Rotation(-90*Deg2Rad, YAxis);
-
-            Bond& bond = compoundRep.updBond(compoundRep.updBondInfo(
-                unit.inboardBondIndex));
 
             // This is just a hack for testing the unfinished ribose mobilizer
             bool testRiboseMobilizer = false;
 
-            // GMOL BIG RB =====================
+            // Get the parent rigid unit
+            // If assertion fails I may need to create a recursive method --CMB
+            DuMM::ClusterIndex parentClusterIndex = unit.parentId;
+            RigidUnit& parentUnit = rigidUnits.find(parentClusterIndex)->second;
+            assert(parentUnit.bodyId.isValid());
 
-            // Get the atom indecx at the origin of the Rigid Unit
+
+            // Get rigid unit inboard bond
+            Bond& bond = compoundRep.updBond(compoundRep.updBondInfo(
+                unit.inboardBondIndex));
+
+            // Get cAIx, AtomBonding and AtomInfo at the origin of the Unit
             Compound::AtomIndex originAtomId(*unit.clusterAtoms.begin());
-            //Compound::AtomIndex parentOriginAtomId(*parentUnit.clusterAtoms.begin());
-
-            // Get the parent atom of the origin atom
             AtomBonding& originAtomBonding = atomBonds.find(originAtomId)->second;
-            Compound::AtomIndex parentAtomId = originAtomBonding.parentAtomIndex;
-
-            // Get BondCenterInfo defaultDihedrals
             const AtomInfo& originAtomInfo = compoundRep.getAtomInfo(originAtomId);
+
+            // Get the parent atom cAIx and AtomInfo
+            Compound::AtomIndex parentAtomId = originAtomBonding.parentAtomIndex;
             const AtomInfo& parentAtomInfo = compoundRep.getAtomInfo(parentAtomId);
 
-            const BondInfo& bondInfo = compoundRep.getBondInfo(originAtomInfo, parentAtomInfo);
-            //const Bond BMBond = bondInfo.getBond();
+            // Get BondInfo
+            const BondInfo& bondInfo =
+                compoundRep.getBondInfo(originAtomInfo, parentAtomInfo);
 
+            // Get frame in parent rigid unit frame = Fr_X_M0
+            Transform Fr_X_M0 = unit.frameInParentFrame;
 
-            // Get parent BC to child BC transform:
+            // Move rotation axis (x) to z-axis
+            Transform XAxis_To_ZAxis = Rotation(-90*Deg2Rad, YAxis);
+
+            // Get parent BC to child BC transforms:
             //     1) rotate about x-axis by dihedral angle
             //     2) translate along x-axis by bond length
             //     3) rotate 180 degrees about y-axis to face the parent bond center
-            Transform X_parentBC_childBC = bondInfo.getBond().getDefaultBondCenterFrameInOtherBondCenterFrame();
+            Transform X_parentBC_childBC =
+                bondInfo.getBond().getDefaultBondCenterFrameInOtherBondCenterFrame();
             Transform X_childBC_parentBC = ~X_parentBC_childBC;
 
-            Transform oldX_PF = P_X_M * M_X_pin;
-            Transform oldX_BM = M_X_pin;
-            Transform oldX_MB = ~oldX_BM;
+            // -------------- Old mobod transforms:
+            //    - X_PF is parent rigid unit inboard_BC to child rigid unit
+            //       inboard_BC without the default dihedral and with the X
+            //        axis switched to Z axis
+            //     - X_MB switches the Z axis back to X axis
+            Transform oldX_PF = Fr_X_M0 * XAxis_To_ZAxis;
+            Transform oldX_BM = XAxis_To_ZAxis;
+            Transform oldX_MB = ~oldX_BM; // ZAxis_To_XAxis
             Transform oldX_FM = Rotation(bond.getDefaultDihedral(), ZAxis);
+            Transform oldX_PB = (oldX_PF * oldX_FM * oldX_MB);
 
-            Transform newX_BM = X_childBC_parentBC * M_X_pin;
-            Transform newX_PF = oldX_PF * oldX_FM * oldX_MB * newX_BM;
+            // -------------- New mobod transforms:
+            //    - X_PF is parent rigid unit inboard_BC to the outboard
+            //       atom's BC (parent BC) with the X axis switched to
+            //       Z axis
+            //    - X_MB is the inboard bond parent BC to child BC transform
+            //      with the Z axis switched to X
+            Transform newX_BM = X_childBC_parentBC * XAxis_To_ZAxis;
+            Transform newX_PF = oldX_PB * newX_BM;
 
-            Transform universalPin = Rotation(-90*Deg2Rad, XAxis); // Move rotation axis Y to Z
-            Transform universalX_BM = X_childBC_parentBC * universalPin;
-            Transform universalX_PF = oldX_PF * oldX_FM * oldX_MB * universalX_BM;
+            // -------------- Universal transforms:
+            //    - X_PF is parent rigid unit inboard_BC to the outboard
+            //       atom's BC (parent BC) with the Y axis switched to
+            //       Z axis
+            //    - X_MB is the inboard bond parent BC to child BC transform
+            //      with the Z axis switched to Y
+            Transform YAxis_To_ZAxis = Rotation(-90*Deg2Rad, XAxis);
+            Transform universalX_BM = X_childBC_parentBC * YAxis_To_ZAxis;
+            Transform universalX_PF = oldX_PB * universalX_BM;
 
-            Transform anglePinX_BM = X_childBC_parentBC;
-            Transform anglePinX_PF = oldX_PF * oldX_FM * oldX_MB * anglePinX_BM;
+            // -------------- BendStretch, AnglePin and Slider transforms:
+            //    - X_PF is parent rigid unit inboard_BC to the outboard
+            //       atom's BC (parent BC)
+            //    - X_MB is the inboard bond parent BC to child BC transform
+            Transform bendStretchX_BM = X_childBC_parentBC;
+            Transform bendStretchX_PF = oldX_PB * bendStretchX_BM;
 
-            Transform bendStretchX_BM = anglePinX_BM;
-            Transform bendStretchX_PF = anglePinX_PF;
+            // -------------- AnglePin alias:
+            //    - X_PF is parent rigid unit inboard_BC to the outboard
+            //       atom's BC (parent BC)
+            //    - X_MB is the inboard bond parent BC to child BC transform
+            Transform anglePinX_BM = bendStretchX_BM;
+            Transform anglePinX_PF = bendStretchX_PF;
 
-            Transform sliderX_BM = anglePinX_BM;
-            Transform sliderX_PF = anglePinX_PF;
+            // -------------- Slider alias:
+            //    - X_PF is parent rigid unit inboard_BC to the outboard
+            //       atom's BC (parent BC)
+            //    - X_MB is the inboard bond parent BC to child BC transform
+            Transform sliderX_BM = bendStretchX_BM;
+            Transform sliderX_PF = bendStretchX_PF;
 
-            //Transform sphericalX_BM = oldX_BM;
-            //Transform sphericalX_PF = oldX_PF;
-            //Transform sphericalX_BM = newX_BM;
-            //Transform sphericalX_PF = newX_PF;
-            //Transform sphericalX_BM = X_childBC_parentBC * Transform(M_X_pin) * Transform(Rotation(90*Deg2Rad, XAxis)) * Transform(Rotation(90*Deg2Rad, ZAxis));
-            Transform sphericalX_BM = X_childBC_parentBC * Transform(M_X_pin) * Transform(Rotation(-90*Deg2Rad, ZAxis));
-            Transform sphericalX_PF = oldX_PF * oldX_FM * oldX_MB * sphericalX_BM;
+            // -------------- Universal transforms:
+            //    - X_PF is parent rigid unit inboard_BC to the outboard
+            //       atom's BC (parent BC) with the Y axis switched to
+            //       Z axis
+            //    - X_MB is the inboard bond parent BC to child BC transform
+            //      with the Z axis switched to Y
+            Transform sphericalX_BM = X_childBC_parentBC * Transform(XAxis_To_ZAxis) * Transform(Rotation(-90*Deg2Rad, ZAxis));
+            Transform sphericalX_PF = oldX_PB * sphericalX_BM;
 
-	    // Special transform for free line
+	        // -------------- Special transform for free line
             Transform newX_BM_FreeLine;
             std::set<Compound::AtomIndex>::const_iterator atomI = unit.clusterAtoms.begin();
             Compound::AtomIndex atomId1 = *atomI;
@@ -868,14 +901,6 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
                  newX_BM_FreeLine = newX_BM * Transform(Rotation(rotAngle, rotAxis));
             }
 
-/*            std::cout << "Molmodel X_parentBC_childBC " << X_parentBC_childBC << std::endl;
-            std::cout << "Molmodel X_childBC_parentBC " << X_childBC_parentBC << std::endl;
-            //const BondCenterInfo& childBondCenterInfo = compoundRep.getBondCenterInfo(bondInfo.getChildBondCenterIndex());
-            //const BondCenterInfo& parentBondCenterInfo = compoundRep.getBondCenterInfo(bondInfo.getParentBondCenterIndex());
-            //BondCenter childBondCenter = compoundRep.getBondCenter(childBondCenterInfo.getIndex());
-            //BondCenter parentBondCenter = compoundRep.getBondCenter(parentBondCenterInfo.getIndex());
-            //Angle childBondCenterDihedral = childBondCenter.getDefaultDihedralAngle();
-            //Angle parentBondCenterDihedral = parentBondCenter.getDefaultDihedralAngle();*/
             // GMOL END
 
             // CMB -- temporarily comment out Pin mobilizer while we test 
@@ -883,11 +908,10 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
             if (testRiboseMobilizer) {
 	            
 	            RiboseNu3Mobilizer torsionBody(
-	                                           matter.updMobilizedBody(parentUnit.bodyId),
-	                                           P_X_M * M_X_pin,
-	                                           dumm.calcClusterMassProperties(unit.clusterIx),
-	                                           M_X_pin
-	                                           );
+                    matter.updMobilizedBody(parentUnit.bodyId),
+                    Fr_X_M0 * XAxis_To_ZAxis,
+                    dumm.calcClusterMassProperties(unit.clusterIx),
+                    XAxis_To_ZAxis);
 	            
 	            // Save a pointer to the pin joint in the bond object
 	            // (ensure that the default angle of the MobilizedBody::Pin matches that of 
@@ -897,7 +921,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
 	            unit.bodyId = torsionBody.getMobilizedBodyIndex();
             }
             else {
-///*
+                
                if(bond.getMobility() == BondMobility::Torsion) {
                     // GMOL BIG RB ======
                     MobilizedBody::Pin torsionBody(
@@ -911,7 +935,6 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
                     unit.bodyId = torsionBody.getMobilizedBodyIndex();
                     //std::cout << " got Pin mobodIx " << unit.bodyId << std::endl;
                     std::cout << " Pin";
-                    // GMOL END */
 
                 }else if(bond.getMobility() == BondMobility::AnglePin) {
 
@@ -1107,7 +1130,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
             compoundRep.updAtom(*atomI).setMobilizedBodyIndex(unit.bodyId);
         }
 
-    }
+    } // every rigid unit
     std::cout << std::endl;
 
 
