@@ -1559,31 +1559,70 @@ Transform CompoundRep::calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex a
     return parent_X_atom;
 }
 
-// Get all atom locations at once, for greater efficiency
-
-void CompoundRep::calcDefaultAtomFramesInCompoundFrame(std::vector<Transform>& atomFrameCache) const 
+/*!
+ * <!-- Helper for calcDefaultAtomFramesInCompoundFrame. It sets a NaN flag for
+   Top to inboard bond center transforms passed. -->
+*/
+void CompoundRep::invalidateAtomFrameCache(
+    std::vector<Transform>& atomFrameCache,
+    int numAtoms) const
 {
+    // Iterate atom transforms
+    for (int a = 0; a < numAtoms; ++a)
+
+        // Set the NaN flag
+        atomFrameCache[a].updP() = Vec3(NaN);
+}
+
+/*!
+ * <!-- Calculate Top to inboard bond center transform for all atoms.
+ * invalidateAtomFrameCache(atomFrameCache) must be called before this -->
+*/
+// Get all atom locations at once, for greater efficiency
+void CompoundRep::calcDefaultAtomFramesInCompoundFrame(
+    std::vector<Transform>& atomFrameCache) const
+{
+    // Iterate AtomInfos
     std::vector<AtomInfo>::const_iterator aI;
     for (aI = allAtoms.begin(); aI != allAtoms.end(); ++aI) {
+        
         Transform& transform = atomFrameCache[aI->getIndex()];
+        
+        // Check if invalidateAtomFrameCache was called
         if (isNaN(transform.p()[0])) {
-            //std::cout<<__FILE__<<":"<<__LINE__<<" calculating default atom frame for atom ";
+            
+            //std::cout<<__FILE__<<":"<<__LINE__
+            //<<" calculating default atom frame for atom ";
+            
             AtomInfo myAtomInfo = *aI;
-            std::set <Compound::AtomName>   tempSet    =myAtomInfo.getNames();
-            for ( std::set <Compound::AtomName>::iterator tempSetIterator = tempSet.begin(); tempSetIterator != tempSet.end(); tempSetIterator++){
-                //std::cout<<(*tempSetIterator)<<", ";
-            }
-            //std::cout<<std::endl;
-            //String tempString = String(aI->getNames()); //<<std::endl;
-            transform = calcDefaultAtomFrameInCompoundFrame(aI->getIndex(), atomFrameCache);
+
+            // Get atom name and synonyms
+            std::set <Compound::AtomName> tempSet = myAtomInfo.getNames();
+
+            // Check synonyms (debugging purpose only)
+            std::set <Compound::AtomName>::iterator tempSetIterator;
+            for ( tempSetIterator = tempSet.begin(); tempSetIterator != tempSet.end();
+            tempSetIterator++)
+            {//std::cout<<(*tempSetIterator)<<", ";
+            } //std::cout<<std::endl;
+
+            // The actual calculation
+            transform = calcDefaultAtomFrameInCompoundFrame(aI->getIndex(),
+                atomFrameCache);
+
+            // Check
             if (isNaN(transform.p()[0])) {
-                //std::cout<<__FILE__<<":"<<__LINE__<<" Failed to compute atom frame in compound frame!"<<std::endl;
+                //std::cout<<__FILE__<<":"<<__LINE__
+                //<<" Failed to compute atom frame in compound frame!"<<std::endl;
             }
-        }
-    }
+        } // check invlaidation
+    } // every atom info
+
+    // Check
     for (int a = 0; a < getNumAtoms(); ++a) {
         assert(! isNaN(atomFrameCache[a].p()[0]));
     }
+
 }
 
 CompoundRep& CompoundRep::setPdbResidueNumber(int n) {
@@ -2501,6 +2540,33 @@ Compound& Compound::fitDefaultConfiguration(
     return *this;
 }
 
+
+
+/*!
+ * <!-- Helper for calcDefaultAtomFramesInCompoundFrame. It sets a NaN flag for
+   Top to inboard bond center transforms passed. -->
+*/
+Compound& Compound::invalidateAtomFrameCache(
+    std::vector<Transform>& atomFrameCache,
+    int numAtoms)
+{
+    updImpl().invalidateAtomFrameCache(atomFrameCache, numAtoms);
+    return *this;
+}
+
+/*!
+ * <!-- Calculate Top to inboard bond center transform for all atoms.
+ * invalidateAtomFrameCache(atomFrameCache) must be called before this -->
+*/
+Compound& Compound::calcDefaultAtomFramesInCompoundFrame(
+    std::vector<Transform>& atomFrameCache)
+{
+    updImpl().calcDefaultAtomFramesInCompoundFrame(atomFrameCache);
+    return *this;
+}
+
+
+
 /// Write current default(initial) Compound configuration into a PdbChain object
 const Compound& Compound::populateDefaultPdbChain(
     class PdbChain& pdbChain, 
@@ -3249,9 +3315,5 @@ void Protein::loadFromPdbChain(const PdbChain& pdbChain, SimTK::Real targetRms)
 	// writeDefaultPdb(match2Out);
 }
 
-void invalidateAtomFrameCache(std::vector<Transform>& atomFrameCache, int numAtoms) {
-    for (int a = 0; a < numAtoms; ++a)
-        atomFrameCache[a].updP() = Vec3(NaN);
-}
 
 } // namespace SimTK

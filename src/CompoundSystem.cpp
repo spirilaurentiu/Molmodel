@@ -16,8 +16,15 @@ void SimTK::CompoundSystem::modelCompounds(String mobilizedBodyType)
     std::cout << "CompoundSystem::modelCompounds" << std::endl;
     // Turn off default decorations, since we'll make our own decorations.
     updMatterSubsystem().setShowDefaultGeometry(false); 
-    for (CompoundSystem::CompoundIndex c(0); c < getNumCompounds(); ++c) 
-        modelOneCompound(c, mobilizedBodyType);
+    for (CompoundSystem::CompoundIndex c(0); c < getNumCompounds(); ++c){
+        
+        // Get Compound
+        Compound& compound = updCompound(c);
+        
+        std::vector<Transform> atomFrameCache(compound.getNAtoms());
+
+        modelOneCompound(c, atomFrameCache, mobilizedBodyType);
+    }
 }
 
 // RigidUnit data structure is for use in modelCompounds() method
@@ -28,7 +35,7 @@ public:
         : clusterIx(id), hasChild(false) {}
 
     DuMM::ClusterIndex clusterIx; // primary key
-    MobilizedBodyIndex bodyId; // populated toward the end
+    MobilizedBodyIndex mbx; // populated toward the end
     DuMM::ClusterIndex parentId; // InvalidId implies parented to Ground
     bool hasChild; // Whether a child body is tethered to this one
 
@@ -40,6 +47,33 @@ public:
     Compound::BondIndex inboardBondIndex;
 
     std::set<Compound::AtomIndex> clusterAtoms;
+
+    const void Print(void) const {
+        
+        std::cout << "unit" <<" "
+            << "clustIx " << clusterIx <<" "
+            << "parClustIx " << parentId <<" "
+            << "mbx " << mbx <<" "
+            << "inBCIx " << inboardBondCenterIndex <<" "
+            << "inBoIx " << inboardBondIndex <<" "
+            << "inBoDih " << inboardBondDihedralAngle <<" "
+            << std::endl;
+
+        std::cout << "unit aIxs" <<" ";
+        for (const auto& clustAtom : clusterAtoms) {
+            std::cout << clustAtom << " ";
+        } std::cout << std::endl;
+    }
+
+    const void PrintTransforms(void) const {
+
+        std::cout << "unit frameInTopCompoundFrame ";
+        std::cout << frameInTopCompoundFrame;
+        std::cout << "unit frameInParentFrame ";
+        std::cout << frameInParentFrame;
+    
+    }
+
 };
 
 // AtomBonding data structure represents one Atom in the modelCompounds() method
@@ -154,8 +188,11 @@ void buildUpRigidBody(Compound::AtomIndex atomId,
  * <!-- Build Mobilized bodies based on informations in Compound, which in turn
   * contains CompoundAtoms, Bonds and BondCenters. -->
 */
-void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
-    String mobilizedBodyType ) 
+void CompoundSystem::modelOneCompound(
+    CompoundIndex compoundId,
+    std::vector<Transform>& atomFrameCache,
+    String mobilizedBodyType
+)
 {
     bool showDebugMessages = true;
 
@@ -173,9 +210,13 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
     CompoundRep& compoundRep = compound.updImpl();
     
     // Cache default atom frames for performance
-    std::vector<Transform> defaultAtomFrames(compoundRep.getNumAtoms());
-    invalidateAtomFrameCache(defaultAtomFrames, compoundRep.getNumAtoms());
-    compoundRep.calcDefaultAtomFramesInCompoundFrame(defaultAtomFrames);
+    //std::vector<Transform> atomFrameCache(compoundRep.getNumAtoms());
+    // if(atomFrameCache.size() == 0){
+    //     atomFrameCache.resize(compoundRep.getNumAtoms());
+    // }
+
+    compoundRep.invalidateAtomFrameCache(atomFrameCache, compoundRep.getNumAtoms());
+    compoundRep.calcDefaultAtomFramesInCompoundFrame(atomFrameCache);
 
     // Get the force field and Simbody's MatterSubsystem
     DuMMForceFieldSubsystem& dumm =
@@ -412,7 +453,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
                     compoundRep.calcDefaultBondCenterFrameInCompoundFrame(
                         compoundRep.getBondCenterInfo(
                             childUnit.inboardBondCenterIndex),
-                            defaultAtomFrames
+                            atomFrameCache
                     );
 
                 childUnit.frameInTopCompoundFrame = T_X_Mr;
@@ -476,7 +517,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
                 // default dihedral rotation
                 Transform T_X_Mr = 
                     compoundRep.calcDefaultBondCenterFrameInCompoundFrame(
-                        compoundRep.getBondCenterInfo(childUnit.inboardBondCenterIndex), defaultAtomFrames
+                        compoundRep.getBondCenterInfo(childUnit.inboardBondCenterIndex), atomFrameCache
                     );
 
                 childUnit.frameInTopCompoundFrame = T_X_Mr;
@@ -545,7 +586,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
         assert(rootAtomPtr->clusterIx == rigidUnit.clusterIx);
         
         // Get it's Top frame from the already calculated frames at step 0
-        const Transform& T_X_rootAtom = defaultAtomFrames[rootAtomPtr->atomId];
+        const Transform& T_X_rootAtom = atomFrameCache[rootAtomPtr->atomId];
         
         const Transform& G_X_T = compoundRep.getTopLevelTransform();
         Transform G_X_rootAtom = G_X_T * T_X_rootAtom;
@@ -614,7 +655,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
             AtomBonding& atomBonding = atomBonds.find(atomId)->second;
             
             // Get it's Top frame from the already calculated frames at step 0
-            const Transform& T_X_atom = defaultAtomFrames[atomId];
+            const Transform& T_X_atom = atomFrameCache[atomId];
             
             // Calculate frame in mobod frame
             Transform T_X_B = unit.frameInTopCompoundFrame;
@@ -650,7 +691,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
         RigidUnit& unit = rigidUnitI->second;
 
         // skip this body if MobilizedBodyIndex is already defined
-        if (unit.bodyId.isValid()) continue;
+        if (unit.mbx.isValid()) continue;
 
         ///////////////////////////////////////////////////////////////////////
         ////////////////// Case A: body to be attached to Ground //////////////
@@ -672,59 +713,59 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
                              G_X_T * T_X_B,
                              dumm.calcClusterMassProperties(unit.clusterIx),
                              Transform());
-                    unit.bodyId = freeBody.getMobilizedBodyIndex();
-                    std::cout << "First body Free mobodIx " << unit.bodyId << std::endl;
+                    unit.mbx = freeBody.getMobilizedBodyIndex();
+                    std::cout << "First body Free mobodIx " << unit.mbx << std::endl;
                 }else if (mobilizedBodyType.compare("Cartesian") == 0) {
                         MobilizedBody::Translation cartesianBody
                                 (matter.Ground(),
                                  G_X_T * T_X_B,
                                  dumm.calcClusterMassProperties(unit.clusterIx),
                                  Transform());
-                        unit.bodyId = cartesianBody.getMobilizedBodyIndex();
-                        std::cout << "First body Cartesian mobodIx " << unit.bodyId << std::endl;
+                        unit.mbx = cartesianBody.getMobilizedBodyIndex();
+                        std::cout << "First body Cartesian mobodIx " << unit.mbx << std::endl;
                 } else if (mobilizedBodyType.compare("Weld") == 0) {
 		            MobilizedBody::Weld weldBody
                        (matter.Ground(), 
 					    G_X_T * T_X_B, 
 					    dumm.calcClusterMassProperties(unit.clusterIx), 
 					    Transform());
-		            unit.bodyId = weldBody.getMobilizedBodyIndex();
-                    std::cout << "First body Weld mobodIx " << unit.bodyId << std::endl;
+		            unit.mbx = weldBody.getMobilizedBodyIndex();
+                    std::cout << "First body Weld mobodIx " << unit.mbx << std::endl;
                 }else if (mobilizedBodyType.compare("FreeLine") == 0) {
                     MobilizedBody::FreeLine freeLineBody
                             (matter.Ground(),
                              G_X_T * T_X_B,
                              dumm.calcClusterMassProperties(unit.clusterIx),
                              Transform());
-                    unit.bodyId = freeLineBody.getMobilizedBodyIndex();
-                    std::cout << "First body FreeLine mobodIx " << unit.bodyId << std::endl;
+                    unit.mbx = freeLineBody.getMobilizedBodyIndex();
+                    std::cout << "First body FreeLine mobodIx " << unit.mbx << std::endl;
                 }else if (mobilizedBodyType.compare("Ball") == 0) {
                     MobilizedBody::Ball ballBody
                             (matter.Ground(),
                              G_X_T * T_X_B,
                              dumm.calcClusterMassProperties(unit.clusterIx),
                              Transform());
-                    unit.bodyId = ballBody.getMobilizedBodyIndex();
-                    std::cout << "First body Ball mobodIx " << unit.bodyId << std::endl;
+                    unit.mbx = ballBody.getMobilizedBodyIndex();
+                    std::cout << "First body Ball mobodIx " << unit.mbx << std::endl;
                 }else if (mobilizedBodyType.compare("Pin") == 0) {
                     MobilizedBody::Pin pinBody
                             (matter.Ground(),
                              G_X_T * T_X_B,
                              dumm.calcClusterMassProperties(unit.clusterIx),
                              Transform());
-                    unit.bodyId = pinBody.getMobilizedBodyIndex();
-                    std::cout << "First body Pin mobodIx " << unit.bodyId << std::endl;
+                    unit.mbx = pinBody.getMobilizedBodyIndex();
+                    std::cout << "First body Pin mobodIx " << unit.mbx << std::endl;
                 }else{
 		            MobilizedBody::Weld weldBody
                        (matter.Ground(), 
 					    G_X_T * T_X_B, 
 					    dumm.calcClusterMassProperties(unit.clusterIx), 
 					    Transform());
-		            unit.bodyId = weldBody.getMobilizedBodyIndex();
-                    std::cout << "First body implicitly Weld mobodIx " << unit.bodyId << std::endl;                    
+		            unit.mbx = weldBody.getMobilizedBodyIndex();
+                    std::cout << "First body implicitly Weld mobodIx " << unit.mbx << std::endl;                    
                 }
                 
-                dumm.attachClusterToBody(unit.clusterIx, unit.bodyId);
+                dumm.attachClusterToBody(unit.clusterIx, unit.mbx);
             }
             /* else if (unit.clusterAtoms.size() == 1) // One atom, no children => Cartesian mobility
             {
@@ -786,7 +827,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
             // If assertion fails I may need to create a recursive method --CMB
             DuMM::ClusterIndex parentClusterIndex = unit.parentId;
             RigidUnit& parentUnit = rigidUnits.find(parentClusterIndex)->second;
-            assert(parentUnit.bodyId.isValid());
+            assert(parentUnit.mbx.isValid());
 
 
             // Get rigid unit inboard bond
@@ -809,8 +850,10 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
             // Get frame in parent rigid unit frame = Fr_X_M0
             Transform Fr_X_M0 = unit.frameInParentFrame;
 
-            // Move rotation axis (x) to z-axis
+            // Axis switching Rotations
             Transform XAxis_To_ZAxis = Rotation(-90*Deg2Rad, YAxis);
+            Transform YAxis_To_ZAxis = Rotation(-90*Deg2Rad, XAxis);
+            Transform XAxis_To_YAxis = Rotation(-90*Deg2Rad, ZAxis);
 
             // Get parent BC to child BC transforms:
             //     1) rotate about x-axis by dihedral angle
@@ -846,7 +889,6 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
             //       Z axis
             //    - X_MB is the inboard bond parent BC to child BC transform
             //      with the Z axis switched to Y
-            Transform YAxis_To_ZAxis = Rotation(-90*Deg2Rad, XAxis);
             Transform universalX_BM = X_childBC_parentBC * YAxis_To_ZAxis;
             Transform universalX_PF = oldX_PB * universalX_BM;
 
@@ -871,18 +913,19 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
             Transform sliderX_BM = bendStretchX_BM;
             Transform sliderX_PF = bendStretchX_PF;
 
-            // -------------- Universal transforms:
+            // -------------- Spherical transforms:
             //    - X_PF is parent rigid unit inboard_BC to the outboard
             //       atom's BC (parent BC) with the Y axis switched to
             //       Z axis
             //    - X_MB is the inboard bond parent BC to child BC transform
             //      with the Z axis switched to Y
-            Transform sphericalX_BM = X_childBC_parentBC * Transform(XAxis_To_ZAxis) * Transform(Rotation(-90*Deg2Rad, ZAxis));
+            Transform sphericalX_BM = X_childBC_parentBC * XAxis_To_ZAxis * XAxis_To_YAxis;
             Transform sphericalX_PF = oldX_PB * sphericalX_BM;
 
 	        // -------------- Special transform for free line
             Transform newX_BM_FreeLine;
-            std::set<Compound::AtomIndex>::const_iterator atomI = unit.clusterAtoms.begin();
+            std::set<Compound::AtomIndex>::const_iterator atomI =
+                unit.clusterAtoms.begin();
             Compound::AtomIndex atomId1 = *atomI;
             ++atomI;
             Compound::AtomIndex atomId2 = *atomI;
@@ -908,7 +951,7 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
             if (testRiboseMobilizer) {
 	            
 	            RiboseNu3Mobilizer torsionBody(
-                    matter.updMobilizedBody(parentUnit.bodyId),
+                    matter.updMobilizedBody(parentUnit.mbx),
                     Fr_X_M0 * XAxis_To_ZAxis,
                     dumm.calcClusterMassProperties(unit.clusterIx),
                     XAxis_To_ZAxis);
@@ -918,98 +961,98 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
 	            // the bond, in Atom.h)
 	            // NOTE - setPinBody automatically sets the torsionBody default torsion angle
 	            bond.setRiboseBody(torsionBody);
-	            unit.bodyId = torsionBody.getMobilizedBodyIndex();
+	            unit.mbx = torsionBody.getMobilizedBodyIndex();
             }
             else {
                 
                if(bond.getMobility() == BondMobility::Torsion) {
                     // GMOL BIG RB ======
                     MobilizedBody::Pin torsionBody(
-                            matter.updMobilizedBody(parentUnit.bodyId),
+                            matter.updMobilizedBody(parentUnit.mbx),
                             newX_PF,
                             dumm.calcClusterMassProperties(unit.clusterIx),
                             newX_BM);
 
                     bond.setPinBody(torsionBody, 0);
                     torsionBody.setDefaultAngle(0); // no chem change to 0 for chem
-                    unit.bodyId = torsionBody.getMobilizedBodyIndex();
+                    unit.mbx = torsionBody.getMobilizedBodyIndex();
                     //std::cout << " got Pin mobodIx " << unit.bodyId << std::endl;
                     std::cout << " Pin";
 
                 }else if(bond.getMobility() == BondMobility::AnglePin) {
 
                    MobilizedBody::Torsion anglePinBody(
-                           matter.updMobilizedBody(parentUnit.bodyId),
+                           matter.updMobilizedBody(parentUnit.mbx),
                            anglePinX_PF,
                            dumm.calcClusterMassProperties(unit.clusterIx),
                            anglePinX_BM
                    );
 
                    bond.setAnglePinBody(anglePinBody, 0);
-                   unit.bodyId = anglePinBody.getMobilizedBodyIndex();
+                   unit.mbx = anglePinBody.getMobilizedBodyIndex();
                    //std::cout << " got AnglePin mobodIx " << unit.bodyId << std::endl;
                     std::cout << " aPin";
 
                 }else if(bond.getMobility() == BondMobility::BendStretch) {
 
                    MobilizedBody::BendStretch bendStretchBody(
-                           matter.updMobilizedBody(parentUnit.bodyId),
+                           matter.updMobilizedBody(parentUnit.mbx),
                            bendStretchX_PF,
                            dumm.calcClusterMassProperties(unit.clusterIx),
                            bendStretchX_BM
                    );
 
                    bond.setBendStretchBody(bendStretchBody, 0, 0);
-                   unit.bodyId = bendStretchBody.getMobilizedBodyIndex();
+                   unit.mbx = bendStretchBody.getMobilizedBodyIndex();
                    //std::cout << " got BendStretch mobodIx " << unit.bodyId << std::endl;
                     std::cout << " BeSt";
 
                }else if(bond.getMobility() == BondMobility::Slider) {
 
                    MobilizedBody::Slider sliderBody(
-                           matter.updMobilizedBody(parentUnit.bodyId),
+                           matter.updMobilizedBody(parentUnit.mbx),
                            sliderX_PF,
                            dumm.calcClusterMassProperties(unit.clusterIx),
                            sliderX_BM
                    );
 
                    bond.setSliderBody(sliderBody, 0);
-                   unit.bodyId = sliderBody.getMobilizedBodyIndex();
+                   unit.mbx = sliderBody.getMobilizedBodyIndex();
                    //std::cout << " got Slider mobodIx " << unit.bodyId << std::endl;
                     std::cout << " Sli";
 
                } else if(bond.getMobility() == BondMobility::BallF) {
 
                     MobilizedBody::Ball ballBody(
-                            matter.updMobilizedBody(parentUnit.bodyId),
+                            matter.updMobilizedBody(parentUnit.mbx),
                             oldX_PF,
                             dumm.calcClusterMassProperties(unit.clusterIx),
                             oldX_BM
                     );
 
                     bond.setBallFBody(ballBody, 0);
-                    unit.bodyId = ballBody.getMobilizedBodyIndex();
+                    unit.mbx = ballBody.getMobilizedBodyIndex();
                     //std::cout << " got BallF mobodIx " << unit.bodyId << std::endl;
                     std::cout << " BalF";
 
                 }else if(bond.getMobility() == BondMobility::BallM) {
 
                    MobilizedBody::Ball ballBody(
-                           matter.updMobilizedBody(parentUnit.bodyId),
+                           matter.updMobilizedBody(parentUnit.mbx),
                            newX_PF,
                            dumm.calcClusterMassProperties(unit.clusterIx),
                            newX_BM
                    );
 
                    bond.setBallMBody(ballBody, 0);
-                   unit.bodyId = ballBody.getMobilizedBodyIndex();
+                   unit.mbx = ballBody.getMobilizedBodyIndex();
                    //std::cout << " got BallM mobodIx " << unit.bodyId << std::endl;
                     std::cout << " BalM";
 
                }else if(bond.getMobility() == BondMobility::Spherical) {
 
                    MobilizedBody::SphericalCoords sphereBody(
-                           matter.updMobilizedBody(parentUnit.bodyId),
+                           matter.updMobilizedBody(parentUnit.mbx),
                            sphericalX_PF,
                            dumm.calcClusterMassProperties(unit.clusterIx),
                            sphericalX_BM
@@ -1017,94 +1060,94 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
 
                    //sphereBody.setRadialAxis(XAxis);
                    bond.setSphericalBody(sphereBody, 0, 0, 0); // BAT coordinates
-                   unit.bodyId = sphereBody.getMobilizedBodyIndex();
+                   unit.mbx = sphereBody.getMobilizedBodyIndex();
                    //std::cout << " got Spherical mobodIx " << unit.bodyId << std::endl;
                     std::cout << " Sphe";
 
                }else if(bond.getMobility() == BondMobility::UniversalM) {
 
                    MobilizedBody::Universal universalMBody(
-                           matter.updMobilizedBody(parentUnit.bodyId),
+                           matter.updMobilizedBody(parentUnit.mbx),
                            universalX_PF,
                            dumm.calcClusterMassProperties(unit.clusterIx),
                            universalX_BM
                    );
 
                    bond.setUniversalMBody(universalMBody, 0);
-                   unit.bodyId = universalMBody.getMobilizedBodyIndex();
+                   unit.mbx = universalMBody.getMobilizedBodyIndex();
                    //std::cout << " got UniversalM mobodIx " << unit.bodyId << std::endl;
                     std::cout << " Univ";
 
                }else if(bond.getMobility() == BondMobility::Translation) {
 
                    MobilizedBody::Translation transBody(
-                           matter.updMobilizedBody(parentUnit.bodyId),
+                           matter.updMobilizedBody(parentUnit.mbx),
                            newX_PF,
                            dumm.calcClusterMassProperties(unit.clusterIx),
                            newX_BM
                    );
 
                    bond.setTransBody(transBody, 0);
-                   unit.bodyId = transBody.getMobilizedBodyIndex();
+                   unit.mbx = transBody.getMobilizedBodyIndex();
                    //std::cout << " got Trans mobodIx " << unit.bodyId << std::endl;
                     std::cout << " Trans";
 
                }else if(bond.getMobility() == BondMobility::FreeLine) {
                    MobilizedBody::FreeLine freeLineBody(
-                           matter.updMobilizedBody(parentUnit.bodyId),
+                           matter.updMobilizedBody(parentUnit.mbx),
                            newX_PF,
                            dumm.calcClusterMassProperties(unit.clusterIx),
                            newX_BM
                    );
 
                    bond.setFreeLineBody(freeLineBody, 0, 0);
-                   unit.bodyId = freeLineBody.getMobilizedBodyIndex();
+                   unit.mbx = freeLineBody.getMobilizedBodyIndex();
                    //std::cout << " got FreeLine mobodIx " << unit.bodyId << std::endl;
                     std::cout << " FreeL";
 
                }else if(bond.getMobility() == BondMobility::LineOrientationF) {
                    MobilizedBody::LineOrientation lineOrientationFBody(
-                           matter.updMobilizedBody(parentUnit.bodyId),
+                           matter.updMobilizedBody(parentUnit.mbx),
                            oldX_PF,
                            dumm.calcClusterMassProperties(unit.clusterIx),
                            oldX_BM
                    );
 
                    bond.setLineOrientationFBody(lineOrientationFBody, 0);
-                   unit.bodyId = lineOrientationFBody.getMobilizedBodyIndex();
+                   unit.mbx = lineOrientationFBody.getMobilizedBodyIndex();
                    //std::cout << " got LineOrientationF mobodIx " << unit.bodyId << std::endl;
                     std::cout << " LiOF";
 
                }else if(bond.getMobility() == BondMobility::LineOrientationM) {
                    MobilizedBody::LineOrientation lineOrientationMBody(
-                           matter.updMobilizedBody(parentUnit.bodyId),
+                           matter.updMobilizedBody(parentUnit.mbx),
                            newX_PF,
                            dumm.calcClusterMassProperties(unit.clusterIx),
                            newX_BM
                    );
 
                    bond.setLineOrientationMBody(lineOrientationMBody, 0);
-                   unit.bodyId = lineOrientationMBody.getMobilizedBodyIndex();
+                   unit.mbx = lineOrientationMBody.getMobilizedBodyIndex();
                    //std::cout << " got LineOrientationM mobodIx " << unit.bodyId << std::endl;
                     std::cout << " LiOM";
 
                }else if(bond.getMobility() == BondMobility::Free) {
 
                    MobilizedBody::Free freeBody(
-                           matter.updMobilizedBody(parentUnit.bodyId),
+                           matter.updMobilizedBody(parentUnit.mbx),
                            newX_PF,
                            dumm.calcClusterMassProperties(unit.clusterIx),
                            newX_BM
                    );
 
                    bond.setFreeBody(freeBody, 0, 0);
-                   unit.bodyId = freeBody.getMobilizedBodyIndex();
+                   unit.mbx = freeBody.getMobilizedBodyIndex();
                    //std::cout << " got Free mobodIx " << unit.bodyId << std::endl;
                     std::cout << " Free";
 
                }else if(bond.getMobility() == BondMobility::Cylinder) {
                     MobilizedBody::Cylinder cylinderBody(
-                               matter.updMobilizedBody(parentUnit.bodyId),
+                               matter.updMobilizedBody(parentUnit.mbx),
                                newX_PF,
                                dumm.calcClusterMassProperties(unit.clusterIx),
                                newX_BM);
@@ -1113,25 +1156,37 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
                     // the bond, in Atom.h)
                     // NOTE - setPinBody automatically sets the torsionBody default torsion angle
                     bond.setCylinderBody(cylinderBody, 0, 0);
-                    unit.bodyId = cylinderBody.getMobilizedBodyIndex();
+                    unit.mbx = cylinderBody.getMobilizedBodyIndex();
                     //std::cout << " got Cylinder mobodIx " << unit.bodyId << std::endl;
                      std::cout << " Cyl";
 
                }
             }
             
-            dumm.attachClusterToBody(unit.clusterIx, unit.bodyId);
+            dumm.attachClusterToBody(unit.clusterIx, unit.mbx);
 
         }
 
         // Set mobilized body index of compound atoms
         std::set<Compound::AtomIndex>::const_iterator atomI;
         for (atomI = unit.clusterAtoms.begin(); atomI != unit.clusterAtoms.end(); ++atomI) {
-            compoundRep.updAtom(*atomI).setMobilizedBodyIndex(unit.bodyId);
+            compoundRep.updAtom(*atomI).setMobilizedBodyIndex(unit.mbx);
         }
 
     } // every rigid unit
     std::cout << std::endl;
+
+
+
+    // Print Rigid units
+    for (rigidUnitI = rigidUnits.begin(); rigidUnitI != rigidUnits.end();
+    ++rigidUnitI)
+    {
+        RigidUnit& unit = rigidUnitI->second;
+
+        unit.Print();
+        unit.PrintTransforms();
+    }    
 
 
     if (showDebugMessages) cout << "Step 9 create decorations" << endl;

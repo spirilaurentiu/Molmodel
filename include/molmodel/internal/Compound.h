@@ -846,6 +846,26 @@ public:
         return *this;
     }
 
+
+
+    /*!
+    * <!-- Helper for calcDefaultAtomFramesInCompoundFrame. It sets a NaN flag for
+    Top to inboard bond center transforms passed. -->
+    */
+    Compound& invalidateAtomFrameCache(
+        std::vector<Transform>& atomFrameCache,
+        int numAtoms);
+
+    /*!
+    * <!-- Calculate Top to inboard bond center transform for all atoms.
+    * invalidateAtomFrameCache(atomFrameCache) must be called before this -->
+    */
+    Compound& calcDefaultAtomFramesInCompoundFrame(
+        std::vector<Transform>& atomFrameCache);
+
+
+
+
     /// Optimize adjustable degrees of freedom to best match atom targets
     Compound& fitDefaultConfiguration(
             const AtomTargetLocations& atomTargets,

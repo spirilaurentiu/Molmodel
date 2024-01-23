@@ -96,7 +96,8 @@ public:
     @bug "Weld" will only be applied if the mobilizer would otherwise have been
     "Free" (six degrees of freedom). For compounds of just a few atoms other
     mobilizers may be used. **/
-    void modelOneCompound(CompoundIndex compoundId, 
+    void modelOneCompound(CompoundIndex compoundId,
+                          std::vector<Transform>& atomFrameCache,
                           String        mobilizedBodyType = "Free");
 
     /**

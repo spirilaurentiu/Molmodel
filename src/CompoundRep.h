@@ -53,7 +53,7 @@ namespace SimTK {
 static const String InboardBondName = "inboard bond";
 
 
-void invalidateAtomFrameCache(std::vector<Transform>& atomFrameCache, int numAtoms);
+//void invalidateAtomFrameCache(std::vector<Transform>& atomFrameCache, int numAtoms);
 
 
 
@@ -1061,16 +1061,21 @@ public:
         return *this;
     }
 
+    /*!
+    * <!-- Helper for calcDefaultAtomFramesInCompoundFrame. It sets a NaN flag for
+    Top to inboard bond center transforms passed. -->
+    */
+    void invalidateAtomFrameCache(
+        std::vector<Transform>& atomFrameCache,
+        int numAtoms) const;
+
+    /*!
+     * <!-- Calculate Top to inboard bond center transform for all atoms.
+     * invalidateAtomFrameCache(atomFrameCache) must be called before this -->
+     */
     // More efficient getting of all atoms at once
     // Compound::AtomTargetLocations calcDefaultAtomLocationsInCompoundFrame1() const;
     void calcDefaultAtomFramesInCompoundFrame(std::vector<Transform>& atomFrameCache) const;
-//    Compound::AtomTargetLocations calcDefaultAtomLocationsInCompoundFrame() const;
-//    void calcDefaultAtomLocationsInParentFrame(
-//            Compound::AtomTargetLocations& locations,
-//            std::vector<Compound::AtomIndex>& indexes,  // map atom index to location index
-//            const Transform& X_ParentChild
-//            ) const;  
-    
     
     // Compute atom location in local compound frame
     Transform calcDefaultAtomFrameInCompoundFrame(const Compound::AtomName& name) const;
