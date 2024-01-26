@@ -11,6 +11,9 @@
 
 namespace SimTK {
 
+class RigidUnit;
+class AtomBonding;
+
 /**
  * \brief Derived class of MolecularMechanicsSystem that knows how to model molmodel Compounds
  *
@@ -48,10 +51,12 @@ public:
     {
         // const Compound::Index id((int)compounds.size());
 
+        // Create a new empty Compound and get a reference to it
         compounds.push_back(new Compound((CompoundRep*)0)); // grow
-        Compound& c = *compounds.back(); // refer to the empty handle we just created
+        Compound& c = *compounds.back();
 
-        child.disown(c); // transfer ownership to c
+        // Transfer ownership to the supplied new empty handle
+        child.disown(c);
 
         // Now tell the Compound object its owning CompoundSystem and id within
         // that System.
@@ -62,6 +67,9 @@ public:
         // March 6, 2008 -- adjust internal Transform of Compound, rather than 
         // saving the Transform in CompoundSystem
         c.setTopLevelTransform(compoundTransform * c.getTopLevelTransform());
+        std::cout << "SP_NEW  CompoundSystem::adoptCompound Top transforms:" << std::endl;
+        std::cout << compoundTransform;
+        std::cout << c.getTopLevelTransform();
         // assert((int) compoundTransforms.size() == (int) id);
         // compoundTransforms.push_back(compoundTransform);
 
@@ -79,6 +87,19 @@ public:
     would otherwise have been "Free" (six degrees of freedom). For compounds of 
     just a few atoms other mobilizers may be used and "Weld" is ignored. **/
     void modelCompounds(String mobilizedBodyType = "Free");
+
+
+/**  **/
+CompoundSystem&
+calcMobodToMobodTransforms(
+    SimTK::Compound& compound,
+    SimTK::Compound::AtomIndex atom1, SimTK::Compound::AtomIndex atom2,
+    BondMobility::Mobility bondMobility,
+    SimTK::Transform& Fr_X_M0,
+    SimTK::Angle rigidUnitInboardDihedral,
+    std::vector<SimTK::Transform>& PFBM
+);
+
 
     /** Build the Simbody model one compound at a time to allow differing
     base body-to-ground connection types. If you use this method you must 

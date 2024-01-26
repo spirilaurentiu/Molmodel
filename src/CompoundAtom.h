@@ -274,7 +274,6 @@ public:
         return *this;
     }
 
-///* GMolModel Try other Mobilizers
     // This method does not set default values of Q
     Bond& setCylinderBody(MobilizedBody::Cylinder& cyl, Angle argDefaultDihedral, Real argDefaultLength)
     {
@@ -401,8 +400,6 @@ public:
 
         return *this;
     }
-
-// GMolModel */
 
     Bond& setRiboseBody(MobilizedBody::FunctionBased& pin) 
     {
@@ -1169,18 +1166,27 @@ public:
         }
     }
 
-    Transform calcDefaultBondCenterFrameInAtomFrame(BondCenterIndex bondCenterIndex) const 
+
+    /*!
+    * <!-- Calculate bondCenterIndex BC frame in atom frame --> 
+    */
+    Transform calcDefaultBondCenterFrameInAtomFrame(
+        BondCenterIndex bondCenterIndex) const
     {
+
         //std::cout<<__FILE__<<":"<<__LINE__<<std::endl;
+
         // use getBondCenter() method to manage sanity checks
         const BondCenter& bondCenter = getBondCenter(bondCenterIndex);
 
+        // Get BC direction
         UnitVec3 direction = getBondCenterDirectionInAtomFrame(bondCenterIndex);
 
         // Another bondCenter is used to define the bond center y-axis for dihedral angles
         // Reference direction for dihedral computation
         const BondCenterIndex yAxisIndex = BondCenterIndex(bondCenter.getDefaultDihedralReferenceCenter());
         UnitVec3 ydir(0, 1, 0); // default to actual y-axis for one-bond-center-atom case
+
         // Some atoms have only one bond center, for others...
         if ((yAxisIndex != bondCenterIndex) && (yAxisIndex < (int)bondCenters.size())) {
             ydir = getBondCenterDirectionInAtomFrame(yAxisIndex);

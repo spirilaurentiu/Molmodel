@@ -78,7 +78,8 @@ public:
      * to match as closely as possible the second (target) set.
      * Using a weighted least-squares criterion.
      *
-     * \return Transform that, when applied to source vectors, minimizes weighted least-squares residual with respect to the target vectors.
+     * \return Transform that, when applied to source vectors, minimizes weighted
+     * least-squares residual with respect to the target vectors.
      */
     static TransformAndResidual superpose(const VectorSet& vectors) 
     {

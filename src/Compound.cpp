@@ -324,6 +324,9 @@ CompoundRep& CompoundRep::setBaseAtom(
     // assert(! hasParentCompound() );
     // assert(! compound.getImpl().hasParentCompound() );
 
+    std::cout << "SP_NEW CompoundRep::setBaseAtom " << std::endl;
+    std::cout << location ;
+
     Compound::AtomName atomName = compound.getAtomName(Compound::AtomIndex(0));
     setBaseCompound(atomName, compound, location);
     inheritAtomNames(atomName);
@@ -1429,40 +1432,63 @@ Transform CompoundRep::calcDefaultBondCenterFrameInAtomFrame(const BondCenterInf
 
 
 /*!
- * <!-- Cache method used in O(n) all atom Frame computation --> 
+ * <!-- Cache method used in O(n) all atom Frame computation                --> 
 */
-const Transform CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(
-    const BondCenterInfo& info,
+const Transform
+CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(
+    const BondCenterInfo& BCinfo,
     std::vector<Transform>& atomFrameCache) const
 {
+    // Convenient vars
     Transform X_compound_center;
-    const BondCenter& bondCenter = getBondCenter(info);
+    const BondCenter& bondCenter = getBondCenter(BCinfo);
 
+    // Inboard bond case ------------------------------------------------------
     if (bondCenter.isInboard()) {
-        //std::cout << "calcDefaultBondCenterFrameInCompoundFrame cache: BCIx " << info.getBondIndex() << " inboard" << std::endl;
-        //cout<<__FILE__<<":"<<__LINE__<<endl;
         assert(bondCenter.isBonded());
-        const BondInfo& bondInfo = getBondInfo(info.getBondIndex());
+
+        // Get bond
+        const BondInfo& bondInfo = getBondInfo(BCinfo.getBondIndex());
         const Bond& bond = getBond(bondInfo);
-        Transform X_parentBC_childBC = bond.getDefaultBondCenterFrameInOtherBondCenterFrame();
-        assert(info.getIndex() == bondInfo.getChildBondCenterIndex());
-        const BondCenterInfo& parentBondCenterInfo = getBondCenterInfo(bondInfo.getParentBondCenterIndex());
-        Transform X_compound_parentBC = calcDefaultBondCenterFrameInCompoundFrame(parentBondCenterInfo, atomFrameCache);
-        //cout<<__FILE__<<":"<<__LINE__<<endl;
+
+        // Get X_parentBC_childBC (ACTUALLY CALCULATED)
+        Transform X_parentBC_childBC =
+            bond.getDefaultBondCenterFrameInOtherBondCenterFrame();
+        assert(BCinfo.getIndex() == bondInfo.getChildBondCenterIndex());
+
+        // RECURSIVITY: Calc T_X_BCpar
+        const BondCenterInfo& parentBondCenterInfo =
+            getBondCenterInfo(bondInfo.getParentBondCenterIndex());
+        Transform X_compound_parentBC =
+            calcDefaultBondCenterFrameInCompoundFrame(
+                parentBondCenterInfo,
+                atomFrameCache
+            );
+
+        // Calc T_X_BCchild 
         X_compound_center = X_compound_parentBC * X_parentBC_childBC;
-    } 
-    else {
-        //std::cout << "calcDefaultBondCenterFrameInCompoundFrame cache: BCIx " << info.getBondIndex() << " outboard" << std::endl;
-        //cout<<__FILE__<<":"<<__LINE__<<endl;
-        Transform X_compound_atom = calcDefaultAtomFrameInCompoundFrame(info.getAtomIndex(), atomFrameCache);
-        //cout<<__FILE__<<":"<<__LINE__<<endl;
-        Transform X_atom_center = getAtom(info.getAtomIndex()).calcDefaultBondCenterFrameInAtomFrame(info.getAtomBondCenterIndex());
+    
+    // Outboard case ----------------------------------------------------------
+    } else {
+
+        // Get T_X_atom
+        Transform X_compound_atom =
+            calcDefaultAtomFrameInCompoundFrame(
+                BCinfo.getAtomIndex(),
+                atomFrameCache);
+
+        // Get BC frame in atom frame (ACTUALLY CALCULATED)
+        const SimTK::CompoundAtom& atom = getAtom(BCinfo.getAtomIndex());
+        SimTK::CompoundAtom::BondCenterIndex BCIx = BCinfo.getAtomBondCenterIndex();
+        Transform X_atom_center = atom.calcDefaultBondCenterFrameInAtomFrame(BCIx);
+
+        // Multiply and get T_X_BC
         X_compound_center = X_compound_atom * X_atom_center;
     }
 
-    //cout<<__FILE__<<":"<<__LINE__<<endl;
-    //std::cout << "calcDefaultBondCenterFrameInCompoundFrame cache: return " << std::endl;
+    // Return
     return X_compound_center;
+
 }
 
 Transform CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(const BondCenterInfo& info) const 

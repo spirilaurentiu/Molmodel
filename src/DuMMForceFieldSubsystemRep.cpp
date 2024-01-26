@@ -249,8 +249,6 @@ int DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl(State& s) const
     
         mutableThis->internalListsRealized = true;
     
-        //std::cout << "DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl END" << std::endl;
-
         return 0;
     }else{
         int realizeInternalListsResult = realizeInternalLists(s);
