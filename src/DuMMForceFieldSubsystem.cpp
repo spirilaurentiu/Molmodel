@@ -1810,14 +1810,18 @@ void DuMMForceFieldSubsystem::setDuMMTemperature(float value)
     // std::cout<<"SETTING TEMPERATURE in DUMM "<<std::endl << getRep().temperature <<std::endl<< std::flush;
 }
 
-void DuMMForceFieldSubsystem::setOpenMMvelocities(float value)
+void DuMMForceFieldSubsystem::setOpenMMvelocities(SimTK::Real temperature, uint32_t seed)
 {
-    updRep().openMMPlugin.setVelocitiesToTemperature(value);
+    updRep().openMMPlugin.setVelocitiesToTemperature(temperature, seed);
 }
 
 void DuMMForceFieldSubsystem::OMM_setOpenMMPositions(const std::vector<SimTK::Vec3>& positions)
 {
     updRep().openMMPlugin.setOpenMMPositions(positions);
+}
+
+void DuMMForceFieldSubsystem::setOpenMMseed(uint32_t seed) {
+    updRep().openMMPlugin.setSeed(seed);
 }
 
 void DuMMForceFieldSubsystem::setOpenMMparticleMass(DuMM::NonbondAtomIndex nax, SimTK::Real mass) {

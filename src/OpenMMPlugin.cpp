@@ -63,6 +63,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
     if(dumm->wantOpenMMIntegration)
         temperature = dumm->temperature;
     auto openMMThermostat = std::make_unique<OpenMM::AndersenThermostat>(temperature, 1);
+    openMMThermostat->setRandomNumberSeed(seed);
 
     // Determine whether OpenMM supports all the features we've asked for.
 
@@ -319,7 +320,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
     Real stepsize = 0.001;
     if (dumm->wantOpenMMIntegration)
         stepsize = dumm->stepsize;
-    openMMIntegrator = std::make_unique<OpenMM::VerletIntegrator>(stepsize); // should release?
+    openMMIntegrator = std::make_unique<OpenMM::VerletIntegrator>(stepsize); // TODO should release?
 
     // Get the platform
     // By default, OpenMM builds a .so for each platform (CPU, OpenCL and CUDA)
@@ -480,13 +481,13 @@ void OpenMMPluginInterface::integrateTrajectory(int steps)
 
 
 
-void OpenMMPluginInterface::setVelocitiesToTemperature(double temperature) {
+void OpenMMPluginInterface::setVelocitiesToTemperature(SimTK::Real temperature, uint32_t seed) {
     // TODO why check
     if (openMMContext)
-        openMMContext->setVelocitiesToTemperature(temperature);
+        openMMContext->setVelocitiesToTemperature(temperature, seed);
 }
 
-void OpenMMPluginInterface::setParticleMass(int index, double mass) {
+void OpenMMPluginInterface::setParticleMass(int index, SimTK::Real mass) {
     openMMSystem->setParticleMass(index, mass);
 }
 
@@ -540,6 +541,10 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
     TRACE_OPENMM(("OpenMM_Energy\t" +
         std::to_string(openMMState.getPotentialEnergy()) + 
         "\n").c_str());
+}
+
+void OpenMMPluginInterface::setSeed(uint32_t seed) {
+    this->seed = seed;
 }
 
 // void OpenMMPluginInterface::setNonbondedCutoff (SimTK::Real cutoff) {

@@ -45,8 +45,9 @@ public:
     SimTK::Real calcPotentialEnergy() const;
     SimTK::Real calcKineticEnergy() const;
     void integrateTrajectory(int steps);
-    void setVelocitiesToTemperature(double temperature);
-    void setParticleMass(int index, double mass);
+    void setVelocitiesToTemperature(SimTK::Real temperature, uint32_t seed);
+    void setParticleMass(int index, SimTK::Real mass);
+    void setSeed(uint32_t seed);
 
     // void setNonbondedCutoff (SimTK::Real cutoff) ;            /// Set NonbondedCutoff for OpenMM
     // void setOpenMMPlatform (std::string platform) ;    /// Set Platform to use for OpenMM ('CPU', 'CUDA', 'OpenCL')
@@ -74,6 +75,8 @@ private:
     std::unique_ptr<OpenMM::Context> openMMContext;
 
     const SimTK::DuMMForceFieldSubsystemRep* dumm = nullptr;
+
+    uint32_t seed = 0;
 };
 
 #endif //SimTK_MOLMODEL_OPENMM_PLUGIN_H_
