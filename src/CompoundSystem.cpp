@@ -153,7 +153,7 @@ void buildUpRigidBody(Compound::AtomIndex atomId,
         || (bond.getMobility() == BondMobility::Cylinder)
         || (bond.getMobility() == BondMobility::Spherical)
         || (bond.getMobility() == BondMobility::BallF)
-        || (bond.getMobility() == BondMobility::BallM) )
+        || (bond.getMobility() == BondMobility::BallM))
         {
             // TORSION-only bonds to atoms with just one bond are included in rigid body
             // for inertian reasons
@@ -171,13 +171,21 @@ void buildUpRigidBody(Compound::AtomIndex atomId,
                 //buildUpRigidBody(*b, clusterIx, clusterAtoms, atomBondings, compoundRep); // OLDMOB
                 ; // NEWMOB
             }
+        
+        // definitely add to rigid body
+        }else if (bond.getMobility() == BondMobility::Rigid)
+        {
+            buildUpRigidBody(*atomBondingIt,
+                              clusterIx,
+                              clusterAtoms,
+                              atomBondings,
+                              compoundRep);
         }
 
-        else if (bond.getMobility() == BondMobility::Rigid) // definitely add to rigid body
-        {
-            buildUpRigidBody(*atomBondingIt, clusterIx, clusterAtoms, atomBondings, compoundRep);
+        // 
+        else {
+            assert(false); // unexpected mobility
         }
-        else assert(false); // unexpected mobility
     }
 
 }
@@ -362,7 +370,7 @@ void CompoundSystem::modelOneCompound(
     if (showDebugMessages){cout << "modelOneCompound" << endl;}
 
     // Turn off default decorations, since we'll make our own decorations.
-    updMatterSubsystem().setShowDefaultGeometry(false); 
+    updMatterSubsystem().setShowDefaultGeometry(false);
 
     // Get Compound
     Compound& compound = updCompound(compoundId);
@@ -558,7 +566,7 @@ void CompoundSystem::modelOneCompound(
             case BondMobility::FreeLine:
             case BondMobility::LineOrientationF:
             case BondMobility::LineOrientationM:
-            { // NEWMOB introduce parent-child here too
+            /* {
                             
                 // Get parent and child bond center infos                            
                 const BondCenterInfo& parentBondCenterInfo =
@@ -612,11 +620,12 @@ void CompoundSystem::modelOneCompound(
                     compoundRep.calcDefaultBondCenterFrameInCompoundFrame(
                         compoundRep.getBondCenterInfo(
                             childUnit.inboardBondCenterIndex),
-                            atomFrameCache
+                        atomFrameCache
                     );
 
                 childUnit.frameInTopCompoundFrame = T_X_Mr;
-            } break; // Gmol
+
+            } break; // Gmol */
             case BondMobility::Torsion:
             case BondMobility::Cylinder:
             case BondMobility::BallF:
@@ -662,7 +671,8 @@ void CompoundSystem::modelOneCompound(
                 // Get parent rigid unit
                 childUnit.parentId = parentClusterIndex;
                 if (parentClusterIndex.isValid()) {
-                    RigidUnit& parentUnit = rigidUnits.find(parentClusterIndex)->second;
+                    RigidUnit& parentUnit =
+                        rigidUnits.find(parentClusterIndex)->second;
                     parentUnit.hasChild = true;
                 }
 
@@ -676,7 +686,9 @@ void CompoundSystem::modelOneCompound(
                 // default dihedral rotation
                 Transform T_X_Mr = 
                     compoundRep.calcDefaultBondCenterFrameInCompoundFrame(
-                        compoundRep.getBondCenterInfo(childUnit.inboardBondCenterIndex), atomFrameCache
+                        compoundRep.getBondCenterInfo(
+                            childUnit.inboardBondCenterIndex),
+                        atomFrameCache
                     );
 
                 childUnit.frameInTopCompoundFrame = T_X_Mr;

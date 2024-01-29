@@ -2237,37 +2237,58 @@ void DuMMForceFieldSubsystem::bsetAllAtomStationOnBody(DuMM::AtomIndex atomIndex
     a.station_B_All = new_station_B;
 }
 
-// Atom placements in clusters used in realizeSubsytemTopology
-void DuMMForceFieldSubsystem::bsetAtomPlacementStation(DuMM::AtomIndex atomIndex, MobilizedBodyIndex inputMbx, Vec3 new_station){
+/*!
+ * <!-- Set the atom station in Atom placements of the inputMbx
+ * corresponding cluster.
+ * used in realizeSubsytemTopology
+ * -->
+*/
+void
+DuMMForceFieldSubsystem::bsetAtomPlacementStation(
+    DuMM::AtomIndex atomIndex,
+    MobilizedBodyIndex inputMbx,
+    Vec3 new_station)
+{
   DuMMForceFieldSubsystemRep& mm = updRep();
 
-  //Cluster& cluster = mm.clusters[DuMM::ClusterIndex(0)];
-  //(cluster.allAtomPlacements.begin())->setStation(Vec3(1, 2, 3));
-  //std::cout<<"cluster station after "<<(cluster.allAtomPlacements.begin())->station<<std::endl;
+    //Cluster& cluster = mm.clusters[DuMM::ClusterIndex(0)];
+    //(cluster.allAtomPlacements.begin())->setStation(Vec3(1, 2, 3));
+    //std::cout<<"cluster station after "<<(cluster.allAtomPlacements.begin())->station<<std::endl;
 
-  //AtomPlacement ap(DuMM::AtomIndex(0), Vec3(0));
-  //ap.station = Vec3(1);
-  for (DuMMBodyIndex bnum(0); bnum < mm.duMMSubsetOfBodies.size(); ++bnum) {
-    DuMMBody& b = mm.duMMSubsetOfBodies[bnum];
-    const MobodIndex mbx = b.getMobilizedBodyIndex();
-    if(mbx == inputMbx){ 
-      const Cluster& cluster = mm.getCluster(b.clusterIndex);
-      
-      for (AtomPlacementSet::iterator app = cluster.getAllContainedAtoms().begin();
-        app != cluster.getAllContainedAtoms().end();
-        ++app)
-      {
-        assert(app->isValid());
-        if(app->atomIndex == atomIndex){
-          //std::cout<<"bnum "<<bnum<<" b.cIx "<<b.clusterIndex<<" b.mbx "<<b.mobilizedBodyIndex<<" app.station "<<app->station;
-          app->setStation(new_station);
-          //std::cout<<" app.station "<<app->station<<std::endl; fflush(stdout);
-          break;
-        }
-      }
-      
-    }
-  }
+    //AtomPlacement ap(DuMM::AtomIndex(0), Vec3(0));
+    //ap.station = Vec3(1);
+
+    // Iterate DuMMBody - DuMMBodyIndex list and search 
+    for (DuMMBodyIndex dBIx(0); dBIx < mm.duMMSubsetOfBodies.size(); ++dBIx) {
+
+        // Get DuMMBody and Mbx
+        DuMMBody& dummBody = mm.duMMSubsetOfBodies[dBIx];
+        const MobodIndex mbx = dummBody.getMobilizedBodyIndex();
+
+        // Found the DuMMBody with required Mbx
+        if(mbx == inputMbx){ 
+
+            // Get the corresponding cluster
+            const Cluster& cluster = mm.getCluster(dummBody.clusterIndex);
+            
+            // Iterate AtomPlacementSet of this Cluster
+            for (AtomPlacementSet::iterator app = cluster.getAllContainedAtoms().begin();
+                app != cluster.getAllContainedAtoms().end();
+                ++app)
+            {
+                assert(app->isValid());
+
+                // Found the atom
+                if(app->atomIndex == atomIndex){
+
+                    // Set the station
+                    app->setStation(new_station);
+                    break;
+                }
+
+            } //every atom
+        } // found the mobod
+    } // every DummBody
   
 }
 
