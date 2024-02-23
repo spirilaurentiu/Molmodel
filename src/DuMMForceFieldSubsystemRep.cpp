@@ -1014,9 +1014,9 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
                 ++inclBody.endBondStarterAtoms;
             }
 
-            std::cout << "SP_NEW_LAB i dAIx inclDAIx nbDAIx " << i <<" "
-                << dummAtom.atomIndex <<" " << dummAtom.inclAtomIndex <<" "
-                << dummAtom.nonbondAtomIndex << std::endl;
+            // std::cout << "SP_NEW_LAB i dAIx inclDAIx nbDAIx " << i <<" "
+            //     << dummAtom.atomIndex <<" " << dummAtom.inclAtomIndex <<" "
+            //     << dummAtom.nonbondAtomIndex << std::endl;
 
         }
 

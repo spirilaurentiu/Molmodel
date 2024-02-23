@@ -361,7 +361,7 @@ void CompoundSystem::modelOneCompound(
     String mobilizedBodyType
 )
 {
-    bool showDebugMessages = true;
+    bool showDebugMessages = false;
 
     // ------------------------------------------------------------------------
     // (0) calc default Compound atom frames in Top

@@ -130,7 +130,7 @@ static std::map<BiotypeKey, BiotypeIndex> biotypeIxsByKey;
 
     BiotypeIndex biotypeIndex = nextUnusedBiotypeIndex;
 
-std::cout << "SP_NEW_LABbiotype: " << biotypeIndex << std::endl;
+// std::cout << "SP_NEW_LABbiotype: " << biotypeIndex << std::endl;
 
     ++nextUnusedBiotypeIndex;
     assert(biotypesByIndex.find(biotypeIndex) == biotypesByIndex.end());
