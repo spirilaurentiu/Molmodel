@@ -198,7 +198,7 @@ void buildUpRigidBody(Compound::AtomIndex atomId,
  * -->
 */
 CompoundSystem&
-CompoundSystem::calcMobodToMobodTransforms(
+CompoundSystem::calc_XPF_XBM(
     SimTK::Compound& compound,
     SimTK::Compound::AtomIndex originAtomIx,
     SimTK::Compound::AtomIndex parentAtomIx,
@@ -361,7 +361,7 @@ void CompoundSystem::modelOneCompound(
     String mobilizedBodyType
 )
 {
-    bool showDebugMessages = true;
+    bool showDebugMessages = false;
 
     // ------------------------------------------------------------------------
     // (0) calc default Compound atom frames in Top
@@ -936,7 +936,7 @@ void CompoundSystem::modelOneCompound(
             Transform Fr_X_M0 = unit.frameInParentFrame;
 
             std::vector<SimTK::Transform> PFBM(2);
-            calcMobodToMobodTransforms(compound,
+            calc_XPF_XBM(compound,
                 originAtomId, parentAtomId,
                 unitInboardBond.getMobility(),
                 Fr_X_M0, unitInboardBond.getDefaultDihedral(),

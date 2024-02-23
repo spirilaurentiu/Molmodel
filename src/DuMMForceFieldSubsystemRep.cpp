@@ -177,7 +177,7 @@ struct CrossBodyBondInfo {
 int DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl(State& s) const
 {
     //std::cout << "OS memory dumm.0\n" << exec("free") << std::endl;
-    std::cout << "LAB DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl BEGIN" << std::endl;
+    //std::cout << "LAB DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl BEGIN" << std::endl;
     if(includedAtomStations.size()){
 
         // At realization time, we need to verify that every atom has a valid atom

@@ -85,6 +85,7 @@ namespace BondMobility {
         Slider = 15 ///< Translation along bond
     };
     static Mobility Default = Torsion;
+
 }
 
 /**

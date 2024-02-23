@@ -91,7 +91,7 @@ public:
 
 /**  **/
 CompoundSystem&
-calcMobodToMobodTransforms(
+calc_XPF_XBM(
     SimTK::Compound& compound,
     SimTK::Compound::AtomIndex atom1, SimTK::Compound::AtomIndex atom2,
     BondMobility::Mobility bondMobility,
