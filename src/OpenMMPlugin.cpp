@@ -111,6 +111,8 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
         // bodies, we can't used the stripped-down cross-body bond lists here.
         // We will look at all the 1-2 bonds for each nonbond atom and keep 
         // those that connect to another nonbond atom.
+        //
+        // When it is called for the i'th time, it specifies the parameters for the i'th particle.
         std::vector< std::pair<int, int> > ommBonds;
         for (DuMM::NonbondAtomIndex nax(0); nax < dumm->getNumNonbondAtoms(); 
                                                                         ++nax) 
@@ -120,6 +122,10 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
             const Real             charge = atype.partialCharge;
             const Real             sigma  = 2*aclass.vdwRadius*DuMM::Radius2Sigma;
             const Real             wellDepth = aclass.vdwWellDepth;
+
+            //const DuMM::IncludedAtomIndex& iax = dummAtom.getIncludedAtomIndex();
+            //const DuMM::AtomIndex& dax = dummAtom.atomIndex;
+            //std::cout << "drl OMMPlug ommNonbondedForce->addParticle dax iax nax " << dax << " " << iax << " " << nax << std::endl;
 
             // Define particle; particle number will be the same as our
             // nonbond index number.
@@ -152,6 +158,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
     }
 
     // GBSA
+    // When it is called for the i'th time, it specifies the parameters for the i'th particle.
     if (dumm->gbsaGlobalScaleFactor != 0) {
         ommGBSAOBCForce->setSolventDielectric(dumm->gbsaSolventDielectric);
         ommGBSAOBCForce->setSoluteDielectric(dumm->gbsaSoluteDielectric);
@@ -525,11 +532,10 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
 
     // Ask for energy, forces, or both.
     openMMState = openMMContext->getState(
-        (wantForces?OpenMM::State::Forces:0) | 
-        (wantEnergy?OpenMM::State::Energy:0)
-        // | (wantEnergy?OpenMM::State::Forces_drl_bon:0)
-        // | (wantEnergy?OpenMM::State::Forces_drl_ang:0)
-        // | (wantEnergy?OpenMM::State::Forces_drl_tor:0)
+        (wantForces?OpenMM::State::Forces:0) | (wantEnergy?OpenMM::State::Energy:0)
+        | (wantEnergy?OpenMM::State::Forces_drl_bon:0)
+        | (wantEnergy?OpenMM::State::Forces_drl_ang:0)
+        | (wantEnergy?OpenMM::State::Forces_drl_tor:0)
     );
 
     if (wantForces) {
@@ -551,27 +557,27 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
         }
 
         //drl BEGIN
-        // const std::vector<OpenMM::Vec3>& drl_bon_Forces = openMMState.getForces_drl_bon();
-        // printf("drl OpenMMPluginInterface::calcOpenMMEnergyAndForces\n");
-        // for (int fIx = 0; fIx < dumm->getNumNonbondAtoms(); ++fIx){
-        //     const OpenMM::Vec3& ommForce = drl_bon_Forces[fIx];
-        //     const Vec3 simForce(ommForce[0], ommForce[1], ommForce[2]);
-        //     printf("drl OMMPlug bon %f %f %f\n", ommForce[0], ommForce[1], ommForce[2]);
-        // }
-        // const std::vector<OpenMM::Vec3>& drl_ang_Forces = openMMState.getForces_drl_ang();
-        // printf("drl OpenMMPluginInterface::calcOpenMMEnergyAndForces\n");
-        // for (int fIx = 0; fIx < dumm->getNumNonbondAtoms(); ++fIx){
-        //     const OpenMM::Vec3& ommForce = drl_ang_Forces[fIx];
-        //     const Vec3 simForce(ommForce[0], ommForce[1], ommForce[2]);
-        //     printf("drl OMMPlug ang %f %f %f\n", ommForce[0], ommForce[1], ommForce[2]);
-        // }
-        // const std::vector<OpenMM::Vec3>& drl_tor_Forces = openMMState.getForces_drl_tor();
-        // printf("drl OpenMMPluginInterface::calcOpenMMEnergyAndForces\n");
-        // for (int fIx = 0; fIx < dumm->getNumNonbondAtoms(); ++fIx){
-        //     const OpenMM::Vec3& ommForce = drl_tor_Forces[fIx];
-        //     const Vec3 simForce(ommForce[0], ommForce[1], ommForce[2]);
-        //     printf("drl OMMPlug tor %f %f %f\n", ommForce[0], ommForce[1], ommForce[2]);
-        // }
+        const std::vector<OpenMM::Vec3>& drl_bon_Forces = openMMState.getForces_drl_bon();
+        printf("drl OpenMMPluginInterface::calcOpenMMEnergyAndForces\n");
+        for (int fIx = 0; fIx < dumm->getNumNonbondAtoms(); ++fIx){
+            const OpenMM::Vec3& ommForce = drl_bon_Forces[fIx];
+            const Vec3 simForce(ommForce[0], ommForce[1], ommForce[2]);
+            printf("drl OMMPlug bon %f %f %f\n", ommForce[0], ommForce[1], ommForce[2]);
+        }
+        const std::vector<OpenMM::Vec3>& drl_ang_Forces = openMMState.getForces_drl_ang();
+        printf("drl OpenMMPluginInterface::calcOpenMMEnergyAndForces\n");
+        for (int fIx = 0; fIx < dumm->getNumNonbondAtoms(); ++fIx){
+            const OpenMM::Vec3& ommForce = drl_ang_Forces[fIx];
+            const Vec3 simForce(ommForce[0], ommForce[1], ommForce[2]);
+            printf("drl OMMPlug ang %f %f %f\n", ommForce[0], ommForce[1], ommForce[2]);
+        }
+        const std::vector<OpenMM::Vec3>& drl_tor_Forces = openMMState.getForces_drl_tor();
+        printf("drl OpenMMPluginInterface::calcOpenMMEnergyAndForces\n");
+        for (int fIx = 0; fIx < dumm->getNumNonbondAtoms(); ++fIx){
+            const OpenMM::Vec3& ommForce = drl_tor_Forces[fIx];
+            const Vec3 simForce(ommForce[0], ommForce[1], ommForce[2]);
+            printf("drl OMMPlug tor %f %f %f\n", ommForce[0], ommForce[1], ommForce[2]);
+        }
         //drl END
 
     }
