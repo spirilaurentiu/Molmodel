@@ -51,21 +51,51 @@ using namespace SimTK;
 //#define TRACE(STR)
 //#endif
 
+// Optimize for Robosample
+#include <sstream>
+#include <fstream>
+#include <sys/resource.h> // memory
 
-// std::string exec(const char* cmd) {
-    // std::array<char, 128> buffer;
-    // std::string result;
-    // std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
-    // if (!pipe) {
-	// printf ("No pipe with error: %s\n",strerror(errno));
-        // throw std::runtime_error("popen() failed!");
-    // }
-    // while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-        // result += buffer.data();
-    // }
-    // return result;
-// }
+std::string exec_molmodel(const char* cmd) {
+    std::array<char, 128> buffer;
+    std::string result;
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+    if (!pipe) {
+	printf ("No pipe with error: %s\n",strerror(errno));
+        throw std::runtime_error("popen() failed!");
+    }
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+    return result;
+}
 
+std::size_t getLinuxMemoryUsageFromProc_m() {
+    std::ifstream file("/proc/self/status");
+    std::string line;
+    std::size_t memoryUsage = 0;
+
+    while (std::getline(file, line)) {
+        if (line.find("VmRSS:") != std::string::npos) {
+            std::istringstream iss(line);
+            std::string ignore;
+            iss >> ignore >> memoryUsage;
+            break;
+        }
+    }
+
+    return memoryUsage; // Value in kB
+}
+
+long getResourceUsage_m() {
+    struct rusage usage;
+    getrusage(RUSAGE_SELF, &usage);
+    return usage.ru_maxrss;
+}
+
+#ifndef MEMDEBUG
+#define MEMDEBUG 0
+#endif
 
 // This is Coulomb's constant 1/(4*pi*e0) in units which convert
 // e^2/nm to kJ/mol.
@@ -176,7 +206,12 @@ struct CrossBodyBondInfo {
 
 int DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl(State& s) const
 {
-    //std::cout << "OS memory dumm.0\n" << exec("free") << std::endl;
+    if(MEMDEBUG){
+        std::cout << "DuMMRep::realizeSubsystemTopologyImpl memory 0.\n" << exec_molmodel("free") << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeSubsystemTopologyImpl memory 0.\n" << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeSubsystemTopologyImpl memory 0.\n" << getResourceUsage_m() << " kB" << std::endl << std::flush;
+    }
+
     //std::cout << "LAB DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl BEGIN" << std::endl;
     if(includedAtomStations.size()){
 
@@ -255,6 +290,12 @@ int DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl(State& s) const
         //std::cout << "DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl END" << std::endl;
         return realizeInternalListsResult;
     }
+    
+    if(MEMDEBUG){
+        std::cout << "DuMMRep::realizeSubsystemTopologyImpl memory .\n" << exec_molmodel("free") << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeSubsystemTopologyImpl memory .\n" << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeSubsystemTopologyImpl memory .\n" << getResourceUsage_m() << " kB" << std::endl << std::flush;
+    }
 }
 
 // All the force field and molecule parameters have been set, as well as
@@ -268,6 +309,12 @@ int DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl(State& s) const
 int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
 // EU END
 {
+
+    if(MEMDEBUG){
+        std::cout << "DuMMRep::realizeInternalLists memory 0.\n" << exec_molmodel("free") << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 0.\n" << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 0.\n" << getResourceUsage_m() << " kB" << std::endl << std::flush;
+    }
 
     // At realization time, we need to verify that every atom has a valid atom
     // class id. TODO: should apply only to included atoms.
@@ -283,6 +330,12 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         const_cast<DuMMForceFieldSubsystemRep*>(this);
 
     mutableThis->invalidateAllTopologicalCacheEntries();
+
+    if(MEMDEBUG){
+        //std::cout << "DuMMRep::realizeInternalLists memory 0.1.\n" << exec_molmodel("free") << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 0.1. " << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 0.1. " << getResourceUsage_m() << " kB" << std::endl << std::flush;
+    }
 
         // force field
 
@@ -304,6 +357,12 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
                                 iclass.vdwWellDepth, jclass.vdwWellDepth,
                                 iclass.vdwDij[j-i],  iclass.vdwEij[j-i]);
         }
+    }
+
+    if(MEMDEBUG){
+        //std::cout << "DuMMRep::realizeInternalLists memory 0.1.\n" << exec_molmodel("free") << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 0.2. " << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 0.2. " << getResourceUsage_m() << " kB" << std::endl << std::flush;
     }
 
         // molecule
@@ -385,6 +444,12 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
     }
     for (DuMM::AtomIndex ax(0); ax < atoms.size(); ++ax) {
         assert(getAtom(ax).isAttachedToBody()); // TODO catch unassigned atoms
+    }
+
+    if(MEMDEBUG){
+        //std::cout << "DuMMRep::realizeInternalLists memory 1.\n" << exec_molmodel("free") << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 1.\n" << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 1.\n" << getResourceUsage_m() << " kB" << std::endl << std::flush;
     }
 
     //------- Process bonds -------
@@ -672,7 +737,6 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
             x.xbonds3AtomsAll = bonds3Atoms;
         }
 
-
         // By default, or if this atom or its body are on the "must include"
         // list then we have to keep all the cross-body bonds we just
         // discovered. Otherwise, we only keep the ones for which some other
@@ -922,6 +986,12 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         }
     }
 
+    if(MEMDEBUG){
+        //std::cout << "DuMMRep::realizeInternalLists memory 5.\n" << exec_molmodel("free") << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 5. " << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 5. " << getResourceUsage_m() << " kB" << std::endl << std::flush;
+    }
+
     // We have processed all the atoms and marked them included if they
     // will appear in any nonbonded or bonded force calculation. The
     // nonbond atoms have been separately marked. We have also created a
@@ -1075,6 +1145,13 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
     }
 
 
+    if(MEMDEBUG){
+        //std::cout << "DuMMRep::realizeInternalLists memory 6.\n" << exec_molmodel("free") << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 6. " << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 6. " << getResourceUsage_m() << " kB" << std::endl << std::flush;
+    }
+
+
     // Now that included atom index assignments have been made, we can
     // allocate the includedAtoms array and fill each IncludedAtom with
     // bonded force arrays that use included atom indices rather than full
@@ -1213,6 +1290,13 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
     }
 
 
+    if(MEMDEBUG){
+        //std::cout << "DuMMRep::realizeInternalLists memory 7.\n" << exec_molmodel("free") << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 7. " << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 7. " << getResourceUsage_m() << " kB" << std::endl << std::flush;
+    }
+
+
 
 // GMolModel - Same for AllAtomIndex ....this can be optimised
 
@@ -1322,6 +1406,12 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         }
     }
 
+    if(MEMDEBUG){
+        //std::cout << "DuMMRep::realizeInternalLists memory 8.\n" << exec_molmodel("free") << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 8. " << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 8. " << getResourceUsage_m() << " kB" << std::endl << std::flush;
+    }
+
 
 
         /////////////////////////////
@@ -1337,6 +1427,11 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         mutableThis->gbsaAtomicNumbers.resize(getNumNonbondAtoms());
         mutableThis->gbsaNumberOfCovalentBondPartners.resize(getNumNonbondAtoms());
         mutableThis->atomicNumberOfHCovalentPartner.resize(getNumNonbondAtoms());
+
+    if(MEMDEBUG){
+        std::cout << "DuMMRep::realizeInternalLists memory 8.1. " << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 8.1. " << getResourceUsage_m() << " kB" << std::endl << std::flush;
+    }
 
         for (DuMM::NonbondAtomIndex nbx(0); nbx < getNumNonbondAtoms(); ++nbx) {
             const DuMMAtom& atom = getAtom(getAtomIndexOfNonbondAtom(nbx));
@@ -1378,6 +1473,11 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
                                    &mutableThis->gbsaRadii.front());
         SimTK_ASSERT_ALWAYS(returnValue == 0, "Couldn't get GBSA input radii.");
 
+    if(MEMDEBUG){
+        std::cout << "DuMMRep::realizeInternalLists memory 8.2. " << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 8.2. " << getResourceUsage_m() << " kB" << std::endl << std::flush;
+    }
+
         // Don't delete this object here.
         ObcParameters* obcParameters =
             new ObcParameters(getNumNonbondAtoms(), ObcParameters::ObcTypeII);
@@ -1395,6 +1495,12 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         gbsaAtomicForces.resize  (3 * getNumNonbondAtoms(), NaN);
         mutableThis->gbsaCoordinatePointers.resize (getNumNonbondAtoms()); // [&x0,&x1,&x2...]
         mutableThis->gbsaAtomicForcePointers.resize(getNumNonbondAtoms()); // [&x0,&x1,&x2...]
+
+    if(MEMDEBUG){
+        std::cout << "DuMMRep::realizeInternalLists memory 8.3. " << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 8.3. " << getResourceUsage_m() << " kB" << std::endl << std::flush;
+    }
+
         // Load the pointers -- after this they don't change.
         for (DuMM::NonbondAtomIndex a(0); a < getNumNonbondAtoms(); ++a) {
             mutableThis->gbsaCoordinatePointers[a]  = &gbsaRawCoordinates[3*a];
@@ -1425,6 +1531,11 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
             std::cout << "NOTE: DuMM: using OpenMM platform '" << openMMPlatformInUse << "'\n";
 
         mutableThis->usingOpenMM = true;
+    }
+
+    if(MEMDEBUG){
+        std::cout << "DuMMRep::realizeInternalLists memory 8.4. " << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 8.4. " << getResourceUsage_m() << " kB" << std::endl << std::flush;
     }
 
     if (!usingOpenMM) {
@@ -1463,6 +1574,13 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
             }
         }
     }
+
+    if(MEMDEBUG){
+        //std::cout << "DuMMRep::realizeInternalLists memory 9.\n" << exec_molmodel("free") << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 9. " << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 9. " << getResourceUsage_m() << " kB" << std::endl << std::flush;
+    }
+
 
     // If we're not using openMM, but we are using multithreaded computation, create
     // Parallel2DExecutors for parallelizing expensive force calculations.
@@ -1549,6 +1667,12 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
        (s, Stage::Position, Stage::Dynamics, new Value<Real>());
 
     mutableThis->internalListsRealized = true;
+
+    if(MEMDEBUG){
+        std::cout << "DuMMRep::realizeInternalLists memory .\n" << exec_molmodel("free") << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory .\n" << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory .\n" << getResourceUsage_m() << " kB" << std::endl << std::flush;
+    }
 
     return 0;
 }
