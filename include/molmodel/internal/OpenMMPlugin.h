@@ -57,6 +57,30 @@ public:
     // std::string getOpenMMPlatform () const;            /// Get Platform to use for OpenMM ('CPU', 'CUDA', 'OpenCL')
     // std::string getGPUindex () const;                  /// Get GPU index. Values: "0"/"1"/"0,1"
 
+        //drl BEGIN
+
+        const std::vector<std::vector<double>>& getEnergies_drl_bon(){return openMMState.getEnergies_drl_bon();}
+
+        const std::vector<std::vector<double>>& getEnergies_drl_ang(){return openMMState.getEnergies_drl_ang();}
+     
+        const std::vector<std::vector<double>>& getEnergies_drl_tor(){return openMMState.getEnergies_drl_tor();}
+
+        const std::vector<std::vector<double>>& getEnergies_drl_n14(){return openMMState.getEnergies_drl_n14();}
+           
+        const std::vector<std::vector<double>>& getEnergies_drl_vdw(){return openMMState.getEnergies_drl_vdw();}
+            
+        const std::vector<std::vector<double>>& getEnergies_drl_cou(){return openMMState.getEnergies_drl_cou();}           
+
+        const std::vector<OpenMM::Vec3>& getForces_drl_bon(){return openMMState.getForces_drl_bon();}
+
+        const std::vector<OpenMM::Vec3>& getForces_drl_ang(){return openMMState.getForces_drl_ang();}
+
+        const std::vector<OpenMM::Vec3>& getForces_drl_tor(){return openMMState.getForces_drl_tor();}
+
+        const std::vector<OpenMM::Vec3>& getForces_drl_n14(){return openMMState.getForces_drl_n14();}
+     
+        //drl END    
+
 private:
     void setOpenMMPositions(const SimTK::Vector_<SimTK::Vec3>& includedAtomPos_G) const;
 
