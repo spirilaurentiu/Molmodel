@@ -3027,15 +3027,26 @@ CalcFullPotEnergyIncludingRigidBodies ( const State& state ) const {
 
     //drl BEGIN
 
-    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_bon(){return updRep().openMMPlugin.getEnergies_drl_bon();}
-    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_ang(){return updRep().openMMPlugin.getEnergies_drl_ang();}    
-    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_tor(){return updRep().openMMPlugin.getEnergies_drl_tor();}
-    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_n14(){return updRep().openMMPlugin.getEnergies_drl_n14();}
-    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_vdw(){return updRep().openMMPlugin.getEnergies_drl_vdw();}
-    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_cou(){return updRep().openMMPlugin.getEnergies_drl_cou();}           
-    // const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_bon(){return updRep().openMMPlugin.getForces_drl_bon();}
-    // const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_ang(){return updRep().openMMPlugin.getForces_drl_ang();}
-    // const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_tor(){return updRep().openMMPlugin.getForces_drl_tor();}
-    // const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_n14(){return updRep().openMMPlugin.getForces_drl_n14();}
+    const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_bon(){return updRep().openMMPlugin.getEnergies_drl_bon();}
+    const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_ang(){return updRep().openMMPlugin.getEnergies_drl_ang();}    
+    const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_tor(){return updRep().openMMPlugin.getEnergies_drl_tor();}
+    const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_n14(){return updRep().openMMPlugin.getEnergies_drl_n14();}
+    const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_vdw(){return updRep().openMMPlugin.getEnergies_drl_vdw();}
+    const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_cou(){return updRep().openMMPlugin.getEnergies_drl_cou();}           
+    const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_bon(){return updRep().openMMPlugin.getForces_drl_bon();}
+    const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_ang(){return updRep().openMMPlugin.getForces_drl_ang();}
+    const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_tor(){return updRep().openMMPlugin.getForces_drl_tor();}
+    const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_n14(){return updRep().openMMPlugin.getForces_drl_n14();}
+
+    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_bon(){}
+    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_ang(){}     
+    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_tor(){}
+    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_n14(){}
+    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_vdw(){}
+    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_cou(){}           
+    // const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_bon(){}
+    // const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_ang(){}
+    // const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_tor(){}
+    // const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_n14(){}    
     
     //drl END
