@@ -40,6 +40,25 @@
         #include "OpenCLPlatform.h"
 #endif
 
+// Minimum number of bits needed to represent a number in binary
+int requiredBits(int number) {
+    if (number == 0) {
+        return 1;
+    }
+    return std::floor(std::log2(number)) + 1;
+}
+
+// Integer to binary string
+std::string toBinary(int number) {
+    int numBits = requiredBits(number);
+    std::string binary = "";
+    for (int i = numBits - 1; i >= 0; --i) {
+        int bit = (number >> i) & 1; 
+        binary += std::to_string(bit);
+    }
+    return binary;
+}
+
 
 std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform, const SimTK::DuMMForceFieldSubsystemRep* inDumm)
 {
@@ -530,15 +549,30 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
     
     setOpenMMPositions(includedAtomPos_G);
 
+    int openMMStateDataTypes_Drill = 0;
+
+    #ifdef __DRILLING__
+        int openMMStateDataTypes = openMMState.getDataTypes();
+        std::string openMMStateDataTypes_Str = toBinary(openMMStateDataTypes);
+        std::cout << "[OPENMM_DATA_TYPES]: in binary" <<" " << openMMStateDataTypes <<" " << openMMStateDataTypes_Str << std::endl;
+        // openMMStateDataTypes_Drill = ((wantEnergy?OpenMM::State::Forces_drl_bon:0)
+        //                             | (wantEnergy?OpenMM::State::Forces_drl_ang:0)
+        //                             | (wantEnergy?OpenMM::State::Forces_drl_tor:0)
+        //                             | (wantEnergy?OpenMM::State::Forces_drl_n14:0)
+        //                             | (wantEnergy?OpenMM::State::Forces_drl_vdw:0)
+        //                             | (wantEnergy?OpenMM::State::Forces_drl_cou:0));
+    #endif
+
     // Ask for energy, forces, or both.
     openMMState = openMMContext->getState(
         (wantForces?OpenMM::State::Forces:0) | (wantEnergy?OpenMM::State::Energy:0)
-        | (wantEnergy?OpenMM::State::Forces_drl_bon:0)
-        | (wantEnergy?OpenMM::State::Forces_drl_ang:0)
-        | (wantEnergy?OpenMM::State::Forces_drl_tor:0)
-        | (wantEnergy?OpenMM::State::Forces_drl_n14:0)
-        | (wantEnergy?OpenMM::State::Forces_drl_vdw:0)
-        | (wantEnergy?OpenMM::State::Forces_drl_cou:0)
+        // | (wantEnergy?OpenMM::State::Forces_drl_bon:0)
+        // | (wantEnergy?OpenMM::State::Forces_drl_ang:0)
+        // | (wantEnergy?OpenMM::State::Forces_drl_tor:0)
+        // | (wantEnergy?OpenMM::State::Forces_drl_n14:0)
+        // | (wantEnergy?OpenMM::State::Forces_drl_vdw:0)
+        // | (wantEnergy?OpenMM::State::Forces_drl_cou:0)
+        | openMMStateDataTypes_Drill
     );
 
     if (wantForces) {
