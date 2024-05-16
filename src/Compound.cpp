@@ -1491,6 +1491,9 @@ CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(
 
 }
 
+/*!
+ * <!-- Recursive method to get BC frame in Compound frame --> 
+*/
 Transform CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(const BondCenterInfo& info) const 
 {
     Transform X_compound_center;
@@ -1535,17 +1538,18 @@ const Transform& CompoundRep::calcDefaultAtomFrameInCompoundFrame(
     if (! isNaN(candidate.p()[0])) 
         return candidate;
 
+    // Get atom
     const AtomInfo& atomInfo = getAtomInfo(atomId);
     const CompoundAtom& atom = atomInfo.getAtom();
 
-    Transform parent_X_atom; // atom frame in this compound's frame
-    if (atomInfo.isBaseAtom()) {
-        //std::cout << "calcDefaultAtomFrameInCompoundFrame cache: aIx " << atomId << " base" << std::endl;
+    // Get atom frame in this compound's frame
+    Transform parent_X_atom;
+
+    if (atomInfo.isBaseAtom()) { // Get base atom directy
         parent_X_atom = atom.getDefaultFrameInCompoundFrame();
     }
-    else {
-        //std::cout << "calcDefaultAtomFrameInCompoundFrame cache: aIx : " << atomId << std::endl;
-        // Delegate frame to inboard bond center
+
+    else { // Use recursive method to get inboard BC frame in Compound frame
         Transform inboard_X_atom = atom.calcDefaultFrameInInboardCenterFrame();
         const BondCenterInfo& center = getBondCenterInfo(atomId, atom.getInboardBondCenterIndex());
         Transform parent_X_inboard = calcDefaultBondCenterFrameInCompoundFrame(center, atomFrameCache);
@@ -1553,35 +1557,33 @@ const Transform& CompoundRep::calcDefaultAtomFrameInCompoundFrame(
     }
 
     candidate = parent_X_atom;
-    //std::cout << "calcDefaultAtomFrameInCompoundFrame cache: return "<< std::endl;
     return candidate;
 }
 
+/*!
+ * <!-- Delegate to recursive method to get inboard BC frame in Compound frame -->
+*/
 Transform CompoundRep::calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex atomId) const {
+    
+    // Get atom
     const AtomInfo& atomInfo = getAtomInfo(atomId);
     const CompoundAtom& atom = atomInfo.getAtom();
 
-    Transform parent_X_atom; // atom frame in this compound's frame
-    //cout<<__FILE__<<":"<<__LINE__<<endl;
-    if (atomInfo.isBaseAtom()) {
-        //std::cout << "calcDefaultAtomFrameInCompoundFrame: aIx " << atomId << " base" << std::endl;
-        //cout<<__FILE__<<":"<<__LINE__<<endl;
+    // Get atom frame in this compound's frame
+    Transform parent_X_atom; 
+
+    if (atomInfo.isBaseAtom()) { // Get base atom directy
         parent_X_atom = atom.getDefaultFrameInCompoundFrame();
     }
-    else {
-        //std::cout << "calcDefaultAtomFrameInCompoundFrame: aIx : " << atomId << std::endl;
-        // Delegate frame to inboard bond center
-        //cout<<__FILE__<<":"<<__LINE__<<endl;
+
+    else { // Use recursive method to get inboard BC frame in Compound frame
+        
         Transform inboard_X_atom = atom.calcDefaultFrameInInboardCenterFrame();
-        //cout<<__FILE__<<":"<<__LINE__<<endl;
         const BondCenterInfo& center = getBondCenterInfo(atomId, atom.getInboardBondCenterIndex());
-        //cout<<__FILE__<<":"<<__LINE__<<endl;
         Transform parent_X_inboard = calcDefaultBondCenterFrameInCompoundFrame(center);
         parent_X_atom = parent_X_inboard * inboard_X_atom;
     }
 
-    //cout<<__FILE__<<":"<<__LINE__<<endl;
-    //std::cout << "calcDefaultAtomFrameInCompoundFrame: return "<< std::endl;
     return parent_X_atom;
 }
 
