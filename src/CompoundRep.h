@@ -778,6 +778,9 @@ public:
         return atom.getDefaultFrameInCompoundFrame();
     }
 
+    /*!
+    <!-- Set atom frame in mobod frame -->
+    */
     CompoundRep& bsetFrameInMobilizedBodyFrame(Compound::AtomIndex atomIx, Transform B_X_atom)
     {
         CompoundAtom& atom = updAtom(atomIx);

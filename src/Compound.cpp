@@ -1430,9 +1430,31 @@ Transform CompoundRep::calcDefaultBondCenterFrameInAtomFrame(const BondCenterInf
     return getAtom(info.getAtomIndex()).calcDefaultBondCenterFrameInAtomFrame(info.getAtomBondCenterIndex());
 }
 
+/*!
+ * <!-- Print Transform -->
+ */
+void PrintTransform(SimTK::Transform T, int decimal_places,
+	std::string header)
+{
+    std::cout << header << std::endl;	
+    const SimTK::Mat44 M = T.toMat44();
+
+    for(int i = 0; i < 4; i++){
+        for(int k = 0; k < 4; k++){
+            std::cout
+				<< std::setw(6 + decimal_places) << std::fixed
+				<< std::setprecision(decimal_places)			
+				<< M(i, k) << " ";
+        }
+        std::cout << std::endl;
+    }
+
+}
+
 
 /*!
- * <!-- Cache method used in O(n) all atom Frame computation                --> 
+ * <!-- Cache method used in O(n) all atom Frame computation.
+ * Otherwise recursive. --> 
 */
 const Transform
 CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(
@@ -1445,9 +1467,9 @@ CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(
 
     // Inboard bond case ------------------------------------------------------
     if (bondCenter.isInboard()) {
-        assert(bondCenter.isBonded());
 
         // Get bond
+        assert(bondCenter.isBonded());
         const BondInfo& bondInfo = getBondInfo(BCinfo.getBondIndex());
         const Bond& bond = getBond(bondInfo);
 
@@ -1462,7 +1484,7 @@ CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(
         Transform X_compound_parentBC =
             calcDefaultBondCenterFrameInCompoundFrame(
                 parentBondCenterInfo,
-                atomFrameCache
+                atomFrameCache // use cache
             );
 
         // Calc T_X_BCchild 
@@ -1494,35 +1516,62 @@ CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(
 /*!
  * <!-- Recursive method to get BC frame in Compound frame --> 
 */
-Transform CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(const BondCenterInfo& info) const 
+Transform CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(
+    const BondCenterInfo& BCinfo) const 
 {
+    // Convenient vars
     Transform X_compound_center;
-    const BondCenter& bondCenter = getBondCenter(info);
+    const BondCenter& bondCenter = getBondCenter(BCinfo);
 
+    // Inboard bond case ------------------------------------------------------
     if (bondCenter.isInboard()) {
-        //std::cout << "calcDefaultBondCenterFrameInCompoundFrame: BCIx " << info.getBondIndex() << " inboard" << std::endl;
-        //cout<<__FILE__<<":"<<__LINE__<<endl;
+
+        // Get bond
         assert(bondCenter.isBonded());
-        const BondInfo& bondInfo = getBondInfo(info.getBondIndex());
+        const BondInfo& bondInfo = getBondInfo(BCinfo.getBondIndex());
         const Bond& bond = getBond(bondInfo);
-        //cout<<__FILE__<<":"<<__LINE__<<endl;
-        Transform X_parentBC_childBC = bond.getDefaultBondCenterFrameInOtherBondCenterFrame();
-        assert(info.getIndex() == bondInfo.getChildBondCenterIndex());
-        const BondCenterInfo& parentBondCenterInfo = getBondCenterInfo(bondInfo.getParentBondCenterIndex());
-        //cout<<__FILE__<<":"<<__LINE__<<endl;
-        Transform X_compound_parentBC = calcDefaultBondCenterFrameInCompoundFrame(parentBondCenterInfo);
+
+        // Get X_parentBC_childBC (ACTUALLY CALCULATED)
+        Transform X_parentBC_childBC =
+            bond.getDefaultBondCenterFrameInOtherBondCenterFrame();
+        assert(BCinfo.getIndex() == bondInfo.getChildBondCenterIndex());
+
+    
+        PrintTransform(X_parentBC_childBC, 3, "X_parentBC_childBC cAIX: " + std::to_string(int(BCinfo.getAtomIndex())) + " BC: " + std::to_string(int(BCinfo.getIndex()))); // DEBUG RECURSIVE FRAME CALC 
+
+
+        // RECURSIVITY: Calc T_X_BCpar
+        const BondCenterInfo& parentBondCenterInfo =
+            getBondCenterInfo(bondInfo.getParentBondCenterIndex());
+        Transform X_compound_parentBC =
+            calcDefaultBondCenterFrameInCompoundFrame(parentBondCenterInfo);
+
+        // Calc T_X_BCchild 
         X_compound_center = X_compound_parentBC * X_parentBC_childBC;
-    } 
-    else {
-        //std::cout << "calcDefaultBondCenterFrameInCompoundFrame: BCIx " << info.getBondIndex() << " outboard" << std::endl;
-        //cout<<__FILE__<<":"<<__LINE__<<endl;
-        Transform X_compound_atom = calcDefaultAtomFrameInCompoundFrame(info.getAtomIndex());
-        //cout<<__FILE__<<":"<<__LINE__<<endl;
-        Transform X_atom_center = getAtom(info.getAtomIndex()).calcDefaultBondCenterFrameInAtomFrame(info.getAtomBondCenterIndex());
+    
+
+    // Outboard case ----------------------------------------------------------
+    } else {
+
+        // Get T_X_atom
+        Transform X_compound_atom =
+            calcDefaultAtomFrameInCompoundFrame(BCinfo.getAtomIndex());
+
+        // Get BC frame in atom frame (ACTUALLY CALCULATED)
+        const SimTK::CompoundAtom& atom = getAtom(BCinfo.getAtomIndex());
+        SimTK::CompoundAtom::BondCenterIndex BCIx = BCinfo.getAtomBondCenterIndex();
+        Transform X_atom_center = atom.calcDefaultBondCenterFrameInAtomFrame(BCIx);
+
+    
+        PrintTransform(X_atom_center, 3, "X_atom_center cAIX: " + std::to_string(int(BCinfo.getAtomIndex())) + " atomBC: " + std::to_string(int(BCIx))); // DEBUG RECURSIVE FRAME CALC 
+
+
+
+        // Multiply and get T_X_BC
         X_compound_center = X_compound_atom * X_atom_center;
     }
 
-    //std::cout << "calcDefaultBondCenterFrameInCompoundFrame: return" << std::endl;
+    // Return
     return X_compound_center;
 }
 
@@ -1570,21 +1619,21 @@ Transform CompoundRep::calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex a
     const CompoundAtom& atom = atomInfo.getAtom();
 
     // Get atom frame in this compound's frame
-    Transform parent_X_atom; 
+    Transform compound_X_atom; 
 
     if (atomInfo.isBaseAtom()) { // Get base atom directy
-        parent_X_atom = atom.getDefaultFrameInCompoundFrame();
+        compound_X_atom = atom.getDefaultFrameInCompoundFrame();
     }
 
     else { // Use recursive method to get inboard BC frame in Compound frame
         
-        Transform inboard_X_atom = atom.calcDefaultFrameInInboardCenterFrame();
-        const BondCenterInfo& center = getBondCenterInfo(atomId, atom.getInboardBondCenterIndex());
-        Transform parent_X_inboard = calcDefaultBondCenterFrameInCompoundFrame(center);
-        parent_X_atom = parent_X_inboard * inboard_X_atom;
+        Transform inboardBC_X_atom = atom.calcDefaultFrameInInboardCenterFrame();
+        const BondCenterInfo& BCinfo = getBondCenterInfo(atomId, atom.getInboardBondCenterIndex());
+        Transform compound_X_inboardBC = calcDefaultBondCenterFrameInCompoundFrame(BCinfo);
+        compound_X_atom = compound_X_inboardBC * inboardBC_X_atom;
     }
 
-    return parent_X_atom;
+    return compound_X_atom;
 }
 
 /*!

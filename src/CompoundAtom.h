@@ -1111,6 +1111,31 @@ public:
         else return getBondCenter(BondCenterIndex(1)).getDefaultBond1Angle();
     }
 
+
+/*!
+ * <!-- Print Transform -->
+ */
+void PrintTransform(SimTK::Transform T, int decimal_places,
+	std::string header) const
+{
+    std::cout << header << std::endl;	
+    const SimTK::Mat44 M = T.toMat44();
+
+    for(int i = 0; i < 4; i++){
+        for(int k = 0; k < 4; k++){
+            std::cout
+				<< std::setw(6 + decimal_places) << std::fixed
+				<< std::setprecision(decimal_places)			
+				<< M(i, k) << " ";
+        }
+        std::cout << std::endl;
+    }
+
+}
+
+    /*!
+    * <!--  -->
+    */
     UnitVec3 getBondCenterDirectionInAtomFrame(BondCenterIndex index) const 
     {
         const BondCenter& bondCenter = getBondCenter(index);
@@ -1119,10 +1144,10 @@ public:
             //NEWMOB BEGIN
             Angle theta1 = bondCenter.getDefaultBond1Angle();
             Angle theta2 = bondCenter.getDefaultBond2Angle();
-/*
+
             std::cout << "CompoundAtom: getBondCenterDirectionInAtomFrame: BC0: "
-                << bondCenter.getDirection() << std::endl;
-*/
+                << bondCenter.getDirection()[0] <<" " << bondCenter.getDirection()[1] <<" " << bondCenter.getDirection()[2] <<" " << std::endl;
+
             // NEWMOB END
 
             //return UnitVec3(1, 0, 0); // OLDMOB
@@ -1132,10 +1157,10 @@ public:
             // NEWMOB BEGIN
             Angle theta1 = bondCenter.getDefaultBond1Angle();
             Angle theta2 = bondCenter.getDefaultBond2Angle();
-/*
+
             std::cout << "CompoundAtom: getBondCenterDirectionInAtomFrame: BC1: "
-                    << bondCenter.getDirection() << std::endl;
-*/
+                << bondCenter.getDirection()[0] <<" " << bondCenter.getDirection()[1] <<" " << bondCenter.getDirection()[2] <<" " << std::endl;
+
             // NEWMOB END
 
             //std::cout<<__FILE__<<":"<<__LINE__<<std::endl;
@@ -1156,16 +1181,15 @@ public:
             Angle theta2 = bondCenter.getDefaultBond2Angle();
             BondCenter::Chirality chirality = bondCenter.getChirality();
             //NEWMOB BEGIN
-/*
+
             std::cout << "CompoundAtom: getBondCenterDirectionInAtomFrame BC>1: "
-                      << bondCenter.getDirection() << std::endl;
-*/
+                << bondCenter.getDirection()[0] <<" " << bondCenter.getDirection()[1] <<" " << bondCenter.getDirection()[2] <<" " << std::endl;
+
             // NEWMOB END
             //return BondCenter::getBondDirection(a1, theta1, a2, theta2, chirality); // OLDMOB
             return bondCenter.getDirection(); // NEWMOB
         }
     }
-
 
     /*!
     * <!-- Calculate bondCenterIndex BC frame in atom frame --> 
@@ -1194,6 +1218,12 @@ public:
 
         // This creates a Rotation whose X axis is in "direction", and whose Y axis
         // is (at least roughly) in direction ydir.
+
+
+        std::cout << "direction: " << direction[0] <<" " << direction[1] <<" " << direction[2] <<std::endl;
+        std::cout << "yAxisIndex: " << yAxisIndex  <<std::endl;
+        std::cout << "ydir: " << ydir[0] <<" " << ydir[1] <<" " << ydir[2] <<std::endl;
+        //PrintTransform(Transform(Rotation(direction, XAxis, ydir, YAxis)), 3, "BC_in_atom");
 
         return Transform(Rotation(direction, XAxis, ydir, YAxis));
         //return Transform(Rotation(direction, XAxis, ydir, ZAxis)); // NEWMOB
