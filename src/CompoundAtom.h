@@ -1116,12 +1116,13 @@ public:
  * <!-- Print Transform -->
  */
 void PrintTransform(SimTK::Transform T, int decimal_places,
-	std::string header) const
+	std::string header, std::string rowPrefix = "")
 {
-    std::cout << header << std::endl;	
+    std::cout << header << std::endl;
     const SimTK::Mat44 M = T.toMat44();
 
     for(int i = 0; i < 4; i++){
+		std::cout << rowPrefix;
         for(int k = 0; k < 4; k++){
             std::cout
 				<< std::setw(6 + decimal_places) << std::fixed
@@ -1145,7 +1146,7 @@ void PrintTransform(SimTK::Transform T, int decimal_places,
             Angle theta1 = bondCenter.getDefaultBond1Angle();
             Angle theta2 = bondCenter.getDefaultBond2Angle();
 
-            std::cout << "CompoundAtom: getBondCenterDirectionInAtomFrame: BC0: "
+            std::cout << "CompoundAtom: " << " getBondCenterDirectionInAtomFrame: BC0: "
                 << bondCenter.getDirection()[0] <<" " << bondCenter.getDirection()[1] <<" " << bondCenter.getDirection()[2] <<" " << std::endl;
 
             // NEWMOB END
@@ -1158,7 +1159,7 @@ void PrintTransform(SimTK::Transform T, int decimal_places,
             Angle theta1 = bondCenter.getDefaultBond1Angle();
             Angle theta2 = bondCenter.getDefaultBond2Angle();
 
-            std::cout << "CompoundAtom: getBondCenterDirectionInAtomFrame: BC1: "
+            std::cout << "CompoundAtom: " << " getBondCenterDirectionInAtomFrame: BC1: "
                 << bondCenter.getDirection()[0] <<" " << bondCenter.getDirection()[1] <<" " << bondCenter.getDirection()[2] <<" " << std::endl;
 
             // NEWMOB END
@@ -1182,7 +1183,7 @@ void PrintTransform(SimTK::Transform T, int decimal_places,
             BondCenter::Chirality chirality = bondCenter.getChirality();
             //NEWMOB BEGIN
 
-            std::cout << "CompoundAtom: getBondCenterDirectionInAtomFrame BC>1: "
+            std::cout << "CompoundAtom: " << " getBondCenterDirectionInAtomFrame BC>1= " << index << " : "
                 << bondCenter.getDirection()[0] <<" " << bondCenter.getDirection()[1] <<" " << bondCenter.getDirection()[2] <<" " << std::endl;
 
             // NEWMOB END

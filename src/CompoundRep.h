@@ -588,6 +588,9 @@ public:
             offsetAngle1 = 0.0;
         else
         {
+
+            std::cout << "CompoundRep::calcDefaultInternalDihedralOffsetAngle: cAIxs " << atomIndex2 << std::endl; // YDIRBUG
+
             // trick the bond-vector version of calcDihedralAngle into giving the offset angle at the atom
             const CompoundAtom& atom2 = getAtom(atomIndex2);
             UnitVec3 dirAtom1    = -atom2.getBondCenterDirectionInAtomFrame(bondCenterInfo21.getAtomBondCenterIndex());
@@ -612,6 +615,9 @@ public:
             offsetAngle4 = 0.0;
         else
         {
+
+            std::cout << "CompoundRep::calcDefaultInternalDihedralOffsetAngle: cAIxs " << atomIndex3 << std::endl; // YDIRBUG
+
             // trick the bond-vector version of calcDihedralAngle into giving the offset angle at the atom
             const CompoundAtom& atom3 = getAtom(atomIndex3);
             UnitVec3 dirAtom4    = -atom3.getBondCenterDirectionInAtomFrame(bondCenterInfo34.getAtomBondCenterIndex());
@@ -1229,6 +1235,7 @@ public:
         Angle breakPlanarityThreshold,
         bool flipAll=true)
     {
+
         // Get neighbour list: std::vector<std::vector<cAIx>>
         std::vector<AtomIndexList> atomPairs = getBondedAtomRuns(
             2, atomTargets);
@@ -1671,6 +1678,9 @@ public:
                     const Rotation rotMat = Rotation(rotAngle, rotAxis);
                     const UnitVec3 newDir = rotMat * BC0.getDirection();
                     BCX.setDirection(newDir);
+
+                    std::cout << "CompoundRep::matchDefaultDirections BC1: cAIx " << atomInfo.getIndex() <<" " << BC0_dir <<" " << BCX_dir << std::endl; // YDIRBUG
+
                 }else if(b > 1) { // Use Paul's method
                     BondCenter &BCX = atom.updBondCenter(b);
                     const UnitVec3 a1 = atom.getBondCenterDirectionInAtomFrame(CompoundAtom::BondCenterIndex(0));
@@ -1679,9 +1689,9 @@ public:
                     const Angle theta2 = BCX.getDefaultBond2Angle();
                     const BondCenter::Chirality chirality = BCX.getChirality();
 
-                    //std::cout << "matchDefaultDirections: bc  a1 theta1 a2 theta2 chir " << b
+                    // std::cout << "CompoundRep::matchDefaultDirections: bc  a1 theta1 a2 theta2 chir " << b
                     //          << " " << a1 << " " << theta1 << " " << a2 << " " << theta2
-                     //         << " " << chirality << std::endl;
+                    //         << " " << chirality << std::endl;
 
                     BCX.setDirection(BondCenter::getBondDirection(a1, theta1, a2, theta2, chirality));
                 }
