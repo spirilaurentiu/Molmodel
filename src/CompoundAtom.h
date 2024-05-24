@@ -1111,29 +1111,6 @@ public:
         else return getBondCenter(BondCenterIndex(1)).getDefaultBond1Angle();
     }
 
-
-/*!
- * <!-- Print Transform -->
- */
-void PrintTransform(SimTK::Transform T, int decimal_places,
-	std::string header, std::string rowPrefix = "")
-{
-    std::cout << header << std::endl;
-    const SimTK::Mat44 M = T.toMat44();
-
-    for(int i = 0; i < 4; i++){
-		std::cout << rowPrefix;
-        for(int k = 0; k < 4; k++){
-            std::cout
-				<< std::setw(6 + decimal_places) << std::fixed
-				<< std::setprecision(decimal_places)			
-				<< M(i, k) << " ";
-        }
-        std::cout << std::endl;
-    }
-
-}
-
     /*!
     * <!--  -->
     */
@@ -1146,8 +1123,8 @@ void PrintTransform(SimTK::Transform T, int decimal_places,
             Angle theta1 = bondCenter.getDefaultBond1Angle();
             Angle theta2 = bondCenter.getDefaultBond2Angle();
 
-            std::cout << "CompoundAtom: " << " getBondCenterDirectionInAtomFrame: BC0: "
-                << bondCenter.getDirection()[0] <<" " << bondCenter.getDirection()[1] <<" " << bondCenter.getDirection()[2] <<" " << std::endl;
+            //std::cout << "CompoundAtom: " << " getBondCenterDirectionInAtomFrame: BC0: " // YDIRBUG
+            //    << bondCenter.getDirection()[0] <<" " << bondCenter.getDirection()[1] <<" " << bondCenter.getDirection()[2] <<" " << std::endl;
 
             // NEWMOB END
 
@@ -1159,8 +1136,8 @@ void PrintTransform(SimTK::Transform T, int decimal_places,
             Angle theta1 = bondCenter.getDefaultBond1Angle();
             Angle theta2 = bondCenter.getDefaultBond2Angle();
 
-            std::cout << "CompoundAtom: " << " getBondCenterDirectionInAtomFrame: BC1: "
-                << bondCenter.getDirection()[0] <<" " << bondCenter.getDirection()[1] <<" " << bondCenter.getDirection()[2] <<" " << std::endl;
+            //std::cout << "CompoundAtom: " << " getBondCenterDirectionInAtomFrame: BC1: " // YDIRBUG
+            //    << bondCenter.getDirection()[0] <<" " << bondCenter.getDirection()[1] <<" " << bondCenter.getDirection()[2] <<" " << std::endl;
 
             // NEWMOB END
 
@@ -1183,8 +1160,8 @@ void PrintTransform(SimTK::Transform T, int decimal_places,
             BondCenter::Chirality chirality = bondCenter.getChirality();
             //NEWMOB BEGIN
 
-            std::cout << "CompoundAtom: " << " getBondCenterDirectionInAtomFrame BC>1= " << index << " : "
-                << bondCenter.getDirection()[0] <<" " << bondCenter.getDirection()[1] <<" " << bondCenter.getDirection()[2] <<" " << std::endl;
+            //std::cout << "CompoundAtom: " << " getBondCenterDirectionInAtomFrame BC>1= " << index << " : " // YDIRBUG
+            //    << bondCenter.getDirection()[0] <<" " << bondCenter.getDirection()[1] <<" " << bondCenter.getDirection()[2] <<" " << std::endl;
 
             // NEWMOB END
             //return BondCenter::getBondDirection(a1, theta1, a2, theta2, chirality); // OLDMOB
@@ -1221,9 +1198,9 @@ void PrintTransform(SimTK::Transform T, int decimal_places,
         // is (at least roughly) in direction ydir.
 
 
-        std::cout << "direction: " << direction[0] <<" " << direction[1] <<" " << direction[2] <<std::endl;
-        std::cout << "yAxisIndex: " << yAxisIndex  <<std::endl;
-        std::cout << "ydir: " << ydir[0] <<" " << ydir[1] <<" " << ydir[2] <<std::endl;
+        //std::cout << "direction: " << direction[0] <<" " << direction[1] <<" " << direction[2] <<std::endl; // YDIRBUG
+        //std::cout << "yAxisIndex: " << yAxisIndex  <<std::endl;
+        //std::cout << "ydir: " << ydir[0] <<" " << ydir[1] <<" " << ydir[2] <<std::endl;
         //PrintTransform(Transform(Rotation(direction, XAxis, ydir, YAxis)), 3, "BC_in_atom");
 
         return Transform(Rotation(direction, XAxis, ydir, YAxis));

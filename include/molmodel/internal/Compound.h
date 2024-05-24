@@ -766,6 +766,11 @@ public:
 	int atomRunCount,
 	const AtomTargetLocations& atomTargets) const;
 
+    /**
+     * \brief Print detailed compound geometry
+     * \return a reference to this compound
+     */
+    Compound& PrintCompoundGeometry(const Compound::AtomTargetLocations& atomTargets);
 
     /**
      * \brief Adjust stereochemistry about chiral atoms to match that seen in a set of atomic locations

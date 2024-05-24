@@ -589,8 +589,6 @@ public:
         else
         {
 
-            std::cout << "CompoundRep::calcDefaultInternalDihedralOffsetAngle: cAIxs " << atomIndex2 << std::endl; // YDIRBUG
-
             // trick the bond-vector version of calcDihedralAngle into giving the offset angle at the atom
             const CompoundAtom& atom2 = getAtom(atomIndex2);
             UnitVec3 dirAtom1    = -atom2.getBondCenterDirectionInAtomFrame(bondCenterInfo21.getAtomBondCenterIndex());
@@ -615,8 +613,6 @@ public:
             offsetAngle4 = 0.0;
         else
         {
-
-            std::cout << "CompoundRep::calcDefaultInternalDihedralOffsetAngle: cAIxs " << atomIndex3 << std::endl; // YDIRBUG
 
             // trick the bond-vector version of calcDihedralAngle into giving the offset angle at the atom
             const CompoundAtom& atom3 = getAtom(atomIndex3);
@@ -1226,9 +1222,110 @@ public:
     }
 
 
+    /*!
+    * <!-- Print Vec3 -->
+    */
+    void PrintTransform(SimTK::Transform T, int decimal_places,
+        std::string header = "", std::string rowPrefix = "")
+    {
+        std::cout << header << std::endl;
+        const SimTK::Mat44 M = T.toMat44();
+
+        for(int i = 0; i < 4; i++){
+            std::cout << rowPrefix;
+            for(int k = 0; k < 4; k++){
+                std::cout
+                    << std::setw(6 + decimal_places) << std::fixed
+                    << std::setprecision(decimal_places)			
+                    << M(i, k) << " ";
+            }
+            std::cout << std::endl;
+        }
+    }
 
     /*!
-    * <!--  -->
+    * <!-- Print Transform -->
+    */
+    void PrintVec3(SimTK::Vec3 vec, int decimal_places,
+        std::string header = "", std::string rowPrefix = "")
+    {
+        std::cout << header << std::endl;
+
+        for(int i = 0; i < 3; i++){
+            std::cout << rowPrefix
+                << std::setw(6 + decimal_places) << std::fixed
+                << std::setprecision(decimal_places)			
+                << vec(i) << " ";
+            std::cout << std::endl;
+        }
+
+    }
+
+
+    /*!
+    * <!-- Print Compound geometry (which is the most detailed) -->
+    */
+    CompoundRep& PrintCompoundGeometry(const Compound::AtomTargetLocations& atomTargets){
+
+        // Iterate atoms
+        std::vector< AtomIndexList > atomRun = getBondedAtomRuns(1, atomTargets);
+        std::cout << "CompoundRep::PrintCompoundGeometry atomTargets\n";
+        for(const auto& atomRIx : atomRun) {
+            const Compound::AtomIndex atomIx = atomRIx[0];
+                
+                SimTK::Vec3 loc = atomTargets.at(atomIx);
+
+                std::cout << " cAIx " << atomIx
+                    << " loc " << loc[0] <<" " << loc[1] <<" " << loc[2];
+
+                std::cout << std::endl;
+
+        }
+
+        for(Compound::AtomIndex atomIx(0); atomIx < getNumAtoms(); atomIx++){    
+            CompoundAtom& atom = updAtom(atomIx);
+            const AtomInfo& atomInfo = getAtomInfo(atomIx);
+           
+            // Go through bond centers on atom.
+            for (CompoundAtom::BondCenterIndex BCIx(0); BCIx < atom.getNumBonds(); ++BCIx) {
+                BondCenter &BC = atom.updBondCenter(CompoundAtom::BondCenterIndex(BCIx));
+                BondCenter& bondCenter = updBondCenter(Compound::BondCenterIndex(BCIx));
+                SimTK::UnitVec3 dir = atom.getBondCenterDirectionInAtomFrame(BCIx);
+                std::cout << "CompoundRep::PrintCompoundGeometry"
+                    << " cAIx " << atomIx
+                    << " BCIx " << BCIx
+                    << " dir " << dir[0] << " " << dir[1] << " " << dir[2]
+                    << " chirality " << BC.getChirality();
+
+                std::cout << std::endl;
+
+            }
+        }
+
+        return *this;
+
+    }
+
+    /*!
+    * <!--
+    // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    // (A) Get bonds actual and target vectors in atom frame
+    // ----------------------------------------------------------------
+    // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    // (B) Permutations: get reference bond centers
+    // ----------------------------------------------------------------
+    // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    // (C) Chirality: s source, t target (old vs new)
+    // If dot(cross(s1, s2),s3) and dot(cross(t1, t2),t3) have different
+    // signs, then switch chirality
+    // ----------------------------------------------------------------                
+    * 1 Ignore atoms with less than three known atoms bonded
+    * 1a count bonds to each atom from other target atoms
+    * 2) Compound bond direction
+    * 2a identify bond center of the target atom (atomIndex)
+    * 2b get bond center frame with respect to atom
+    * 2c apply frame to x-axis (abitrary axis) to get relative direction
+    *  -->
     */
     CompoundRep& matchDefaultAtomChirality(
         const Compound::AtomTargetLocations& atomTargets,
@@ -1237,13 +1334,12 @@ public:
     {
 
         // Get neighbour list: std::vector<std::vector<cAIx>>
-        std::vector<AtomIndexList> atomPairs = getBondedAtomRuns(
-            2, atomTargets);
+        std::vector<AtomIndexList> atomPairs = getBondedAtomRuns(2, atomTargets);
 
         // 1 Ignore atoms with less than three known atoms bonded
         // 1a count bonds to each atom from other target atoms
     
-        // Convenient variable atomPartnerList: std::map<cAIx, std::set<cAIx>>
+        // Convenient variable std(::map<cAIx, std::set<cAIx>>)
         typedef std::set<Compound::AtomIndex> AtomIndexSet;
         typedef std::map<Compound::AtomIndex, AtomIndexSet> AtomPartnerList;
         AtomPartnerList atomPartnerList;
@@ -1254,7 +1350,7 @@ public:
             atomPartnerList[atomI->first] = AtomIndexSet();
         }
 
-        // Enumerate the bonds for each atom
+        // Build atomPartnerList
         std::vector< AtomIndexList >::const_iterator bondI;
         for (bondI = atomPairs.begin(); bondI != atomPairs.end(); ++bondI)
         {
@@ -1265,57 +1361,30 @@ public:
             atomPartnerList[atomIndex2].insert(atomIndex1);
         }
 
-        // Check the chirality of each atom
-        // Loop over atoms
+        // Loop over atoms: Check the chirality of each atom
         for (atomI = atomTargets.begin(); atomI != atomTargets.end(); ++atomI) {
 
-            // Get cAIx
+            // Get atom (cAIx and CompoundAtom)
             Compound::AtomIndex atomIndex = atomI->first;
-            //std::cout<<__FILE__<<":"<<__LINE__<<" "<<"atom index = "
-            //  <<atomIndex<<std::endl;
- 
-            // Get atom
-            // for efficienciy, can be moved back down
             CompoundAtom& atom = updAtom(atomIndex);
-            //std::cout<<__FILE__<<":"<<__LINE__<<" "<<"atom element = "
-            //  <<atom.getElement()<<std::endl;
-            //std::cout<<__FILE__<<":"<<__LINE__<<" "<<"atom BiotypeIndex = "
-            //  <<atom.getBiotypeIndex()<<std::endl;
-            //std::cout<<__FILE__<<":"<<__LINE__<<" "<<"atom NumBonds  = "
-            //  <<atom.getNumBonds()<<std::endl;
-            //std::cout<<__FILE__<<":"<<__LINE__<<" "<<"atom Name  = "
-            //  <<getAtomName(atomIndex)<<std::endl;
-            // done with inefficiency block
 
-            // Get its neighbours
+            // Get atom's neighbours
             const AtomIndexSet& neighborAtomIndexes = atomPartnerList[atomIndex];
-            int numberOfBonds = neighborAtomIndexes.size();
-            //std::cout<<__FILE__<<":"<<__LINE__ << " number of bonds = "
-            //  << numberOfBonds << std::endl;
+            int numberOfBonds = neighborAtomIndexes.size(); // for some reason the valence is based on number of bound atoms in atomTargets, not atom.getNumBonds()
 
             // No chirality for less than 3 partner atoms
-            // for some reason the valence is based on number of bound atoms in
-            // atomTargets, not atom.getNumBonds()
             if (numberOfBonds < 3) {
-                //std::cout<<__FILE__<<":"<<__LINE__
-                //  <<" not enough bonds ("<<numberOfBonds<<") to be a chiral center!"
-                //<<std::endl;
                 continue; // cannot be a chiral disagreement
             }
 
             // Get atoms location
-            Vec3 targetCenter = atomI->second;
-            /*CompoundAtom& atom = updAtom(atomIndex);
-            //std::cout<<__FILE__<<":"<<__LINE__<<" "<<"atom element = "
-            //  <<atom.getElement()     <<std::endl;
-            //std::cout<<__FILE__<<":"<<__LINE__<<" "<<"atom BiotypeIndex = "
-            //  <<atom.getBiotypeIndex()     <<std::endl;
-            //std::cout<<__FILE__<<":"<<__LINE__<<" "<<"atom NumBonds  = "
-            //  <<atom.getNumBonds()     <<std::endl;
-            //std::cout<<__FILE__<<":"<<__LINE__<<" "<<"atom Name  = "
-            //  <<getAtomName(atomIndex)     <<std::endl;*/
+            Vec3 targetAtomLocation = atomI->second;
 
-            // Note direction and chirality of each bond center in target structure
+            // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            // (A) Get bonds actual and target vectors
+            // ----------------------------------------------------------------
+
+            // Get direction and chirality of each bond center in target structure
             // Compute (unit) bond vectors for source and target
             std::vector< std::pair<UnitVec3, UnitVec3> > bondVectors;
             std::vector< Compound::BondCenterIndex > bondCenterIndexes;
@@ -1326,25 +1395,24 @@ public:
             {
 
                 // 1) Target bond direction
-                Compound::AtomIndex neighborIndex =
-                    atomTargets.find(*neighborI)->first;
+                Compound::AtomIndex neighborIndex = atomTargets.find(*neighborI)->first;
                 
-                Vec3 neighborCenter = atomTargets.find(*neighborI)->second;
+                Vec3 neighborAtomLocation = atomTargets.find(*neighborI)->second;
 
-                UnitVec3 targetDirection(neighborCenter - targetCenter);
+                UnitVec3 targetDirection(neighborAtomLocation - targetAtomLocation);
 
                 // 2) Compound bond direction
                 // 2a identify bond center of the target atom (atomIndex)
-                const BondCenterInfo& bondCenterInfo = 
-                    getBondCenterInfo(
+                const BondCenterInfo& bondCenterInfo = getBondCenterInfo(
                         getAtomInfo(atomIndex),
                         getAtomInfo(neighborIndex) );
-
+                
+                // 2b get bond center frame with respect to atom
                 CompoundAtom::BondCenterIndex atomBondCenterIndex =
                     bondCenterInfo.getAtomBondCenterIndex();
-                // 2b get bond center frame with respect to atom
                 Transform bondCenterFrame =
                     atom.calcDefaultBondCenterFrameInAtomFrame(atomBondCenterIndex);
+
                 // 2c apply frame to x-axis (abitrary axis) to get relative direction
                 UnitVec3 sourceDirection(bondCenterFrame * UnitVec3(1, 0, 0));
 
@@ -1357,6 +1425,10 @@ public:
 
             } // every neighbor
             assert(numberOfBonds == bondVectors.size());
+
+            // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            // (B) Permutations: get reference bond centers
+            // ----------------------------------------------------------------
 
             // Because we need to distinguish left-handed from right-handed geometry in the atom frame,
             // we should use bondcenters number 0 and 1 to define the plane, so that the target structure
@@ -1377,8 +1449,7 @@ public:
                 // First BC (inboard?)
                 if (bondCenterInfo.getAtomBondCenterIndex() == 0) {
 
-                    // Define a starting bond
-                    // the permute indices if necessary 
+                    // Define a starting bond then permute indices if necessary 
                     if ( oneBondCenterIndex == bondIx ){
                         oneBondCenterIndex = zeroBondCenterIndex;
                     }
@@ -1386,8 +1457,8 @@ public:
                         twoBondCenterIndex = zeroBondCenterIndex;
                     }
                     zeroBondCenterIndex = bondIx;
-                }
-                else if (bondCenterInfo.getAtomBondCenterIndex() == 1){
+                
+                }else if (bondCenterInfo.getAtomBondCenterIndex() == 1){
 
                     // permute indices if necessary
                     if ( zeroBondCenterIndex == bondIx ){
@@ -1398,12 +1469,18 @@ public:
                     }
                     oneBondCenterIndex = bondIx;
                 }
+
             } // every bondVector
+
+            // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            // (C) Chirality: s source, t target (old vs new)
+            // If dot(cross(s1, s2),s3) and dot(cross(t1, t2),t3) have different
+            // signs, then switch chirality
+            // ----------------------------------------------------------------
 
             // Use the first three atoms to detect chirality
             // This should work well for 3 and four atom case
             // With more than four bonded atoms, well... that's tricky.
-            // std::cout << "Chiral center found: " << atomI->first << std::endl;
 
             // Three ordered source vectors
             UnitVec3 s1 = bondVectors[zeroBondCenterIndex].first;
@@ -1415,10 +1492,12 @@ public:
             UnitVec3 t2 = bondVectors[oneBondCenterIndex].second;
             UnitVec3 t3 = bondVectors[twoBondCenterIndex].second;
 
+            // Target reference plane
+            UnitVec3 targetPlaneNormal(cross(t1, t2));
+
             // Break planar groups if target structure is farther than <tolerance> from planar
             // Determine if any supposedly planar bonds from this atom are 
             // significantly out of plane in the target structure
-            UnitVec3 targetPlaneNormal(cross(t1, t2));
             bool doBreakPlane = false;
             for (int bondIx = 0; bondIx < (int) bondVectors.size(); ++bondIx) {
 
@@ -1426,22 +1505,16 @@ public:
 
                 // Can't break planarity if it's not planar to begin with
                 if (bondCenter.getChirality() != BondCenter::Planar)  {
-                    //std::cout<<__FILE__<<":"<<__LINE__
-                    //<<" can't break planarity because chirality ("<<bondCenter.getChirality()<<") isn't planar!"
-                    //<<std::endl;
                     continue;
                 }
 
                 // Don't break planarity if atom is close enough to planar in target structure
-                Angle sinePlaneDeviation = dot(bondVectors[bondIx].second, targetPlaneNormal);
-                //std::cout<<__FILE__<<":"<<__LINE__<<" sinePlaneDeviation, breakPlanarityThreshold = "
-                //<<sinePlaneDeviation<<", "<<breakPlanarityThreshold<<std::endl;
+                Angle sinePlaneDeviation = dot(bondVectors[bondIx].second, targetPlaneNormal); // isn' it cosine?
+
                 if ( std::abs(sinePlaneDeviation) < std::sin(breakPlanarityThreshold) ) {
-                    //std::cout<<__FILE__<<":"<<__LINE__
-                    //<<" not breaking planarity, because sinePlaneDeviation < sin(breakPlanarityThreshold"
-                    //<<std::endl;
                     continue;
                 }
+
                 doBreakPlane = true;
 
                 break;
@@ -1466,10 +1539,10 @@ public:
 
                     // OK, if we got this far, we must break planarity
                     #ifdef DEBUG_MOLMODEL
-                    std::cerr <<__FILE__<<":"<<__LINE__<< " WARNING: matching out-of-plane atoms about atom ";
-                    std::cerr << getAtomName(atomIndex);
-                    std::cerr << ". Note that here we are using residue INDEX, not residue NUMBER. Residue indices start at 0.";
-                    std::cerr << std::endl;
+                        std::cerr <<__FILE__<<":"<<__LINE__<< " WARNING: matching out-of-plane atoms about atom ";
+                        std::cerr << getAtomName(atomIndex);
+                        std::cerr << ". Note that here we are using residue INDEX, not residue NUMBER. Residue indices start at 0.";
+                        std::cerr << std::endl;
                     #endif
 
                     Angle sinePlaneDeviation = dot(bondVectors[bondIx].second, targetPlaneNormal);
@@ -1487,18 +1560,14 @@ public:
                 Real sourceChirality = dot(cross(s1, s2),s3);
                 Real targetChirality = dot(cross(t1, t2),t3);
 
-                // std::cout << "Source chirality = " << sourceChirality << std::endl;
-                // std::cout << "Target chirality = " << targetChirality << std::endl;
-
-
                 // Reverse chirality of bond centers that differ from those in target structure
                 // same sign means same chirality
                 if (sourceChirality * targetChirality < 0)
                 { // mismatch
                     #ifdef DEBUG_MOLMODEL
-                    std::cerr << "WARNING: Using unexpected chirality about atom ";
-                    std::cerr << getAtomName(atomIndex);
-                    std::cerr << std::endl;
+                        std::cerr << "WARNING: Using unexpected chirality about atom ";
+                        std::cerr << getAtomName(atomIndex);
+                        std::cerr << std::endl;
                     #endif
 
                     // flip the chirality of every handed bond center in the target atom
@@ -1539,14 +1608,14 @@ public:
                         const BondCenterInfo& bondCenterInfo = getBondCenterInfo(bondCenterIndexes[bondIx]);
 
                         #ifdef DEBUG_MOLMODEL
-                        Compound::AtomIndex partnerAtomIndex = 
-                            getBondCenterInfo(bondCenterInfo.getBondPartnerBondCenterIndex())
-                            .getAtomIndex();
-                        std::cerr << "WARNING: Flipping chirality of bond from atom ";
-                        std::cerr << getAtomName(atomIndex);
-                        std::cerr << " to atom ";
-                        std::cerr << getAtomName(partnerAtomIndex);
-                        std::cerr << std::endl;
+                            Compound::AtomIndex partnerAtomIndex = 
+                                getBondCenterInfo(bondCenterInfo.getBondPartnerBondCenterIndex())
+                                .getAtomIndex();
+                            std::cerr << "WARNING: Flipping chirality of bond from atom ";
+                            std::cerr << getAtomName(atomIndex);
+                            std::cerr << " to atom ";
+                            std::cerr << getAtomName(partnerAtomIndex);
+                            std::cerr << std::endl;
                         #endif
                         
                         BondCenter& bondCenter = updBondCenter(bondCenterInfo);
@@ -1563,6 +1632,8 @@ public:
                     }
                 }
             }
+
+
             
         } // every atom
 
@@ -1655,52 +1726,78 @@ public:
     * the BCs >= 1 -->
     */
     CompoundRep& matchDefaultDirections(const Compound::AtomTargetLocations& atomTargets){
-    
+        
         std::vector< AtomIndexList > atomRun = getBondedAtomRuns(1, atomTargets);
         for(const auto& atomRIx : atomRun) {
+
+            std::cout << "CompoundRep::matchDefaultDirections atomRun "; // YDIRBUG
+            for(const auto cAIx_inRun : atomRIx){ // YDIRBUG
+                std::cout << " " << cAIx_inRun; // YDIRBUG
+            } // YDIRBUG
+            std::cout << std::endl; // YDIRBUG
+
             const Compound::AtomIndex atomIx = atomRIx[0];
             CompoundAtom& atom = updAtom(atomIx);
             const AtomInfo& atomInfo = getAtomInfo(atomIx);
 
+            const Compound::AtomIndex neighborAtomIx = atomRIx[1]; // YDIRBUG
+            const BondCenterInfo& bondCenterInfo = getBondCenterInfo(
+                    getAtomInfo(atomIx),
+                    getAtomInfo(neighborAtomIx) ); // YDIRBUG
+            CompoundAtom::BondCenterIndex atomBondCenterIndex =
+                bondCenterInfo.getAtomBondCenterIndex(); // YDIRBUG
+
+            CompoundAtom::BondCenterIndex  BCIx = atomBondCenterIndex;
             // Go through bond centers on atom. Order counts.
-            for (CompoundAtom::BondCenterIndex b(0); b < atom.getNumBonds(); ++b) {
+            //for (CompoundAtom::BondCenterIndex BCIx(0); BCIx < atom.getNumBonds(); ++BCIx) { // YDIRBUG RESTORE
+
                 BondCenter &BC0 = atom.updBondCenter(CompoundAtom::BondCenterIndex(0));
 
-                if(b == 0) {
+                if(BCIx == 0) {
                     continue;
-                }else if(b == 1){ // Rotate with theta in the initial plane
-                    BondCenter &BCX = atom.updBondCenter(b);
-                    const UnitVec3& BC0_dir = BC0.updDirection();
-                    const UnitVec3& BCX_dir = BCX.updDirection();
-                    const UnitVec3 rotAxis(BCX_dir % BC0_dir);
 
-                    const Angle rotAngle = BCX.getDefaultBond1Angle();
+                }else if(BCIx == 1){ // Rotate with theta in the initial plane
+                    BondCenter &BC1 = atom.updBondCenter(BCIx);
+                    const UnitVec3& BC0_dir = BC0.updDirection();
+                    const UnitVec3& BC1_dir = BC1.updDirection();
+
+                    // const UnitVec3 rotAxis(BC1_dir % BC0_dir); // YDIRBUG RESTORE
+                    const UnitVec3 rotAxis(0, 0, -1); // YDIRBUG
+
+
+                    const Angle rotAngle = BC1.getDefaultBond1Angle();
                     const Rotation rotMat = Rotation(rotAngle, rotAxis);
                     const UnitVec3 newDir = rotMat * BC0.getDirection();
-                    BCX.setDirection(newDir);
 
-                    std::cout << "CompoundRep::matchDefaultDirections BC1: cAIx " << atomInfo.getIndex() <<" " << BC0_dir <<" " << BCX_dir << std::endl; // YDIRBUG
+                    //if(atomIx == 1){
+                        std::cout << "CompoundRep::matchDefaultDirections cAIx " << atomIx << " BCIx " << BCIx
+                            << " BC0_dir " << BC0_dir
+                            << " BC1_dir " << BC1_dir
+                            << " rotAxis " << rotAxis
+                            << " rotAngle " << rotAngle
+                            <<" newDir " << newDir
+                            << std::endl; // YDIRBUG
+                    //}
 
-                }else if(b > 1) { // Use Paul's method
-                    BondCenter &BCX = atom.updBondCenter(b);
+                    BC1.setDirection(newDir);
+
+                }else if(BCIx > 1) { // Use Paul's method
+                    BondCenter &BC_gt1 = atom.updBondCenter(BCIx);
                     const UnitVec3 a1 = atom.getBondCenterDirectionInAtomFrame(CompoundAtom::BondCenterIndex(0));
                     const UnitVec3 a2 = atom.getBondCenterDirectionInAtomFrame(CompoundAtom::BondCenterIndex(1));
-                    const Angle theta1 = BCX.getDefaultBond1Angle();
-                    const Angle theta2 = BCX.getDefaultBond2Angle();
-                    const BondCenter::Chirality chirality = BCX.getChirality();
+                    const Angle theta1 = BC_gt1.getDefaultBond1Angle();
+                    const Angle theta2 = BC_gt1.getDefaultBond2Angle();
+                    const BondCenter::Chirality chirality = BC_gt1.getChirality();
 
-                    // std::cout << "CompoundRep::matchDefaultDirections: bc  a1 theta1 a2 theta2 chir " << b
-                    //          << " " << a1 << " " << theta1 << " " << a2 << " " << theta2
-                    //         << " " << chirality << std::endl;
+                    // std::cout << "CompoundRep::matchDefaultDirections: bc  a1 theta1 a2 theta2 chir " << b << " " << a1 << " " << theta1 << " " << a2 << " " << theta2 << " " << chirality << std::endl;
 
-                    BCX.setDirection(BondCenter::getBondDirection(a1, theta1, a2, theta2, chirality));
+                    BC_gt1.setDirection(BondCenter::getBondDirection(a1, theta1, a2, theta2, chirality));
                 }
-            }
+            //} // every bond center // YDIRBUG RESTORE
         }
 
         return *this;
     }
-
 
     /*!
     * <!-- Helper method for matchDefaultDihedralAngles -->
