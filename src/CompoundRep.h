@@ -1728,28 +1728,24 @@ public:
     CompoundRep& matchDefaultDirections(const Compound::AtomTargetLocations& atomTargets){
         
         std::vector< AtomIndexList > atomRun = getBondedAtomRuns(1, atomTargets);
+        
         for(const auto& atomRIx : atomRun) {
-
-            std::cout << "CompoundRep::matchDefaultDirections atomRun "; // YDIRBUG
-            for(const auto cAIx_inRun : atomRIx){ // YDIRBUG
-                std::cout << " " << cAIx_inRun; // YDIRBUG
-            } // YDIRBUG
-            std::cout << std::endl; // YDIRBUG
 
             const Compound::AtomIndex atomIx = atomRIx[0];
             CompoundAtom& atom = updAtom(atomIx);
             const AtomInfo& atomInfo = getAtomInfo(atomIx);
 
-            const Compound::AtomIndex neighborAtomIx = atomRIx[1]; // YDIRBUG
+            const Compound::AtomIndex neighborAtomIx = atomRIx[1];
             const BondCenterInfo& bondCenterInfo = getBondCenterInfo(
                     getAtomInfo(atomIx),
-                    getAtomInfo(neighborAtomIx) ); // YDIRBUG
+                    getAtomInfo(neighborAtomIx) );
             CompoundAtom::BondCenterIndex atomBondCenterIndex =
-                bondCenterInfo.getAtomBondCenterIndex(); // YDIRBUG
+                bondCenterInfo.getAtomBondCenterIndex();
 
             CompoundAtom::BondCenterIndex  BCIx = atomBondCenterIndex;
+
             // Go through bond centers on atom. Order counts.
-            //for (CompoundAtom::BondCenterIndex BCIx(0); BCIx < atom.getNumBonds(); ++BCIx) { // YDIRBUG RESTORE
+            //for (CompoundAtom::BondCenterIndex BCIx(0); BCIx < atom.getNumBonds(); ++BCIx) { // RESTORE
 
                 BondCenter &BC0 = atom.updBondCenter(CompoundAtom::BondCenterIndex(0));
 
@@ -1761,23 +1757,21 @@ public:
                     const UnitVec3& BC0_dir = BC0.updDirection();
                     const UnitVec3& BC1_dir = BC1.updDirection();
 
-                    // const UnitVec3 rotAxis(BC1_dir % BC0_dir); // YDIRBUG RESTORE
-                    const UnitVec3 rotAxis(0, 0, -1); // YDIRBUG
+                    // const UnitVec3 rotAxis(BC1_dir % BC0_dir); // RESTORE
+                    const UnitVec3 rotAxis(0, 0, -1);
 
 
                     const Angle rotAngle = BC1.getDefaultBond1Angle();
                     const Rotation rotMat = Rotation(rotAngle, rotAxis);
                     const UnitVec3 newDir = rotMat * BC0.getDirection();
 
-                    //if(atomIx == 1){
-                        std::cout << "CompoundRep::matchDefaultDirections cAIx " << atomIx << " BCIx " << BCIx
-                            << " BC0_dir " << BC0_dir
-                            << " BC1_dir " << BC1_dir
-                            << " rotAxis " << rotAxis
-                            << " rotAngle " << rotAngle
-                            <<" newDir " << newDir
-                            << std::endl; // YDIRBUG
-                    //}
+                    // std::cout << "CompoundRep::matchDefaultDirections cAIx " << atomIx << " BCIx " << BCIx
+                    //     << " BC0_dir " << BC0_dir
+                    //     << " BC1_dir " << BC1_dir
+                    //     << " rotAxis " << rotAxis
+                    //     << " rotAngle " << rotAngle
+                    //     <<" newDir " << newDir
+                    //     << std::endl;
 
                     BC1.setDirection(newDir);
 
@@ -1793,7 +1787,7 @@ public:
 
                     BC_gt1.setDirection(BondCenter::getBondDirection(a1, theta1, a2, theta2, chirality));
                 }
-            //} // every bond center // YDIRBUG RESTORE
+            //} // every bond center RESTORE
         }
 
         return *this;
