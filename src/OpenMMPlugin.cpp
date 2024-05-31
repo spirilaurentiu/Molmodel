@@ -144,7 +144,11 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
 
             const DuMM::IncludedAtomIndex& iax = dummAtom.getIncludedAtomIndex();
             const DuMM::AtomIndex& dax = dummAtom.atomIndex;
-            std::cout << "drl OMMPlug ommNonbondedForce->addParticle dax iax nax " << dax << " " << iax << " " << nax << std::endl;
+
+            #ifdef __DRILLING__
+                std::cout << "drl OMMPlug ommNonbondedForce->addParticle dax iax nax " 
+                    << dax << " " << iax << " " << nax << std::endl;
+            #endif
 
             // Define particle; particle number will be the same as our
             // nonbond index number.
@@ -236,9 +240,10 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                                                  bondStretch.k * 2.0);
 //                                                * OpenMM::KJPerKcal
 //                                                * OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm);
-
-                            std::cout << "OMMPlug addBond: " << a1num <<" " << a2num <<" "
-                               << bondStretch.d0 <<" " << bondStretch.k * 2.0 << std::endl;
+                            #ifdef __DRILLING__
+                                std::cout << "OMMPlug addBond: " << a1num <<" " << a2num <<" "
+                                << bondStretch.d0 <<" " << bondStretch.k * 2.0 << std::endl;
+                            #endif
 
                         }
                     }
@@ -254,8 +259,10 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                         const DuMM::IncludedAtomIndex a2num = a1.force13[b13][0];
                         const DuMM::IncludedAtomIndex a3num = a1.force13[b13][1];
 
-                        printf("OMMPlug addAngle: a1num %d, a2num %d, a3num %d\n",
+                        #ifdef __DRILLING__
+                            printf("OMMPlug addAngle: a1num %d, a2num %d, a3num %d\n",
                                 a1num, a2num, a3num);
+                        #endif
 
                         const BondBend& bb = *a1.bend[b13];
 
@@ -282,8 +289,10 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                         const DuMM::IncludedAtomIndex a3num = a1.force14[b14][1];
                         const DuMM::IncludedAtomIndex a4num = a1.force14[b14][2];
 
-                        printf("OMMPlug addTorsion: a1num %d, a2num %d, a3num %d, a4num %d\n",
+                        #ifdef __DRILLING__
+                            printf("OMMPlug addTorsion: a1num %d, a2num %d, a3num %d, a4num %d\n",
                                 a1num, a2num, a3num, a4num);
+                        #endif
 
                         const BondTorsion& bt = *a1.torsion[b14];
 
@@ -315,8 +324,10 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                             const DuMM::IncludedAtomIndex a3num = a1.forceImproper14[b14][1];
                             const DuMM::IncludedAtomIndex a4num = a1.forceImproper14[b14][2];
 
-                            printf("OMMPlug addImproper: a1num %d, a2num %d, a3num %d, a4num %d\n",
+                            #ifdef __DRILLING__    
+                                printf("OMMPlug addImproper: a1num %d, a2num %d, a3num %d, a4num %d\n",
                                     a1num, a2num, a3num, a4num);
+                            #endif
 
                             const BondTorsion& bt = *a1.aImproperTorsion[b14];
 
