@@ -798,6 +798,8 @@ void CompoundSystem::modelOneCompound(
             SimTK::MassProperties massProps =
                 dumm.calcClusterMassProperties(unit.clusterIx);
 
+            std::cout << "[INERTIA CompoundSystem::modelOneCompound] " << massProps.getInertia() << std::endl;
+
             // body frame in ground frame
             const Transform& G_X_T = compoundRep.getTopLevelTransform();
             const Transform& T_X_B = unit.frameInTopCompoundFrame;

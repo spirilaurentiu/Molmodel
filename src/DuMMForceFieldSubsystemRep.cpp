@@ -3393,9 +3393,16 @@ MassProperties Cluster::calcMassProperties
     while (aap != allAtomPlacements.end()) {
         const Real ma = mm.getElement(mm.getAtomElementNum(aap->atomIndex))
                                                                 .getMass();
+        // Get the mass of the nucleus                                                                
+        Real ra = ma;
+        ra = std::pow(ra, 1.0 / 3.0);
+        ra *= 1.2;
+        std::cout << "[INERTIA Cluster::calcMassProperties] " << ma <<" " << ra << std::endl;
+
         mass    += ma;
         com     += ma*aap->station;
-        inertia += Inertia(aap->station, ma);
+        Inertia pointMass = Inertia(aap->station, ma);
+        inertia += pointMass;
         ++aap;
     }
     com /= mass;
