@@ -3387,26 +3387,40 @@ MassProperties Cluster::calcMassProperties
     Real    mass = 0;
     Vec3    com(0);
     Inertia inertia(0);
+	Inertia inertia_Spheres(0);
 
     // Calculate the mass properties in the local frame and transform last.
     AtomPlacementSet::const_iterator aap = allAtomPlacements.begin();
     while (aap != allAtomPlacements.end()) {
         const Real ma = mm.getElement(mm.getAtomElementNum(aap->atomIndex))
                                                                 .getMass();
-        // Get the mass of the nucleus                                                                
+        // Get the mass of the nucleus
+        SimTK::Real femto2nano = 0.000001;                                                                
         Real ra = ma;
         ra = std::pow(ra, 1.0 / 3.0);
-        ra *= 1.2;
-        std::cout << "[INERTIA Cluster::calcMassProperties] " << ma <<" " << ra << std::endl;
+        ra *= 1.2 * 0.01;
 
         mass    += ma;
         com     += ma*aap->station;
         Inertia pointMass = Inertia(aap->station, ma);
+
+        // Accumulate point masses inertia
         inertia += pointMass;
+
+        // Accumulate spherical inertia
+        Inertia sphericalInertia = UnitInertia::sphere(ra);
+        sphericalInertia *= ma;
+		sphericalInertia += pointMass;
+        inertia_Spheres += sphericalInertia;
+
         ++aap;
     }
     com /= mass;
-    return MassProperties(mass,com,inertia).calcTransformedMassProps(tr);
+
+    //std::cout << "[INERTIA Cluster::calcMassProperties] " << inertia <<" " << inertia_Spheres << std::endl;
+
+    //return MassProperties(mass,com,inertia).calcTransformedMassProps(tr);
+    return MassProperties(mass,com,inertia_Spheres).calcTransformedMassProps(tr);
 }
 
     ///////////////
