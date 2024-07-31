@@ -58,6 +58,7 @@ public:
     void setVelocitiesToTemperature(SimTK::Real temperature, uint32_t seed);
     void setParticleMass(int index, SimTK::Real mass);
     void setSeed(uint32_t seed);
+    void setTimestep(SimTK::Real timestep);
 
     // void setNonbondedCutoff (SimTK::Real cutoff) ;            /// Set NonbondedCutoff for OpenMM
     // void setOpenMMPlatform (std::string platform) ;    /// Set Platform to use for OpenMM ('CPU', 'CUDA', 'OpenCL')

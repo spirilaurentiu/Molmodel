@@ -1815,6 +1815,11 @@ void DuMMForceFieldSubsystem::setOpenMMvelocities(SimTK::Real temperature, uint3
     updRep().openMMPlugin.setVelocitiesToTemperature(temperature, seed);
 }
 
+void DuMMForceFieldSubsystem::setOpenMMTimestep(SimTK::Real timestep)
+{
+    updRep().openMMPlugin.setTimestep(timestep);
+}
+
 void DuMMForceFieldSubsystem::OMM_setOpenMMPositions(const std::vector<SimTK::Vec3>& positions)
 {
     updRep().openMMPlugin.setOpenMMPositions(positions);
