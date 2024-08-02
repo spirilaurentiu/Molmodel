@@ -1829,9 +1829,8 @@ void DuMMForceFieldSubsystem::setOpenMMseed(uint32_t seed) {
     updRep().openMMPlugin.setSeed(seed);
 }
 
-void DuMMForceFieldSubsystem::setOpenMMparticleMass(DuMM::NonbondAtomIndex nax, SimTK::Real mass) {
-    const int ix = getAtomIndexOfNonbondAtom(nax);
-    updRep().openMMPlugin.setParticleMass(ix, mass);
+void DuMMForceFieldSubsystem::setOpenMMMasses(const std::vector<SimTK::Real>& masses) {
+    updRep().openMMPlugin.setOpenMMMasses(masses);
 }
 
 bool DuMMForceFieldSubsystem::getAllowOpenMMReference() const

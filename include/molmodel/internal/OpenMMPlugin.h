@@ -56,7 +56,7 @@ public:
     SimTK::Real calcKineticEnergy() const;
     void integrateTrajectory(int steps);
     void setVelocitiesToTemperature(SimTK::Real temperature, uint32_t seed);
-    void setParticleMass(int index, SimTK::Real mass);
+    void setOpenMMMasses(const std::vector<SimTK::Real>& masses);
     void setSeed(uint32_t seed);
     void setTimestep(SimTK::Real timestep);
 
@@ -104,6 +104,7 @@ private:
     mutable std::vector<OpenMM::Vec3> NonbondAtomsPositionsCache;
     mutable OpenMM::State openMMState;
     std::vector<OpenMM::Vec3> PositionsCache;
+    std::vector<SimTK::Real> masses;
 
     // These must be destroyed in reverse order (from context to system)
     std::unique_ptr<OpenMM::Platform> platform;

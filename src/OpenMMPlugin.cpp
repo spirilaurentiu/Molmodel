@@ -62,7 +62,6 @@ std::string toBinary(int number) {
 
 std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform, const SimTK::DuMMForceFieldSubsystemRep* inDumm)
 {
-
     // read atoms from dumm
     dumm = inDumm;
 
@@ -109,8 +108,8 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
     // OpenMM system
     openMMSystem = std::make_unique<OpenMM::System>();
     for (DuMM::NonbondAtomIndex nax(0); nax < dumm->getNumNonbondAtoms(); ++nax) {
-        const Element& e = Element::getByAtomicNumber(dumm->getAtomElementNum(dumm->getAtomIndexOfNonbondAtom(nax)));
-        openMMSystem->addParticle(e.getMass());
+        // TODO check if this is correct
+        openMMSystem->addParticle(masses[nax]);
     }
 
     // nonbonded forces
@@ -245,7 +244,9 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
 //                                                * OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm);
                             #ifdef __DRILLING__
                                 std::cout << "OMMPlug addBond: " << a1num <<" " << a2num <<" "
-                                << bondStretch.d0 <<" " << bondStretch.k * 2.0 << std::endl;
+                                << bondStretch.d0 <<" " << bondStretch.k * 2.0 << " " << openMMSystem->getParticleMass(a1num) << " " << openMMSystem->getParticleMass(a2num) << std::endl;
+
+                                // get mass for a1num particle
                             #endif
 
                         }
@@ -534,6 +535,14 @@ void OpenMMPluginInterface::integrateTrajectory(int steps)
     //     std::cout << "Before integration: " << positions[i][0] << " " << positions[i][1] << " " << positions[i][2] << std::endl;
     // }
 
+    // for (int i = 0; i < 16; i++) {
+    //     openMMSystem->setParticleMass(i, 0);
+    // }
+
+    // openMMSystem->setParticleMass(0, 0);
+    // openMMContext->reinitialize(true);
+    // openMMContext->setPositions(getPositions());
+
     openMMIntegrator->step(steps);
 
     // // print coordinates after integration
@@ -553,8 +562,8 @@ void OpenMMPluginInterface::setVelocitiesToTemperature(SimTK::Real temperature, 
         openMMContext->setVelocitiesToTemperature(temperature, seed);
 }
 
-void OpenMMPluginInterface::setParticleMass(int index, SimTK::Real mass) {
-    openMMSystem->setParticleMass(index, mass);
+void OpenMMPluginInterface::setOpenMMMasses(const std::vector<SimTK::Real>& masses) {
+    this->masses = masses;
 }
 
 
