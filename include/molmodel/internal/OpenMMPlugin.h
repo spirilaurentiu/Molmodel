@@ -50,6 +50,8 @@ public:
 
     void setOpenMMPositions(const std::vector<SimTK::Vec3>& positions);
     const std::vector<OpenMM::Vec3>& getPositions() const;
+    
+    void updateAtomLocationsCache();
 
     SimTK::Vec3 getAtomPosition( int dummAtomIndex ) const;
     SimTK::Real calcPotentialEnergy() const;
@@ -96,6 +98,8 @@ public:
 
 private:
     void setOpenMMPositions(const SimTK::Vector_<SimTK::Vec3>& includedAtomPos_G) const;
+
+    std::vector<SimTK::Vec3> atomLocationsCache;
 
     // std::string OpenMMPlatform;
     // std::string OpenMMGPUindex;

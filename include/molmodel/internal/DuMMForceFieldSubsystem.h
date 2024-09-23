@@ -1440,6 +1440,7 @@ bool getUseOpenMMCalcOnlyNonBonded() const;
     const Vector_<Vec3>& getIncludedAtomPositionsInG(const State& s) const;
 
     const std::vector<OpenMM::Vec3>& OMM_getPositions() const;
+    void updateOMMAtomLocationCache();
 
     SimTK::Vec3 calcAtomLocationInGroundFrameThroughOMM( DuMM::AtomIndex daix ) const;
     void OMM_integrateTrajectory( int steps );

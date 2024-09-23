@@ -147,10 +147,10 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
             const DuMM::IncludedAtomIndex& iax = dummAtom.getIncludedAtomIndex();
             const DuMM::AtomIndex& dax = dummAtom.atomIndex;
 
-            #ifdef __DRILLING__
-                std::cout << "drl OMMPlug ommNonbondedForce->addParticle dax iax nax " 
-                    << dax << " " << iax << " " << nax << std::endl;
-            #endif
+            // #ifdef __DRILLING__
+            //     std::cout << "drl OMMPlug ommNonbondedForce->addParticle dax iax nax " 
+            //         << dax << " " << iax << " " << nax << std::endl;
+            // #endif
 
             // Define particle; particle number will be the same as our
             // nonbond index number.
@@ -242,12 +242,12 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                                                  bondStretch.k * 2.0);
 //                                                * OpenMM::KJPerKcal
 //                                                * OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm);
-                            #ifdef __DRILLING__
-                                std::cout << "OMMPlug addBond: " << a1num <<" " << a2num <<" "
-                                << bondStretch.d0 <<" " << bondStretch.k * 2.0 << " " << openMMSystem->getParticleMass(a1num) << " " << openMMSystem->getParticleMass(a2num) << std::endl;
+                            // #ifdef __DRILLING__
+                            //     std::cout << "OMMPlug addBond: " << a1num <<" " << a2num <<" "
+                            //     << bondStretch.d0 <<" " << bondStretch.k * 2.0 << " " << openMMSystem->getParticleMass(a1num) << " " << openMMSystem->getParticleMass(a2num) << std::endl;
 
-                                // get mass for a1num particle
-                            #endif
+                            //     // get mass for a1num particle
+                            // #endif
 
                         }
                     }
@@ -263,10 +263,10 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                         const DuMM::IncludedAtomIndex a2num = a1.force13[b13][0];
                         const DuMM::IncludedAtomIndex a3num = a1.force13[b13][1];
 
-                        #ifdef __DRILLING__
-                            printf("OMMPlug addAngle: a1num %d, a2num %d, a3num %d\n",
-                                a1num, a2num, a3num);
-                        #endif
+                        // #ifdef __DRILLING__
+                        //     printf("OMMPlug addAngle: a1num %d, a2num %d, a3num %d\n",
+                        //         a1num, a2num, a3num);
+                        // #endif
 
                         const BondBend& bb = *a1.bend[b13];
 
@@ -293,10 +293,10 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                         const DuMM::IncludedAtomIndex a3num = a1.force14[b14][1];
                         const DuMM::IncludedAtomIndex a4num = a1.force14[b14][2];
 
-                        #ifdef __DRILLING__
-                            printf("OMMPlug addTorsion: a1num %d, a2num %d, a3num %d, a4num %d\n",
-                                a1num, a2num, a3num, a4num);
-                        #endif
+                        // #ifdef __DRILLING__
+                        //     printf("OMMPlug addTorsion: a1num %d, a2num %d, a3num %d, a4num %d\n",
+                        //         a1num, a2num, a3num, a4num);
+                        // #endif
 
                         const BondTorsion& bt = *a1.torsion[b14];
 
@@ -328,10 +328,10 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                             const DuMM::IncludedAtomIndex a3num = a1.forceImproper14[b14][1];
                             const DuMM::IncludedAtomIndex a4num = a1.forceImproper14[b14][2];
 
-                            #ifdef __DRILLING__    
-                                printf("OMMPlug addImproper: a1num %d, a2num %d, a3num %d, a4num %d\n",
-                                    a1num, a2num, a3num, a4num);
-                            #endif
+                            // #ifdef __DRILLING__    
+                            //     printf("OMMPlug addImproper: a1num %d, a2num %d, a3num %d, a4num %d\n",
+                            //         a1num, a2num, a3num, a4num);
+                            // #endif
 
                             const BondTorsion& bt = *a1.aImproperTorsion[b14];
 
@@ -433,6 +433,15 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
         << openMMContext->getPlatform().getName()
         << std::endl;
 
+    // Prepare positions cache
+    openMMState = openMMContext->getState(OpenMM::State::Positions);
+    const auto numAtoms = openMMState.getPositions().size();
+
+    atomLocationsCache.reserve(numAtoms);
+    for (const auto& atom : openMMState.getPositions()) {
+        atomLocationsCache.push_back(SimTK::Vec3(atom[0], atom[1], atom[2]));
+    }
+
     return openMMContext->getPlatform().getName();
 }
 
@@ -488,6 +497,20 @@ const std::vector<OpenMM::Vec3>& OpenMMPluginInterface::getPositions() const
     return openMMState.getPositions();
 }
 
+void OpenMMPluginInterface::updateAtomLocationsCache()
+{
+    // openMMState = openMMContext->getState(OpenMM::State::Positions);
+    // return openMMState.getPositions();
+
+    openMMState = openMMContext->getState(OpenMM::State::Positions);
+    const auto numAtoms = openMMState.getPositions().size();
+
+    for (size_t i = 0; i < numAtoms; i++) {
+        const auto& atom = openMMState.getPositions()[i];
+        atomLocationsCache[i] = SimTK::Vec3(atom[0], atom[1], atom[2]);
+    }
+}
+
 
 //-----------------------------------------------------------------------------
 //                    getAtomPosition
@@ -497,10 +520,12 @@ SimTK::Vec3 OpenMMPluginInterface::getAtomPosition( int dummAtomIndex ) const
     SimTK::DuMM::AtomIndex dummAtomIndex_ai(dummAtomIndex);
     SimTK::DuMM::NonbondAtomIndex nonbondedAtomIndex = dumm->getAtom(dummAtomIndex_ai).getNonbondAtomIndex();
 
-    openMMState = openMMContext->getState( OpenMM::State::Positions );
-    OpenMM::Vec3 position = openMMState.getPositions() [nonbondedAtomIndex]; 
+    return atomLocationsCache[nonbondedAtomIndex];
 
-    return SimTK::Vec3 ( position[0], position[1], position[2] );
+    // openMMState = openMMContext->getState( OpenMM::State::Positions );
+    // OpenMM::Vec3 position = openMMState.getPositions() [nonbondedAtomIndex]; 
+
+    // return SimTK::Vec3 ( position[0], position[1], position[2] );
 
 }
 
@@ -531,8 +556,8 @@ void OpenMMPluginInterface::integrateTrajectory(int steps)
     // // print coordinates before integration
     // openMMState = openMMContext->getState(OpenMM::State::Positions);
     // const std::vector<OpenMM::Vec3>& positions = openMMState.getPositions();
-    // for (int i = 0; i < 10; i++) {
-    //     std::cout << "Before integration: " << positions[i][0] << " " << positions[i][1] << " " << positions[i][2] << std::endl;
+    // for (int i = 0; i < positions.size(); i++) {
+    //     std::cout << "Before integration: " << positions[i][0] << " " << positions[i][1] << " " << positions[i][2] << ", mass = " << openMMSystem->getParticleMass(i) <<  std::endl;
     // }
 
     // for (int i = 0; i < 16; i++) {
@@ -548,7 +573,7 @@ void OpenMMPluginInterface::integrateTrajectory(int steps)
     // // print coordinates after integration
     // openMMState = openMMContext->getState(OpenMM::State::Positions);
     // const std::vector<OpenMM::Vec3>& positionsAfter = openMMState.getPositions();
-    // for (int i = 0; i < 10; i++) {
+    // for (int i = 0; i < positions.size(); i++) {
     //     std::cout << "After integration: " << positionsAfter[i][0] << " " << positionsAfter[i][1] << " " << positionsAfter[i][2] << std::endl;
     // }
 }
@@ -590,17 +615,17 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
 
     int openMMStateDataTypes_Drill = 0;
 
-    #ifdef __DRILLING__
-        int openMMStateDataTypes = openMMState.getDataTypes();
-        //std::string openMMStateDataTypes_Str = toBinary(openMMStateDataTypes);
-        //std::cout << "[OPENMM_DATA_TYPES]: in binary" <<" " << openMMStateDataTypes <<" " << openMMStateDataTypes_Str << std::endl;
-        openMMStateDataTypes_Drill = ((wantEnergy?OpenMM::State::Forces_drl_bon:0)
-                                    | (wantEnergy?OpenMM::State::Forces_drl_ang:0)
-                                    | (wantEnergy?OpenMM::State::Forces_drl_tor:0)
-                                    | (wantEnergy?OpenMM::State::Forces_drl_n14:0)
-                                    | (wantEnergy?OpenMM::State::Forces_drl_vdw:0)
-                                    | (wantEnergy?OpenMM::State::Forces_drl_cou:0));
-    #endif
+    // #ifdef __DRILLING__
+    //     int openMMStateDataTypes = openMMState.getDataTypes();
+    //     //std::string openMMStateDataTypes_Str = toBinary(openMMStateDataTypes);
+    //     //std::cout << "[OPENMM_DATA_TYPES]: in binary" <<" " << openMMStateDataTypes <<" " << openMMStateDataTypes_Str << std::endl;
+    //     openMMStateDataTypes_Drill = ((wantEnergy?OpenMM::State::Forces_drl_bon:0)
+    //                                 | (wantEnergy?OpenMM::State::Forces_drl_ang:0)
+    //                                 | (wantEnergy?OpenMM::State::Forces_drl_tor:0)
+    //                                 | (wantEnergy?OpenMM::State::Forces_drl_n14:0)
+    //                                 | (wantEnergy?OpenMM::State::Forces_drl_vdw:0)
+    //                                 | (wantEnergy?OpenMM::State::Forces_drl_cou:0));
+    // #endif
 
     // Ask for energy, forces, or both.
     openMMState = openMMContext->getState(

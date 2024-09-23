@@ -1792,6 +1792,11 @@ const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::OMM_getPositions() con
     return getRep().openMMPlugin.getPositions();
 }
 
+void DuMMForceFieldSubsystem::updateOMMAtomLocationCache()
+{
+    updRep().openMMPlugin.updateAtomLocationsCache();
+}
+
 float DuMMForceFieldSubsystem::getOpenMMstepsize() const
 {   return getRep().stepsize; }
 
