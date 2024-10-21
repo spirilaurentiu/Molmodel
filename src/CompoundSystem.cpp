@@ -426,13 +426,13 @@ void CompoundSystem::modelOneCompound(
         CompoundAtom& atom = compoundRep.updAtom(cACnt);
         atom.setDuMMAtomIndex(atomBonding.dummAtomIndex);
 
-        // Check
-        if (showDebugMessages){
-            std::cout << "SP_NEW_LAB cAIx dAIx bioIx chATIx "
-                << cACnt << " " << atomBonding.dummAtomIndex <<" " 
-                << biotypeIx <<" " << chargedTypeId <<" "
-                << std::endl;
-        }
+        // // Check
+        // if (showDebugMessages){
+        //     std::cout << "SP_NEW_LAB cAIx dAIx bioIx chATIx "
+        //         << cACnt << " " << atomBonding.dummAtomIndex <<" " 
+        //         << biotypeIx <<" " << chargedTypeId <<" "
+        //         << std::endl;
+        // }
 
     } // every atom
 
@@ -650,7 +650,7 @@ void CompoundSystem::modelOneCompound(
     // (5) Set rigid units frames lacking parent bodies relative to Ground 
     // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&$$$$
 
-    if (showDebugMessages){std::cout << "Step 5 set ground frames" << std::endl;}
+    // if (showDebugMessages){std::cout << "Step 5 set ground frames" << std::endl;}
 
     // Iterate rigid units
     for (rigidUnitI = rigidUnits.begin();
@@ -798,7 +798,7 @@ void CompoundSystem::modelOneCompound(
             SimTK::MassProperties massProps =
                 dumm.calcClusterMassProperties(unit.clusterIx);
 
-            std::cout << "[INERTIA CompoundSystem::modelOneCompound] " << massProps.getInertia() << std::endl;
+            // std::cout << "[INERTIA CompoundSystem::modelOneCompound] " << massProps.getInertia() << std::endl;
 
             // body frame in ground frame
             const Transform& G_X_T = compoundRep.getTopLevelTransform();
@@ -813,43 +813,43 @@ void CompoundSystem::modelOneCompound(
                     MobilizedBody::Free freeBody
                         (parentMobod, G_X_B, massProps, Transform());
                     unit.mbx = freeBody.getMobilizedBodyIndex();
-                    std::cout << "First body Free mobodIx " << unit.mbx << std::endl;
+                    // std::cout << "First body Free mobodIx " << unit.mbx << std::endl;
 
                 }else if (mobilizedBodyType.compare("Cartesian") == 0) {
                     MobilizedBody::Translation cartesianBody
                         (parentMobod, G_X_B, massProps, Transform());
                     unit.mbx = cartesianBody.getMobilizedBodyIndex();
-                    std::cout << "First body Cartesian mobodIx " << unit.mbx << std::endl;
+                    // std::cout << "First body Cartesian mobodIx " << unit.mbx << std::endl;
 
                 }else if (mobilizedBodyType.compare("Weld") == 0) {
 		            MobilizedBody::Weld weldBody
                         (parentMobod, G_X_B, massProps, Transform());
 		            unit.mbx = weldBody.getMobilizedBodyIndex();
-                    std::cout << "First body Weld mobodIx " << unit.mbx << std::endl;
+                    // std::cout << "First body Weld mobodIx " << unit.mbx << std::endl;
 
                 }else if (mobilizedBodyType.compare("FreeLine") == 0) {
                     MobilizedBody::FreeLine freeLineBody
                         (parentMobod, G_X_B, massProps, Transform());
                     unit.mbx = freeLineBody.getMobilizedBodyIndex();
-                    std::cout << "First body FreeLine mobodIx " << unit.mbx << std::endl;
+                    // std::cout << "First body FreeLine mobodIx " << unit.mbx << std::endl;
 
                 }else if (mobilizedBodyType.compare("Ball") == 0) {
                     MobilizedBody::Ball ballBody
                         (parentMobod, G_X_B, massProps, Transform());
                     unit.mbx = ballBody.getMobilizedBodyIndex();
-                    std::cout << "First body Ball mobodIx " << unit.mbx << std::endl;
+                    // std::cout << "First body Ball mobodIx " << unit.mbx << std::endl;
 
                 }else if (mobilizedBodyType.compare("Pin") == 0) {
                     MobilizedBody::Pin pinBody
                         (parentMobod, G_X_B, massProps, Transform());
                     unit.mbx = pinBody.getMobilizedBodyIndex();
-                    std::cout << "First body Pin mobodIx " << unit.mbx << std::endl;
+                    // std::cout << "First body Pin mobodIx " << unit.mbx << std::endl;
 
                 }else{
 		            MobilizedBody::Weld weldBody
                         (parentMobod, G_X_B, massProps, Transform());
 		            unit.mbx = weldBody.getMobilizedBodyIndex();
-                    std::cout << "First body implicitly Weld mobodIx " << unit.mbx << std::endl;   
+                    // std::cout << "First body implicitly Weld mobodIx " << unit.mbx << std::endl;   
 
                 }
                 
@@ -1075,7 +1075,7 @@ void CompoundSystem::modelOneCompound(
                     unitInboardBond.setPinBody(torsionBody, 0);
                     torsionBody.setDefaultAngle(0); // no chem change to 0 for chem
                     unit.mbx = torsionBody.getMobilizedBodyIndex();
-                    std::cout << " Pin";
+                    // std::cout << " Pin";
 
                 }else if(unitInboardBond.getMobility() == BondMobility::AnglePin) {
 
@@ -1084,7 +1084,7 @@ void CompoundSystem::modelOneCompound(
 
                     unitInboardBond.setAnglePinBody(anglePinBody, 0);
                     unit.mbx = anglePinBody.getMobilizedBodyIndex();
-                    std::cout << " aPin";
+                    // std::cout << " aPin";
 
                 }else if(unitInboardBond.getMobility() == BondMobility::BendStretch) {
 
@@ -1093,7 +1093,7 @@ void CompoundSystem::modelOneCompound(
 
                     unitInboardBond.setBendStretchBody(bendStretchBody, 0, 0);
                     unit.mbx = bendStretchBody.getMobilizedBodyIndex();
-                    std::cout << " BeSt";
+                    // std::cout << " BeSt";
 
                }else if(unitInboardBond.getMobility() == BondMobility::Slider) {
 
@@ -1102,7 +1102,7 @@ void CompoundSystem::modelOneCompound(
 
                     unitInboardBond.setSliderBody(sliderBody, 0);
                     unit.mbx = sliderBody.getMobilizedBodyIndex();
-                    std::cout << " Sli";
+                    // std::cout << " Sli";
 
                } else if(unitInboardBond.getMobility() == BondMobility::BallF) {
 
@@ -1111,7 +1111,7 @@ void CompoundSystem::modelOneCompound(
 
                     unitInboardBond.setBallFBody(ballBody, 0);
                     unit.mbx = ballBody.getMobilizedBodyIndex();
-                    std::cout << " BalF";
+                    // std::cout << " BalF";
 
                 }else if(unitInboardBond.getMobility() == BondMobility::BallM) {
 
@@ -1120,7 +1120,7 @@ void CompoundSystem::modelOneCompound(
 
                     unitInboardBond.setBallMBody(ballBody, 0);
                     unit.mbx = ballBody.getMobilizedBodyIndex();
-                    std::cout << " BalM";
+                    // std::cout << " BalM";
 
                }else if(unitInboardBond.getMobility() == BondMobility::Spherical) {
 
@@ -1129,7 +1129,7 @@ void CompoundSystem::modelOneCompound(
 
                     unitInboardBond.setSphericalBody(sphereBody, 0, 0, 0); // BAT coordinates
                     unit.mbx = sphereBody.getMobilizedBodyIndex();
-                    std::cout << " Sphe";
+                    // std::cout << " Sphe";
 
                }else if(unitInboardBond.getMobility() == BondMobility::UniversalM) {
 
@@ -1138,7 +1138,7 @@ void CompoundSystem::modelOneCompound(
 
                     unitInboardBond.setUniversalMBody(universalMBody, 0);
                     unit.mbx = universalMBody.getMobilizedBodyIndex();
-                    std::cout << " Univ";
+                    // std::cout << " Univ";
 
                }else if(unitInboardBond.getMobility() == BondMobility::Translation) {
 
@@ -1147,7 +1147,7 @@ void CompoundSystem::modelOneCompound(
 
                     unitInboardBond.setTransBody(transBody, 0);
                     unit.mbx = transBody.getMobilizedBodyIndex();
-                    std::cout << " Trans";
+                    // std::cout << " Trans";
 
                }else if(unitInboardBond.getMobility() == BondMobility::FreeLine) {
 
@@ -1156,7 +1156,7 @@ void CompoundSystem::modelOneCompound(
 
                     unitInboardBond.setFreeLineBody(freeLineBody, 0, 0);
                     unit.mbx = freeLineBody.getMobilizedBodyIndex();
-                    std::cout << " FreeL";
+                    // std::cout << " FreeL";
 
                }else if(unitInboardBond.getMobility() == BondMobility::LineOrientationF) {
 
@@ -1165,7 +1165,7 @@ void CompoundSystem::modelOneCompound(
 
                     unitInboardBond.setLineOrientationFBody(lineOrientationFBody, 0);
                     unit.mbx = lineOrientationFBody.getMobilizedBodyIndex();
-                    std::cout << " LiOF";
+                    // std::cout << " LiOF";
 
                }else if(unitInboardBond.getMobility() == BondMobility::LineOrientationM) {
 
@@ -1174,7 +1174,7 @@ void CompoundSystem::modelOneCompound(
 
                     unitInboardBond.setLineOrientationMBody(lineOrientationMBody, 0);
                     unit.mbx = lineOrientationMBody.getMobilizedBodyIndex();
-                    std::cout << " LiOM";
+                    // std::cout << " LiOM";
 
                }else if(unitInboardBond.getMobility() == BondMobility::Free) {
 
@@ -1183,7 +1183,7 @@ void CompoundSystem::modelOneCompound(
 
                     unitInboardBond.setFreeBody(freeBody, 0, 0);
                     unit.mbx = freeBody.getMobilizedBodyIndex();
-                    std::cout << " Free";
+                    // std::cout << " Free";
 
                }else if(unitInboardBond.getMobility() == BondMobility::Cylinder) {
 
@@ -1197,7 +1197,7 @@ void CompoundSystem::modelOneCompound(
                     unitInboardBond.setCylinderBody(cylinderBody, 0, 0);
                     unit.mbx = cylinderBody.getMobilizedBodyIndex();
                     //std::cout << " got Cylinder mobodIx " << unit.bodyId << std::endl;
-                     std::cout << " Cyl";
+                    //  std::cout << " Cyl";
 
                }
             }
@@ -1213,7 +1213,7 @@ void CompoundSystem::modelOneCompound(
         }
 
     } // every rigid unit
-    std::cout << std::endl;
+    // std::cout << std::endl;
 
 
 

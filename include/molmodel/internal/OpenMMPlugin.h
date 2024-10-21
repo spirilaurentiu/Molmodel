@@ -82,6 +82,8 @@ public:
     void setOpenMMPositions(const SimTK::Vector_<SimTK::Vec3>& includedAtomPos_G) const;
 
     const std::vector<OpenMM::Vec3>& getPositions() const;
+    
+    void updateAtomLocationsCache();
 
 
     SimTK::Vec3 getAtomPosition( int dummAtomIndex ) const;
@@ -93,7 +95,9 @@ public:
     void setVelocitiesToTemperature(SimTK::Real temperature, uint32_t seed);
     void setParticleMass(int index, SimTK::Real mass);
 
+    void setOpenMMMasses(const std::vector<SimTK::Real>& masses);
     void setSeed(uint32_t seed);
+    void setTimestep(SimTK::Real timestep);
 
     // void setNonbondedCutoff (SimTK::Real cutoff) ;     /// Set NonbondedCutoff for OpenMM
     // void setOpenMMPlatform (std::string platform) ;    /// Set Platform to use for OpenMM ('CPU', 'CUDA', 'OpenCL')
@@ -134,6 +138,8 @@ public:
 private:
 
 
+    std::vector<SimTK::Vec3> atomLocationsCache;
+
     // std::string OpenMMPlatform;
     // std::string OpenMMGPUindex;
 
@@ -141,6 +147,7 @@ private:
     mutable std::vector<OpenMM::Vec3> NonbondAtomsPositionsCache;
     mutable OpenMM::State openMMState;
     std::vector<OpenMM::Vec3> PositionsCache;
+    std::vector<SimTK::Real> masses;
 
     // These must be destroyed in reverse order (from context to system)
     std::unique_ptr<OpenMM::Platform> platform;

@@ -1792,6 +1792,11 @@ const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::OMM_getPositions() con
     return getRep().openMMPlugin.getPositions();
 }
 
+void DuMMForceFieldSubsystem::updateOMMAtomLocationCache()
+{
+    updRep().openMMPlugin.updateAtomLocationsCache();
+}
+
 float DuMMForceFieldSubsystem::getOpenMMstepsize() const
 {   return getRep().stepsize; }
 
@@ -1815,6 +1820,11 @@ void DuMMForceFieldSubsystem::setOpenMMvelocities(SimTK::Real temperature, uint3
     updRep().openMMPlugin.setVelocitiesToTemperature(temperature, seed);
 }
 
+void DuMMForceFieldSubsystem::setOpenMMTimestep(SimTK::Real timestep)
+{
+    updRep().openMMPlugin.setTimestep(timestep);
+}
+
 void DuMMForceFieldSubsystem::OMM_setOpenMMPositions(const std::vector<SimTK::Vec3>& positions)
 {
     updRep().openMMPlugin.setOpenMMPositions(positions);
@@ -1824,9 +1834,8 @@ void DuMMForceFieldSubsystem::setOpenMMseed(uint32_t seed) {
     updRep().openMMPlugin.setSeed(seed);
 }
 
-void DuMMForceFieldSubsystem::setOpenMMparticleMass(DuMM::NonbondAtomIndex nax, SimTK::Real mass) {
-    const int ix = getAtomIndexOfNonbondAtom(nax);
-    updRep().openMMPlugin.setParticleMass(ix, mass);
+void DuMMForceFieldSubsystem::setOpenMMMasses(const std::vector<SimTK::Real>& masses) {
+    updRep().openMMPlugin.setOpenMMMasses(masses);
 }
 
 bool DuMMForceFieldSubsystem::getAllowOpenMMReference() const
