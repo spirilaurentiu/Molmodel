@@ -93,6 +93,7 @@ public:
 
     void integrateTrajectory(int steps);
     void setVelocitiesToTemperature(SimTK::Real temperature, uint32_t seed);
+
     void setParticleMass(int index, SimTK::Real mass);
 
     void setOpenMMMasses(const std::vector<SimTK::Real>& masses);
@@ -152,6 +153,7 @@ private:
     // These must be destroyed in reverse order (from context to system)
     std::unique_ptr<OpenMM::Platform> platform;
     std::unique_ptr<OpenMM::System> openMMSystem;
+    std::unique_ptr<OpenMM::AndersenThermostat> openMMThermostat;
     std::unique_ptr<OpenMM::Integrator> openMMIntegrator;
     std::unique_ptr<OpenMM::Context> openMMContext;
 

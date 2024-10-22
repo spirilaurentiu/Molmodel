@@ -1426,14 +1426,17 @@ bool getUseOpenMMCalcOnlyNonBonded() const;
 // Used for OpenMM integration
     void setUseOpenMMIntegration(bool);
     bool getUseOpenMMIntegration() const;
-    void setOpenMMstepsize(float);
+    void setDuMMTimestep(float);
     float getOpenMMstepsize() const;
     void setDuMMTemperature(float);
     float getOpenMMtemperature() const;
     void setOpenMMvelocities(SimTK::Real temperature, uint32_t seed);
     void setOpenMMTimestep(SimTK::Real timestep);
     void OMM_setOpenMMPositions(const std::vector<SimTK::Vec3>& positions);
+
+    void setOpenMMparticleMass(DuMM::NonbondAtomIndex nax, SimTK::Real mass);    
     void setOpenMMMasses(const std::vector<SimTK::Real>& masses);
+    
     void setOpenMMseed(uint32_t seed);
 
     // Needed in Gmolmodel

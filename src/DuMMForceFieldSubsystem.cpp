@@ -1800,9 +1800,19 @@ void DuMMForceFieldSubsystem::updateOMMAtomLocationCache()
 float DuMMForceFieldSubsystem::getOpenMMstepsize() const
 {   return getRep().stepsize; }
 
-void DuMMForceFieldSubsystem::setOpenMMstepsize(float value)
-{   invalidateSubsystemTopologyCache();
-    updRep().stepsize = value; }
+void DuMMForceFieldSubsystem::setDuMMTimestep(float argTimestep)
+{   
+    invalidateSubsystemTopologyCache(); // TODO: why?
+
+    updRep().stepsize = argTimestep;
+    //updRep().openMMPlugin.setTimestep(argTimestep);
+
+    std::cout << "OMMDEBUG DuMMForceFieldSubsystem::setOpenMMstepsize stepsizes "
+        <<" "<< updRep().stepsize 
+        <<" "<< argTimestep 
+        << std::endl << std::flush;
+    
+}
 
 float DuMMForceFieldSubsystem::getOpenMMtemperature() const
 {   return getRep().temperature; }
@@ -1832,6 +1842,11 @@ void DuMMForceFieldSubsystem::OMM_setOpenMMPositions(const std::vector<SimTK::Ve
 
 void DuMMForceFieldSubsystem::setOpenMMseed(uint32_t seed) {
     updRep().openMMPlugin.setSeed(seed);
+}
+
+void DuMMForceFieldSubsystem::setOpenMMparticleMass(DuMM::NonbondAtomIndex nax, SimTK::Real mass) {
+    const int ix = getAtomIndexOfNonbondAtom(nax);
+    updRep().openMMPlugin.setParticleMass(ix, mass);
 }
 
 void DuMMForceFieldSubsystem::setOpenMMMasses(const std::vector<SimTK::Real>& masses) {
