@@ -587,6 +587,10 @@ DuMM::IncludedAtomIndex.\ You must already have called realizeTopology().
 See getAtomIndexOfNonbondAtom() if you want its DuMM::AtomIndex instead. **/
 DuMM::IncludedAtomIndex getIncludedAtomIndexOfNonbondAtom
    (DuMM::NonbondAtomIndex nonbondAtomIx) const;
+
+
+DuMM::NonbondAtomIndex getNonbondAtomIndex(DuMM::AtomIndex dAIx);
+
 /** Given a DuMM::NonbondAtomIndex, return the corresponding 
 DuMM::AtomIndex.\ You must already have called realizeTopology(). 
 See getIncludedAtomIndexOfNonbondAtom() if you want its 

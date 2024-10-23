@@ -158,11 +158,14 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
     // OpenMM system
     openMMSystem = std::make_unique<OpenMM::System>();
     for (DuMM::NonbondAtomIndex nax(0); nax < dumm->getNumNonbondAtoms(); ++nax) {
+
         // TODO check if this is correct
         //openMMSystem->addParticle(masses[nax]);
-        const Element& e = Element::getByAtomicNumber(dumm->getAtomElementNum(dumm->getAtomIndexOfNonbondAtom(nax)));
-        openMMSystem->addParticle(e.getMass());
-        std::cout << "OpenMM System added particle with mass " <<" "<< e.getMass() << std::endl; std::cout<<std::flush;
+
+        const Element& element = Element::getByAtomicNumber(dumm->getAtomElementNum(dumm->getAtomIndexOfNonbondAtom(nax)));
+        openMMSystem->addParticle(element.getMass());
+        std::cout << "OpenMM System added particle with mass " <<" "<< element.getMass() << std::endl; std::cout<<std::flush;
+
     }
 
     // Nonbonded forces
@@ -649,8 +652,8 @@ void OpenMMPluginInterface::setParticleMass(int index, SimTK::Real mass) {
     openMMSystem->setParticleMass(index, mass);
 }
 
-void OpenMMPluginInterface::setOpenMMMasses(const std::vector<SimTK::Real>& masses) {
-    this->masses = masses;
+void OpenMMPluginInterface::setOpenMMMasses(const std::vector<SimTK::Real>& argMasses) {
+    this->masses = argMasses;
 }
 
 

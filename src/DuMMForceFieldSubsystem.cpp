@@ -1692,6 +1692,16 @@ getIncludedAtomIndexOfNonbondAtom
     return getRep().getIncludedAtomIndexOfNonbondAtom(nbAtomIndex);
 }
 
+DuMM::NonbondAtomIndex DuMMForceFieldSubsystem::getNonbondAtomIndex(DuMM::AtomIndex dAIx)
+{
+    SimTK_STAGECHECK_TOPOLOGY_REALIZED(subsystemTopologyHasBeenRealized(),
+        "getIncludedAtomIndexOfNonbondAtom", "Subsystem", "DuMMForceFieldSubsystem");
+
+    DuMMForceFieldSubsystemRep& dummRep = updRep();
+    const DuMMAtom& dummAtom = dummRep.updAtom(dAIx);
+    return dummAtom.getNonbondAtomIndex();
+}
+
 
 
 Real DuMMForceFieldSubsystem::getVdwGlobalScaleFactor()     const {return getRep().vdwGlobalScaleFactor;}
@@ -1707,10 +1717,6 @@ Real DuMMForceFieldSubsystem::getCustomBondTorsionGlobalScaleFactor() const {ret
 
 Real DuMMForceFieldSubsystem::getNonbondedCutoff()     const {return getRep().nonbondedCutoff;}
 int DuMMForceFieldSubsystem::getNonbondedMethod() const {return getRep().nonbondedMethod;}
-
-
-
-
 
 
 
@@ -1845,6 +1851,7 @@ void DuMMForceFieldSubsystem::setOpenMMseed(uint32_t seed) {
 }
 
 void DuMMForceFieldSubsystem::setOpenMMparticleMass(DuMM::NonbondAtomIndex nax, SimTK::Real mass) {
+    // Get DuMM::AtomIndex as int
     const int ix = getAtomIndexOfNonbondAtom(nax);
     updRep().openMMPlugin.setParticleMass(ix, mass);
 }
