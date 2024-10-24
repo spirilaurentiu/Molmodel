@@ -164,7 +164,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
 
         const Element& element = Element::getByAtomicNumber(dumm->getAtomElementNum(dumm->getAtomIndexOfNonbondAtom(nax)));
         openMMSystem->addParticle(element.getMass());
-        std::cout << "OpenMM System added particle with mass " <<" "<< element.getMass() << std::endl; std::cout<<std::flush;
+        //std::cout << "OMMBUG OpenMM System added particle with mass " <<" "<< element.getMass() << std::endl; std::cout<<std::flush;
 
     }
 
@@ -414,9 +414,8 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
 
     // Get the integrator
     Real stepsize = 0;
-    if (dumm->wantOpenMMIntegration)
-        stepsize = dumm->stepsize;
-    std::cout << "OpenMM stepsize " << stepsize << std::endl; std::cout<<std::flush;
+    if (dumm->wantOpenMMIntegration){stepsize = dumm->stepsize;}
+    //std::cout << "OMMBUG OpenMM stepsize " << stepsize << std::endl; std::cout<<std::flush;
     openMMIntegrator = std::make_unique<OpenMM::VerletIntegrator>(stepsize); // TODO should release?
     
     // Get the platform
