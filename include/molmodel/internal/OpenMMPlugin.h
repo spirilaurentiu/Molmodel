@@ -64,6 +64,12 @@ public:
         SimTK::Vector_<SimTK::SpatialVec>&    includedBodyForce_G,
         SimTK::Real&                          energy) const;
 
+	/**	
+	* @brief Integrate trajectory using OpenMM
+	* @param steps nof steps
+	*/ 
+    void integrateTrajectory(int steps);
+    
 	/**@}**/
 
     /** @name Interface.**/
@@ -85,20 +91,18 @@ public:
     
     void updateAtomLocationsCache();
 
-
     SimTK::Vec3 getAtomPosition( int dummAtomIndex ) const;
 
     SimTK::Real calcPotentialEnergy() const;
     SimTK::Real calcKineticEnergy() const;
 
-    void integrateTrajectory(int steps);
-    void setVelocitiesToTemperature(SimTK::Real temperature, uint32_t seed);
-
     void setParticleMass(int index, SimTK::Real mass);
-
     void setOpenMMMasses(const std::vector<SimTK::Real>& masses);
+
     void setSeed(uint32_t seed);
     void setTimestep(SimTK::Real timestep);
+
+    void setVelocitiesToTemperature(SimTK::Real temperature, uint32_t seed);
 
     // void setNonbondedCutoff (SimTK::Real cutoff) ;     /// Set NonbondedCutoff for OpenMM
     // void setOpenMMPlatform (std::string platform) ;    /// Set Platform to use for OpenMM ('CPU', 'CUDA', 'OpenCL')
@@ -108,6 +112,18 @@ public:
     // std::string getGPUindex () const;                  /// Get GPU index. Values: "0"/"1"/"0,1"
 
 	/**@}**/
+
+    /** @name Debugging information.**/
+    /**@{**/
+
+    /**	
+	* @brief Print OpenMM positions
+	* @param header__ word to be in front of every line
+	*/ 
+    void stdcout_OpenmmPositions(const std::string& header__ );
+
+    /**@{**/
+
 
     /** @name Drilling drl.**/
     /**@{**/
@@ -153,9 +169,11 @@ private:
     // These must be destroyed in reverse order (from context to system)
     std::unique_ptr<OpenMM::Platform> platform;
     std::unique_ptr<OpenMM::System> openMMSystem;
-    std::unique_ptr<OpenMM::AndersenThermostat> openMMThermostat;
     std::unique_ptr<OpenMM::Integrator> openMMIntegrator;
     std::unique_ptr<OpenMM::Context> openMMContext;
+
+    //std::unique_ptr<OpenMM::AndersenThermostat> openMMThermostat;
+    OpenMM::AndersenThermostat* openMMThermostat;
 
     const SimTK::DuMMForceFieldSubsystemRep* dumm = nullptr;
 

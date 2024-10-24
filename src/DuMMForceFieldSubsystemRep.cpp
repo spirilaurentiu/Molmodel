@@ -56,6 +56,9 @@ using namespace SimTK;
 #include <fstream>
 #include <sys/resource.h> // memory
 
+/*!
+ * <!--  -->
+*/
 std::string exec_molmodel(const char* cmd) {
     std::array<char, 128> buffer;
     std::string result;
@@ -70,6 +73,9 @@ std::string exec_molmodel(const char* cmd) {
     return result;
 }
 
+/*!
+ * <!--  -->
+*/
 std::size_t getLinuxMemoryUsageFromProc_m() {
     std::ifstream file("/proc/self/status");
     std::string line;
@@ -87,6 +93,9 @@ std::size_t getLinuxMemoryUsageFromProc_m() {
     return memoryUsage; // Value in kB
 }
 
+/*!
+ * <!--  -->
+*/
 long getResourceUsage_m() {
     struct rusage usage;
     getrusage(RUSAGE_SELF, &usage);

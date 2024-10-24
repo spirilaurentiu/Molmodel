@@ -40,7 +40,15 @@
         #include "OpenCLPlatform.h"
 #endif
 
-// Minimum number of bits needed to represent a number in binary
+
+
+// -------------------------------------------- 
+// Helper functions
+// --------------------------------------------
+
+/*!
+ * <!-- Minimum number of bits needed to represent a number in binary -->
+*/
 int requiredBits(int number) {
     if (number == 0) {
         return 1;
@@ -48,7 +56,9 @@ int requiredBits(int number) {
     return std::floor(std::log2(number)) + 1;
 }
 
-// Integer to binary string
+/*!
+ * <!-- Integer to binary string -->
+*/
 std::string toBinary(int number) {
     int numBits = requiredBits(number);
     std::string binary = "";
@@ -59,8 +69,11 @@ std::string toBinary(int number) {
     return binary;
 }
 
-void stdcout_OpenmmNonbParticle( int nax,
-    double sqrtCoulombScale, double charge,
+/*!
+ * <!-- Print nonbonded particle information added to OpenMM -->
+*/
+void stdcout_OpenmmNonbParticle(
+    int nax, double sqrtCoulombScale, double charge,
     double sigma, double vdwGlobalScaleFactor, double wellDepth)
 {
     std::cout << "OpenMM added particle "
@@ -71,7 +84,7 @@ void stdcout_OpenmmNonbParticle( int nax,
 }
 
 /*!
- * <!--  -->
+ * <!-- Print bond added to OpenMM -->
 */
 void stdcout_OpenmmBond(int a1num, int a2num, double bondStretch_d0, double bondStretch_k_t2)
 {
@@ -81,7 +94,7 @@ void stdcout_OpenmmBond(int a1num, int a2num, double bondStretch_d0, double bond
 }
 
 /*!
- * <!--  -->
+ * <!-- Print angle added to OpenMM -->
 */
 void stdcout_OpenmmAngle(int a1num, int a2num, int a3num, double theta0, double K)
 {
@@ -90,6 +103,21 @@ void stdcout_OpenmmAngle(int a1num, int a2num, int a3num, double theta0, double 
         << std::endl;
 }
 
+
+/*!
+ * <!-- Print torsion angle added to OpenMM -->
+*/
+void stdcout_OpenmmTorsion(int a1num, int a2num, int a3num, int a4num, double periodicity, double theta0, double amplitude)
+{
+    std::cout << "OMMPlugin addTorsion: " << a1num <<" " << a2num <<" "<< a3num <<" "<< a4num
+        <<" "<< periodicity <<" "<< theta0 <<" "<< amplitude
+        << std::endl;
+}
+
+
+// -------------------------------------------- 
+// Main functions
+// --------------------------------------------
 
 /*!
  * <!--
@@ -116,12 +144,11 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
     dumm = inDumm;
 
     // Allocate positions cache
-    // These are memory consuming because repeatedly calling delete becomes
-    // slow due to memory fragmentation
+    // TODO OMM These are memory consuming because repeatedly calling delete becomes slow due to memory fragmentation
     NonbondAtomsPositionsCache = std::vector<OpenMM::Vec3>(dumm->getNumNonbondAtoms());
     PositionsCache = std::vector<OpenMM::Vec3>(dumm->getNumAtoms());
 
-    // Instantiate OpenMM forces
+    // Allocate OpenMM forces
     auto ommNonbondedForce = std::make_unique<OpenMM::NonbondedForce>();
     auto ommGBSAOBCForce = std::make_unique<OpenMM::GBSAOBCForce>();
     auto ommHarmonicBondStretch = std::make_unique<OpenMM::HarmonicBondForce>();
@@ -132,12 +159,11 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
     Real temperature = 300.0;
     if(dumm->wantOpenMMIntegration){temperature = dumm->temperature;}
 
-    // auto openMMThermostat = std::make_unique<OpenMM::AndersenThermostat>(temperature, 1);
-    openMMThermostat = std::make_unique<OpenMM::AndersenThermostat>(temperature, 1);
+    //openMMThermostat = std::make_unique<OpenMM::AndersenThermostat>(temperature, 1);
+    openMMThermostat = new OpenMM::AndersenThermostat(temperature, 1);
     openMMThermostat->setRandomNumberSeed(seed);
 
     // Determine whether OpenMM supports all the features we've asked for.
-
     // OpenMM does not support 1-2, 1-3, or 1-5 scaling.
     if (   dumm->vdwScale12!=0 || dumm->coulombScale12!=0 
         || dumm->vdwScale13!=0 || dumm->coulombScale13!=0
@@ -155,11 +181,10 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
         return "";
     }
 
-    // OpenMM system
+    // Allocate OpenMM system and add particles to it
     openMMSystem = std::make_unique<OpenMM::System>();
     for (DuMM::NonbondAtomIndex nax(0); nax < dumm->getNumNonbondAtoms(); ++nax) {
 
-        // TODO check if this is correct
         //openMMSystem->addParticle(masses[nax]);
 
         const Element& element = Element::getByAtomicNumber(dumm->getAtomElementNum(dumm->getAtomIndexOfNonbondAtom(nax)));
@@ -173,7 +198,6 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
         ommNonbondedForce->setNonbondedMethod( OpenMM::NonbondedForce::NonbondedMethod( dumm->nonbondedMethod ) );
         ommNonbondedForce->setCutoffDistance( dumm->nonbondedCutoff );
         // nonbondedForce->setUseSwitchingFunction( 0 );
-
 
         // Scale charges by sqrt of scale factor so that products of charges 
         // scale linearly.
@@ -202,25 +226,25 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
             const DuMM::IncludedAtomIndex& iax = dummAtom.getIncludedAtomIndex();
             const DuMM::AtomIndex& dax = dummAtom.atomIndex;
 
-            // #ifdef __DRILLING__
-            //     std::cout << "drl OMMPlug ommNonbondedForce->addParticle dax iax nax " 
-            //         << dax << " " << iax << " " << nax << std::endl;
-            // #endif
-
             // Define particle; particle number will be the same as our
             // nonbond index number.
             ommNonbondedForce->addParticle(sqrtCoulombScale*charge, sigma, 
                                         dumm->vdwGlobalScaleFactor*wellDepth);
 
             // stdcout_OpenmmNonbParticle(nax, sqrtCoulombScale, charge, sigma, dumm->vdwGlobalScaleFactor, wellDepth);
+            #ifdef __DRILLING__
+                stdcout_OpenmmNonbParticle(nax, sqrtCoulombScale, charge, sigma, dumm->vdwGlobalScaleFactor, wellDepth);
+            #endif
 
             // Collect 1-2 bonds to other nonbond atoms. Note that we 
             // don't care about bodies here -- every atom is considered
             // independent.
-            for (unsigned short i=0; i < dummAtom.bond12.size(); ++i) {
-                const DuMMAtom& b = dumm->getAtom(dummAtom.bond12[i]);
-                if (!b.nonbondAtomIndex.isValid()){continue;}
-                ommBonds.emplace_back(std::make_pair(nax, b.nonbondAtomIndex));
+            for (unsigned short bix=0; bix < dummAtom.bond12.size(); ++bix) {
+                const DuMMAtom& bondedAtom = dumm->getAtom(dummAtom.bond12[bix]);
+                if (!bondedAtom.nonbondAtomIndex.isValid()){
+                    continue;
+                }
+                ommBonds.emplace_back(std::make_pair(nax, bondedAtom.nonbondAtomIndex));
             }
         }
 
@@ -251,15 +275,12 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
         openMMSystem->addForce(ommGBSAOBCForce.get());
         ommGBSAOBCForce.release();
         
-        std::cout << "OpenMMPlugin added GBSA " << dumm->gbsaGlobalScaleFactor << std::endl; std::cout<<std::flush;
+        std::cout << "OpenMMPlugin added GBSA scaled at" << dumm->gbsaGlobalScaleFactor << std::endl;
     }
 
-    // Bonded
+    // Add bonded forces
+    // TODO: As it is now, it should work only with a fully flexible setup (nonbonded index)
     if( ! dumm->wantOpenMMCalcOnlyNonBonded ){
-
-        // TODO !!!!!
-        // Be sure that nonbonded index order is equivalent...and all bonded atoms were added as particles
-        // As it is now, it should work only with a fully flexible setup
 
         for (DuMMIncludedBodyIndex incBodyIx(0);
              incBodyIx < dumm->getNumIncludedBodies(); ++incBodyIx) {
@@ -273,7 +294,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                 const DuMM::IncludedAtomIndex a1num = dumm->bondStarterAtoms[bsx];
                 const IncludedAtom &a1 = dumm->getIncludedAtom(a1num);
 
-                // ADD BONDED STRETCHES (1-2)
+                // ADD BONDS (1-2)
                 if ((dumm->bondStretchGlobalScaleFactor != 0) ||
                     (dumm->customBondStretchGlobalScaleFactor != 0)) {
 
@@ -298,7 +319,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                     }
                 }
 
-                // ADD BONDED BEND (1-2-3)
+                // ADD ANGLES (1-2-3)
                 if (dumm->bondBendGlobalScaleFactor != 0
                     || dumm->customBondBendGlobalScaleFactor != 0) {
 
@@ -327,7 +348,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                     }
                 }
 
-                // ADD BONDED DIHEDRALS (1-2-3-4)
+                // ADD DIHEDRALS (1-2-3-4)
                 if (dumm->bondTorsionGlobalScaleFactor != 0
                     || dumm->customBondTorsionGlobalScaleFactor != 0) {
 
@@ -338,11 +359,6 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                         const DuMM::IncludedAtomIndex a3num = a1.force14[b14][1];
                         const DuMM::IncludedAtomIndex a4num = a1.force14[b14][2];
 
-                        // #ifdef __DRILLING__
-                        //     printf("OMMPlug addTorsion: a1num %d, a2num %d, a3num %d, a4num %d\n",
-                        //         a1num, a2num, a3num, a4num);
-                        // #endif
-
                         const BondTorsion& bt = *a1.torsion[b14];
 
                         if (bt.hasBuiltinTerm()) {
@@ -352,13 +368,16 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                                                         bt.terms[i].periodicity,
                                                         bt.terms[i].theta0,
                                                         bt.terms[i].amplitude);
+                                #ifdef __DRILLING__
+                                    stdcout_OpenmmTorsion(a1num, a2num, a3num, a4num, bt.terms[i].periodicity, bt.terms[i].theta0, bt.terms[i].amplitude);
+                                #endif                                                        
                             }
                         }
                     }
                 }
 
 
-                // ADD BONDED IMPROPERS (1-2-3-4)
+                // ADD IMPROPERS (1-2-3-4)
                 if (dumm->amberImproperTorsionGlobalScaleFactor != 0) {
                     const IncludedAtom &a1 = dumm->getIncludedAtom(a1num);
 
@@ -373,11 +392,6 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                             const DuMM::IncludedAtomIndex a3num = a1.forceImproper14[b14][1];
                             const DuMM::IncludedAtomIndex a4num = a1.forceImproper14[b14][2];
 
-                            // #ifdef __DRILLING__    
-                            //     printf("OMMPlug addImproper: a1num %d, a2num %d, a3num %d, a4num %d\n",
-                            //         a1num, a2num, a3num, a4num);
-                            // #endif
-
                             const BondTorsion& bt = *a1.aImproperTorsion[b14];
 
                             if (bt.hasBuiltinTerm()) {
@@ -388,6 +402,9 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                                                             bt.terms[i].periodicity,
                                                             bt.terms[i].theta0,
                                                             bt.terms[i].amplitude);
+                                    #ifdef __DRILLING__
+                                        stdcout_OpenmmTorsion(a1num, a2num, a3num, a4num, bt.terms[i].periodicity, bt.terms[i].theta0, bt.terms[i].amplitude);
+                                    #endif                                                             
                                 }
                             }
                         }
@@ -407,10 +424,11 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
     }
 
     // Get the thermostat
-    openMMSystem->addForce(openMMThermostat.get());
-    //openMMThermostat.release();
+    //openMMSystem->addForce(openMMThermostat.get());
+    // //openMMThermostat.release();
+    openMMSystem->addForce(openMMThermostat);
 
-    //std::cout << "OpenMM System numbe rof forces " <<  openMMSystem->getNumForces() << std::endl;
+    //std::cout << "OpenMM System number of forces " <<  openMMSystem->getNumForces() << std::endl;
 
     // Get the integrator
     Real stepsize = 0;
@@ -486,179 +504,35 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
     //     atomLocationsCache.push_back(SimTK::Vec3(atom[0], atom[1], atom[2]));
     // }
 
+
+    // ----------------------------------------------
+    // PBC - Periodic Boundary Conditions __begin__
+    // ----------------------------------------------
+    #ifdef PBC // _pbc_
+
+        OpenMM::Vec3 pbcVector_X(1, 0, 0);
+        OpenMM::Vec3 pbcVector_Y(0, 1, 0);
+        OpenMM::Vec3 pbcVector_Z(0, 0, 1);
+
+        openMMSystem->setDefaultPeriodicBoxVectors(pbcVector_X, pbcVector_Y, pbcVector_Z);
+        //ommNonbondedForce->setPMEParameters(double alpha, int nx, int ny, int nz); // _pbc_
+
+        std::cout << "Set OpenMM System PBC " << std::endl;
+    
+    # endif
+    // ----------------------------------------------
+    // PBC - Periodic Boundary Conditions __end__
+    // ----------------------------------------------
+
+
     return openMMContext->getPlatform().getName();
 }
 
 
-
-
-//-----------------------------------------------------------------------------
-//                    updateCoordInOpenMM
-//-----------------------------------------------------------------------------
-void OpenMMPluginInterface::setOpenMMPositions(
-    const SimTK::Vector_<SimTK::Vec3>& includedAtomPos_G ) const
-{
-    assert(NonbondAtomsPositionsCache.size() == dumm->getNumNonbondAtoms());
-    assert(includedAtomPos_G.size() == dumm->getNumIncludedAtoms());
-
-    // Positions arrive in an array of all included atoms. Compress that down
-    // to just nonbond atoms and convert to OpenMM Vec3 type.
-    for (DuMM::NonbondAtomIndex nax(0); nax < dumm->getNumNonbondAtoms(); ++nax)
-    {
-        const auto& pos_G = includedAtomPos_G[dumm->getIncludedAtomIndexOfNonbondAtom(nax)];
-        NonbondAtomsPositionsCache[nax] = OpenMM::Vec3(pos_G[0], pos_G[1], pos_G[2]);
-    }
-
-    // Pass the converted positions to OpenMM
-    openMMContext->setPositions(NonbondAtomsPositionsCache);
-}
-
-void OpenMMPluginInterface::setOpenMMPositions(
-    const std::vector<SimTK::Vec3>& positions)
-{
-    // Make sure the memory cache is good
-    assert(PositionsCache.size() == positions.size());
-
-    // Copying means converting from one vector type to another
-    for (std::size_t i = 0; i < positions.size(); i++) {
-        const auto& p = positions[i];
-        PositionsCache[i] = OpenMM::Vec3(p[0], p[1], p[2]);
-    }
-
-    // Pass the converted positions to OpenMM
-    openMMContext->setPositions(PositionsCache);
-}
-
-
-//-----------------------------------------------------------------------------
-//                    getPositions
-//-----------------------------------------------------------------------------
-const std::vector<OpenMM::Vec3>& OpenMMPluginInterface::getPositions() const
-{
-    openMMState = openMMContext->getState(OpenMM::State::Positions);
-    return openMMState.getPositions();
-}
-
-//-----------------------------------------------------------------------------
-//                    updateAtomLocationsCache
-//-----------------------------------------------------------------------------
-void OpenMMPluginInterface::updateAtomLocationsCache()
-{
-    // openMMState = openMMContext->getState(OpenMM::State::Positions);
-    // return openMMState.getPositions();
-
-    openMMState = openMMContext->getState(OpenMM::State::Positions);
-    const auto numAtoms = openMMState.getPositions().size();
-
-    for (size_t i = 0; i < numAtoms; i++) {
-        const auto& atom = openMMState.getPositions()[i];
-        atomLocationsCache[i] = SimTK::Vec3(atom[0], atom[1], atom[2]);
-    }
-}
-
-
-//-----------------------------------------------------------------------------
-//                    getAtomPosition
-//-----------------------------------------------------------------------------
-SimTK::Vec3 OpenMMPluginInterface::getAtomPosition( int dummAtomIndex ) const
-{
-    SimTK::DuMM::AtomIndex dummAtomIndex_ai(dummAtomIndex);
-    SimTK::DuMM::NonbondAtomIndex nonbondedAtomIndex = dumm->getAtom(dummAtomIndex_ai).getNonbondAtomIndex();
-
-    openMMState = openMMContext->getState( OpenMM::State::Positions );
-    OpenMM::Vec3 position = openMMState.getPositions() [nonbondedAtomIndex]; 
-
-    return SimTK::Vec3 ( position[0], position[1], position[2] );
-
-    //return atomLocationsCache[nonbondedAtomIndex];
-
-    // openMMState = openMMContext->getState( OpenMM::State::Positions );
-    // OpenMM::Vec3 position = openMMState.getPositions() [nonbondedAtomIndex]; 
-
-    // return SimTK::Vec3 ( position[0], position[1], position[2] );
-
-}
-
-
-//-----------------------------------------------------------------------------
-//                    calcPotentialEnergy
-//-----------------------------------------------------------------------------
-Real OpenMMPluginInterface::calcPotentialEnergy() const
-{
-    openMMState = openMMContext->getState(OpenMM::State::Energy);
-    return openMMState.getPotentialEnergy();
-}
-
-//-----------------------------------------------------------------------------
-//                    calcKineticEnergy
-//-----------------------------------------------------------------------------
-Real OpenMMPluginInterface::calcKineticEnergy() const
-{
-    openMMState = openMMContext->getState(OpenMM::State::Energy);
-    return openMMState.getKineticEnergy();
-}
-
-//-----------------------------------------------------------------------------
-//                    integrateTrajectory
-//-----------------------------------------------------------------------------
-void OpenMMPluginInterface::integrateTrajectory(int steps)
-{
-    // // Print coordinates before integration
-    // openMMState = openMMContext->getState(OpenMM::State::Positions);
-    // const std::vector<OpenMM::Vec3>& omm_positions = openMMState.getPositions();
-    // for (int i = 0; i < omm_positions.size(); i++) {
-    //     std::cout << "Before integration: " << omm_positions[i][0] << " " << omm_positions[i][1] << " " << omm_positions[i][2] << ", mass = " << openMMSystem->getParticleMass(i) <<  std::endl;
-    // }
-    // std::cout<<std::flush;
-
-    // for (int i = 0; i < 16; i++) {
-    //     openMMSystem->setParticleMass(i, 0);
-    // }
-    // openMMSystem->setParticleMass(0, 0);
-    // openMMContext->reinitialize(true);
-    // openMMContext->setPositions(getPositions());
-
-    std::cout << std::setprecision(6) << std::fixed
-        << "OMMDEBUG OpenMMPluginInterface::integrateTrajectory for"
-        <<" "<<steps <<" x "
-        <<" "<<openMMIntegrator->getStepSize()
-        <<" at default thermostat T "<< openMMThermostat->getDefaultTemperature()
-        << std::endl;
-
-    openMMIntegrator->step(steps);
-
-    // // Print coordinates after integration
-    // openMMState = openMMContext->getState(OpenMM::State::Positions);
-    // const std::vector<OpenMM::Vec3>& positionsAfter = openMMState.getPositions();
-    // for (int i = 0; i < omm_positions.size(); i++) {
-    //     std::cout << "After integration: " << positionsAfter[i][0] << " " << positionsAfter[i][1] << " " << positionsAfter[i][2] << std::endl;
-    // }
-    // std::cout<<std::flush;
-}
-
-
-
-void OpenMMPluginInterface::setVelocitiesToTemperature(SimTK::Real temperature, uint32_t seed) {
-    // TODO why check
-    // std::cout << "setVelocitiesToTemperature " << temperature << " " << seed << std::endl;
-    if (openMMContext){
-        openMMThermostat->setDefaultTemperature(temperature);
-        openMMContext->setVelocitiesToTemperature(temperature, seed);
-    }
-}
-
-void OpenMMPluginInterface::setParticleMass(int index, SimTK::Real mass) {
-    openMMSystem->setParticleMass(index, mass);
-}
-
-void OpenMMPluginInterface::setOpenMMMasses(const std::vector<SimTK::Real>& argMasses) {
-    this->masses = argMasses;
-}
-
-
-//-----------------------------------------------------------------------------
-//                    calcOpenMMNonbondedAndGBSAForces
-//-----------------------------------------------------------------------------
+/*!
+ * <!-- Calculates forces and/or energy and *adds* them into the output
+ * parameters -->
+*/
 void OpenMMPluginInterface::calcOpenMMEnergyAndForces
    (const Vector_<Vec3>&    includedAtomStation_G,
     const Vector_<Vec3>&    includedAtomPos_G,
@@ -720,43 +594,250 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
     }
 
     if (wantEnergy)
-        energy += openMMState.getPotentialEnergy();
+        {energy += openMMState.getPotentialEnergy();}
 
     TRACE_OPENMM(("OpenMM_Energy\t" +
         std::to_string(openMMState.getPotentialEnergy()) + 
         "\n").c_str());
 }
 
+
+
+
+/*!
+ * <!-- Integrate trajectory using OpenMM -->
+*/
+void OpenMMPluginInterface::integrateTrajectory(int steps)
+{
+
+
+    // // Print coordinates after integration
+    // std::cout << "After integration:" << std::endl;
+    //stdcout_OpenmmPositions("OMMposs");
+    // std::cout<<std::flush;
+
+    // for (int i = 0; i < 16; i++) {
+    //     openMMSystem->setParticleMass(i, 0);
+    // }
+    // openMMSystem->setParticleMass(0, 0);
+    // openMMContext->reinitialize(true);
+    // openMMContext->setPositions(getPositions());
+
+    std::cout << std::setprecision(6) << std::fixed
+        << "OMMDEBUG OpenMMPluginInterface::integrateTrajectory for"
+        <<" "<<steps <<" x "
+        <<" "<<openMMIntegrator->getStepSize()
+        <<" at default thermostat T "<< openMMThermostat->getDefaultTemperature()
+        << std::endl;
+
+    openMMIntegrator->step(steps);
+
+    // // Print coordinates after integration
+    // std::cout << "After integration:" << std::endl;
+    //stdcout_OpenmmPositions("OMMposs");
+    // std::cout<<std::flush;
+}
+
+
+
+// -------------------------------------------- 
+// Interface
+// --------------------------------------------
+
+/*!
+ * <!-- Set NonbondAtomsPositionsCache and OpenMM positions -->
+*/                   
+void OpenMMPluginInterface::setOpenMMPositions(
+    const SimTK::Vector_<SimTK::Vec3>& includedAtomPos_G ) const
+{
+    assert(NonbondAtomsPositionsCache.size() == dumm->getNumNonbondAtoms());
+    assert(includedAtomPos_G.size() == dumm->getNumIncludedAtoms());
+
+    // Positions arrive in an array of all included atoms. Compress that down
+    // to just nonbond atoms and convert to OpenMM Vec3 type.
+    for (DuMM::NonbondAtomIndex nax(0); nax < dumm->getNumNonbondAtoms(); ++nax)
+    {
+        const auto& pos_G = includedAtomPos_G[dumm->getIncludedAtomIndexOfNonbondAtom(nax)];
+        NonbondAtomsPositionsCache[nax] = OpenMM::Vec3(pos_G[0], pos_G[1], pos_G[2]);
+    }
+
+    // Pass the converted positions to OpenMM
+    openMMContext->setPositions(NonbondAtomsPositionsCache);
+}
+
+/*!
+ * <!-- Set PositionsCache and OpenMM positions -->
+*/
+void OpenMMPluginInterface::setOpenMMPositions(
+    const std::vector<SimTK::Vec3>& positions)
+{
+    // Make sure the memory cache is good
+    assert(PositionsCache.size() == positions.size());
+
+    // Copying means converting from one vector type to another
+    for (std::size_t i = 0; i < positions.size(); i++) {
+        const auto& p = positions[i];
+        PositionsCache[i] = OpenMM::Vec3(p[0], p[1], p[2]);
+    }
+
+    // Pass the converted positions to OpenMM
+    openMMContext->setPositions(PositionsCache);
+}
+
+
+
+/*!
+ * <!--  -->
+*/
+const std::vector<OpenMM::Vec3>& OpenMMPluginInterface::getPositions() const
+{
+    openMMState = openMMContext->getState(OpenMM::State::Positions);
+    return openMMState.getPositions();
+}
+
+
+/*!
+ * <!--  -->
+*/
+void OpenMMPluginInterface::updateAtomLocationsCache()
+{
+    // openMMState = openMMContext->getState(OpenMM::State::Positions);
+    // return openMMState.getPositions();
+
+    openMMState = openMMContext->getState(OpenMM::State::Positions);
+    const auto numAtoms = openMMState.getPositions().size();
+
+    for (size_t i = 0; i < numAtoms; i++) {
+        const auto& atom = openMMState.getPositions()[i];
+        atomLocationsCache[i] = SimTK::Vec3(atom[0], atom[1], atom[2]);
+    }
+}
+
+
+
+/*!
+ * <!--  -->
+*/
+SimTK::Vec3 OpenMMPluginInterface::getAtomPosition( int dummAtomIndex ) const
+{
+    SimTK::DuMM::AtomIndex dummAtomIndex_ai(dummAtomIndex);
+    SimTK::DuMM::NonbondAtomIndex nonbondedAtomIndex = dumm->getAtom(dummAtomIndex_ai).getNonbondAtomIndex();
+
+    openMMState = openMMContext->getState( OpenMM::State::Positions );
+    OpenMM::Vec3 position = openMMState.getPositions() [nonbondedAtomIndex]; 
+
+    return SimTK::Vec3 ( position[0], position[1], position[2] );
+
+    //return atomLocationsCache[nonbondedAtomIndex];
+
+    // openMMState = openMMContext->getState( OpenMM::State::Positions );
+    // OpenMM::Vec3 position = openMMState.getPositions() [nonbondedAtomIndex]; 
+
+    // return SimTK::Vec3 ( position[0], position[1], position[2] );
+
+}
+
+
+/*!
+ * <!--  -->
+*/
+Real OpenMMPluginInterface::calcPotentialEnergy() const
+{
+    openMMState = openMMContext->getState(OpenMM::State::Energy);
+    return openMMState.getPotentialEnergy();
+}
+
+
+/*!
+ * <!--  -->
+*/
+Real OpenMMPluginInterface::calcKineticEnergy() const
+{
+    openMMState = openMMContext->getState(OpenMM::State::Energy);
+    return openMMState.getKineticEnergy();
+}
+
+/*!
+ * <!--  -->
+*/
+void OpenMMPluginInterface::setVelocitiesToTemperature(SimTK::Real temperature, uint32_t seed) {
+    // TODO why check
+    // std::cout << "setVelocitiesToTemperature " << temperature << " " << seed << std::endl;
+    if (openMMContext){
+        openMMThermostat->setDefaultTemperature(temperature);
+        openMMContext->setVelocitiesToTemperature(temperature, seed);
+    }
+}
+
+/*!
+ * <!--  -->
+*/
+void OpenMMPluginInterface::setParticleMass(int index, SimTK::Real mass) {
+    openMMSystem->setParticleMass(index, mass);
+}
+
+/*!
+ * <!--  -->
+*/
+void OpenMMPluginInterface::setOpenMMMasses(const std::vector<SimTK::Real>& argMasses) {
+    this->masses = argMasses;
+}
+
+
 void OpenMMPluginInterface::setSeed(uint32_t seed) {
     this->seed = seed;
 }
 
+/*!
+ * <!--  -->
+*/
 void OpenMMPluginInterface::setTimestep(Real stepsize) {
     openMMIntegrator->setStepSize(stepsize);
 }
 
+
+// -------------------------------------------- 
+// Debugging information
+// --------------------------------------------
+
+/*!
+ * <!-- Print OpenMM positions -->
+*/
+void OpenMMPluginInterface::stdcout_OpenmmPositions(const std::string& header__ )
+{
+    openMMState = openMMContext->getState(OpenMM::State::Positions);
+    const std::vector<OpenMM::Vec3>& omm_positions = openMMState.getPositions();
+
+    for (int oaix = 0; oaix < omm_positions.size(); oaix++) {
+        std::cout << header__
+            <<" "<< omm_positions[oaix][0]
+            <<" "<< omm_positions[oaix][1]
+            <<" "<< omm_positions[oaix][2]
+            // <<" "<< openMMSystem->getParticleMass(oaix)
+            << std::endl;
+    }
+}
+
+
+
+
 // void OpenMMPluginInterface::setNonbondedCutoff (SimTK::Real cutoff) {
 //     assert(!"Not implemented!");
 // }
-
 // void OpenMMPluginInterface::setOpenMMPlatform (std::string platform) {
 //     assert(!"Not implemented!");
 // }
-
 // void OpenMMPluginInterface::setGPUindex(std::string GPUindex) {
 //     assert(!"Not implemented!");
 // }
-
 // SimTK::Real OpenMMPluginInterface::getNonbondedCutoff() const {
 //     assert(!"Not implemented!");
 //     return -1;
 // }
-
 // std::string OpenMMPluginInterface::getOpenMMPlatform() const {
 //     assert(!"Not implemented!");
 //     return "";
 // }
-
 // std::string OpenMMPluginInterface::getGPUindex() const {
 //     assert(!"Not implemented!");
 //     return "";
