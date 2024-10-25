@@ -508,7 +508,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
     // ----------------------------------------------
     // PBC - Periodic Boundary Conditions __begin__
     // ----------------------------------------------
-    #ifdef PBC // _pbc_
+    #ifdef __PBC__ // _pbc_
 
         OpenMM::Vec3 pbcVector_X(1, 0, 0);
         OpenMM::Vec3 pbcVector_Y(0, 1, 0);

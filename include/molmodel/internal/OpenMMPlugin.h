@@ -16,6 +16,11 @@
 // #define __DRILLING__
 // #endif
 
+#ifndef __PBC__ // _pbc_
+#define __PBC__
+#endif
+
+
 // Minimum number of bits needed to represent a number in binary
 int requiredBits(int number) ;
 
