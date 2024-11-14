@@ -38,7 +38,7 @@ public:
     SimTK_DEFINE_UNIQUE_LOCAL_INDEX_TYPE(AtomSubsystem, LocalBodyIndex);
     SimTK_DEFINE_UNIQUE_LOCAL_INDEX_TYPE(AtomSubsystem, BondIndex);
  
-    typedef std::vector<AtomIndex> AtomIndexList;
+    typedef std::vector<AtomIndex> AtomIndexVector;
     
     class Atom 
     {
@@ -103,7 +103,7 @@ public:
         {}
 
         MobilizedBodyIndex bodyIx;
-        AtomIndexList atoms;
+        AtomIndexVector atoms;
         std::set<MobilizedBodyIndex> bodyExclusions;
     };
 
@@ -145,9 +145,9 @@ public:
     AtomSubsystem& setAtomMobilizedBodyIndex(AtomIndex atomIx, MobilizedBodyIndex bodyIx);
     
     // Fetch atom list by local body ID in this subsystem
-    const AtomIndexList& getBodyAtoms( LocalBodyIndex bodyIx ) const;
+    const AtomIndexVector& getBodyAtoms( LocalBodyIndex bodyIx ) const;
     // Fetch atom list by body ID in MultibodySystem
-    const AtomIndexList& getBodyAtoms( SimTK::MobilizedBodyIndex bodyIx ) const;
+    const AtomIndexVector& getBodyAtoms( SimTK::MobilizedBodyIndex bodyIx ) const;
 
     AtomIndex addAtom( mass_t mass = 0.0 * daltons );
 
@@ -194,7 +194,7 @@ private:
     Pair currentPair;
     AtomicBodies::const_iterator body1;
     AtomicBodies::const_iterator body2;
-    AtomIndexList::const_iterator atom1;
+    AtomIndexVector::const_iterator atom1;
     // atom2 iterator might point to a local container, when voxel hash is used.
     // which could become invalid when this iterator is copied.
     // So use an index for atom2, instead of an iterator
@@ -203,7 +203,7 @@ private:
     bool bUseVoxelHash;
     
     std::set<AtomicBodies::const_iterator> pendingBodies;
-    AtomIndexList currentNeighborAtoms;
+    AtomIndexVector currentNeighborAtoms;
     
     void trialIncrementAtoms();
     void trialIncrementBodies();

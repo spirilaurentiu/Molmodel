@@ -36,6 +36,12 @@
 #include "molmodel/internal/AtomSubsystem.h"
 #include <map>
 #include <ostream>
+
+
+#ifndef EXPLORER
+#define EXPLORER 0
+#endif
+
 namespace SimTK {
 
 
@@ -639,9 +645,19 @@ private:
     friend std::ostream& operator<<(std::ostream&, const BondInfo&);
 };
 
-// BondCenter is a class representing one half of a covalent
-// bond between two atoms.  BondCenter belongs to one atom and
-// represents one possible direction for a covalent bond.
+//==============================================================================
+//                           CLASS BondCenter
+//==============================================================================
+/** 
+ * BondCenter is a class representing one half of a covalent
+ * bond between two atoms.  BondCenter belongs to one atom and
+ * represents one possible direction for a covalent bond.
+**/
+
+/*! <!-- BondCenter is a class representing one half of a covalent
+ * bond between two atoms.  BondCenter belongs to one atom and
+ * represents one possible direction for a covalent bond. -->
+*/
 class BondCenter {
 public:
     enum Chirality {RightHanded, LeftHanded, Planar};
@@ -650,32 +666,35 @@ public:
     // Given two other bond directions, and two bond angles,
     // determine direction of third bond
     static UnitVec3 getBondDirection(
-        const UnitVec3& a1,
-        Angle theta1,
-        const UnitVec3& a2,
-        Angle theta2,
+        const UnitVec3& bondDir_1, Angle theta1,
+        const UnitVec3& bondDir_2, Angle theta2,
         Chirality chirality
         ) 
     {
-        //std::cout<<"BEGIN BondCenter::getBondDirection()"<<std::endl; // EU
-        //std::cout<<"  BondCenter::getBondDirection() a1 "<<a1<<" a2 "<<a2<<std::endl; // EU
-        //std::cout<<__FILE__<<":"<<__LINE__<<" a1 theta1 a2 theta2 chirality "<< a1<<", "<< theta1<<", "<<a2<<", "<<theta2<<", "<<chirality<<std::endl;
+
+        if(EXPLORER){
+            std::cout<<"BondCenter::getBondDirection() a1 "<<bondDir_1<<" a2 "<<bondDir_2<<std::endl;
+            std::cout<<__FILE__<<":"<<__LINE__<<" a1 theta1 a2 theta2 chirality "<< bondDir_1<<", "<< theta1<<", "<<bondDir_2<<", "<<theta2<<", "<<chirality<<std::endl;
+        }
+
         // Complete basis with third vector
-        const UnitVec3 a3(a1 % a2);
+        const UnitVec3 bondDir_12_normal(bondDir_1 % bondDir_2);
 
         if (chirality == Planar) {
-            //std::cout<<"  BondCenter::getBondDirection() chirality == Planar"<<std::endl; // EU
+
+            if(EXPLORER){
+                std::cout<<"  BondCenter::getBondDirection() chirality == Planar"<<std::endl;
+            }
             assert( theta1 >= 0 );
             // assert( theta1 >= -180*Deg2Rad );
             assert( theta1 <= 180*Deg2Rad );
-
             assert( theta2 >= 0 );
             assert( theta2 <= 180*Deg2Rad );
 
             // TODO - decide direction of theta1 based on estimate of theta2
 
             // estimate angle between first two bond centers
-            Angle theta12 = dot(a1, a2);
+            Angle theta12 = dot(bondDir_1, bondDir_2);
             if (theta12 > 1.0) theta12 = 1.0;
             if (theta12 < -1.0) theta12 = -1.0;
             theta12 = std::acos(theta12);
@@ -690,17 +709,16 @@ public:
             Angle adjacentError = std::abs(std::abs(theta12 - theta1) - theta2);
 
             // if this is on the opposite side from bond2, flip theta1
-            if ( (adjacentError > oppositeError1) || (adjacentError > oppositeError2) ) 
+            if ( (adjacentError > oppositeError1) || (adjacentError > oppositeError2) )
                 theta1 = -theta1; // move to opposite hemisphere from a2 w.r.t. a1
 
-            UnitVec3 direction( Rotation( theta1, a3 ) * a1 );
-            UnitVec3 sanityCheck( Rotation( theta12, a3) * a1 );
+            UnitVec3 direction( Rotation( theta1, bondDir_12_normal ) * bondDir_1 );
+            UnitVec3 sanityCheck( Rotation( theta12, bondDir_12_normal) * bondDir_1 );
 
             return direction;
         }
 
         else { // non-planar chirality
-            //std::cout<<"  BondCenter::getBondDirection() chirality != Planar"<<std::endl; // EU
 
             // Bond angles are strictly positive
             assert(theta1 >= 0);
@@ -710,28 +728,34 @@ public:
 
 
             // Compute coefficients of new bond direction in basis a1,a2,a3
-            Real cosTheta = dot(a1, a2);
-            assert(cosTheta != 0); // non colinear
-            assert(cosTheta >= -1);
-            assert(cosTheta <= 1);
+            Real cosTheta12 = dot(bondDir_1, bondDir_2);
+
+            assert(cosTheta12 != 0); // non colinear
+            assert(cosTheta12 >= -1);
+            assert(cosTheta12 <= 1);
 
             Real cosTheta1 = std::cos(theta1);
             Real cosTheta2 = std::cos(theta2);
-            //std::cout<<"  BondCenter::getBondDirection() cosTheta1 " // EU
-            //  <<cosTheta1<<" cosTheta2 "<<cosTheta2<<" cosTheta "<<cosTheta<<std::endl; // EU
-            Real sinSquaredTheta = 1.0 - (cosTheta*cosTheta);
+
+            if(EXPLORER){
+                std::cout<<"BondCenter::getBondDirection() cosTheta1 "
+                    <<cosTheta1<<" cosTheta2 "<<cosTheta2<<" cosTheta "<<cosTheta12<<std::endl;
+            }            
+            Real sinSquaredTheta12 = 1.0 - (cosTheta12*cosTheta12);
 
             // a1 and a2 must not be parallel
-            assert(sinSquaredTheta > 0);
+            assert(sinSquaredTheta12 > 0);
 
-            Real v1 = (cosTheta1 - cosTheta*cosTheta2) / sinSquaredTheta;
-            Real v2 = (cosTheta2 - cosTheta*cosTheta1) / sinSquaredTheta;
-            //std::cout<<__FILE__<<":"<<__LINE__<<" v1 v2 = "<<v1<<", "<<v2<<std::endl;
-            Real v3Squared = 1.0 - (v1*v1 + v2*v2 + 2.0*v1*v2*cosTheta);
-            //std::cout<<"  BondCenter::getBondDirection() v1 "<<v1<<" v2 "<<v2<<" v3Sq  "<<v3Squared<<std::endl; // EU
+            Real v1 = (cosTheta1 - cosTheta12*cosTheta2) / sinSquaredTheta12;
+            Real v2 = (cosTheta2 - cosTheta12*cosTheta1) / sinSquaredTheta12;
+            Real v3Squared = 1.0 - (v1*v1 + v2*v2 + 2.0*v1*v2*cosTheta12);
 
-	    //std::cout<<__FILE__<<":"<<__LINE__<<" v1 v2 cosTheta = "<<v1<<", "<<v2<<", "<<cosTheta<<std::endl; 
-	    //std::cout<<__FILE__<<":"<<__LINE__<<" 1.0 - (v1*v1 + v2*v2 + 2.0*v1*v2*cosTheta) = "<<1.0 - (v1*v1 + v2*v2 + 2.0*v1*v2*cosTheta)<<std::endl;
+            if(EXPLORER){
+                std::cout<<__FILE__<<":"<<__LINE__<<" v1 v2 = "<<v1<<", "<<v2<<std::endl;
+                std::cout<<"  BondCenter::getBondDirection() v1 "<<v1<<" v2 "<<v2<<" v3Sq  "<<v3Squared<<std::endl;
+                std::cout<<__FILE__<<":"<<__LINE__<<" v1 v2 cosTheta = "<<v1<<", "<<v2<<", "<<cosTheta12<<std::endl; 
+                std::cout<<__FILE__<<":"<<__LINE__<<" 1.0 - (v1*v1 + v2*v2 + 2.0*v1*v2*cosTheta) = "<<1.0 - (v1*v1 + v2*v2 + 2.0*v1*v2*cosTheta12)<<std::endl;
+            }
 
             // no solutions for certain sets of angles
             //assert(v3Squared >= 0);
@@ -748,10 +772,9 @@ public:
 
             if ( chirality == LeftHanded ) v3 = -v3;
 
-            return UnitVec3(v1*a1 + v2*a2 + v3*a3);
+            return UnitVec3(v1*bondDir_1 + v2*bondDir_2 + v3*bondDir_12_normal);
         }
  
-       //std::cout<<"END   BondCenter::getBondDirection()"<<std::endl; // EU     
     }
 
     // Default constructor to be used only for storage in std types
@@ -792,6 +815,7 @@ public:
     }
 
     Angle getDefaultBond1Angle() const {return defaultBond1Angle;}
+
     BondCenter& setDefaultBond1Angle(Angle angle) 
     {
         assert(angle > 0);
@@ -801,6 +825,7 @@ public:
     }
 
     Angle getDefaultBond2Angle() const {return defaultBond2Angle;}
+    
     BondCenter& setDefaultBond2Angle(Angle angle) 
     {
         assert(angle > 0);
@@ -1185,7 +1210,7 @@ public:
         UnitVec3 direction = getBondCenterDirectionInAtomFrame(bondCenterIndex);
 
         // Another bondCenter is used to define the bond center y-axis for dihedral angles
-        // Reference direction for dihedral computation
+        // Reference direction for dihedral computation (1 if BC is 0, and 0 otherwise)
         const BondCenterIndex yAxisIndex = BondCenterIndex(bondCenter.getDefaultDihedralReferenceCenter());
         UnitVec3 ydir(0, 1, 0); // default to actual y-axis for one-bond-center-atom case
 

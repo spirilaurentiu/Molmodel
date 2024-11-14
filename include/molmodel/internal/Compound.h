@@ -744,7 +744,6 @@ public:
 
     /**
      * \brief Create a mapping between this Compound and atom locations in a PdbStructure
-     *
      * For use in the process of importing a configuration from a PDB file
      */
     virtual AtomTargetLocations createAtomTargets
@@ -759,9 +758,10 @@ public:
 
 
 
-	// EU: get list of all runs of consecutive bonded atoms of run-length n 
-	// from the atoms mentions in an AtomTargetLocations structure
-	// for example, to get a list of all bonded pairs, set run-length to 2.
+	/** \brief Get list of all runs of consecutive bonded atoms of run-length n 
+	 * from the atoms mentions in an AtomTargetLocations structure
+	 * for example, to get a list of all bonded pairs, set run-length to 2.
+    */
 	std::vector< std::vector<Compound::AtomIndex> > getBondedAtomRuns(
 	int atomRunCount,
 	const AtomTargetLocations& atomTargets) const;
@@ -772,32 +772,61 @@ public:
      */
     Compound& PrintCompoundGeometry(const Compound::AtomTargetLocations& atomTargets);
 
-    /**
-     * \brief Adjust stereochemistry about chiral atoms to match that seen in a set of atomic locations
-     *
-     * Choose a small value of planarityTolerance parameter to break the planarity of out-of-plane atoms from the target set 
-     *
-     * \return a reference to this compound
+    /** \brief Adjust stereochemistry about chiral atoms to match that seen in a set of atomic locations
+     * Choose a small value of planarityTolerance parameter to break the planarity of out-of-plane atoms from the target set
+     * \param atomTargets ///< another set of atom locations to match chirality of
+     * \param planarityTolerance ///< break planarity of BondCenters more than this angle out of plane (radians)
+     * \param flipAll ///< whether to invert each mismatched BondCenter, or all at once
+     * \return c
      */
     Compound& matchDefaultAtomChirality(
-            const AtomTargetLocations& atomTargets, ///< another set of atom locations to match chirality of
-            Angle planarityTolerance = 90.0 * Deg2Rad, ///< break planarity of BondCenters more than this angle out of plane (radians)
-            bool flipAll = true ///< whether to invert each mismatched BondCenter, or all at once
+            const AtomTargetLocations& atomTargets, 
+            Angle planarityTolerance = 90.0 * Deg2Rad, 
+            bool flipAll = true 
             );
+
+    /** \brief __no_desc__
+     * \param __no_param__ //
+     * \return a reference to this compound
+     */
     Compound& matchDefaultBondLengths(const AtomTargetLocations& atomTargets);
+
+    /** \brief __no_desc__
+     * \param __no_param__ //
+     * \return a reference to this compound
+     */
     Compound& matchDefaultBondAngles(const AtomTargetLocations& atomTargets);
 
+    /** \brief __no_desc__
+     * \param __no_param__ //
+     * \return a reference to this compound
+     */
     Compound& matchDefaultDirections(const AtomTargetLocations& atomTargets); // NEWMOB
 
     enum PlanarBondMatchingPolicy {KeepPlanarBonds, DistortPlanarBonds, FlipPlanarBonds};
+
+    /** \brief __no_desc__
+     * \param __no_param__ //
+     * \return a reference to this compound
+     */
     Compound& matchDefaultDihedralAngles(
         const AtomTargetLocations& atomTargets,///< set of atom locations to match dihedrals of
         PlanarBondMatchingPolicy policy = FlipPlanarBonds ///< whether to keep ideal torsions on bonds between planar atoms
         );
 
+    /** \brief __no_desc__
+     * \param __no_param__ //
+     * \return a reference to this compound
+     */
     Compound& matchDefaultTopLevelTransform(const AtomTargetLocations& atomTargets);
+
+    /** \brief __no_desc__
+     * \param __no_param__ //
+     * \return a reference to this compound
+     */
     TransformAndResidual getTransformAndResidual(const Compound::AtomTargetLocations& atomTargets) const;
     
+
     /// Adjust internal coordinates to match a collection of atom targets.
     Compound& matchDefaultConfiguration(
             const AtomTargetLocations& atomTargets, 
@@ -1192,16 +1221,19 @@ public:
     Vec3 getAtomLocationInMobilizedBodyFrame(Compound::AtomIndex ///< integer index of the Atom in this Compound context.
         ) const;
 
-    /**
-     * \brief define the Biotype for an Atom in this Compound
-     *
-     * \return a reference to this compound object
+    /** \brief define the Biotype for an Atom in this Compound
+     *  \param __fill__ 
+     *  \return a reference to this compound object
      */
     Compound& setBiotypeIndex(
         const Compound::AtomPathName& atomName, ///< name of the atom in the context of this Compound
         BiotypeIndex biotype ///< integer index of an existing Biotype known to the Biotype class
         );
     
+    /** \brief define the Biotype for an Atom in this Compound
+     *  \param __fill__ 
+     *  \return a reference to this compound object
+     */    
     Compound& setAtomBiotype(
             const Compound::AtomPathName& atomName,
             const String& biotypeResidueName,
@@ -1218,16 +1250,7 @@ public:
                 biotypeResidueName, 
                 biotypeAtomName, 
                 ordinality);
-            // std::cout << "SP_NEW_LAB Compound::setAtomBiotype does not exist."
-            //     << atomName <<" " << biotypeResidueName <<" " << biotypeAtomName <<" "
-            //     << std::endl;
         }
-        // else{
-
-        //     std::cout << "SP_NEW_LAB Compound::setAtomBiotype exists."
-        //         << atomName <<" " << biotypeResidueName <<" " << biotypeAtomName <<" "            
-        //         << std::endl;
-        // }
         
         const Biotype& biotype = Biotype::get(biotypeResidueName, biotypeAtomName, ordinality);
         
@@ -1240,7 +1263,10 @@ public:
         return *this;
     }
 
-    /// \return the biotype assigned to an Atom in this Compound
+    /** \brief __fill__
+     *  \param __fill__ 
+     *  \return the biotype assigned to an Atom in this Compound
+     */   
     BiotypeIndex getAtomBiotypeIndex(Compound::AtomIndex ///< integer index of an Atom in this Compound
         ) const;
 

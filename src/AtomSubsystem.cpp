@@ -152,11 +152,11 @@ const MultibodySystem& AtomSubsystem::getMultibodySystem() const {
 }
 
 // Fetch atom list by local body ID in this subsystem
-const AtomSubsystem::AtomIndexList& AtomSubsystem::getBodyAtoms( LocalBodyIndex bodyIx ) const {
+const AtomSubsystem::AtomIndexVector& AtomSubsystem::getBodyAtoms( LocalBodyIndex bodyIx ) const {
     return getRep().atomsByBody[bodyIx].atoms;
 }
 // Fetch atom list by body ID in MultibodySystem
-const AtomSubsystem::AtomIndexList& AtomSubsystem::getBodyAtoms( MobilizedBodyIndex bodyIx ) const {
+const AtomSubsystem::AtomIndexVector& AtomSubsystem::getBodyAtoms( MobilizedBodyIndex bodyIx ) const {
     return getBodyAtoms(getRep().systemBodyIxToLocalBodyIx.find(bodyIx)->second);
 }
 
@@ -606,7 +606,7 @@ void AtomSubsystem::PairIterator::trialIncrementBodies()
 }
 
 void AtomSubsystem::PairIterator::populateVoxelHash(AtomicBodies::const_iterator bodyIter) {
-    AtomIndexList::const_iterator a;
+    AtomIndexVector::const_iterator a;
     for (a = bodyIter->atoms.begin(); a != bodyIter->atoms.end(); ++a) {
         voxelHash.insert(*a, atomSubsystem->getAtomLocationInGround(*state, *a) );
     }

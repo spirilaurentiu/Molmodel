@@ -300,6 +300,8 @@ CompoundRep& CompoundRep::setBaseAtom(
     return *this;
 }
 
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::setBaseAtom(
     const Compound::AtomName& name, 
     const Biotype& biotype,
@@ -351,13 +353,12 @@ Compound::BondCenterIndex CompoundRep::setBaseCompound(
     return inboardIndex;
 }
 
-/*!
- * <!-- Bonds the new atom compound, absorbs the compound and asimilates its
-* names. -->
-*/
-// Add a subcompound containing exactly one atom, so the Compound::AtomName
-// can be reused for the Compound::Name. This atom is connected to existing
-// material
+/*! <!-- Bonds the new atom compound, absorbs the compound and asimilates its
+* names. 
+* Add a subcompound containing exactly one atom, so the Compound::AtomName
+* can be reused for the Compound::Name. This atom is connected to existing
+* material
+--> */
 CompoundRep& CompoundRep::bondAtom(
     const Compound::SingleAtom&   atomCompound, 
     const Compound::BondCenterPathName& parentBondName, 
@@ -384,6 +385,8 @@ CompoundRep& CompoundRep::bondAtom(
 }
 
 // Compute atom location in local compound frame
+/*! <!-- __fill__ -->
+*/
 Transform CompoundRep::calcDefaultAtomFrameInCompoundFrame(const Compound::AtomName& name) const {
     assert(hasAtom(name));
     //cout<<__FILE__<<":"<<__LINE__<<" name "<<name<<endl;
@@ -393,12 +396,16 @@ Transform CompoundRep::calcDefaultAtomFrameInCompoundFrame(const Compound::AtomN
 }
 
 // Compute atom location in local compound frame
+/*! <!-- __fill__ -->
+*/
 Vec3 CompoundRep::calcDefaultAtomLocationInCompoundFrame(const Compound::AtomName& name) const 
 {
     return calcDefaultAtomFrameInCompoundFrame(name).p();
 }
 
 // Compute atom location in local compound frame
+/*! <!-- __fill__ -->
+*/
 Transform CompoundRep::calcDefaultAtomFrameInGroundFrame(const Compound::AtomName& name) const 
 {
     // TODO - this only works for top level compounds
@@ -408,6 +415,8 @@ Transform CompoundRep::calcDefaultAtomFrameInGroundFrame(const Compound::AtomNam
 }
 
 // Compute atom location in local compound frame
+/*! <!-- __fill__ -->
+*/
 Vec3 CompoundRep::calcDefaultAtomLocationInGroundFrame(const Compound::AtomName& name) const 
 {
     return calcDefaultAtomFrameInGroundFrame(name).p();
@@ -501,6 +510,8 @@ CompoundRep& CompoundRep::bondCompound(
 
 
 //Sam added bond mobility parameter
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::bondCompound(
     const Compound::Name&         n,
     const Compound&               c,
@@ -523,53 +534,8 @@ CompoundRep& CompoundRep::bondCompound(
     return *this;
 }
 
-
-
-//CompoundRep& CompoundRep::removeAtom(const Compound::AtomName& name) {
-//    removeAtom(getAtomInfo(name).getIndex());
-//}
-//
-//
-//CompoundRep& CompoundRep::removeAtom(const Compound::AtomIndex& atomId) {
-//    AtomInfo& atomInfo = getAtomInfo(atomId);
-//    Atom& atom = getAtom(atomId);
-//
-//    // TODO remove bonds and bond centers
-//    // remove bond centers
-//    std::vector<BondCenterInfo>::iterator bc;
-//    for (bc = bondCenters.begin(); bc != bondCenters.end(); ++bc) {
-//        if (bc->getAtomIndex() == atomId)
-//            removeBondCenter(bc->getIndex());
-//    }
-//
-//    // TODO remove bonds
-//
-//    // TODO remove name table entries
-//    // TODO what if our parent has a reference to this atom?
-//
-//    // Finally, clear the data structures referencing the atoms
-//    if (atomInfo.isLocal()) {
-//        localAtoms[atomInfo.getLocalAtomIndex()] = Atom();
-//    }
-//    else {
-//        Compound& subcompound = getSubcompound(atomInfo.getSubcompoundName());
-//        subcompound.removeAtom(atomInfo.getSubcompoundAtomName());
-//    }
-//}
-
-
-//CompoundRep& CompoundRep::setInboardBondCenter(
-//    const Compound::BondCenterName& centerName, 
-//    const Compound::AtomName& atomName, 
-//    Angle zRotation,
-//    Angle oldXRotation)
-//{
-//    addBondCenter(centerName, atomName, zRotation, oldXRotation);
-//    setInboardBondCenter(centerName);
-//
-//    return *this;
-//}
-
+/*! <!-- Add first BondCenter -->
+*/
 CompoundRep& CompoundRep::addFirstBondCenter(
     const Compound::BondCenterName& centerName, 
     const Compound::AtomName& atomName
@@ -581,18 +547,20 @@ CompoundRep& CompoundRep::addFirstBondCenter(
     assert (!hasBondCenter(centerName));
 
     const Compound::AtomIndex atomId = getAtomInfo(atomName).getIndex();
-    const CompoundAtom::BondCenterIndex centerIndex = updAtom(atomId).addFirstBondCenter();
+    const CompoundAtom::BondCenterIndex atomBCIx = updAtom(atomId).addFirstBondCenter();
 
-    addBondCenterInfo(atomId, centerIndex);
-    BCName_To_BCIx[centerName] = getBondCenterInfo(atomId, centerIndex).getIndex();
+    addBondCenterInfo(atomId, atomBCIx);
+    BCName_To_BCIx[centerName] = getBondCenterInfo(atomId, atomBCIx).getIndex();
 
     assert (hasBondCenter(centerName));
 
     return *this;
 }
 
+/*! <!-- Add second BondCenter -->
+*/
 CompoundRep& CompoundRep::addSecondBondCenter(
-    const Compound::BondCenterName& centerName, 
+    const Compound::BondCenterName& BCName, 
     const Compound::AtomName& atomName,
     Angle bondAngle1
     ) 
@@ -600,46 +568,49 @@ CompoundRep& CompoundRep::addSecondBondCenter(
     // Only top level compounds can construct new topology
     // assert(! hasParentCompound() );
 
-    assert (!hasBondCenter(centerName));
+    assert (!hasBondCenter(BCName));
 
     const Compound::AtomIndex atomId = getAtomInfo(atomName).getIndex();
-    const CompoundAtom::BondCenterIndex centerIndex = updAtom(atomId).addSecondBondCenter(bondAngle1);
+    const CompoundAtom::BondCenterIndex atomBCIx = updAtom(atomId).addSecondBondCenter(bondAngle1);
 
-    addBondCenterInfo(atomId, centerIndex);
-    BCName_To_BCIx[centerName] = getBondCenterInfo(atomId, centerIndex).getIndex();
+    addBondCenterInfo(atomId, atomBCIx);
+    BCName_To_BCIx[BCName] = getBondCenterInfo(atomId, atomBCIx).getIndex();
 
-    assert (hasBondCenter(centerName));
+    assert (hasBondCenter(BCName));
 
     return *this;
 }
 
-// NEWMOB BEGIN
+/*! <!-- Add first two BondCenters along with their directions
+ * for new mobilities in Gmolmodel -->
+*/
 CompoundRep& CompoundRep::addFirstTwoBondCenters(
-        const Compound::BondCenterName& centerName1,
-        const Compound::BondCenterName& centerName2,
+        const Compound::BondCenterName& BCName1,
+        const Compound::BondCenterName& BCName2,
         const Compound::AtomName& atomName,
-        UnitVec3 dir1, UnitVec3 dir2
-)
+        UnitVec3 dir1, UnitVec3 dir2)
 {
-    assert (!hasBondCenter(centerName1));
-    assert (!hasBondCenter(centerName2));
+    assert (!hasBondCenter(BCName1));
+    assert (!hasBondCenter(BCName2));
 
     const Compound::AtomIndex atomId = getAtomInfo(atomName).getIndex();
 
-    const std::vector<CompoundAtom::BondCenterIndex> centerIndeces = updAtom(atomId).addFirstTwoBondCenters(dir1, dir2);
+    const std::vector<CompoundAtom::BondCenterIndex> atomBCIxs = updAtom(atomId).addFirstTwoBondCenters(dir1, dir2);
 
-    addBondCenterInfo(atomId, centerIndeces[0]);
-    addBondCenterInfo(atomId, centerIndeces[1]);
+    addBondCenterInfo(atomId, atomBCIxs[0]);
+    addBondCenterInfo(atomId, atomBCIxs[1]);
 
-    BCName_To_BCIx[centerName1] = getBondCenterInfo(atomId, centerIndeces[0]).getIndex();
-    BCName_To_BCIx[centerName2] = getBondCenterInfo(atomId, centerIndeces[1]).getIndex();
+    BCName_To_BCIx[BCName1] = getBondCenterInfo(atomId, atomBCIxs[0]).getIndex();
+    BCName_To_BCIx[BCName2] = getBondCenterInfo(atomId, atomBCIxs[1]).getIndex();
 
-    assert (hasBondCenter(centerName1));
-    assert (hasBondCenter(centerName2));
+    assert (hasBondCenter(BCName1));
+    assert (hasBondCenter(BCName2));
 
     return *this;
-} // NEWMOB END
+}
 
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::addPlanarBondCenter(
     const Compound::BondCenterName& centerName, 
     const Compound::AtomName& atomName,
@@ -663,8 +634,10 @@ CompoundRep& CompoundRep::addPlanarBondCenter(
     return *this;
 }
 
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::addRightHandedBondCenter(
-    const Compound::BondCenterName& centerName, 
+    const Compound::BondCenterName& BCName, 
     const Compound::AtomName& atomName,
     Angle bondAngle1,
     Angle bondAngle2
@@ -673,21 +646,23 @@ CompoundRep& CompoundRep::addRightHandedBondCenter(
     // Only top level compounds can construct new topology
     // assert(! hasParentCompound() );
 
-    assert (!hasBondCenter(centerName));
+    assert (!hasBondCenter(BCName));
 
     const Compound::AtomIndex atomId = getAtomInfo(atomName).getIndex();
-    const CompoundAtom::BondCenterIndex centerIndex = updAtom(atomId).addRightHandedBondCenter(bondAngle1, bondAngle2);
+    const CompoundAtom::BondCenterIndex atomBCIx = updAtom(atomId).addRightHandedBondCenter(bondAngle1, bondAngle2);
 
-    addBondCenterInfo(atomId, centerIndex);
-    BCName_To_BCIx[centerName] = getBondCenterInfo(atomId, centerIndex).getIndex();
+    addBondCenterInfo(atomId, atomBCIx);
+    BCName_To_BCIx[BCName] = getBondCenterInfo(atomId, atomBCIx).getIndex();
 
-    assert (hasBondCenter(centerName));
+    assert (hasBondCenter(BCName));
 
     return *this;
 }
 
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::addLeftHandedBondCenter(
-    const Compound::BondCenterName& centerName, 
+    const Compound::BondCenterName& BCName, 
     const Compound::AtomName& atomName,
     Angle bondAngle1,
     Angle bondAngle2
@@ -696,19 +671,21 @@ CompoundRep& CompoundRep::addLeftHandedBondCenter(
     // Only top level compounds can construct new topology
     // assert(! hasParentCompound() );
 
-    assert (!hasBondCenter(centerName));
+    assert (!hasBondCenter(BCName));
 
     const Compound::AtomIndex atomId = getAtomInfo(atomName).getIndex();
-    const CompoundAtom::BondCenterIndex centerIndex = updAtom(atomId).addLeftHandedBondCenter(bondAngle1, bondAngle2);
+    const CompoundAtom::BondCenterIndex atomBCIx = updAtom(atomId).addLeftHandedBondCenter(bondAngle1, bondAngle2);
 
-    addBondCenterInfo(atomId, centerIndex);
-    BCName_To_BCIx[centerName] = getBondCenterInfo(atomId, centerIndex).getIndex();
+    addBondCenterInfo(atomId, atomBCIx);
+    BCName_To_BCIx[BCName] = getBondCenterInfo(atomId, atomBCIx).getIndex();
 
-    assert (hasBondCenter(centerName));
+    assert (hasBondCenter(BCName));
 
     return *this;
 }
 
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::addBondCenterInfo(
     Compound::AtomIndex atomId,
     CompoundAtom::BondCenterIndex atomCenterIndex)
@@ -735,7 +712,8 @@ CompoundRep& CompoundRep::addBondCenterInfo(
     return *this;
 }
 
-
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::addRingClosingBond(
     const Compound::BondCenterName& centerName1, 
     const Compound::BondCenterName& centerName2,
@@ -762,7 +740,8 @@ CompoundRep& CompoundRep::addRingClosingBond(
     return *this;
 }
 
-
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::addRingClosingBond(
     const Compound::BondCenterName& centerName1, 
     const Compound::BondCenterName& centerName2
@@ -786,6 +765,8 @@ CompoundRep& CompoundRep::addRingClosingBond(
     return *this;
 }
 
+/*! <!-- __fill__ -->
+*/
 int CompoundRep::getNumAtoms() const {
     return allAtoms.size();
 }
@@ -796,10 +777,14 @@ const Compound::AtomName CompoundRep::getAtomName(Compound::AtomIndex aid) const
     return atomInfo.getName(); // local name exists
 }
 
+/*! <!-- __fill__ -->
+*/
 BiotypeIndex CompoundRep::getAtomBiotypeIndex(const Compound::AtomIndex aid) const {
     return getAtom(aid).getBiotypeIndex();
 }
 
+/*! <!-- __fill__ -->
+*/
 Compound::AtomIndex CompoundRep::getBondAtomIndex(Compound::BondIndex bid, int which) const {
     assert(which==0 || which==1);
     const BondInfo& binfo = allBonds[bid];
@@ -813,10 +798,14 @@ Compound::AtomIndex CompoundRep::getBondAtomIndex(Compound::BondIndex bid, int w
     return which==0 ? pbc.getAtomIndex() : cbc.getAtomIndex();
 }
 
+/*! <!-- __fill__ -->
+*/
 size_t CompoundRep::getNumBondCenters() const {
     return allBondCenters.size();
 }
 
+/*! <!-- __fill__ -->
+*/
 size_t CompoundRep::getNumBondCenters(Compound::AtomIndex atomIndex) const {
     return getAtom(atomIndex).getNumBondCenters();
 }
@@ -826,6 +815,8 @@ size_t CompoundRep::getNumBondCenters(Compound::AtomIndex atomIndex) const {
 //}
 
 // nameAtom("methyl1/C", "C1", Biotype::EthaneC());
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::nameAtom(const Compound::AtomName& newName, const Compound::AtomPathName& oldName)
 {
     const Compound::AtomIndex atomId = getAtomInfo(oldName).getIndex();
@@ -835,6 +826,8 @@ CompoundRep& CompoundRep::nameAtom(const Compound::AtomName& newName, const Comp
 }
 
 // nameAtom("methyl1/C", "C1", Biotype::EthaneC());
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::nameAtom(const Compound::AtomName& newName, Compound::AtomIndex atomId)
 {
     assert( !hasAtom(newName) );
@@ -855,6 +848,8 @@ CompoundRep& CompoundRep::nameAtom(const Compound::AtomName& newName, Compound::
 }
 
 // nameAtom("methyl1/C", "C1", Biotype::EthaneC());
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::nameAtom(const Compound::AtomName& newName, const Compound::AtomPathName& oldName, BiotypeIndex biotypeIx)
 {
     nameAtom(newName, oldName);
@@ -864,6 +859,8 @@ CompoundRep& CompoundRep::nameAtom(const Compound::AtomName& newName, const Comp
 }
 
 // setBiotype("C", Biotype::MethaneC);
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::setBiotypeIndex(const Compound::AtomName& atomName, BiotypeIndex biotype) {
     // AtomInfo& atom = atoms[atomIdsByName[atomName]];
     CompoundAtom& atom = updAtom(atomName);
@@ -873,6 +870,8 @@ CompoundRep& CompoundRep::setBiotypeIndex(const Compound::AtomName& atomName, Bi
 }
     
 // REX
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::setAtomMobilizedBodyIndex(const Compound::AtomIndex& atomIndex, const MobilizedBodyIndex mbx) {
     CompoundAtom& atom = updAtom(atomIndex);
     atom.setMobilizedBodyIndex(mbx);
@@ -880,6 +879,8 @@ CompoundRep& CompoundRep::setAtomMobilizedBodyIndex(const Compound::AtomIndex& a
     return *this;
 }
     
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::nameBondCenter(Compound::BondCenterName newName, Compound::BondCenterPathName oldName) {
     assert( hasBondCenter(oldName) );
     // assert( ! hasBondCenter(newName) );
@@ -893,27 +894,38 @@ CompoundRep& CompoundRep::nameBondCenter(Compound::BondCenterName newName, Compo
     return *this;
 }
 
+/*! <!-- __fill__ -->
+*/
 Compound::BondCenterIndex CompoundRep::getBondCenterIndex(const Compound::BondCenterName& name) const
 {
     assert(hasBondCenter(name));
     return BCName_To_BCIx.find(name)->second;
 }
 
+/*! <!-- __fill__ -->
+*/
 BondCenterInfo& CompoundRep::updBondCenterInfo(const Compound::BondCenterName& name) 
 {
     return updBondCenterInfo(getBondCenterIndex(name));
 }
 
+/*! <!-- __fill__ -->
+*/
 const BondCenterInfo& CompoundRep::getBondCenterInfo(const Compound::BondCenterName& name) const
 {
     return getBondCenterInfo(getBondCenterIndex(name));
 }
 
+/*! <!-- __fill__ -->
+*/
 BondCenterInfo& CompoundRep::updBondCenterInfo(Compound::BondCenterIndex id) {
     assert(0 <= id);
     assert((Compound::BondCenterIndex)allBondCenters.size() > id);
     return allBondCenters[id];
 }  
+
+/*! <!-- __fill__ -->
+*/
 const BondCenterInfo& CompoundRep::getBondCenterInfo(Compound::BondCenterIndex id) const {
     assert(0 <= id);
     assert((Compound::BondCenterIndex)allBondCenters.size() > id);
@@ -922,16 +934,23 @@ const BondCenterInfo& CompoundRep::getBondCenterInfo(Compound::BondCenterIndex i
 
 
 // return the bond center on atom1 that is attached to atom2
+/*! <!-- __fill__ -->
+*/
 const BondCenterInfo& CompoundRep::getBondCenterInfo(const Compound::AtomName& atom1, const Compound::AtomName& atom2) const 
 {
     return getBondCenterInfo(getAtomInfo(atom1), getAtomInfo(atom2));
 }
+
+/*! <!-- __fill__ -->
+*/
 BondCenterInfo& CompoundRep::updBondCenterInfo(const Compound::AtomName& atom1, const Compound::AtomName& atom2) 
 {
     return updBondCenterInfo(getAtomInfo(atom1), getAtomInfo(atom2));
 }
 
 // Get bond, then parent-child BCs and return atom1 atom1's BC
+/*! <!-- __fill__ -->
+*/
 const BondCenterInfo& CompoundRep::getBondCenterInfo(const AtomInfo& atom1, const AtomInfo& atom2) const 
 {
     const std::pair<Compound::AtomIndex, Compound::AtomIndex> key( atom1.getIndex(), atom2.getIndex() );
@@ -953,6 +972,8 @@ const BondCenterInfo& CompoundRep::getBondCenterInfo(const AtomInfo& atom1, cons
     }
 }
 
+/*! <!-- __fill__ -->
+*/
 BondCenterInfo& CompoundRep::updBondCenterInfo(const AtomInfo& atom1, const AtomInfo& atom2) 
 {
     const std::pair<Compound::AtomIndex, Compound::AtomIndex> key( atom1.getIndex(), atom2.getIndex() );
@@ -974,75 +995,105 @@ BondCenterInfo& CompoundRep::updBondCenterInfo(const AtomInfo& atom1, const Atom
     }
 }
 
+/*! <!-- __fill__ -->
+*/
 BondCenterInfo& CompoundRep::updBondCenterInfo(Compound::AtomIndex atomId, CompoundAtom::BondCenterIndex atomBondCenterIndex) {
     BondCenterInfo::AtomKey key(atomId, atomBondCenterIndex);
     return updBondCenterInfo(key);
 }
 
+/*! <!-- __fill__ -->
+*/
 const BondCenterInfo& CompoundRep::getBondCenterInfo(Compound::AtomIndex atomId, CompoundAtom::BondCenterIndex atomBondCenterIndex) const {
     BondCenterInfo::AtomKey key(atomId, atomBondCenterIndex);
     return getBondCenterInfo(key);
 }
 
+/*! <!-- __fill__ -->
+*/
 BondCenterInfo& CompoundRep::updBondCenterInfo(BondCenterInfo::AtomKey key) {
     assert(hasBondCenter(key));
     const Compound::BondCenterIndex bcId = bondCenterIndicesByAtomKey.find(key)->second;
     return updBondCenterInfo(bcId);
 }
+
+/*! <!-- __fill__ -->
+*/
 const BondCenterInfo& CompoundRep::getBondCenterInfo(BondCenterInfo::AtomKey key) const {
     assert(hasBondCenter(key));
     const Compound::BondCenterIndex bcId = bondCenterIndicesByAtomKey.find(key)->second;
     return getBondCenterInfo(bcId);
 }
 
+/*! <!-- __fill__ -->
+*/
 bool CompoundRep::hasBondCenter(Compound::BondCenterIndex id) const {
     if ( id < 0 ) return false;
     if ( id >= (Compound::BondCenterIndex)allBondCenters.size() ) return false;
     return true;
 }
 
+/*! <!-- __fill__ 
+ *
+ --> */
 bool CompoundRep::hasBondCenter(const Compound::BondCenterName& name) const {
     return ( BCName_To_BCIx.find(name) != BCName_To_BCIx.end() );
 }
 
-// Use atoms names as found in subcompound
-// But only "simple" names
-CompoundRep& CompoundRep::inheritAtomNames(const Compound::Name& scName) 
+
+/*! <!-- Use atoms names as found in subcompound
+ * But only "simple" names
+ --> */
+CompoundRep& CompoundRep::inheritAtomNames(const Compound::Name& subcompoundName) 
 {
-    std::string prefix(scName + "/");
+    std::string prefix(subcompoundName + "/");
     std::set<Compound::AtomName> newNames; // for evaluating bond center names
-    std::map<Compound::AtomName, Compound::AtomIndex>::const_iterator anI;
-    for (anI = atomName_To_atomId.begin(); anI != atomName_To_atomId.end(); ++anI) {
-        if (anI->first.find(prefix) != 0) continue;
-        Compound::AtomName newName = anI->first.substr(prefix.length());
+    std::map<Compound::AtomName, Compound::AtomIndex>::const_iterator anIt;
+    for (anIt = atomName_To_atomId.begin(); anIt != atomName_To_atomId.end(); ++anIt) {
+
+        if (anIt->first.find(prefix) != 0) {continue;}
+
+        Compound::AtomName newAtomName = anIt->first.substr(prefix.length());
+
         // But don't inherit sub-sub names
-        if (newName.find_first_of("/") != std::string::npos) continue;
-        nameAtom(newName, anI->second);
-        newNames.insert(newName);
+        if (newAtomName.find_first_of("/") != std::string::npos) {continue;}
+
+        nameAtom(newAtomName, anIt->second);
+
+        std::cout << "CompoundRep::inheritAtomNames newAtomName |" << newAtomName <<"|" <<  std::endl;
+
+        newNames.insert(newAtomName);
     }
 
     // TODO - also inherit bond center names with atoms in them
-    std::map<String, Compound::BondCenterIndex>::const_iterator scBc;
-    for (scBc = BCName_To_BCIx.begin(); scBc != BCName_To_BCIx.end(); ++scBc) 
+    std::map<String, Compound::BondCenterIndex>::const_iterator bcnIt;
+    for (bcnIt = BCName_To_BCIx.begin(); bcnIt != BCName_To_BCIx.end(); ++bcnIt) 
     {
         // Ensure bond center name begins with this subcompound name
-        if (scBc->first.find(prefix) != 0) continue;
+        if (bcnIt->first.find(prefix) != 0) {continue;}
 
-        const String centerName(scBc->first.substr(prefix.length()));
+        const String newBCName(bcnIt->first.substr(prefix.length()));
 
         // Ensure truncated name begins with an atom name
-        if (centerName.find("/") == std::string::npos) continue;
-        int slashPos = centerName.find("/");
-        String possibleAtomName = centerName.substr(0, slashPos);
-        if (newNames.find(possibleAtomName) == newNames.end()) continue;
+        if (newBCName.find("/") == std::string::npos) {continue;}
 
-        nameBondCenter(centerName, scBc->first);
+        int slashPos = newBCName.find("/");
+
+        String possibleAtomName = newBCName.substr(0, slashPos);
+        
+        if (newNames.find(possibleAtomName) == newNames.end()) {continue;}
+
+        std::cout << "CompoundRep::inheritAtomNames newBCName |" << newBCName <<"|" << std::endl;
+
+        nameBondCenter(newBCName, bcnIt->first);
     }
     // assert(false);
 
     return *this;
 }
 
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::inheritBondCenterNames(const Compound::Name& scName) 
 {
     std::string prefix(scName + "/");
@@ -1062,6 +1113,8 @@ CompoundRep& CompoundRep::inheritBondCenterNames(const Compound::Name& scName)
 }
 
 // One argument version of writeDefaultPdb begins numbering atoms at 1
+/*! <!-- __fill__ -->
+*/
 std::ostream& CompoundRep::writeDefaultPdb(std::ostream& os, const Transform& transform) const 
 {
     PdbChain chain(getOwnerHandle(), transform);
@@ -1074,6 +1127,8 @@ std::ostream& CompoundRep::writeDefaultPdb(std::ostream& os, const Transform& tr
     return os;
 }
 
+/*! <!-- __fill__ -->
+*/
 std::ostream& CompoundRep::writeDefaultPdb(std::ostream& os, int& nextSerialNumber, const Transform& t) const 
 {
     PdbChain chain(getOwnerHandle(), t);
@@ -1084,6 +1139,8 @@ std::ostream& CompoundRep::writeDefaultPdb(std::ostream& os, int& nextSerialNumb
 }
 
 
+/*! <!-- __fill__ -->
+*/
 ostream& CompoundRep::writePdb(const State& state, ostream& os, const Transform& transform) const  
 {
     // writePdb(state, os, nextSerialNumber, transform);
@@ -1096,6 +1153,8 @@ ostream& CompoundRep::writePdb(const State& state, ostream& os, const Transform&
     return os;
 }
 
+/*! <!-- __fill__ -->
+*/
 std::ostream& CompoundRep::writePdb(const State& state, std::ostream& os, int& nextSerialNumber, const Transform& transform) const 
 {
     PdbChain chain(state, getOwnerHandle(), transform);
@@ -1107,10 +1166,14 @@ std::ostream& CompoundRep::writePdb(const State& state, std::ostream& os, int& n
 
 // protected:
 
+/*! <!-- __fill__ -->
+*/
 bool CompoundRep::hasInboardBondCenter() const {
     return BCName_To_BCIx.find(InboardBondName) != BCName_To_BCIx.end();
 }
 
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::convertInboardBondCenterToOutboard() 
 {
     // Only top level compounds can construct new topology
@@ -1124,22 +1187,34 @@ CompoundRep& CompoundRep::convertInboardBondCenterToOutboard()
     return *this;
 };
 
+/*! <!-- __fill__ -->
+*/
 const BondCenter& CompoundRep::getInboardBondCenter() const {
     return getBondCenter(InboardBondName);
 }
+
+/*! <!-- __fill__ -->
+*/
 BondCenter& CompoundRep::updInboardBondCenter() {
     return updBondCenter(InboardBondName);
 }
 
 
+/*! <!-- __fill__ -->
+*/
 const BondCenterInfo& CompoundRep::getInboardBondCenterInfo() const {
     return getBondCenterInfo(InboardBondName);
 }
+
+/*! <!-- __fill__ -->
+*/
 BondCenterInfo& CompoundRep::updInboardBondCenterInfo() {
     return updBondCenterInfo(InboardBondName);
 }
 
 
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::setInboardBondCenter(const Compound::BondCenterName& n) 
 {
     // Only top level compounds can construct new topology
@@ -1164,6 +1239,8 @@ CompoundRep& CompoundRep::setInboardBondCenter(const Compound::BondCenterName& n
     return *this;
 }
 
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::setInboardBondCenter(Compound::BondCenterIndex id) 
 {
     // Only top level compounds can construct new topology
@@ -1185,6 +1262,8 @@ CompoundRep& CompoundRep::setInboardBondCenter(Compound::BondCenterIndex id)
 }
 
 // Returns new bond center index for inboard center of new subcompound
+/*! <!-- __fill__ -->
+*/
 Compound::BondCenterIndex CompoundRep::addLocalCompound(
     const Compound::Name&   scName, 
     const Compound&         subcompound,
@@ -1374,17 +1453,23 @@ Compound::BondCenterIndex CompoundRep::absorbSubcompound(
 }
 
 
+/*! <!-- __fill__ -->
+*/
 bool CompoundRep::hasAtom(const Compound::AtomName& atomName) const 
 {
     return atomName_To_atomId.find(atomName) != atomName_To_atomId.end();
 }
 
 
+/*! <!-- __fill__ -->
+*/
 Compound::AtomIndex CompoundRep::getAtomIndex(const Compound::AtomName& atomName) const {
     assert(hasAtom(atomName));
     return atomName_To_atomId.find(atomName)->second;
 }
 
+/*! <!-- __fill__ -->
+*/
 AtomInfo& CompoundRep::updAtomInfo(const Compound::AtomName& atomName) {
     assert(hasAtom(atomName));
 
@@ -1392,39 +1477,54 @@ AtomInfo& CompoundRep::updAtomInfo(const Compound::AtomName& atomName) {
     return updAtomInfo(compoundAtomIndex);
 }
 
+/*! <!-- __fill__ -->
+*/
 AtomInfo& CompoundRep::updAtomInfo(Compound::AtomIndex i) {
     assert(hasAtom(i));
 
     return allAtoms[i];
 }
 
-
+/*! <!-- __fill__ -->
+*/
 BondCenter& CompoundRep::updBondCenter(const Compound::BondCenterName& name) {
     return updBondCenter(getBondCenterInfo(name));
 }
 
+/*! <!-- __fill__ -->
+*/
 const BondCenter& CompoundRep::getBondCenter(const Compound::BondCenterName& name) const {
     return getBondCenter(getBondCenterInfo(name));
 }
 
+/*! <!-- __fill__ -->
+*/
 BondCenter& CompoundRep::updBondCenter(Compound::BondCenterIndex id) {
     return updBondCenter(getBondCenterInfo(id));
 }
 
+/*! <!-- __fill__ -->
+*/
 const BondCenter& CompoundRep::getBondCenter(Compound::BondCenterIndex id) const {
     return getBondCenter(getBondCenterInfo(id));
 }
 
+/*! <!-- __fill__ -->
+*/
 const BondCenter& CompoundRep::getBondCenter(const BondCenterInfo& info) const {
     const CompoundAtom& atom = getAtom(info.getAtomIndex());
     return atom.getBondCenter(info.getAtomBondCenterIndex());
 }
 
+/*! <!-- __fill__ -->
+*/
 BondCenter& CompoundRep::updBondCenter(const BondCenterInfo& info) {
     CompoundAtom& atom = updAtom(info.getAtomIndex());
     return atom.updBondCenter(info.getAtomBondCenterIndex());
 }
 
+/*! <!-- __fill__ -->
+*/
 Transform CompoundRep::calcDefaultBondCenterFrameInAtomFrame(const BondCenterInfo& info) const 
 {
     return getAtom(info.getAtomIndex()).calcDefaultBondCenterFrameInAtomFrame(info.getAtomBondCenterIndex());
@@ -1434,8 +1534,7 @@ Transform CompoundRep::calcDefaultBondCenterFrameInAtomFrame(const BondCenterInf
  * <!-- Cache method used in O(n) all atom Frame computation.
  * Otherwise recursive. --> 
 */
-const Transform
-CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(
+const Transform CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(
     const BondCenterInfo& BCinfo,
     std::vector<Transform>& atomFrameCache) const
 {
@@ -1702,18 +1801,24 @@ void CompoundRep::calcDefaultAtomFramesInCompoundFrame(
 
 }
 
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::setPdbResidueNumber(int n) {
     pdbResidueNumber = n;
     return *this;
 }
 int CompoundRep::getPdbResidueNumber() const {return pdbResidueNumber;}
 
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::setPdbResidueName(const String& n) {
     pdbResidueName = n;
     return *this;
 }
 const String& CompoundRep::getPdbResidueName() const {return pdbResidueName;}
 
+/*! <!-- __fill__ -->
+*/
 CompoundRep& CompoundRep::setPdbChainId(String c) {
     pdbChainId = c;
 
@@ -1727,6 +1832,8 @@ String CompoundRep::getPdbChainId() const {return pdbChainId;}
 // COMPOUND //
 //////////////
 
+/*! <!-- __fill__ -->
+*/
 static String indent(int level) {
     String padding;
     for (int i=0; i<level; ++i)
@@ -1734,7 +1841,8 @@ static String indent(int level) {
     return padding;
 }
 
-
+/*! <!-- __fill__ -->
+*/
 Compound& Compound::setCompoundBondMobility(BondMobility::Mobility mobility) 
 {
     for (Compound::BondIndex r(0); r <  getNumBonds(); r++)
@@ -1743,39 +1851,41 @@ Compound& Compound::setCompoundBondMobility(BondMobility::Mobility mobility)
     return *this;
 }
 
-std::ostream& CompoundRep::dumpCompoundRepToStream(std::ostream& o, int level) const {
+/*! <!-- __fill__ -->
+*/
+std::ostream& CompoundRep::dumpCompoundRepToStream(std::ostream& outStream, int level) const {
     using std::endl;
 
-    o << indent(level) << getCompoundName() << " CompoundRep@" << this;
-    if (ownerSystem) o << " is owned by System@" << ownerSystem;
+    outStream << indent(level) << getCompoundName() << " CompoundRep@" << this;
+    if (ownerSystem) outStream << " is owned by System@" << ownerSystem;
     // << " with Compound Index=" << ixWithinOwnerSystem;
-    else o << " is not owned by a System";
-    o << " {" << endl;
+    else outStream << " is not owned by a System";
+    outStream << " {" << endl;
 
 
-    o << indent(level) << "all atoms:";
+    outStream << indent(level) << "all atoms:";
     if (allAtoms.size()) {
-        o << endl;
+        outStream << endl;
         for (Compound::AtomIndex i(0); i < (int)allAtoms.size(); ++i) {
-            o << indent(level+1) << allAtoms[i] << endl;
-            o << indent(level+1) << "--> " << calcDefaultAtomFrameInCompoundFrame(i).p() << endl;
+            outStream << indent(level+1) << allAtoms[i] << endl;
+            outStream << indent(level+1) << "--> " << calcDefaultAtomFrameInCompoundFrame(i).p() << endl;
 
             const CompoundAtom& atom = getAtom(i);
-            o << indent(level+1) << atom << endl;
+            outStream << indent(level+1) << atom << endl;
         }
     }
-    else o << " NONE\n";
+    else outStream << " NONE\n";
 
-    o << indent(level) << "all bonds:";
+    outStream << indent(level) << "all bonds:";
     if (allBonds.size()) {
-        o << endl;
+        outStream << endl;
         for (Compound::BondIndex i(0); i < (int)allBonds.size(); ++i) {
-            o << indent(level+1) << allBonds[i] << endl;
+            outStream << indent(level+1) << allBonds[i] << endl;
         }
     }
-    else o << " NONE\n";
+    else outStream << " NONE\n";
 
-    return o << "}" << endl;
+    return outStream << "}" << endl;
 }
 
 template class PIMPLHandle<Compound,CompoundRep>; // instantiate everything
@@ -1794,32 +1904,50 @@ Compound::Compound(const String& type)
 //void Compound::setCompoundSystem(CompoundSystem& system, Compound::Index id) {
 //    updImpl().setCompoundSystem(system,id);
 //}
+/*! <!-- __fill__ -->
+*/
 void Compound::setMultibodySystem(MultibodySystem& system) {
     updImpl().setMultibodySystem(system);
 }
 
+/*! <!-- __fill__ -->
+*/
 Compound& Compound::setCompoundName(const String& name) {
     updImpl().setCompoundName(name);
     return *this;
 }
+
+/*! <!-- __fill__ -->
+*/
 const String& Compound::getCompoundName() const {
     return getImpl().getCompoundName();
 }
+
+/*! <!-- __fill__ -->
+*/
 Compound& Compound::addCompoundSynonym(const Compound::Name& synonym) {
     updImpl().addCompoundSynonym(synonym);
     return *this;
 }
 
+/*! <!-- __fill__ -->
+*/
 Compound& Compound::setBaseAtom(const Compound::AtomName& name, const Element& element, const Transform& location) 
 {
     updImpl().setBaseAtom(name, element, location);
     return *this;
 }
+
+/*! <!-- __fill__ -->
+*/
 Compound& Compound::setBaseAtom(const Compound::SingleAtom& compound, const Transform& location) 
 {
     updImpl().setBaseAtom(compound, location);
     return *this;
 }
+
+/*! <!-- __fill__ -->
+*/
 Compound& Compound::setBaseAtom(
     const Compound::AtomName& name, 
     const Biotype& biotype, 
@@ -1828,6 +1956,9 @@ Compound& Compound::setBaseAtom(
     updImpl().setBaseAtom(name, biotype, location);
     return *this;
 }
+
+/*! <!-- __fill__ -->
+*/
 Compound& Compound::setBaseCompound(
     const Compound::Name& n, 
     const Compound& c,
@@ -1836,6 +1967,9 @@ Compound& Compound::setBaseCompound(
     updImpl().setBaseCompound(n, c, location);
     return *this;
 }
+
+/*! <!-- __fill__ -->
+*/
 Compound& Compound::bondAtom(
     const Compound::SingleAtom& c, 
     const BondCenterPathName& parentBondName, 
@@ -1846,6 +1980,9 @@ Compound& Compound::bondAtom(
     updImpl().bondAtom(c, parentBondName, distance, dihedral, mobility);
     return *this;
 }
+
+/*! <!-- __fill__ -->
+*/
 Compound& Compound::bondAtom(
     const Compound::SingleAtom& c, 
     const BondCenterPathName& parentBondName) 
@@ -1853,6 +1990,9 @@ Compound& Compound::bondAtom(
     updImpl().bondAtom(c, parentBondName);
     return *this;
 }
+
+/*! <!-- __fill__ -->
+*/
 Compound& Compound::setInboardBondCenter(const Compound::BondCenterName& centerName)
 {
     updImpl().setInboardBondCenter(centerName);
@@ -1871,6 +2011,8 @@ Compound& Compound::setInboardBondCenter(const Compound::BondCenterName& centerN
 //}
 
 
+/*! <!-- Add first BondCenter -->
+*/
 Compound& Compound::addFirstBondCenter(
     const Compound::BondCenterName& centerName, 
     const Compound::AtomName& atomName)
@@ -1879,7 +2021,8 @@ Compound& Compound::addFirstBondCenter(
     return *this;
 }
 
-
+/*! <!-- Add second bond center -->
+*/
 Compound& Compound::addSecondBondCenter(
     const Compound::BondCenterName& centerName, 
     const Compound::AtomName& atomName,
@@ -2411,18 +2554,24 @@ Compound& Compound::PrintCompoundGeometry(const Compound::AtomTargetLocations& a
     return *this;    
 }
 
-
+/*! <!-- __no_desk__ -->
+*/
 Compound& Compound::matchDefaultAtomChirality(const AtomTargetLocations& atomTargets, Angle planarityTolerance, bool flipAll)
 {
     updImpl().matchDefaultAtomChirality(atomTargets, planarityTolerance, flipAll);
     return *this;
 }
 
+/*! <!-- __no_desk__ -->
+*/
 Compound& Compound::matchDefaultBondLengths(const AtomTargetLocations& atomTargets)
 {
     updImpl().matchDefaultBondLengths(atomTargets);
     return *this;
 }
+
+/*! <!-- __no_desk__ -->
+*/
 Compound& Compound::matchDefaultBondAngles(const AtomTargetLocations& atomTargets)
 {
     updImpl().matchDefaultBondAngles(atomTargets);
@@ -2430,6 +2579,8 @@ Compound& Compound::matchDefaultBondAngles(const AtomTargetLocations& atomTarget
 }
 
 //NEWMOB BEGIN
+/*! <!-- __no_desk__ -->
+*/
 Compound& Compound::matchDefaultDirections(const AtomTargetLocations& atomTargets)
 {
     updImpl().matchDefaultDirections(atomTargets);
@@ -2437,6 +2588,8 @@ Compound& Compound::matchDefaultDirections(const AtomTargetLocations& atomTarget
 }
 //NEWMOB END
 
+/*! <!-- __no_desk__ -->
+*/
 Compound& Compound::matchDefaultDihedralAngles(
         const AtomTargetLocations& atomTargets, 
         Compound::PlanarBondMatchingPolicy policy)
@@ -2444,11 +2597,17 @@ Compound& Compound::matchDefaultDihedralAngles(
     updImpl().matchDefaultDihedralAngles(atomTargets, policy);
     return *this;
 }
+
+/*! <!-- __no_desk__ -->
+*/
 Compound& Compound::matchDefaultTopLevelTransform(const AtomTargetLocations& atomTargets)
 {
     updImpl().matchDefaultTopLevelTransform(atomTargets);
     return *this;
 }
+
+/*! <!-- __no_desk__ -->
+*/
 TransformAndResidual Compound::getTransformAndResidual(const Compound::AtomTargetLocations& atomTargets) const
 {
     return getImpl().getTransformAndResidual(atomTargets);
