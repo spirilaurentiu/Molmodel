@@ -11,6 +11,8 @@ using namespace std;
 
 namespace SimTK {
 
+/*! <!-- Model all Compounds. 
+ * --> */
 void SimTK::CompoundSystem::modelCompounds(String mobilizedBodyType) 
 {
     std::cout << "CompoundSystem::modelCompounds" << std::endl;
@@ -27,7 +29,8 @@ void SimTK::CompoundSystem::modelCompounds(String mobilizedBodyType)
     }
 }
 
-// RigidUnit data structure is for use in modelCompounds() method
+/*! <!-- RigidUnit data structure is for use in modelCompounds() method. 
+ * --> */
 class RigidUnit {
 public:
     RigidUnit() {}
@@ -36,31 +39,31 @@ public:
 
     DuMM::ClusterIndex clusterIx; // primary key
     MobilizedBodyIndex mbx; // populated toward the end
-    DuMM::ClusterIndex parentId; // InvalidId implies parented to Ground
+    DuMM::ClusterIndex parentClusterIx; // InvalidId implies parented to Ground
     bool hasChild; // Whether a child body is tethered to this one
 
     Transform frameInTopCompoundFrame; // useful intermediate computation
     Transform frameInParentFrame; // what we ultimately want
 
-    Compound::BondCenterIndex inboardBondCenterIndex;
+    Compound::BondCenterIndex inboardBCIx;
     Angle inboardBondDihedralAngle;
-    Compound::BondIndex inboardBondIndex;
+    Compound::BondIndex inboardBondIx;
 
-    std::set<Compound::AtomIndex> clusterAtoms;
+    std::set<Compound::AtomIndex> clusterCAIxs;
 
     const void Print(void) const {
         
         std::cout << "unit" <<" "
             << "clustIx " << clusterIx <<" "
-            << "parClustIx " << parentId <<" "
+            << "parClustIx " << parentClusterIx <<" "
             << "mbx " << mbx <<" "
-            << "inBCIx " << inboardBondCenterIndex <<" "
-            << "inBoIx " << inboardBondIndex <<" "
+            << "inBCIx " << inboardBCIx <<" "
+            << "inBoIx " << inboardBondIx <<" "
             << "inBoDih " << inboardBondDihedralAngle <<" "
             << std::endl;
 
         std::cout << "unit aIxs" <<" ";
-        for (const auto& clustAtom : clusterAtoms) {
+        for (const auto& clustAtom : clusterCAIxs) {
             std::cout << clustAtom << " ";
         } std::cout << std::endl;
     }
@@ -68,74 +71,78 @@ public:
     const void PrintTransforms(void) const {
 
         std::cout << "unit frameInTopCompoundFrame ";
-        std::cout << frameInTopCompoundFrame;
+        //std::cout << frameInTopCompoundFrame;
+        SimTK::Test::PrintTransform(frameInTopCompoundFrame, 6, "frameInTopCompoundFrame", "X_TopUnit");
+
         std::cout << "unit frameInParentFrame ";
-        std::cout << frameInParentFrame;
+        //std::cout << frameInParentFrame;
+        SimTK::Test::PrintTransform(frameInParentFrame, 6, "frameInParentFrame", "X_ParUnit");
     
     }
 
 };
 
-// AtomBonding data structure represents one Atom in the modelCompounds() method
+/*! <!-- AtomBonding data structure represents one Atom in the modelCompounds() method.
+ * --> */
 class AtomBonding {
 public:
     AtomBonding() {}
     AtomBonding(Compound::AtomIndex id)
-        : atomId(id) {}
+        : compundAIx(id) {}
 
-    Compound::AtomIndex atomId; // primary key
-    Compound::AtomIndex parentAtomIndex; // for finding rootiest atom in cluster
-    DuMM::AtomIndex dummAtomIndex;
+    Compound::AtomIndex compundAIx; // primary key
+    Compound::AtomIndex parentCAIx; // for finding rootiest atom in cluster
+    DuMM::AtomIndex dummAIx;
     DuMM::ClusterIndex clusterIx;
 
     // Store only those bonds that are part of the multibody tree structure
-    std::set<Compound::AtomIndex> treeBonds;
-    std::set<Compound::AtomIndex> freeTreeBonds;
+    std::set<Compound::AtomIndex> treeBondedCAIxs;
+    std::set<Compound::AtomIndex> freeTreeBondedCAIxs;
 
     Vec3 locationInBodyFrame;
 };
 
-// Recursive method to create rigid bodies from a seed atom
-void buildUpRigidBody(Compound::AtomIndex atomId, 
+/*! <!-- Recursive method to create rigid bodies from a seed atom --> */
+void buildUpRigidBody(Compound::AtomIndex cAIx, 
                       DuMM::ClusterIndex clusterIx,
-                      std::set<Compound::AtomIndex>& clusterAtoms, 
+                      std::set<Compound::AtomIndex>& clusterAIxs, 
                       std::map<Compound::AtomIndex, AtomBonding>& atomBondings,
                       CompoundRep& compoundRep
                       ) 
 {
-    clusterAtoms.insert(atomId);
+    clusterAIxs.insert(cAIx);
 
     // Store DuMM::Cluster id in Compound::Atom object
-    CompoundAtom& atom = compoundRep.updAtom(atomId);
+    CompoundAtom& atom = compoundRep.updAtom(cAIx);
     // assert(!atom.getDuMMPrimaryClusterIndex().isValid()); // TODO why assert?
     atom.setDuMMPrimaryClusterIndex(clusterIx);
 
-    assert(atomBondings.find(atomId) != atomBondings.end());
-    AtomBonding& atomBonding = atomBondings.find(atomId)->second;
+    assert(atomBondings.find(cAIx) != atomBondings.end());
+    AtomBonding& atomBonding = atomBondings.find(cAIx)->second;
 
     atomBonding.clusterIx = clusterIx;
     assert(atomBonding.clusterIx.isValid());
 
 
     // Unbonded atoms always represent a lone rigid body
-    int numberOfNonBendyBondsOnThisAtom = atomBonding.treeBonds.size() - atomBonding.freeTreeBonds.size();
+    int numberOfNonBendyBondsOnThisAtom = atomBonding.treeBondedCAIxs.size() - atomBonding.freeTreeBondedCAIxs.size();
     if (numberOfNonBendyBondsOnThisAtom == 0) return;
 
     // recursively check all atoms bonded to this one for membership in group
     std::set<Compound::AtomIndex>::const_iterator atomBondingIt;
-    for (atomBondingIt = atomBonding.treeBonds.begin();
-        atomBondingIt != atomBonding.treeBonds.end();
+    for (atomBondingIt = atomBonding.treeBondedCAIxs.begin();
+        atomBondingIt != atomBonding.treeBondedCAIxs.end();
         ++atomBondingIt)
     {
 
         // Ignore atoms already assigned to a rigid cluster
-        if (clusterAtoms.find(*atomBondingIt) != clusterAtoms.end()) 
+        if (clusterAIxs.find(*atomBondingIt) != clusterAIxs.end()) 
         {
             continue; // already assigned
         }
 
         // Bond archaeology
-        const AtomInfo& atomInfo1 = compoundRep.getAtomInfo(atomId);
+        const AtomInfo& atomInfo1 = compoundRep.getAtomInfo(cAIx);
         const AtomInfo& atomInfo2 = compoundRep.getAtomInfo(*atomBondingIt);
         const BondInfo& bondInfo = compoundRep.getBondInfo(atomInfo1, atomInfo2);
         const Bond& bond = compoundRep.getBond(bondInfo);
@@ -159,7 +166,7 @@ void buildUpRigidBody(Compound::AtomIndex atomId,
             // for inertian reasons
 
             const AtomBonding& bondedAtomBonding = atomBondings.find(*atomBondingIt)->second;
-            int numberOfNonBendyBondsOnBondedAtom = bondedAtomBonding.treeBonds.size() - bondedAtomBonding.freeTreeBonds.size();
+            int numberOfNonBendyBondsOnBondedAtom = bondedAtomBonding.treeBondedCAIxs.size() - bondedAtomBonding.freeTreeBondedCAIxs.size();
             assert(numberOfNonBendyBondsOnBondedAtom > 0);
 
             // TODO - Also join atoms with just one bond among Torsion or Rigid (or possibly Angle) bond
@@ -177,7 +184,7 @@ void buildUpRigidBody(Compound::AtomIndex atomId,
         {
             buildUpRigidBody(*atomBondingIt,
                               clusterIx,
-                              clusterAtoms,
+                              clusterAIxs,
                               atomBondings,
                               compoundRep);
         }
@@ -419,12 +426,12 @@ void CompoundSystem::modelOneCompound(
         assert(chargedTypeId.isValid());
 
         // Add Dumm atom
-        atomBonding.dummAtomIndex = dumm.addAtom(chargedTypeId);
-        assert(atomBonding.dummAtomIndex.isValid());
+        atomBonding.dummAIx = dumm.addAtom(chargedTypeId);
+        assert(atomBonding.dummAIx.isValid());
 
         // Store DuMMAtomIndex in Compound::Atom object
         CompoundAtom& atom = compoundRep.updAtom(cACnt);
-        atom.setDuMMAtomIndex(atomBonding.dummAtomIndex);
+        atom.setDuMMAtomIndex(atomBonding.dummAIx);
 
         // // Check
         // if (showDebugMessages){
@@ -472,26 +479,26 @@ void CompoundSystem::modelOneCompound(
 
         // Add bond to DuMM
         dumm.addBond(
-            atomBonds[a0].dummAtomIndex,
-            atomBonds[a1].dummAtomIndex);
+            atomBonds[a0].dummAIx,
+            atomBonds[a1].dummAIx);
 
         // Store bond info on each atom
         // only store those bonds that are part of the tree structure
         if (! bond.isRingClosingBond())
         {
-            atomBonds[a0].treeBonds.insert(a1);
-            atomBonds[a1].treeBonds.insert(a0);
+            atomBonds[a0].treeBondedCAIxs.insert(a1);
+            atomBonds[a1].treeBondedCAIxs.insert(a0);
             
             if (bond.getMobility() == BondMobility::Free) {
                 //std::cout
                 // << "CompoundSystem: Step2: Found Free bond between atoms "
                 // << a0 << " " << a1 << std::endl;
-                atomBonds[a0].freeTreeBonds.insert(a1);
-                atomBonds[a1].freeTreeBonds.insert(a0);            	
+                atomBonds[a0].freeTreeBondedCAIxs.insert(a1);
+                atomBonds[a1].freeTreeBondedCAIxs.insert(a0);            	
             }
             
             // Store parent-child relationship
-            atomBonds[a1].parentAtomIndex = a0;
+            atomBonds[a1].parentCAIx = a0;
         }
     } // every bond
 
@@ -517,7 +524,7 @@ void CompoundSystem::modelOneCompound(
         // Ignore atoms already in a cluster
         if (atomBonding.clusterIx.isValid()) continue;
 
-        Compound::AtomIndex cAIx = atomBonding.atomId;
+        Compound::AtomIndex cAIx = atomBonding.compundAIx;
 
         // Create new cluster and use clusterIx as primary key for new rigid body
         DuMM::ClusterIndex clusterIx = dumm.createCluster(String(cAIx));
@@ -530,7 +537,7 @@ void CompoundSystem::modelOneCompound(
 
         // Use recursive method to find all of the atoms in the cluster
         buildUpRigidBody(
-            cAIx, clusterIx, rigidUnit.clusterAtoms,
+            cAIx, clusterIx, rigidUnit.clusterCAIxs,
             atomBonds, compoundRep);
 
     }
@@ -594,10 +601,10 @@ void CompoundSystem::modelOneCompound(
 
             // Get child rigid unit
             RigidUnit& childUnit = rigidUnits.find(childClusterIndex)->second;
-            assert(!childUnit.parentId.isValid());
+            assert(!childUnit.parentClusterIx.isValid());
 
             // Get parent rigid unit
-            childUnit.parentId = parentClusterIndex;
+            childUnit.parentClusterIx = parentClusterIndex;
             if (parentClusterIndex.isValid()) {
                 RigidUnit& parentUnit =
                     rigidUnits.find(parentClusterIndex)->second;
@@ -606,16 +613,16 @@ void CompoundSystem::modelOneCompound(
 
             // Set child rigid unit:
             //      inboardBCIx, inboardDihedral and inboardBondIx
-            childUnit.inboardBondCenterIndex = childBondCenterInfo.getIndex();
+            childUnit.inboardBCIx = childBondCenterInfo.getIndex();
             childUnit.inboardBondDihedralAngle = bond.getDefaultDihedralAngle();
-            childUnit.inboardBondIndex = bondInfo.getIndex();
+            childUnit.inboardBondIx = bondInfo.getIndex();
 
             // Set child body frame in top compound frame including
             // default dihedral rotation
             Transform T_X_Mr = 
                 compoundRep.calcDefaultBondCenterFrameInCompoundFrame(
                     compoundRep.getBondCenterInfo(
-                        childUnit.inboardBondCenterIndex),
+                        childUnit.inboardBCIx),
                     atomFrameCache
                 );
 
@@ -639,8 +646,8 @@ void CompoundSystem::modelOneCompound(
             //<< "# atoms = " << unit.clusterAtoms.size();
 
             std::set<Compound::AtomIndex>::const_iterator atomI;
-            for (atomI = unit.clusterAtoms.begin();
-            atomI != unit.clusterAtoms.end();
+            for (atomI = unit.clusterCAIxs.begin();
+            atomI != unit.clusterCAIxs.end();
             ++atomI){}
             //cout << endl;
         }
@@ -661,16 +668,16 @@ void CompoundSystem::modelOneCompound(
         RigidUnit& rigidUnit = rigidUnitI->second;
 
         // Skip bodies having parent bodies
-        if (rigidUnit.parentId.isValid()) continue;
+        if (rigidUnit.parentClusterIx.isValid()) continue;
 
         // Start from the first atom in the rigid unit
-        Compound::AtomIndex seedAtomIndex = *(rigidUnit.clusterAtoms.begin());
+        Compound::AtomIndex seedAtomIndex = *(rigidUnit.clusterCAIxs.begin());
         const AtomBonding* rootAtomPtr = &atomBonds.find( seedAtomIndex )->second;
 
         // And follow atom tree to find root atom
-        while (rootAtomPtr->parentAtomIndex.isValid())
+        while (rootAtomPtr->parentCAIx.isValid())
         {
-            AtomBonding& candidateAtom = atomBonds[rootAtomPtr->parentAtomIndex];
+            AtomBonding& candidateAtom = atomBonds[rootAtomPtr->parentCAIx];
             if (candidateAtom.clusterIx == rigidUnit.clusterIx)
                 rootAtomPtr = &candidateAtom;
             else {
@@ -680,7 +687,7 @@ void CompoundSystem::modelOneCompound(
         assert(rootAtomPtr->clusterIx == rigidUnit.clusterIx);
         
         // Get it's Top frame from the already calculated frames at step 0
-        const Transform& T_X_rootAtom = atomFrameCache[rootAtomPtr->atomId];
+        const Transform& T_X_rootAtom = atomFrameCache[rootAtomPtr->compundAIx];
         
         const Transform& G_X_T = compoundRep.getTopLevelTransform();
         Transform G_X_rootAtom = G_X_T * T_X_rootAtom;
@@ -704,7 +711,7 @@ void CompoundSystem::modelOneCompound(
         RigidUnit& rigidUnit = rigidUnitI->second;
 
         // Skip bodies without a parent body
-        if (!rigidUnit.parentId.isValid()) continue;
+        if (!rigidUnit.parentClusterIx.isValid()) continue;
 
         // Reset child frame to zero dihedral angle
         Transform Mr_X_M0 = Rotation(rigidUnit.inboardBondDihedralAngle, XAxis);
@@ -714,7 +721,7 @@ void CompoundSystem::modelOneCompound(
         Transform T_X_M0 = T_X_Mr * Mr_X_M0;
 
         // Express body frame relative to parent frame
-        RigidUnit& parentUnit = rigidUnits.find(rigidUnit.parentId)->second;
+        RigidUnit& parentUnit = rigidUnits.find(rigidUnit.parentClusterIx)->second;
         const Transform& T_X_Fr = parentUnit.frameInTopCompoundFrame;
         Transform Fr_X_T = ~T_X_Fr;
 
@@ -741,7 +748,7 @@ void CompoundSystem::modelOneCompound(
         
         // Iterate atoms inside the unit
         std::set<Compound::AtomIndex>::const_iterator atomI;
-        for (atomI = unit.clusterAtoms.begin(); atomI != unit.clusterAtoms.end();
+        for (atomI = unit.clusterCAIxs.begin(); atomI != unit.clusterCAIxs.end();
         ++atomI) 
         {
             // Get atom
@@ -759,7 +766,7 @@ void CompoundSystem::modelOneCompound(
             // Also calculate station
             Vec3 atomLocationInBody = B_X_atom.p();
             dumm.placeAtomInCluster(
-                atomBonding.dummAtomIndex,
+                atomBonding.dummAIx,
                 unit.clusterIx,
                 atomLocationInBody);
             atomBonding.locationInBodyFrame = atomLocationInBody;
@@ -790,9 +797,9 @@ void CompoundSystem::modelOneCompound(
         ///////////////////////////////////////////////////////////////////////
         ////////////////// Case A: body to be attached to Ground //////////////
         ///////////////////////////////////////////////////////////////////////
-        if (!unit.parentId.isValid())
+        if (!unit.parentClusterIx.isValid())
         {
-            assert (unit.clusterAtoms.size() > 0);
+            assert (unit.clusterCAIxs.size() > 0);
 
             // Cluster mass properties
             SimTK::MassProperties massProps =
@@ -913,21 +920,21 @@ void CompoundSystem::modelOneCompound(
 
             // Get the parent rigid unit
             // If assertion fails I may need to create a recursive method --CMB
-            DuMM::ClusterIndex parentClusterIndex = unit.parentId;
+            DuMM::ClusterIndex parentClusterIndex = unit.parentClusterIx;
             RigidUnit& parentUnit = rigidUnits.find(parentClusterIndex)->second;
             assert(parentUnit.mbx.isValid());
 
             // Get rigid unit inboard bond (not chemical parent)
             Bond& unitInboardBond = compoundRep.updBond(compoundRep.updBondInfo(
-                unit.inboardBondIndex));
+                unit.inboardBondIx));
 
             // Get cAIx, AtomBonding and AtomInfo at the origin of the Unit
-            Compound::AtomIndex originAtomId(*unit.clusterAtoms.begin());
+            Compound::AtomIndex originAtomId(*unit.clusterCAIxs.begin());
             AtomBonding& originAtomBonding = atomBonds.find(originAtomId)->second;
             const AtomInfo& originAtomInfo = compoundRep.getAtomInfo(originAtomId);
 
             // Get the parent atom cAIx and AtomInfo
-            Compound::AtomIndex parentAtomId = originAtomBonding.parentAtomIndex;
+            Compound::AtomIndex parentAtomId = originAtomBonding.parentCAIx;
             const AtomInfo& parentAtomInfo = compoundRep.getAtomInfo(parentAtomId);
 
             // Get BondInfo
@@ -1208,7 +1215,7 @@ void CompoundSystem::modelOneCompound(
 
         // Set mobilized body index of compound atoms
         std::set<Compound::AtomIndex>::const_iterator atomI;
-        for (atomI = unit.clusterAtoms.begin(); atomI != unit.clusterAtoms.end(); ++atomI) {
+        for (atomI = unit.clusterCAIxs.begin(); atomI != unit.clusterCAIxs.end(); ++atomI) {
             compoundRep.updAtom(*atomI).setMobilizedBodyIndex(unit.mbx);
         }
 

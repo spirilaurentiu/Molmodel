@@ -1910,6 +1910,20 @@ public:
         //std::cout<<"adjustment:"<<std::endl<<adjustment<<std::endl;
         setTopLevelTransform( adjustment * getTopLevelTransform() );
 
+
+
+        // // STUDY localTransform
+        // Compound::AtomTargetLocations::const_iterator tI;
+        // for (tI = atomTargets.begin(); tI != atomTargets.end(); ++tI) 
+        // {
+        //     Compound::AtomIndex cAIx = tI->first;
+        //     const SimTK::AtomInfo & atomInfo = getAtomInfo(cAIx);
+        //     const SimTK::CompoundAtom & atom = getAtom(atomInfo);
+
+        //     std::cout << "STUDY CompoundRep::matchDefaultTopLevelTransform cAIx T " << cAIx <<" \n "<< atom.getLocalTransform() << std::endl;
+        // }
+
+
         return *this;
     }
 
@@ -1939,8 +1953,7 @@ public:
             // Vec3 source = calcDefaultAtomLocationInGroundFrame(getAtomName(atomIndex));
 
             // faster
-            const Vec3 source = 
-                    getTopLevelTransform() * atomSourceFrames[atomIndex].T();
+            const Vec3 source = getTopLevelTransform() * atomSourceFrames[atomIndex].T();
 
             vecPairs.push_back(Vec3Pair(source, target, weight));
 

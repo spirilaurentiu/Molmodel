@@ -53,23 +53,23 @@ public:
 
         // Create a new empty Compound and get a reference to it
         compounds.push_back(new Compound((CompoundRep*)0)); // grow
-        Compound& c = *compounds.back();
+        Compound& newCompound = *compounds.back();
 
         // Transfer ownership to the supplied new empty handle
-        child.disown(c);
+        child.disown(newCompound);
 
         // Now tell the Compound object its owning CompoundSystem and id within
         // that System.
         // c.setCompoundSystem(*this, id);
-        c.setMultibodySystem(*this);
+        newCompound.setMultibodySystem(*this);
 
         // Save transform
         // March 6, 2008 -- adjust internal Transform of Compound, rather than 
         // saving the Transform in CompoundSystem
-        c.setTopLevelTransform(compoundTransform * c.getTopLevelTransform());
+        newCompound.setTopLevelTransform(compoundTransform * newCompound.getTopLevelTransform());
         std::cout << "SP_NEW  CompoundSystem::adoptCompound Top transforms:" << std::endl;
         std::cout << compoundTransform;
-        std::cout << c.getTopLevelTransform();
+        std::cout << newCompound.getTopLevelTransform();
         // assert((int) compoundTransforms.size() == (int) id);
         // compoundTransforms.push_back(compoundTransform);
 

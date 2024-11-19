@@ -1060,8 +1060,6 @@ CompoundRep& CompoundRep::inheritAtomNames(const Compound::Name& subcompoundName
 
         nameAtom(newAtomName, anIt->second);
 
-        std::cout << "CompoundRep::inheritAtomNames newAtomName |" << newAtomName <<"|" <<  std::endl;
-
         newNames.insert(newAtomName);
     }
 

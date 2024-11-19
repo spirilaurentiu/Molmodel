@@ -1297,6 +1297,8 @@ public:
 		return bondCenters.size();
 	}
 
+    const SimTK::Transform & getLocalTransform() const {return localTransform;}
+
 private:
     Element                     element;
 //    int                         formalCharge;
