@@ -49,7 +49,7 @@ public:
     Angle inboardBondDihedralAngle;
     Compound::BondIndex inboardBondIx;
 
-    std::set<Compound::AtomIndex> clusterCAIxs;
+    std::set<Compound::AtomIndex> clusterCAIxs; // atoms included in this unit
 
     const void Print(void) const {
         
@@ -102,8 +102,9 @@ public:
     Vec3 locationInBodyFrame;
 };
 
-/*! <!-- Recursive method to create rigid bodies from a seed atom --> */
-void buildUpRigidBody(Compound::AtomIndex cAIx, 
+/*! <!-- Recursive method to create rigid bodies from a seed atom 
+ * --> */
+void buildUpRigidBody(Compound::AtomIndex cAIx,
                       DuMM::ClusterIndex clusterIx,
                       std::set<Compound::AtomIndex>& clusterAIxs, 
                       std::map<Compound::AtomIndex, AtomBonding>& atomBondings,
@@ -198,12 +199,10 @@ void buildUpRigidBody(Compound::AtomIndex cAIx,
 }
 
 
-/*!
- * <!--
+/*! <!--
  * Once matchDefaults are done, we should be able to calculate mobod
  * transforms.
- * -->
-*/
+ * --> */
 CompoundSystem&
 CompoundSystem::calc_XPF_XBM(
     SimTK::Compound& compound,
@@ -371,7 +370,7 @@ void CompoundSystem::modelOneCompound(
     bool showDebugMessages = false;
 
     // ------------------------------------------------------------------------
-    // (0) calc default Compound atom frames in Top
+    // (0) Calc default Compound atom frames in Top
     // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&$$$$
 
     if (showDebugMessages){cout << "modelOneCompound" << endl;}
@@ -399,13 +398,13 @@ void CompoundSystem::modelOneCompound(
 
     // Convenient maps needed to manage rigid rigid units
     std::map<DuMM::ClusterIndex, RigidUnit> rigidUnits;
-    std::map<Compound::AtomIndex, AtomBonding> atomBonds;
+    std::map<Compound::AtomIndex, AtomBonding> atomBondings;
 
 
     // ------------------------------------------------------------------------
-    // (1) Create initial atomBonds data structure for each atom.
+    // (1) - Create initial AtomBonding data for each atom.
+    //     - Add DuMM atoms
     // No bonds are cached in this loop.
-    // Here we also add DuMM atoms
     // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&$$$$
 
     if (showDebugMessages) {cout << "Step 1 create atomBonds" << endl;}
@@ -414,8 +413,8 @@ void CompoundSystem::modelOneCompound(
     for (Compound::AtomIndex cACnt(0); cACnt < compound.getNumAtoms(); ++cACnt) 
     {
         // Create AtomBonding object
-        atomBonds[cACnt] = AtomBonding(cACnt);
-        AtomBonding& atomBonding = atomBonds[cACnt];
+        atomBondings[cACnt] = AtomBonding(cACnt);
+        AtomBonding& atomBonding = atomBondings[cACnt];
 
         // Get biotype index
         BiotypeIndex biotypeIx = compound.getAtomBiotypeIndex(cACnt);
@@ -445,16 +444,17 @@ void CompoundSystem::modelOneCompound(
 
 
     // ------------------------------------------------------------------------
-    // (2) Analyze atom bonding structure, and populate dumm bond structure
+    // (2) - Add DuMM bonds
+    //     - Update AtomBondings
     // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&$$$$
 
     if (showDebugMessages) {cout << "Step 2 analyze bonding structure" << endl;}
 
     // Iterate Compound bonds and add to DuMM
-    for (Compound::BondIndex bCnt(0); bCnt < compound.getNumBonds(); ++bCnt) 
+    for (Compound::BondIndex bIxCnt(0); bIxCnt < compound.getNumBonds(); ++bIxCnt) 
     {
         // Get bond and bond info
-        const BondInfo& bondInfo = compoundRep.getBondInfo(bCnt);
+        const BondInfo& bondInfo = compoundRep.getBondInfo(bIxCnt);
         const Bond& bond = compoundRep.getBond(bondInfo);
 
         // Get parent and child bond center infos
@@ -470,41 +470,42 @@ void CompoundSystem::modelOneCompound(
             compoundRep.getAtomInfo( childBondCenterInfo.getAtomIndex());
         
         // Get parent and child Compound atom index
-        Compound::AtomIndex a0 = parentAtomInfo.getIndex();
-        Compound::AtomIndex a1 = childAtomInfo.getIndex();
-        assert(a0 != a1);
+        Compound::AtomIndex cAIx_0 = parentAtomInfo.getIndex();
+        Compound::AtomIndex cAIx_1 = childAtomInfo.getIndex();
+        assert(cAIx_0 != cAIx_1);
 
-        assert(atomBonds.find(a0) != atomBonds.end());
-        assert(atomBonds.find(a1) != atomBonds.end());
+        assert(atomBondings.find(cAIx_0) != atomBondings.end());
+        assert(atomBondings.find(cAIx_1) != atomBondings.end());
 
         // Add bond to DuMM
         dumm.addBond(
-            atomBonds[a0].dummAIx,
-            atomBonds[a1].dummAIx);
+            atomBondings[cAIx_0].dummAIx,
+            atomBondings[cAIx_1].dummAIx);
 
         // Store bond info on each atom
         // only store those bonds that are part of the tree structure
         if (! bond.isRingClosingBond())
         {
-            atomBonds[a0].treeBondedCAIxs.insert(a1);
-            atomBonds[a1].treeBondedCAIxs.insert(a0);
+            atomBondings[cAIx_0].treeBondedCAIxs.insert(cAIx_1);
+            atomBondings[cAIx_1].treeBondedCAIxs.insert(cAIx_0);
             
             if (bond.getMobility() == BondMobility::Free) {
-                //std::cout
-                // << "CompoundSystem: Step2: Found Free bond between atoms "
-                // << a0 << " " << a1 << std::endl;
-                atomBonds[a0].freeTreeBondedCAIxs.insert(a1);
-                atomBonds[a1].freeTreeBondedCAIxs.insert(a0);            	
+
+                atomBondings[cAIx_0].freeTreeBondedCAIxs.insert(cAIx_1);
+                atomBondings[cAIx_1].freeTreeBondedCAIxs.insert(cAIx_0);            	
             }
             
             // Store parent-child relationship
-            atomBonds[a1].parentCAIx = a0;
+            atomBondings[cAIx_1].parentCAIx = cAIx_0;
         }
     } // every bond
 
 
     // ------------------------------------------------------------------------
-    // (3) Distribute atoms to bodies, using DuMM::ClusterIndex as proxy for 
+    // (3) - Create DuMM clusters
+    //     - Create RigidUnits
+    //     - Call buildUpRigidBody to populate RigidUnits
+    // Distribute atoms to bodies, using DuMM::ClusterIndex as proxy for 
     // body for the present.
     // We use recursive function buildUpRigidBody to construct rigid units and
     // clusters. Clusters are primarly used in DuMM
@@ -512,12 +513,11 @@ void CompoundSystem::modelOneCompound(
 
     if (showDebugMessages) {cout << "Step 3 distribute atoms" << endl;}
 
-    // AtomBonding stores cAIx, dAIx, clusterIx, adjacency and its station in
-    // Body
+    // AtomBonding stores cAIx, dAIx, clusterIx, adjacency and its station in Body
     std::map<Compound::AtomIndex, AtomBonding>::iterator atomBondIt;
 
     // Iterate AtomBondings
-    for (atomBondIt = atomBonds.begin(); atomBondIt != atomBonds.end(); ++atomBondIt) 
+    for (atomBondIt = atomBondings.begin(); atomBondIt != atomBondings.end(); ++atomBondIt) 
     {
         AtomBonding& atomBonding = atomBondIt->second;
 
@@ -538,7 +538,7 @@ void CompoundSystem::modelOneCompound(
         // Use recursive method to find all of the atoms in the cluster
         buildUpRigidBody(
             cAIx, clusterIx, rigidUnit.clusterCAIxs,
-            atomBonds, compoundRep);
+            atomBondings, compoundRep);
 
     }
 
@@ -551,11 +551,11 @@ void CompoundSystem::modelOneCompound(
     if (showDebugMessages) cout << "Step 4 assign rigid body parents" << endl;
     
     // Iterate Compound bonds
-    for (Compound::BondIndex bCnt(0); bCnt < compound.getNumBonds(); ++bCnt) 
+    for (Compound::BondIndex bIxCnt(0); bIxCnt < compound.getNumBonds(); ++bIxCnt) 
     {
 
         // Get bond
-        const BondInfo& bondInfo = compoundRep.getBondInfo(bCnt);
+        const BondInfo& bondInfo = compoundRep.getBondInfo(bIxCnt);
         const Bond& bond = compoundRep.getBond(bondInfo);
 
         // Don't use ring closing bonds to assign parent child relationships
@@ -587,12 +587,12 @@ void CompoundSystem::modelOneCompound(
             Compound::AtomIndex a0 = parentAtomInfo.getIndex();
             Compound::AtomIndex a1 = childAtomInfo.getIndex();
             assert(a0 != a1);
-            assert(atomBonds.find(a0) != atomBonds.end());
-            assert(atomBonds.find(a1) != atomBonds.end());
+            assert(atomBondings.find(a0) != atomBondings.end());
+            assert(atomBondings.find(a1) != atomBondings.end());
 
             // Get parent and child cluster indexes
-            DuMM::ClusterIndex parentClusterIndex = atomBonds[a0].clusterIx;
-            DuMM::ClusterIndex childClusterIndex = atomBonds[a1].clusterIx;
+            DuMM::ClusterIndex parentClusterIndex = atomBondings[a0].clusterIx;
+            DuMM::ClusterIndex childClusterIndex = atomBondings[a1].clusterIx;
 
             // This doesn't seem necessary
             if (parentClusterIndex == childClusterIndex){
@@ -606,8 +606,7 @@ void CompoundSystem::modelOneCompound(
             // Get parent rigid unit
             childUnit.parentClusterIx = parentClusterIndex;
             if (parentClusterIndex.isValid()) {
-                RigidUnit& parentUnit =
-                    rigidUnits.find(parentClusterIndex)->second;
+                RigidUnit& parentUnit = rigidUnits.find(parentClusterIndex)->second;
                 parentUnit.hasChild = true;
             }
 
@@ -634,7 +633,7 @@ void CompoundSystem::modelOneCompound(
 
     // 4.5) - temporary debugging status
     std::map<DuMM::ClusterIndex, RigidUnit>::iterator rigidUnitI;
-    static bool doPrintRigidUnitDebugInfo = true;
+    static bool doPrintRigidUnitDebugInfo = false;
     if (doPrintRigidUnitDebugInfo) 
     {
         for (rigidUnitI = rigidUnits.begin(); rigidUnitI != rigidUnits.end(); ++rigidUnitI)
@@ -646,9 +645,9 @@ void CompoundSystem::modelOneCompound(
             //<< "# atoms = " << unit.clusterAtoms.size();
 
             std::set<Compound::AtomIndex>::const_iterator atomI;
-            for (atomI = unit.clusterCAIxs.begin();
-            atomI != unit.clusterCAIxs.end();
-            ++atomI){}
+            for (atomI = unit.clusterCAIxs.begin(); atomI != unit.clusterCAIxs.end(); ++atomI){
+
+            }
             //cout << endl;
         }
     }
@@ -660,9 +659,7 @@ void CompoundSystem::modelOneCompound(
     // if (showDebugMessages){std::cout << "Step 5 set ground frames" << std::endl;}
 
     // Iterate rigid units
-    for (rigidUnitI = rigidUnits.begin();
-    rigidUnitI != rigidUnits.end();
-    ++rigidUnitI)
+    for (rigidUnitI = rigidUnits.begin(); rigidUnitI != rigidUnits.end(); ++rigidUnitI)
     {
         // Get rigid unit
         RigidUnit& rigidUnit = rigidUnitI->second;
@@ -672,12 +669,12 @@ void CompoundSystem::modelOneCompound(
 
         // Start from the first atom in the rigid unit
         Compound::AtomIndex seedAtomIndex = *(rigidUnit.clusterCAIxs.begin());
-        const AtomBonding* rootAtomPtr = &atomBonds.find( seedAtomIndex )->second;
+        const AtomBonding* rootAtomPtr = &atomBondings.find( seedAtomIndex )->second;
 
         // And follow atom tree to find root atom
         while (rootAtomPtr->parentCAIx.isValid())
         {
-            AtomBonding& candidateAtom = atomBonds[rootAtomPtr->parentCAIx];
+            AtomBonding& candidateAtom = atomBondings[rootAtomPtr->parentCAIx];
             if (candidateAtom.clusterIx == rigidUnit.clusterIx)
                 rootAtomPtr = &candidateAtom;
             else {
@@ -705,7 +702,8 @@ void CompoundSystem::modelOneCompound(
     if (showDebugMessages) cout << "Step 6 set child frames" << endl;
     
     // Iterate rigid units
-    for (rigidUnitI = rigidUnits.begin(); rigidUnitI != rigidUnits.end(); ++rigidUnitI)
+    for (rigidUnitI = rigidUnits.begin(); rigidUnitI != rigidUnits.end();
+    ++rigidUnitI)
     {
         // Get rigid units
         RigidUnit& rigidUnit = rigidUnitI->second;
@@ -749,11 +747,11 @@ void CompoundSystem::modelOneCompound(
         // Iterate atoms inside the unit
         std::set<Compound::AtomIndex>::const_iterator atomI;
         for (atomI = unit.clusterCAIxs.begin(); atomI != unit.clusterCAIxs.end();
-        ++atomI) 
+        ++atomI)
         {
             // Get atom
             Compound::AtomIndex atomId(*atomI);
-            AtomBonding& atomBonding = atomBonds.find(atomId)->second;
+            AtomBonding& atomBonding = atomBondings.find(atomId)->second;
             
             // Get it's Top frame from the already calculated frames at step 0
             const Transform& T_X_atom = atomFrameCache[atomId];
@@ -930,7 +928,7 @@ void CompoundSystem::modelOneCompound(
 
             // Get cAIx, AtomBonding and AtomInfo at the origin of the Unit
             Compound::AtomIndex originAtomId(*unit.clusterCAIxs.begin());
-            AtomBonding& originAtomBonding = atomBonds.find(originAtomId)->second;
+            AtomBonding& originAtomBonding = atomBondings.find(originAtomId)->second;
             const AtomInfo& originAtomInfo = compoundRep.getAtomInfo(originAtomId);
 
             // Get the parent atom cAIx and AtomInfo
@@ -951,102 +949,6 @@ void CompoundSystem::modelOneCompound(
                 Fr_X_M0, unitInboardBond.getDefaultDihedral(),
                 PFBM);
 
-/*             // Axis switching Rotations
-            Transform XAxis_To_ZAxis = Rotation(-90*Deg2Rad, YAxis);
-            Transform YAxis_To_ZAxis = Rotation(-90*Deg2Rad, XAxis);
-            Transform XAxis_To_YAxis = Rotation(-90*Deg2Rad, ZAxis);
-
-            // Get parent BC to child BC transforms:
-            //     1) rotate about x-axis by dihedral angle
-            //     2) translate along x-axis by bond length
-            //     3) rotate 180 degrees about y-axis to face the parent bond center
-            Transform X_parentBC_childBC =
-                bondInfo.getBond().getDefaultBondCenterFrameInOtherBondCenterFrame();
-            Transform X_childBC_parentBC = ~X_parentBC_childBC;
-
-            // -------------- Old mobod transforms:
-            //     - X_PF is parent rigid unit inboard_BC to child rigid unit
-            //       inboard_BC without the default dihedral and with the X
-            //        axis switched to Z axis
-            //     - X_MB switches the Z axis back to X axis
-            Transform oldX_PF = Fr_X_M0 * XAxis_To_ZAxis;
-            Transform oldX_BM = XAxis_To_ZAxis;
-            Transform oldX_MB = ~oldX_BM; // ZAxis_To_XAxis
-            Transform oldX_FM = Rotation(unitInboardBond.getDefaultDihedral(), ZAxis);
-            Transform oldX_PB = (oldX_PF * oldX_FM * oldX_MB);
-
-            // -------------- New mobod transforms:
-            //    - X_PF is parent rigid unit inboard_BC to the outboard
-            //       atom's BC (parent BC) with the X axis switched to
-            //       Z axis
-            //    - X_MB is the inboard bond parent BC to child BC transform
-            //      with the Z axis switched to X
-            Transform newX_BM = X_childBC_parentBC * XAxis_To_ZAxis;
-            Transform newX_PF = oldX_PB * newX_BM;
-
-            // -------------- Universal transforms:
-            //    - X_PF is parent rigid unit inboard_BC to the outboard
-            //       atom's BC (parent BC) with the Y axis switched to
-            //       Z axis
-            //    - X_MB is the inboard bond parent BC to child BC transform
-            //      with the Z axis switched to Y
-            Transform universalX_BM = X_childBC_parentBC * YAxis_To_ZAxis;
-            Transform universalX_PF = oldX_PB * universalX_BM;
-
-            // -------------- BendStretch, AnglePin and Slider transforms:
-            //    - X_PF is parent rigid unit inboard_BC to the outboard
-            //       atom's BC (parent BC)
-            //    - X_MB is the inboard bond parent BC to child BC transform
-            Transform bendStretchX_BM = X_childBC_parentBC;
-            Transform bendStretchX_PF = oldX_PB * bendStretchX_BM;
-
-            // -------------- AnglePin alias:
-            //    - X_PF is parent rigid unit inboard_BC to the outboard
-            //       atom's BC (parent BC)
-            //    - X_MB is the inboard bond parent BC to child BC transform
-            Transform anglePinX_BM = bendStretchX_BM;
-            Transform anglePinX_PF = bendStretchX_PF;
-
-            // -------------- Slider alias:
-            //    - X_PF is parent rigid unit inboard_BC to the outboard
-            //       atom's BC (parent BC)
-            //    - X_MB is the inboard bond parent BC to child BC transform
-            Transform sliderX_BM = bendStretchX_BM;
-            Transform sliderX_PF = bendStretchX_PF;
-
-            // -------------- Spherical transforms:
-            //    - X_PF is parent rigid unit inboard_BC to the outboard
-            //       atom's BC (parent BC) with the Y axis switched to
-            //       Z axis
-            //    - X_MB is the inboard bond parent BC to child BC transform
-            //      with the Z axis switched to Y
-            Transform sphericalX_BM = X_childBC_parentBC * XAxis_To_ZAxis * XAxis_To_YAxis;
-            Transform sphericalX_PF = oldX_PB * sphericalX_BM;
-
-	        // -------------- Special transform for free line
-            Transform newX_BM_FreeLine;
-            std::set<Compound::AtomIndex>::const_iterator atomI =
-                unit.clusterAtoms.begin();
-            Compound::AtomIndex atomId1 = *atomI;
-            ++atomI;
-            Compound::AtomIndex atomId2 = *atomI;
-
-            Vec3 atom1Location = atomBonds[atomId1].locationInBodyFrame;
-            Vec3 atom2Location = atomBonds[atomId2].locationInBodyFrame;
-	    
-            UnitVec3 zAxis(0,0,1); // Required direction of freeline
-            UnitVec3 bondDirection(atom2Location - atom1Location);
-
-            // Compute transform that positions bond direction on z-axis
-            // Br is body frame rotated so that atom axis is parallel to ZAxis
-            Real rotAngle = std::acos( ~zAxis * bondDirection );
-            if (rotAngle != 0) { // TODO - numerical precision
-                 UnitVec3 rotAxis( bondDirection % zAxis );
-                 newX_BM_FreeLine = newX_BM * Transform(Rotation(rotAngle, rotAxis));
-            } */
-
-            // GMOL END
-
             // CMB -- temporarily comment out Pin mobilizer while we test 
             // function based mobilizer for ribose pseudorotation
             if (testRiboseMobilizer) {
@@ -1056,7 +958,6 @@ void CompoundSystem::modelOneCompound(
                 //     Fr_X_M0 * Transform(Rotation(-90*Deg2Rad, YAxis)),
                 //     dumm.calcClusterMassProperties(unit.clusterIx),
                 //     Transform(Rotation(-90*Deg2Rad, YAxis)));
-	            
 	            // // Save a pointer to the pin joint in the bond object
 	            // // (ensure that the default angle of the MobilizedBody::Pin matches that of 
 	            // // the bond, in Atom.h)
