@@ -544,8 +544,9 @@ void CompoundSystem::modelOneCompound(
 
 
     // ------------------------------------------------------------------------
-    // (4) Assign rigid body parents and set body frames relative to top  
-    // compound
+    // (4)  - Assign RigidUnits parent - child relationships (Input = BondInfo)
+    //      - Set child rigid unit: inboardBCIx, inboardDihedral and inboardBondIx
+    //      - Set RigidUnits frameInTopCompoundFrame = inboard BCFrameInCompoundFrame
     // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&$$$$
 
     if (showDebugMessages) cout << "Step 4 assign rigid body parents" << endl;
@@ -584,15 +585,15 @@ void CompoundSystem::modelOneCompound(
                 compoundRep.getAtomInfo(childBondCenterInfo.getAtomIndex());
 
             // Get atoms
-            Compound::AtomIndex a0 = parentAtomInfo.getIndex();
-            Compound::AtomIndex a1 = childAtomInfo.getIndex();
-            assert(a0 != a1);
-            assert(atomBondings.find(a0) != atomBondings.end());
-            assert(atomBondings.find(a1) != atomBondings.end());
+            Compound::AtomIndex cAIx_0 = parentAtomInfo.getIndex();
+            Compound::AtomIndex cAIx_1 = childAtomInfo.getIndex();
+            assert(cAIx_0 != cAIx_1);
+            assert(atomBondings.find(cAIx_0) != atomBondings.end());
+            assert(atomBondings.find(cAIx_1) != atomBondings.end());
 
             // Get parent and child cluster indexes
-            DuMM::ClusterIndex parentClusterIndex = atomBondings[a0].clusterIx;
-            DuMM::ClusterIndex childClusterIndex = atomBondings[a1].clusterIx;
+            DuMM::ClusterIndex parentClusterIndex = atomBondings[cAIx_0].clusterIx;
+            DuMM::ClusterIndex childClusterIndex = atomBondings[cAIx_1].clusterIx;
 
             // This doesn't seem necessary
             if (parentClusterIndex == childClusterIndex){
@@ -653,7 +654,7 @@ void CompoundSystem::modelOneCompound(
     }
 
     // ------------------------------------------------------------------------
-    // (5) Set rigid units frames lacking parent bodies relative to Ground 
+    // (5) Set rigid units lacking parent frameInParentFrame relative to Ground 
     // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&$$$$
 
     // if (showDebugMessages){std::cout << "Step 5 set ground frames" << std::endl;}
@@ -711,17 +712,17 @@ void CompoundSystem::modelOneCompound(
         // Skip bodies without a parent body
         if (!rigidUnit.parentClusterIx.isValid()) continue;
 
+        // Get parent frame in Top Compound frame
+        RigidUnit& parentUnit = rigidUnits.find(rigidUnit.parentClusterIx)->second;
+        const Transform& T_X_Fr = parentUnit.frameInTopCompoundFrame;
+        Transform Fr_X_T = ~T_X_Fr;
+
         // Reset child frame to zero dihedral angle
         Transform Mr_X_M0 = Rotation(rigidUnit.inboardBondDihedralAngle, XAxis);
 
         // Get frame in Top Compound frame
         const Transform& T_X_Mr = rigidUnit.frameInTopCompoundFrame;
         Transform T_X_M0 = T_X_Mr * Mr_X_M0;
-
-        // Express body frame relative to parent frame
-        RigidUnit& parentUnit = rigidUnits.find(rigidUnit.parentClusterIx)->second;
-        const Transform& T_X_Fr = parentUnit.frameInTopCompoundFrame;
-        Transform Fr_X_T = ~T_X_Fr;
 
         // Unrotated mobile frame in parent body frame
         Transform Fr_X_M0 = Fr_X_T * T_X_M0;
@@ -762,12 +763,9 @@ void CompoundSystem::modelOneCompound(
             Transform B_X_atom = B_X_T * T_X_atom;
 
             // Also calculate station
-            Vec3 atomLocationInBody = B_X_atom.p();
-            dumm.placeAtomInCluster(
-                atomBonding.dummAIx,
-                unit.clusterIx,
-                atomLocationInBody);
-            atomBonding.locationInBodyFrame = atomLocationInBody;
+            dumm.placeAtomInCluster(atomBonding.dummAIx, unit.clusterIx, B_X_atom.p());
+            
+            atomBonding.locationInBodyFrame = B_X_atom.p();
 
             // Store atom location in Compound::Atom object
             CompoundAtom& atom = compoundRep.updAtom(atomId);
@@ -860,6 +858,8 @@ void CompoundSystem::modelOneCompound(
                 
                 dumm.attachClusterToBody(unit.clusterIx, unit.mbx);
             }
+
+
             /* else if (unit.clusterAtoms.size() == 1) // One atom, no children => Cartesian mobility
             {
                 MobilizedBody::Cartesian particleBody(matter.Ground(), 
@@ -905,6 +905,8 @@ void CompoundSystem::modelOneCompound(
                 dumm.attachClusterToBody(unit.clusterIx, unit.bodyId);
                 // std::cout << " got FreeLine mobodIx " << unit.bodyId << std::endl;
             } */
+
+
         }
 
         ///////////////////////////////////////////////////////////////////////
@@ -1123,14 +1125,11 @@ void CompoundSystem::modelOneCompound(
     } // every rigid unit
     // std::cout << std::endl;
 
-
-
     // // Print Rigid units
     // for (rigidUnitI = rigidUnits.begin(); rigidUnitI != rigidUnits.end();
     // ++rigidUnitI)
     // {
     //     RigidUnit& unit = rigidUnitI->second;
-
     //     unit.Print();
     //     unit.PrintTransforms();
     // }    
