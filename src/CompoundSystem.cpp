@@ -43,6 +43,7 @@ public:
     bool hasChild; // Whether a child body is tethered to this one
 
     Transform frameInTopCompoundFrame; // useful intermediate computation
+    Transform frameInParentFrameRotated; // added for tracking
     Transform frameInParentFrame; // what we ultimately want
 
     Compound::BondCenterIndex inboardBCIx;
@@ -77,6 +78,7 @@ public:
         std::cout << "unit frameInParentFrame ";
         //std::cout << frameInParentFrame;
         SimTK::Test::PrintTransform(frameInParentFrame, 6, "frameInParentFrame", "X_ParUnit");
+        SimTK::Test::PrintTransform(frameInParentFrameRotated, 6, "frameInParentFrameRotated", "frameInParentFrameRotated");
     
     }
 
@@ -247,6 +249,10 @@ CompoundSystem::calc_XPF_XBM(
     Transform oldX_MB = ~oldX_BM; // ZAxis_To_XAxis
     Transform oldX_FM = Rotation(rigidUnitInboardDihedral, ZAxis);
     Transform oldX_PB = (oldX_PF * oldX_FM * oldX_MB);
+
+    // std::cout << "STUDY_calc_XPF_XBM rigidUnitInboardDihedral " << rigidUnitInboardDihedral << std::endl;
+    // SimTK::Test::PrintTransform(XAxis_To_ZAxis * oldX_FM * oldX_MB, 3, "STUDY xz_ZPhi_zx", "STUDY xz_ZPhi_zx");
+    // SimTK::Test::PrintTransform(oldX_FM, 3, "STUDY oldX_FM", "STUDY oldX_FM");
 
     // -------------- New mobod transforms:
     //    - X_PF is parent rigid unit inboard_BC to the outboard
@@ -677,7 +683,7 @@ void CompoundSystem::modelOneCompound(
         {
             AtomBonding& candidateAtom = atomBondings[rootAtomPtr->parentCAIx];
             if (candidateAtom.clusterIx == rigidUnit.clusterIx)
-                rootAtomPtr = &candidateAtom;
+                {rootAtomPtr = &candidateAtom;}
             else {
                 break;
             }
@@ -693,6 +699,8 @@ void CompoundSystem::modelOneCompound(
         rigidUnit.frameInTopCompoundFrame = T_X_rootAtom;
         rigidUnit.frameInParentFrame = G_X_rootAtom;
 
+        rigidUnit.frameInParentFrameRotated = G_X_rootAtom;
+
     } // every rigid unit
 
 
@@ -703,9 +711,12 @@ void CompoundSystem::modelOneCompound(
     if (showDebugMessages) cout << "Step 6 set child frames" << endl;
     
     // Iterate rigid units
+    int ruIx = -1;
     for (rigidUnitI = rigidUnits.begin(); rigidUnitI != rigidUnits.end();
     ++rigidUnitI)
     {
+        ruIx++;
+
         // Get rigid units
         RigidUnit& rigidUnit = rigidUnitI->second;
 
@@ -727,6 +738,12 @@ void CompoundSystem::modelOneCompound(
         // Unrotated mobile frame in parent body frame
         Transform Fr_X_M0 = Fr_X_T * T_X_M0;
         rigidUnit.frameInParentFrame = Fr_X_M0;
+
+        rigidUnit.frameInParentFrameRotated = Fr_X_T * T_X_Mr;
+
+        // std::cout << "STUDY RU_parentChild ruIx Fr_X_Mr Fr_X_M0 " << ruIx << std::endl;
+        // SimTK::Test::PrintTransform(Fr_X_T * T_X_Mr, 3, "Fr_X_Mr", "Fr_X_Mr");
+        // SimTK::Test::PrintTransform(Fr_X_M0, 3, "Fr_X_M0", "Fr_X_M0");      
 
     } // every rigid unit
 
@@ -951,7 +968,53 @@ void CompoundSystem::modelOneCompound(
                 Fr_X_M0, unitInboardBond.getDefaultDihedral(),
                 PFBM);
 
-            // CMB -- temporarily comment out Pin mobilizer while we test 
+            if(false){ // STUDY
+
+                CompoundRep compoundRep = compound.updImpl();
+
+                const AtomInfo& originAtomInfo = compoundRep.getAtomInfo(originAtomId);
+                const AtomInfo& parentAtomInfo = compoundRep.getAtomInfo(parentAtomId);
+
+                const BondInfo& chemBondInfo = compoundRep.getBondInfo(originAtomInfo, parentAtomInfo);
+                const Bond& chemBond = compoundRep.getBond(chemBondInfo);
+
+                // Axis switching Rotations
+                Transform XAxis_To_ZAxis = Rotation(-90*Deg2Rad, YAxis);
+                Transform YAxis_To_ZAxis = Rotation(-90*Deg2Rad, XAxis);
+                Transform XAxis_To_YAxis = Rotation(-90*Deg2Rad, ZAxis);
+
+                // Get parent BC to child BC transforms:
+                //     1) rotate about x-axis by dihedral angle
+                //     2) translate along x-axis by bond length
+                //     3) rotate 180 degrees about y-axis to face the parent bond center
+                Transform X_parentBC_childBC = chemBondInfo.getBond().getDefaultBondCenterFrameInOtherBondCenterFrame();
+                Transform X_childBC_parentBC = ~X_parentBC_childBC;
+
+                // -------------- Old mobod transforms:
+                //    - X_PF is parent rigid unit inboard_BC to child rigid unit
+                //       inboard_BC without the default dihedral and with the X axis switched to Z axis
+                //     - X_MB switches the Z axis back to X axis
+                Transform oldX_PF = Fr_X_M0 * XAxis_To_ZAxis;
+                Transform oldX_BM = XAxis_To_ZAxis;
+                Transform oldX_MB = ~oldX_BM; // ZAxis_To_XAxis
+                Transform oldX_FM = Rotation(unitInboardBond.getDefaultDihedral(), ZAxis);
+                Transform oldX_PB = (oldX_PF * oldX_FM * oldX_MB);
+
+                // std::cout << "STUDY_calc_XPF_XBM rigidUnitInboardDihedral " << rigidUnitInboardDihedral << std::endl;
+                // SimTK::Test::PrintTransform(XAxis_To_ZAxis * oldX_FM * oldX_MB, 3, "STUDY xz_ZPhi_zx", "STUDY xz_ZPhi_zx");
+                // SimTK::Test::PrintTransform(oldX_FM, 3, "STUDY oldX_FM", "STUDY oldX_FM");
+
+                // -------------- New mobod transforms:
+                //    - X_PF is parent rigid unit inboard_BC to the outboard
+                //       atom's BC (parent BC) with the X axis switched to Z axis
+                //    - X_MB is the inboard bond parent BC to child BC transform
+                //      with the Z axis switched to X
+                Transform PFBM_1 = X_childBC_parentBC * XAxis_To_ZAxis;
+                Transform PFBM_0 = oldX_PB * PFBM_1;
+
+            }
+
+            // CMB -- temporarily comment out Pin mobilizer while we test
             // function based mobilizer for ribose pseudorotation
             if (testRiboseMobilizer) {
 	            
