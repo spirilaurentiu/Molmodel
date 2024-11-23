@@ -91,13 +91,17 @@ public:
 
 /**  **/
 CompoundSystem&
+calc_XPF_XBM_new(SimTK::Transform& Fr_X_Mr, SimTK::Transform& X_parentBC_childBC, BondMobility::Mobility bondMobility, std::vector<SimTK::Transform>& PFBM);
+
+CompoundSystem&
 calc_XPF_XBM(
     SimTK::Compound& compound,
     SimTK::Compound::AtomIndex atom1, SimTK::Compound::AtomIndex atom2,
     BondMobility::Mobility bondMobility,
     SimTK::Transform& Fr_X_M0,
     SimTK::Angle rigidUnitInboardDihedral,
-    std::vector<SimTK::Transform>& PFBM
+    std::vector<SimTK::Transform>& PFBM,
+    SimTK::Transform& Fr_X_Mr
 );
 
 
