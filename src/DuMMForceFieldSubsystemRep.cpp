@@ -56,8 +56,7 @@ using namespace SimTK;
 #include <fstream>
 #include <sys/resource.h> // memory
 
-/*!
- * <!--  -->
+/*! <!-- Execute a command from within (Linux free) -->
 */
 std::string exec_molmodel(const char* cmd) {
     std::array<char, 128> buffer;
@@ -73,8 +72,7 @@ std::string exec_molmodel(const char* cmd) {
     return result;
 }
 
-/*!
- * <!--  -->
+/*! <!-- Get Linux memory usage -->
 */
 std::size_t getLinuxMemoryUsageFromProc_m() {
     std::ifstream file("/proc/self/status");
@@ -93,8 +91,7 @@ std::size_t getLinuxMemoryUsageFromProc_m() {
     return memoryUsage; // Value in kB
 }
 
-/*!
- * <!--  -->
+/*! <!-- Get memory usage with getrusage -->
 */
 long getResourceUsage_m() {
     struct rusage usage;
@@ -117,6 +114,8 @@ static const Real CoulombFac = (Real)SimTK_COULOMB_CONSTANT_IN_MD;
 /*static*/ const char* DuMMForceFieldSubsystemRep::ApiClassName
     = "DuMMForceFieldSubsystem";
 
+/*! <!-- Helper -->
+*/
 const BondStretch* DuMMForceFieldSubsystemRep::getBondStretch
    (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2) const
 {   const AtomClassIndexPair key(class1,class2,true);
@@ -124,6 +123,8 @@ const BondStretch* DuMMForceFieldSubsystemRep::getBondStretch
         bs = bondStretch.find(key);
     return (bs != bondStretch.end()) ? &bs->second : 0; }
 
+/*! <!-- Helper -->
+*/
 const BondBend* DuMMForceFieldSubsystemRep::getBondBend
    (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2,
     DuMM::AtomClassIndex class3) const
@@ -132,6 +133,8 @@ const BondBend* DuMMForceFieldSubsystemRep::getBondBend
         bb = bondBend.find(key);
     return (bb != bondBend.end()) ? &bb->second : 0; }
 
+/*! <!-- Helper -->
+*/
 const BondTorsion* DuMMForceFieldSubsystemRep::getBondTorsion
    (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2,
     DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4) const
@@ -140,8 +143,9 @@ const BondTorsion* DuMMForceFieldSubsystemRep::getBondTorsion
         bt = bondTorsion.find(key);
     return (bt != bondTorsion.end()) ? &bt->second : 0; }
 
-const BondTorsion*
-DuMMForceFieldSubsystemRep::getAmberImproperTorsion
+/*! <!-- Helper -->
+*/
+const BondTorsion* DuMMForceFieldSubsystemRep::getAmberImproperTorsion
    (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2,
     DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4) const
 {
@@ -168,7 +172,9 @@ DuMMForceFieldSubsystemRep::getAmberImproperTorsion
 }
 
 
-
+//==============================================================================
+//                           CLASS CrossBodyBondInfo
+//==============================================================================
 // This class is used locally in realizeSubsystemTopologyImpl() below to
 // temporarily accumulate for each atom lists of relevant bonded connections
 // that include atoms from at least two bodies, so that forces applied by
@@ -215,6 +221,9 @@ struct CrossBodyBondInfo {
 
 int DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl(State& s) const
 {
+
+    std::cout << "STUDY DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl\n";
+
     if(MEMDEBUG){
         std::cout << "DuMMRep::realizeSubsystemTopologyImpl memory 0.\n" << exec_molmodel("free") << std::endl << std::flush;
         std::cout << "DuMMRep::realizeSubsystemTopologyImpl memory 0.\n" << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl << std::flush;
