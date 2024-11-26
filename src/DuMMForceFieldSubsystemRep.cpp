@@ -222,8 +222,6 @@ struct CrossBodyBondInfo {
 int DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl(State& s) const
 {
 
-    std::cout << "STUDY DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl\n";
-
     if(MEMDEBUG){
         std::cout << "DuMMRep::realizeSubsystemTopologyImpl memory 0.\n" << exec_molmodel("free") << std::endl << std::flush;
         std::cout << "DuMMRep::realizeSubsystemTopologyImpl memory 0.\n" << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl << std::flush;
@@ -265,7 +263,6 @@ int DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl(State& s) const
             }
         }
 */
-
 
         // Create cache entries for storing position info and forces for included
         // atoms and included bodies.
@@ -350,7 +347,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
     mutableThis->invalidateAllTopologicalCacheEntries();
 
     if(MEMDEBUG){
-        //std::cout << "DuMMRep::realizeInternalLists memory 0.1.\n" << exec_molmodel("free") << std::endl << std::flush;
+        std::cout << "DuMMRep::realizeInternalLists memory 0.1.\n" << exec_molmodel("free") << std::endl << std::flush;
         std::cout << "DuMMRep::realizeInternalLists memory 0.1. " << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl << std::flush;
         std::cout << "DuMMRep::realizeInternalLists memory 0.1. " << getResourceUsage_m() << " kB" << std::endl << std::flush;
     }
