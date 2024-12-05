@@ -119,8 +119,7 @@ void stdcout_OpenmmTorsion(int a1num, int a2num, int a3num, int a4num, double pe
 // Main functions
 // --------------------------------------------
 
-/*!
- * <!--
+/*! <!--
  * Bonded energy calculation only works for fully flexible setup !!
  * Initialize (/ allocate):
  *     - positions cache
@@ -158,7 +157,6 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
     // Instantiate the thermostat with adjusted temperature
     Real temperature = 300.0;
     if(dumm->wantOpenMMIntegration){temperature = dumm->temperature;}
-
     //openMMThermostat = std::make_unique<OpenMM::AndersenThermostat>(temperature, 1);
     openMMThermostat = new OpenMM::AndersenThermostat(temperature, 1);
     openMMThermostat->setRandomNumberSeed(seed);
@@ -529,8 +527,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
 }
 
 
-/*!
- * <!-- Calculates forces and/or energy and *adds* them into the output
+/*! <!-- Calculates forces and/or energy and *adds* them into the output
  * parameters -->
 */
 void OpenMMPluginInterface::calcOpenMMEnergyAndForces
