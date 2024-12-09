@@ -1704,7 +1704,9 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
 // Cost is 18 flops per atom plus bookkeeping.
 int DuMMForceFieldSubsystemRep::
 realizeSubsystemPositionImpl(const State& s) const {
-    std::cout << "STUDY DuMMForceFieldSubsystemRep::realizeSubsystemPositionImpl" << std::endl;
+
+    //std::cout << "STUDY DuMMForceFieldSubsystemRep::realizeSubsystemPositionImpl" << std::endl;
+
     const MultibodySystem&        mbs    = getMultibodySystem();
     const SimbodyMatterSubsystem& matter = mbs.getMatterSubsystem();
 
@@ -1752,7 +1754,7 @@ realizeIncludedAtomVelocityCache(const State& state) const {
     if (isIncludedAtomVelocityCacheRealized(state))
         return; // nothing to do
 
-    std::cout << "STUDY DuMMForceFieldSubsystemRep::realizeIncludedAtomVelocityCache" << std::endl;
+    //std::cout << "STUDY DuMMForceFieldSubsystemRep::realizeIncludedAtomVelocityCache" << std::endl;
 
     const MultibodySystem&        mbs    = getMultibodySystem();
     const SimbodyMatterSubsystem& matter = mbs.getMatterSubsystem();
@@ -2462,9 +2464,7 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
         return; // nothing to do
 
 
-    std::cout << "STUDY DuMMForceFieldSubsystemRep::realizeForcesAndEnergy" << std::endl;
-
-
+    //std::cout << "STUDY DuMMForceFieldSubsystemRep::realizeForcesAndEnergy" << std::endl;
 
     // Get access to the matter subsystem so we can access the bodies.
     // const MultibodySystem&        mbs    = getMultibodySystem();
