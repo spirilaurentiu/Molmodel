@@ -606,8 +606,6 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
 */
 void OpenMMPluginInterface::integrateTrajectory(int steps)
 {
-
-
     // // Print coordinates after integration
     // std::cout << "After integration:" << std::endl;
     //stdcout_OpenmmPositions("OMMposs");
