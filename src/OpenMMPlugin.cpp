@@ -625,7 +625,7 @@ void OpenMMPluginInterface::integrateTrajectory(int steps)
         <<" "<<steps <<" x "
         <<" "<<openMMIntegrator->getStepSize()
         <<" at default thermostat T "<< openMMThermostat->getDefaultTemperature()
-        << std::endl;
+        << std::endl << std::endl;
 
     openMMIntegrator->step(steps);
 

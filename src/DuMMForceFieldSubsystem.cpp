@@ -1813,10 +1813,10 @@ void DuMMForceFieldSubsystem::setDuMMTimestep(float argTimestep)
     updRep().stepsize = argTimestep;
     //updRep().openMMPlugin.setTimestep(argTimestep);
 
-    std::cout << "OMMDEBUG DuMMForceFieldSubsystem::setOpenMMstepsize stepsizes "
-        <<" "<< updRep().stepsize 
-        <<" "<< argTimestep 
-        << std::endl << std::flush;
+    // std::cout << "OMMDEBUG DuMMForceFieldSubsystem::setOpenMMstepsize stepsizes "
+    //     <<" "<< updRep().stepsize 
+    //     <<" "<< argTimestep 
+    //     << std::endl << std::flush;
     
 }
 
