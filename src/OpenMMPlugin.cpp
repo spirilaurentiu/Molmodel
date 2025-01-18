@@ -768,6 +768,8 @@ void OpenMMPluginInterface::setVelocitiesToTemperature(SimTK::Real temperature, 
  * <!--  -->
 */
 void OpenMMPluginInterface::setParticleMass(int index, SimTK::Real mass) {
+    std::cout << std::fixed << std::setprecision(6);
+    std::cout <<"STUDY_OpenMMPluginInterface::setParticleMass" <<" index "<< index <<" mass "<< mass << std::endl;    
     openMMSystem->setParticleMass(index, mass);
 }
 

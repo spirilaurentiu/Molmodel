@@ -612,6 +612,17 @@ included in AtomClass but in a second more detailed classification level called
 ChargedAtomType. **/
 /**@{**/
 
+/*! <!-- desk_mass_related --> */
+const SimTK::mdunits::Mass getAtomMass(DuMM::AtomIndex atomIndex);
+
+/**	
+* @brief Set the mass of an element. desk_mass_related
+* @param atomicNumber atomic number
+* @param atomicMass mass of an element
+* @return
+*/
+void setDuMMAtomMass(SimTK::DuMM::AtomIndex dAIx, SimTK::mdunits::Mass atomicMass);
+
 /** Define a new atom class for this force field, for identifying atoms of a 
 particular element, number of bonds, and van der Waals parameters. You must
 assign a unique index number and name, either of which can be used to 

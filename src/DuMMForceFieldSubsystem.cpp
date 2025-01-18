@@ -233,8 +233,34 @@ void DuMMForceFieldSubsystem::dumpCForceFieldParameters(std::ostream& os, const 
     os << "}" << std::endl; // end of method
 }
 
+/*! <!-- desk_mass_related --> */
+const SimTK::mdunits::Mass DuMMForceFieldSubsystem::getAtomMass(DuMM::AtomIndex dAIx){
+
+    const DuMMForceFieldSubsystemRep& dummRep = getRep();
+
+    return dummRep.getAtomMass(dAIx);
+}
+
+/*! <!-- desk_mass_related --> */
+void DuMMForceFieldSubsystem::setDuMMAtomMass(SimTK::DuMM::AtomIndex dAIx, SimTK::mdunits::Mass atomicMass) {
+
+    static const char* MethodName = "setDuMMAtomMass";
+
+    invalidateSubsystemTopologyCache();
+
+    DuMMForceFieldSubsystemRep& dummRep = updRep();
+
+    // Watch for nonsense arguments.
+    //SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class1), mm.ApiClassName, MethodName, 
+    //    "class1=%d which is not a valid atom class Index", (int) class1);
+
+    dummRep.setAtomMass(dAIx, atomicMass);
+
+}
+
+
 void DuMMForceFieldSubsystem::defineIncompleteAtomClass
-   (DuMM::AtomClassIndex atomClassIx, const char* atomClassName, int element, int valence)
+   (DuMM::AtomClassIndex atomClassIx, const char* atomClassName, int elementNumber, int valence)
 {
     static const char* MethodName = "defineIncompleteAtomClass";
 
@@ -245,8 +271,8 @@ void DuMMForceFieldSubsystem::defineIncompleteAtomClass
         // Catch nonsense arguments.
     SimTK_APIARGCHECK1_ALWAYS(atomClassIx.isValid(), mm.ApiClassName, MethodName,
         "atom class Index %d invalid: must be nonnegative", (int) atomClassIx);
-    SimTK_APIARGCHECK1_ALWAYS(mm.isValidElement(element), mm.ApiClassName, MethodName,
-        "element %d invalid: must be a valid atomic number and have an entry here",element);
+    SimTK_APIARGCHECK1_ALWAYS(mm.isValidElement(elementNumber), mm.ApiClassName, MethodName,
+        "element %d invalid: must be a valid atomic number and have an entry here",elementNumber);
     SimTK_APIARGCHECK1_ALWAYS(valence >= 0, mm.ApiClassName, MethodName, 
         "expected valence %d invalid: must be nonnegative", valence);
 
@@ -266,7 +292,7 @@ void DuMMForceFieldSubsystem::defineIncompleteAtomClass
 		}
 	}
 
-	mm.insertNewAtomClass( AtomClass(atomClassIx, atomClassName, element, valence, 
+	mm.insertNewAtomClass( AtomClass(atomClassIx, atomClassName, elementNumber, valence, 
                                             NaN, NaN) );
 
 

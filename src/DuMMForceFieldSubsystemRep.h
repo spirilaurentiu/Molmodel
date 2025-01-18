@@ -823,6 +823,12 @@ public:
         return false;
     }
 
+    // desk_mass_related
+    const SimTK::mdunits::Mass getMass() const {return mass;}
+
+    // desk_mass_related
+    void setMass(SimTK::mdunits::Mass inpMass) {this->mass = inpMass;}
+
     void dump() const {
         printf(" atomIndex=%d\n", (int)atomIndex);
         printf(" chargedAtomType=%d mobod=%d station=%g %g %g\n",
@@ -843,6 +849,7 @@ public:
         inclAtomIndex.invalidate();
         nonbondAtomIndex.invalidate();
         bondStarterIndex.invalidate();
+        mass = NaN;
     }
 
 public:
@@ -884,6 +891,10 @@ public:
     DuMMIncludedBodyIndex           AllBodyIndex;
     DuMM::NonbondAtomIndex          AllnonbondAtomIndex;
     DuMMBondStarterIndex            AllbondStarterIndex;
+
+
+    mdunits::Mass mass;
+
 
 };
 
@@ -1662,6 +1673,16 @@ public:
 		return nextUnusedChargedAtomTypeIndex;
 	}
 
+
+    /*! <!-- 
+    --> */
+    void setAtomMass(SimTK::DuMM::AtomIndex dAIx, SimTK::mdunits::Mass atomicMass)
+    {
+
+        DuMMAtom dAtom = updAtom(dAIx);
+        atoms[dAIx].setMass(atomicMass);
+    }
+
 	void insertNewChargedAtomType(const ChargedAtomType& chargedAtomType) 
 	{
 		// Update nextUnusedChargedAtomType, if necessary
@@ -1731,6 +1752,16 @@ public:
     DuMMAtom& updAtom(DuMM::AtomIndex atomIndex) 
     {   assert(isValidAtom(atomIndex));
         return atoms[atomIndex]; }
+
+
+
+    /*! <!-- desk_mass_related --> */
+    const SimTK::mdunits::Mass getAtomMass(DuMM::AtomIndex atomIndex) const
+    {
+        assert(isValidAtom(atomIndex));
+        return getAtom(atomIndex).getMass();
+        //return atoms[atomIndex].getMass();
+    }
 
     // Included bodies
     int getNumIncludedBodies() const {return (int)includedBodies.size();}
@@ -1843,9 +1874,12 @@ public:
     int getAtomElementNum(DuMM::AtomIndex atomIndex) const 
     {   const AtomClass& cl = atomClasses[getAtomClassIndex(atomIndex)];
         return cl.element; }
+
     Element getElement(int atomicNumber) const 
     {   assert(isValidElement(atomicNumber));
         return Element::getByAtomicNumber(atomicNumber); }
+
+
 
     // These return 0 if no entry can be found for the given series of atom classes.
     const BondStretch* getBondStretch(DuMM::AtomClassIndex class1, 
