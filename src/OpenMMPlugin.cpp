@@ -618,12 +618,12 @@ void OpenMMPluginInterface::integrateTrajectory(int steps)
     // openMMContext->reinitialize(true);
     // openMMContext->setPositions(getPositions());
 
-    std::cout << std::setprecision(6) << std::fixed
-        << "OMMDEBUG OpenMMPluginInterface::integrateTrajectory for"
-        <<" "<<steps <<" x "
-        <<" "<<openMMIntegrator->getStepSize()
-        <<" at default thermostat T "<< openMMThermostat->getDefaultTemperature()
-        << std::endl << std::endl;
+    // std::cout << std::setprecision(6) << std::fixed
+    //     << "OMMDEBUG OpenMMPluginInterface::integrateTrajectory for"
+    //     <<" "<<steps <<" x "
+    //     <<" "<<openMMIntegrator->getStepSize()
+    //     <<" at default thermostat T "<< openMMThermostat->getDefaultTemperature()
+    //     << std::endl;
 
     openMMIntegrator->step(steps);
 
