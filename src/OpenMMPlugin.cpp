@@ -508,12 +508,29 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
     // ----------------------------------------------
     #ifdef __PBC__ // _pbc_
 
-        OpenMM::Vec3 pbcVector_X(1, 0, 0);
-        OpenMM::Vec3 pbcVector_Y(0, 1, 0);
-        OpenMM::Vec3 pbcVector_Z(0, 0, 1);
+        double angle_X = 1.5708;
+        double angle_Y = 1.5708;
+        double angle_Z = 1.5708;
+
+        double boxLength_X = 1.5; // Example box length in angstroms
+        double boxLength_Y = 1.5; // Example box length in angstroms
+        double boxLength_Z = 1.5; // Example box length in angstroms
+
+        OpenMM::Vec3 pbcVector_X(boxLength_X, 0, 0);
+        OpenMM::Vec3 pbcVector_Y(0, boxLength_Y, 0);
+        OpenMM::Vec3 pbcVector_Z(0, 0, boxLength_Z);
 
         openMMSystem->setDefaultPeriodicBoxVectors(pbcVector_X, pbcVector_Y, pbcVector_Z);
-        //ommNonbondedForce->setPMEParameters(double alpha, int nx, int ny, int nz); // _pbc_
+
+        double alpha = 0.3; // Typical alpha value
+
+        double gridSpacing = 0.1; // Typical grid spacing
+
+        int nx = 64; // Typical grid dimensions
+        int ny = 64;
+        int nz = 64;
+
+        ommNonbondedForce->setPMEParameters(alpha, nx, ny, nz);
 
         std::cout << "Set OpenMM System PBC " << std::endl;
     

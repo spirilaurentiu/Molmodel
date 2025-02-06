@@ -92,16 +92,42 @@ public:
 	*/ 
     void setOpenMMPositions(const SimTK::Vector_<SimTK::Vec3>& includedAtomPos_G) const;
 
+    /**
+     * @brief Get OpenMM positions
+     * @return std::vector of OpenMM::Vec3s
+     */
     const std::vector<OpenMM::Vec3>& getPositions() const;
     
+    /**
+     * @brief Update atom locations cache
+     */
     void updateAtomLocationsCache();
 
+    /**
+     * @brief Get specified atom location
+     * @param dummAtomIndex index of the atom
+     * @return location of the atom
+    */
     SimTK::Vec3 getAtomPosition( int dummAtomIndex ) const;
 
+    /**
+     * @brief Calculate potential energy
+     * @return potential energy
+     */
     SimTK::Real calcPotentialEnergy() const;
+
+    /**
+     * @brief Calculate kinetic energy
+     * @return kinetic energy
+     */
     SimTK::Real calcKineticEnergy() const;
 
-    void setParticleMass(int index, SimTK::Real mass);
+    /**
+     * @brief Set particle mass
+     * @param index OpenMM index of the particle
+     * @param mass mass of the particle
+     */
+    void setParticleMass(int index, SimTK::Real mass); 
     void setOpenMMMasses(const std::vector<SimTK::Real>& masses);
 
     void setSeed(uint32_t seed);
