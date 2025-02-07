@@ -1136,9 +1136,7 @@ public:
         else return getBondCenter(BondCenterIndex(1)).getDefaultBond1Angle();
     }
 
-    /*!
-    * <!--  -->
-    */
+    /*! <!--  --> */
     UnitVec3 getBondCenterDirectionInAtomFrame(BondCenterIndex index) const 
     {
         const BondCenter& bondCenter = getBondCenter(index);
@@ -1299,6 +1297,21 @@ public:
 
     const SimTK::Transform & getLocalTransform() const {return localTransform;}
 
+    // Setter method for mass
+    void setMass(const SimTK::mdunits::Mass& m) {
+        mass = m;
+    }
+
+    // Getter method for mass
+    SimTK::mdunits::Mass getMass() const {
+        return mass;
+    }
+
+    // Updater method for mass
+    void updateMass(const SimTK::mdunits::Mass& newMass) {
+        mass = newMass;
+    }
+
 private:
     Element                     element;
 //    int                         formalCharge;
@@ -1314,6 +1327,8 @@ private:
 
     MobilizedBodyIndex mobilizedBodyIndex; // populate after bodies are specified
     Transform frameInMobilizedBodyFrame;
+
+    SimTK::mdunits::Mass mass = 0;
 
     // Angle theta1;  // angle between bond centers one and two
     friend std::ostream& operator<<(std::ostream&, const CompoundAtom&);

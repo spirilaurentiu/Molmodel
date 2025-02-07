@@ -534,6 +534,14 @@ void CompoundSystem::modelOneCompound(
         CompoundAtom& atom = compoundRep.updAtom(cACnt);
         atom.setDuMMAtomIndex(atomBonding.dummAIx);
 
+        // desk_mass_related
+        // const SimTK::AtomInfo & debugAtomInfo = compoundRep.getAtomInfo(cACnt);
+        // const SimTK::CompoundAtom & debugCompoundAtom = compoundRep.getAtomInfo(cACnt).getAtom();
+        // const SimTK::Element & debugElement = compoundRep.getAtomInfo(cACnt).getAtom().getElement();
+        // SimTK::mdunits::Mass debugMass = compoundRep.getAtomInfo(cACnt).getAtom().getElement().getMass();
+        //compoundRep.getAtomMass(cACnt);
+        dumm.setDuMMAtomMass(atomBonding.dummAIx, compoundRep.getAtomMass(cACnt));
+
         // // Check
         // if (showDebugMessages){
         //     std::cout << "SP_NEW_LAB cAIx dAIx bioIx chATIx "

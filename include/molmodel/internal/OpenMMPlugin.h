@@ -17,7 +17,7 @@
 // #endif
 
 #ifndef __PBC__ // _pbc_
-#define __PBC__
+#define __PBC__ 0
 #endif
 
 

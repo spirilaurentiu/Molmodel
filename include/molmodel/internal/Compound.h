@@ -1290,6 +1290,23 @@ public:
     /// \return the orientation and location of this Compound
     const Transform& getTopLevelTransform() const;
 
+    /** \brief __fill__
+     *  \param __fill__ 
+     *  \return the biotype assigned to an Atom in this Compound
+     */ 
+    const SimTK::mdunits::Mass getAtomMass(Compound::AtomIndex id) const;
+
+    /** \brief __fill__
+     *  \param __fill__ 
+     *  \return the biotype assigned to an Atom in this Compound
+     */ 
+    void setAtomMass(Compound::AtomIndex id, const SimTK::mdunits::Mass& mass) ;
+
+    /** \brief __fill__
+     *  \param __fill__ 
+     *  \return the biotype assigned to an Atom in this Compound
+     */ 
+    void updAtomMass(Compound::AtomIndex id, const SimTK::mdunits::Mass& mass) ;
 
 
 protected:

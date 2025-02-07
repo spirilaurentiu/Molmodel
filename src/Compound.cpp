@@ -2540,6 +2540,21 @@ const Transform& Compound::getTopLevelTransform() const
 	return getImpl().getTopLevelTransform();
 }
 
+//desk_mass_related
+const SimTK::mdunits::Mass Compound::getAtomMass(Compound::AtomIndex id) const
+{
+    return getImpl().getAtomMass(id);
+}
+
+void Compound::setAtomMass(Compound::AtomIndex id, const SimTK::mdunits::Mass& mass) {
+    return updImpl().setAtomMass(id, mass);
+}
+
+void Compound::updAtomMass(Compound::AtomIndex id, const SimTK::mdunits::Mass& mass) {
+    return updImpl().updAtomMass(id, mass);
+}
+
+
 // EU: get list of all runs of consecutive bonded atoms of run-length n from the atoms mentions in an AtomTargetLocations structure
 // for example, to get a list of all bonded pairs, set run-length to 2.
 std::vector< std::vector<Compound::AtomIndex> > Compound::getBondedAtomRuns(int atomRunCount, const Compound::AtomTargetLocations& atomTargets) const

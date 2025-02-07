@@ -2348,6 +2348,23 @@ public:
     //    return getAtomInfo(parentAtomIndex);
     //}
 
+    // desk_mass_related
+
+    const SimTK::mdunits::Mass getAtomMass(Compound::AtomIndex id) const
+    {
+        return getAtom(id).getMass();
+    }
+
+    void setAtomMass(Compound::AtomIndex id, const SimTK::mdunits::Mass& mass) {
+        updAtom(id).setMass(mass);
+    }
+
+    void updAtomMass(Compound::AtomIndex id, const SimTK::mdunits::Mass& mass) {
+        updAtom(id).updateMass(mass);
+    }
+
+    // _end_ desk_mass_related 
+
     bool hasAtom(const Compound::AtomName& name) const;
 
     bool hasAtom(Compound::AtomIndex atomId) const {
