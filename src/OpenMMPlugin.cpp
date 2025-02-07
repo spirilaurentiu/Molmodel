@@ -249,6 +249,44 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
         // Register all the 1-2 bonds between nonbond atoms for scaling.
         ommNonbondedForce->createExceptionsFromBonds(ommBonds, dumm->coulombScale14, dumm->vdwScale14);
 
+
+                    // ----------------------------------------------
+                    // PBC - Periodic Boundary Conditions __begin__
+                    // ----------------------------------------------
+                    #ifdef __PBC__ // _pbc_
+
+                        double angle_X = 1.5708;
+                        double angle_Y = 1.5708;
+                        double angle_Z = 1.5708;
+
+                        double boxLength_X = 1.5; // Example box length in angstroms
+                        double boxLength_Y = 1.5; // Example box length in angstroms
+                        double boxLength_Z = 1.5; // Example box length in angstroms
+
+                        OpenMM::Vec3 pbcVector_X(boxLength_X, 0, 0);
+                        OpenMM::Vec3 pbcVector_Y(0, boxLength_Y, 0);
+                        OpenMM::Vec3 pbcVector_Z(0, 0, boxLength_Z);
+
+                        openMMSystem->setDefaultPeriodicBoxVectors(pbcVector_X, pbcVector_Y, pbcVector_Z);
+
+                        double alpha = 0.3; // Typical alpha value
+
+                        double gridSpacing = 0.1; // Typical grid spacing
+
+                        int nx = 64; // Typical grid dimensions
+                        int ny = 64;
+                        int nz = 64;
+
+                        ommNonbondedForce->setPMEParameters(alpha, nx, ny, nz);
+
+                        std::cout << "Set OpenMM System PBC " << std::endl;
+                    
+                    # endif
+                    // ----------------------------------------------
+                    // PBC - Periodic Boundary Conditions __end__
+                    // ----------------------------------------------
+
+
         // System takes over heap ownership of the force.
         openMMSystem->addForce(ommNonbondedForce.get());
         ommNonbondedForce.release();
@@ -501,44 +539,6 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
     // for (const auto& atom : openMMState.getPositions()) {
     //     atomLocationsCache.push_back(SimTK::Vec3(atom[0], atom[1], atom[2]));
     // }
-
-
-    // ----------------------------------------------
-    // PBC - Periodic Boundary Conditions __begin__
-    // ----------------------------------------------
-    #ifdef __PBC__ // _pbc_
-
-        // double angle_X = 1.5708;
-        // double angle_Y = 1.5708;
-        // double angle_Z = 1.5708;
-
-        // double boxLength_X = 1.5; // Example box length in angstroms
-        // double boxLength_Y = 1.5; // Example box length in angstroms
-        // double boxLength_Z = 1.5; // Example box length in angstroms
-
-        // OpenMM::Vec3 pbcVector_X(boxLength_X, 0, 0);
-        // OpenMM::Vec3 pbcVector_Y(0, boxLength_Y, 0);
-        // OpenMM::Vec3 pbcVector_Z(0, 0, boxLength_Z);
-
-        // openMMSystem->setDefaultPeriodicBoxVectors(pbcVector_X, pbcVector_Y, pbcVector_Z);
-
-        // double alpha = 0.3; // Typical alpha value
-
-        // double gridSpacing = 0.1; // Typical grid spacing
-
-        // int nx = 64; // Typical grid dimensions
-        // int ny = 64;
-        // int nz = 64;
-
-        // ommNonbondedForce->setPMEParameters(alpha, nx, ny, nz);
-
-        // std::cout << "Set OpenMM System PBC " << std::endl;
-    
-    # endif
-    // ----------------------------------------------
-    // PBC - Periodic Boundary Conditions __end__
-    // ----------------------------------------------
-
 
     return openMMContext->getPlatform().getName();
 }
