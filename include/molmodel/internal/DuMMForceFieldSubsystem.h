@@ -801,13 +801,13 @@ Biotypes to the atoms in the molecule. **/
 /** Use Amber99 force field parameters. This duplicates the Tinker Amber99 
 parameter set in pre-built code, so you don't need to load the parameters from
 a file. **/
-void loadAmber99Parameters();
+//void loadAmber99Parameters();
 
 /** Load force field parameters from a TINKER format force field parameter 
 file.\ (Only the Amber99 force field has been tested.) **/
-void populateFromTinkerParameterFile(
-    std::istream& ///< input stream for TINKER format force field parameter file
-    );
+// void populateFromTinkerParameterFile(
+//     std::istream& ///< input stream for TINKER format force field parameter file
+//     );
 
 /** Associate a Tinker Biotype with a ChargedAtomType in this subsystem. A 
 Biotype association is required for every Biotype found on atoms in the current
@@ -1500,7 +1500,7 @@ void dumpCForceFieldParameters
    (std::ostream& os, const String& methodName = "loadParameters") const;
 
 /** Load test parameters. **/
-void loadTestMoleculeParameters();
+//void loadTestMoleculeParameters();
 
 /**@}**/
 
@@ -1595,14 +1595,14 @@ public:
 
 /** This class is just a DuMMForceFieldSubsystem for which the constructor 
 pre-loads the definitions of the Amber99 force field. **/
-class Amber99ForceSubsystem : public DuMMForceFieldSubsystem {
-public:
-    explicit Amber99ForceSubsystem(MolecularMechanicsSystem& system) 
-        : DuMMForceFieldSubsystem(system)
-    {
-        loadAmber99Parameters();
-    }
-};
+// class Amber99ForceSubsystem : public DuMMForceFieldSubsystem {
+// public:
+//     explicit Amber99ForceSubsystem(MolecularMechanicsSystem& system) 
+//         : DuMMForceFieldSubsystem(system)
+//     {
+//         loadAmber99Parameters();
+//     }
+// };
 
 
 } // namespace SimTK

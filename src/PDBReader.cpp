@@ -45,190 +45,190 @@ using std::map;
 using std::string;
 using std::vector;
 
-class PDBReader::PDBReaderImpl {
-public:
-    PDBReaderImpl(string filename) : hasBuiltSystem(false) {
-        mol_DbRead("mol", filename.c_str(), MOL_DB_PDB, &model);
-        MolStructure *structure;
-        int numStructures;
-        mol_MolModelStructuresGet(model, &numStructures, &structure);
-        SimTK_APIARGCHECK_ALWAYS(numStructures == 1, "PDBReaderImpl", "PDBReaderImpl", "The PDB file must contain exactly one structure");
-    }
+// class PDBReader::PDBReaderImpl {
+// public:
+//     PDBReaderImpl(string filename) : hasBuiltSystem(false) {
+//         mol_DbRead("mol", filename.c_str(), MOL_DB_PDB, &model);
+//         MolStructure *structure;
+//         int numStructures;
+//         mol_MolModelStructuresGet(model, &numStructures, &structure);
+//         SimTK_APIARGCHECK_ALWAYS(numStructures == 1, "PDBReaderImpl", "PDBReaderImpl", "The PDB file must contain exactly one structure");
+//     }
 
-    ~PDBReaderImpl() {
-        mol_MemFreeModel(model);
-    }
+//     ~PDBReaderImpl() {
+//         mol_MemFreeModel(model);
+//     }
 
-    void createCompounds(CompoundSystem& system) {
-        SimTK_APIARGCHECK_ALWAYS(!hasBuiltSystem, "PDBReaderImpl", "createSystem", "createSystem() has already been called");
-        MolStructure *structure;
-        int numStructures;
-        mol_MolModelStructuresGet(model, &numStructures, &structure); // numStructures and structure are just copied from corresponding members of model.  But where does model come from?  Apparently it's a private member of PDBReader, set by mol_DbRead above
+//     void createCompounds(CompoundSystem& system) {
+//         SimTK_APIARGCHECK_ALWAYS(!hasBuiltSystem, "PDBReaderImpl", "createSystem", "createSystem() has already been called");
+//         MolStructure *structure;
+//         int numStructures;
+//         mol_MolModelStructuresGet(model, &numStructures, &structure); // numStructures and structure are just copied from corresponding members of model.  But where does model come from?  Apparently it's a private member of PDBReader, set by mol_DbRead above
 
-        MolAtom* atoms;
-        int numAtoms;
-        mol_StructureAtomsGet(structure, &numAtoms, &atoms);
-        MolChain* chains;
-        int numChains;
-        mol_StructureChainsGet(structure, &numChains, &chains); // scf: members of structure are simply copied to numChains and chains.
+//         MolAtom* atoms;
+//         int numAtoms;
+//         mol_StructureAtomsGet(structure, &numAtoms, &atoms);
+//         MolChain* chains;
+//         int numChains;
+//         mol_StructureChainsGet(structure, &numChains, &chains); // scf: members of structure are simply copied to numChains and chains.
         
-        // Loop over chains and create a Biopolymer from each one.
+//         // Loop over chains and create a Biopolymer from each one.
         
-        while (chains) {
-            MolResidue** chainResidues;
-            int numResidues;
-            mol_ChainResiduesGet(chains, &numResidues, &chainResidues);
+//         while (chains) {
+//             MolResidue** chainResidues;
+//             int numResidues;
+//             mol_ChainResiduesGet(chains, &numResidues, &chainResidues);
             
-            // Create a string of the sequence.
+//             // Create a string of the sequence.
             
-            string sequence;
-            for (int i = 0; i < numResidues; ++i) {
-                sequence += mol_res_names[chainResidues[i]->type][2];
-            }
-            std::transform(sequence.begin(), sequence.end(), sequence.begin(), (int(*)(int)) std::toupper);
-            if ((chainResidues[0]->type >= 25) &&
-                (chainResidues[0]->type <= 28)) 
-            {
+//             string sequence;
+//             for (int i = 0; i < numResidues; ++i) {
+//                 sequence += mol_res_names[chainResidues[i]->type][2];
+//             }
+//             std::transform(sequence.begin(), sequence.end(), sequence.begin(), (int(*)(int)) std::toupper);
+//             if ((chainResidues[0]->type >= 25) &&
+//                 (chainResidues[0]->type <= 28)) 
+//             {
                 
-                // Create an RNA.
+//                 // Create an RNA.
                 
-                RNA rna(sequence);
-                for (int i = 0; i < rna.getNumResidues(); i ++) {
-                    rna.updResidue(ResidueInfo::Index(i)).setPdbResidueNumber(chainResidues[i]->id);
-                    rna.updResidue(ResidueInfo::Index(i)).setPdbInsertionCode(chainResidues[i]->insertion_code);//    ('101A');
-                }
-                rna.assignBiotypes();
-                compounds.push_back(rna);
-            } 
-            else if ((chainResidues[0]->type >= 40) &&
-                     (chainResidues[0]->type <= 43)) {
+//                 RNA rna(sequence);
+//                 for (int i = 0; i < rna.getNumResidues(); i ++) {
+//                     rna.updResidue(ResidueInfo::Index(i)).setPdbResidueNumber(chainResidues[i]->id);
+//                     rna.updResidue(ResidueInfo::Index(i)).setPdbInsertionCode(chainResidues[i]->insertion_code);//    ('101A');
+//                 }
+//                 rna.assignBiotypes();
+//                 compounds.push_back(rna);
+//             } 
+//             else if ((chainResidues[0]->type >= 40) &&
+//                      (chainResidues[0]->type <= 43)) {
                 
-                // Create a  DNA.
+//                 // Create a  DNA.
                 
-                DNA dna(sequence);
-                for (int i = 0; i < dna.getNumResidues(); i ++) {
-                    dna.updResidue(ResidueInfo::Index(i)).setPdbResidueNumber(chainResidues[i]->id);
-                    dna.updResidue(ResidueInfo::Index(i)).setPdbInsertionCode(chainResidues[i]->insertion_code);
-                }
-                dna.assignBiotypes();
-                compounds.push_back(dna);
-            }  
-            else if (chainResidues[0]->type < 21) {
+//                 DNA dna(sequence);
+//                 for (int i = 0; i < dna.getNumResidues(); i ++) {
+//                     dna.updResidue(ResidueInfo::Index(i)).setPdbResidueNumber(chainResidues[i]->id);
+//                     dna.updResidue(ResidueInfo::Index(i)).setPdbInsertionCode(chainResidues[i]->insertion_code);
+//                 }
+//                 dna.assignBiotypes();
+//                 compounds.push_back(dna);
+//             }  
+//             else if (chainResidues[0]->type < 21) {
                 
-                // Create a Protein.
-                // scf changed this to use one more parameter in the Protein constructor, set to "Torsion".  Default is "Rigid".  Now the peptide bond will not be rigid.
-                Protein protein(sequence,BondMobility::Torsion);
+//                 // Create a Protein.
+//                 // scf changed this to use one more parameter in the Protein constructor, set to "Torsion".  Default is "Rigid".  Now the peptide bond will not be rigid.
+//                 Protein protein(sequence,BondMobility::Torsion);
 
-                    protein.updResidue(ResidueInfo::Index(0)).setPdbResidueNumber(chainResidues[0]->id-1);
-                    protein.updResidue(ResidueInfo::Index(0)).setPdbInsertionCode(' ');
-                    std::cout<<__FILE__<<":"<<__LINE__<<" i, residue number, insertion code, residue type : "<< protein.updResidue(ResidueInfo::Index(0)).getPdbResidueNumber()  <<", "<< protein.updResidue(ResidueInfo::Index(0)).getPdbInsertionCode()<<", "<<protein.updResidue(ResidueInfo::Index(0)).getOneLetterCode()<<std::endl;
-                    //std::cout<<__FILE__<<":"<<__LINE__<<" i, residue number, insertion code, residue type : "<<chainResidues[0]->id<<", "<<chainResidues[0]->insertion_code<<", "<< protein.updResidue(ResidueInfo::Index(0)).getOneLetterCode()<<std::endl;
-                for (int i = 1; i < (protein.getNumResidues() - 1); i ++) { // assume protein capping is ON.  this means first and last residues are end caps, we ignore at this stage.
-                    protein.updResidue(ResidueInfo::Index(i)).setPdbResidueNumber(chainResidues[i-1]->id);
-                    protein.updResidue(ResidueInfo::Index(i)).setPdbInsertionCode(chainResidues[i-1]->insertion_code);
-                    std::cout<<__FILE__<<":"<<__LINE__<<" i, residue number, insertion code, residue type : "<< protein.updResidue(ResidueInfo::Index(i)).getPdbResidueNumber()  <<", "<< protein.updResidue(ResidueInfo::Index(i)).getPdbInsertionCode()<<", "<<protein.updResidue(ResidueInfo::Index(i)).getOneLetterCode()<<std::endl;
-                }
-	            // was unable to retrieve C-terminal end cap for some reason:	 	
-                    //protein.updResidue(ResidueInfo::Index((protein.getNumResidues() - 1) )).setPdbResidueNumber(chainResidues[(protein.getNumResidues() - 1) ]->id+1);
-                    //protein.updResidue(ResidueInfo::Index((protein.getNumResidues() - 1) )).setPdbInsertionCode(' ');
-                    std::cout<<__FILE__<<":"<<__LINE__<<" i, residue number, insertion code, residue type : "<< protein.updResidue(ResidueInfo::Index((protein.getNumResidues() - 1) )).getPdbResidueNumber()  <<", "<< protein.updResidue(ResidueInfo::Index( (protein.getNumResidues() - 1) )).getPdbInsertionCode()<<", "<<protein.updResidue(ResidueInfo::Index( (protein.getNumResidues() - 1) )).getOneLetterCode()<<std::endl;
-                protein.assignBiotypes();
-                compounds.push_back(protein);
-            }
-            compounds[compounds.size()-1].setPdbChainId(String((*chains).id ));
-            chains = chains->next;
-        }
+//                     protein.updResidue(ResidueInfo::Index(0)).setPdbResidueNumber(chainResidues[0]->id-1);
+//                     protein.updResidue(ResidueInfo::Index(0)).setPdbInsertionCode(' ');
+//                     std::cout<<__FILE__<<":"<<__LINE__<<" i, residue number, insertion code, residue type : "<< protein.updResidue(ResidueInfo::Index(0)).getPdbResidueNumber()  <<", "<< protein.updResidue(ResidueInfo::Index(0)).getPdbInsertionCode()<<", "<<protein.updResidue(ResidueInfo::Index(0)).getOneLetterCode()<<std::endl;
+//                     //std::cout<<__FILE__<<":"<<__LINE__<<" i, residue number, insertion code, residue type : "<<chainResidues[0]->id<<", "<<chainResidues[0]->insertion_code<<", "<< protein.updResidue(ResidueInfo::Index(0)).getOneLetterCode()<<std::endl;
+//                 for (int i = 1; i < (protein.getNumResidues() - 1); i ++) { // assume protein capping is ON.  this means first and last residues are end caps, we ignore at this stage.
+//                     protein.updResidue(ResidueInfo::Index(i)).setPdbResidueNumber(chainResidues[i-1]->id);
+//                     protein.updResidue(ResidueInfo::Index(i)).setPdbInsertionCode(chainResidues[i-1]->insertion_code);
+//                     std::cout<<__FILE__<<":"<<__LINE__<<" i, residue number, insertion code, residue type : "<< protein.updResidue(ResidueInfo::Index(i)).getPdbResidueNumber()  <<", "<< protein.updResidue(ResidueInfo::Index(i)).getPdbInsertionCode()<<", "<<protein.updResidue(ResidueInfo::Index(i)).getOneLetterCode()<<std::endl;
+//                 }
+// 	            // was unable to retrieve C-terminal end cap for some reason:	 	
+//                     //protein.updResidue(ResidueInfo::Index((protein.getNumResidues() - 1) )).setPdbResidueNumber(chainResidues[(protein.getNumResidues() - 1) ]->id+1);
+//                     //protein.updResidue(ResidueInfo::Index((protein.getNumResidues() - 1) )).setPdbInsertionCode(' ');
+//                     std::cout<<__FILE__<<":"<<__LINE__<<" i, residue number, insertion code, residue type : "<< protein.updResidue(ResidueInfo::Index((protein.getNumResidues() - 1) )).getPdbResidueNumber()  <<", "<< protein.updResidue(ResidueInfo::Index( (protein.getNumResidues() - 1) )).getPdbInsertionCode()<<", "<<protein.updResidue(ResidueInfo::Index( (protein.getNumResidues() - 1) )).getOneLetterCode()<<std::endl;
+//                 protein.assignBiotypes();
+//                 compounds.push_back(protein);
+//             }
+//             compounds[compounds.size()-1].setPdbChainId(String((*chains).id ));
+//             chains = chains->next;
+//         }
         
-        // Add them to the system.
+//         // Add them to the system.
         
-        for (int i = 0; i < (int)compounds.size(); ++i)
-            system.adoptCompound(compounds[i]);
-        hasBuiltSystem = true;
-    }
+//         for (int i = 0; i < (int)compounds.size(); ++i)
+//             system.adoptCompound(compounds[i]);
+//         hasBuiltSystem = true;
+//     }
     
-    Real createState(const CompoundSystem& system, State& state) const {
-        SimTK_APIARGCHECK_ALWAYS(hasBuiltSystem, "PDBReaderImpl", "createState", "createSystem() has not yet been called");
+//     Real createState(const CompoundSystem& system, State& state) const {
+//         SimTK_APIARGCHECK_ALWAYS(hasBuiltSystem, "PDBReaderImpl", "createState", "createSystem() has not yet been called");
 
-        MolStructure *structure;
-        int numStructures;
-        mol_MolModelStructuresGet(model, &numStructures, &structure);
-        MolAtom* atoms;
-        int numAtoms;
-        mol_StructureAtomsGet(structure, &numAtoms, &atoms);
-        MolChain* chains;
-        int numChains;
-        mol_StructureChainsGet(structure, &numChains, &chains);
+//         MolStructure *structure;
+//         int numStructures;
+//         mol_MolModelStructuresGet(model, &numStructures, &structure);
+//         MolAtom* atoms;
+//         int numAtoms;
+//         mol_StructureAtomsGet(structure, &numAtoms, &atoms);
+//         MolChain* chains;
+//         int numChains;
+//         mol_StructureChainsGet(structure, &numChains, &chains);
 
-        // Loop over atoms, match each one to the appropriate mobilized body, and
-        // create a list of stations that will be used for fitting the State.
+//         // Loop over atoms, match each one to the appropriate mobilized body, and
+//         // create a list of stations that will be used for fitting the State.
 
-        map<MobilizedBodyIndex, vector<Vec3> > stations;
-        map<MobilizedBodyIndex, vector<Vec3> > targetLocations;
-        int proteinIndex = 0;
-        while (chains) {
-            MolResidue** chainResidues;
-            int numResidues;
-            mol_ChainResiduesGet(chains, &numResidues, &chainResidues);
-            for (int res = 0; res < numResidues; ++res) {
-                MolAtomList resAtoms = chainResidues[res]->atoms;
-                char resName[32];
-                sprintf(resName, "%d", res);
-                const Biopolymer& compound = compounds[proteinIndex];
-                const ResidueInfo::Index resIx = compound.getResidue(resName).getIndex();
-                const ResidueInfo& residue = compound.getResidue(resName);
-// residue.setBondMobility(
-                for (int i = 0; i < resAtoms.num; ++i) {
-                    MolAtom atom = atoms[resAtoms.list[i]];
-                    string atomName = atom.name;
-                    atomName = atomName.erase(atomName.find_last_not_of(' ')+1);
-                    atomName.erase(0, atomName.find_first_not_of(' '));
-                    for (ResidueInfo::AtomIndex atomId(0); atomId < residue.getNumAtoms(); ++atomId) {
-                        if (atomName == residue.getAtomName(atomId)) {
-                            MobilizedBodyIndex bodyId = compound.getResidueAtomMobilizedBodyIndex(resIx, atomId);
-                            stations[bodyId].push_back(compound.getResidueAtomLocationInMobilizedBodyFrame(resIx, atomId));
-                            targetLocations[bodyId].push_back(Vec3(atom.pos[0], atom.pos[1], atom.pos[2]));
-                        }
-                    }
-                }
-            }
-            proteinIndex++;
-            chains = chains->next;
-        }
+//         map<MobilizedBodyIndex, vector<Vec3> > stations;
+//         map<MobilizedBodyIndex, vector<Vec3> > targetLocations;
+//         int proteinIndex = 0;
+//         while (chains) {
+//             MolResidue** chainResidues;
+//             int numResidues;
+//             mol_ChainResiduesGet(chains, &numResidues, &chainResidues);
+//             for (int res = 0; res < numResidues; ++res) {
+//                 MolAtomList resAtoms = chainResidues[res]->atoms;
+//                 char resName[32];
+//                 sprintf(resName, "%d", res);
+//                 const Biopolymer& compound = compounds[proteinIndex];
+//                 const ResidueInfo::Index resIx = compound.getResidue(resName).getIndex();
+//                 const ResidueInfo& residue = compound.getResidue(resName);
+// // residue.setBondMobility(
+//                 for (int i = 0; i < resAtoms.num; ++i) {
+//                     MolAtom atom = atoms[resAtoms.list[i]];
+//                     string atomName = atom.name;
+//                     atomName = atomName.erase(atomName.find_last_not_of(' ')+1);
+//                     atomName.erase(0, atomName.find_first_not_of(' '));
+//                     for (ResidueInfo::AtomIndex atomId(0); atomId < residue.getNumAtoms(); ++atomId) {
+//                         if (atomName == residue.getAtomName(atomId)) {
+//                             MobilizedBodyIndex bodyId = compound.getResidueAtomMobilizedBodyIndex(resIx, atomId);
+//                             stations[bodyId].push_back(compound.getResidueAtomLocationInMobilizedBodyFrame(resIx, atomId));
+//                             targetLocations[bodyId].push_back(Vec3(atom.pos[0], atom.pos[1], atom.pos[2]));
+//                         }
+//                     }
+//                 }
+//             }
+//             proteinIndex++;
+//             chains = chains->next;
+//         }
 
-        // Now perform the fitting.
+//         // Now perform the fitting.
         
-        vector<MobilizedBodyIndex> bodyList;
-        vector<vector<Vec3> > stationList;
-        vector<vector<Vec3> > targetList;
-        for (map<MobilizedBodyIndex, vector<Vec3> >::const_iterator iter = stations.begin(); iter != stations.end(); iter++) {
-            bodyList.push_back(iter->first);
-            stationList.push_back(iter->second);
-            targetList.push_back(targetLocations.find(iter->first)->second);
-        }
-        // sherm 100307: Optimizers now use relative tolerance.
-        Real tolerance = .001; // 0.1%
-        return ObservedPointFitter::findBestFit(system, state, bodyList, stationList, targetList, tolerance);
-    }
+//         vector<MobilizedBodyIndex> bodyList;
+//         vector<vector<Vec3> > stationList;
+//         vector<vector<Vec3> > targetList;
+//         for (map<MobilizedBodyIndex, vector<Vec3> >::const_iterator iter = stations.begin(); iter != stations.end(); iter++) {
+//             bodyList.push_back(iter->first);
+//             stationList.push_back(iter->second);
+//             targetList.push_back(targetLocations.find(iter->first)->second);
+//         }
+//         // sherm 100307: Optimizers now use relative tolerance.
+//         Real tolerance = .001; // 0.1%
+//         return ObservedPointFitter::findBestFit(system, state, bodyList, stationList, targetList, tolerance);
+//     }
         
-private:
-    MolModel *model;
-    vector<Biopolymer> compounds;
-    bool hasBuiltSystem;
-};
+// private:
+//     MolModel *model;
+//     vector<Biopolymer> compounds;
+//     bool hasBuiltSystem;
+// };
 
-PDBReader::PDBReader(string filename) {
-    impl = new PDBReaderImpl(filename);
-}
+// PDBReader::PDBReader(string filename) {
+//     impl = new PDBReaderImpl(filename);
+// }
 
-PDBReader::~PDBReader() {
-    delete impl;
-}
+// PDBReader::~PDBReader() {
+//     delete impl;
+// }
 
-void PDBReader::createCompounds(CompoundSystem& system) {
-    impl->createCompounds(system);
-}
+// void PDBReader::createCompounds(CompoundSystem& system) {
+//     impl->createCompounds(system);
+// }
 
-Real PDBReader::createState(const CompoundSystem& system, State& state) const {
-    return impl->createState(system, state);
-}
+// Real PDBReader::createState(const CompoundSystem& system, State& state) const {
+//     return impl->createState(system, state);
+// }
 

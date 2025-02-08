@@ -42,34 +42,20 @@ namespace SimTK {
  * in Simbody.
  */
 
-class SimTK_MOLMODEL_EXPORT PDBReader {
-public:
-    /**
-     * Create a PDBReader object that encapsulates the information in a PDB file.
-     */
-    explicit PDBReader(std::string filename);
-    ~PDBReader();
-    /**
-     * Create one or more Compounds representing the protein or nucleic acid described in the PDB file.  You
-     * pass to this method a CompoundSystem which has all the necessary subsystems.  It then creates
-     * Compounds based on the sequence in the PDB file and adds them to the CompoundSystem.
-     */
-    void createCompounds(CompoundSystem& system);
-    /**
-     * Create a State reflecting the structure loaded from the PDB file.  Before calling this method,
-     * you must first call createCompounds(), then call modelCompounds() on the CompoundSystem.  You
-     * pass it the System that was created by createCompounds() and a State in which to store the result.
-     * It performs a nonlinear optimization to find the set of internal coordinates for the System which
-     * most closely match the structure specified in the PDB file.
-     * 
-     * Because this method actually has to solve an optimization problem, it may take a long time
-     * for large proteins.
-     */
-    Real createState(const CompoundSystem& system, State& state) const;
-private:
-    class PDBReaderImpl;
-    PDBReaderImpl* impl;
-};
+// class SimTK_MOLMODEL_EXPORT PDBReader {
+// public:
+
+//     explicit PDBReader(std::string filename);
+//     ~PDBReader();
+
+//     void createCompounds(CompoundSystem& system);
+
+//     Real createState(const CompoundSystem& system, State& state) const;
+    
+// private:
+//     class PDBReaderImpl;
+//     PDBReaderImpl* impl;
+// };
 
 } // namespace SimTK
 

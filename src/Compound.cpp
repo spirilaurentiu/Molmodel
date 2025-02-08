@@ -2650,7 +2650,9 @@ Compound& Compound::fitDefaultConfiguration(
     CompoundSystem matchingSystem;
     SimbodyMatterSubsystem matchingMatter(matchingSystem);
     DuMMForceFieldSubsystem dumm(matchingSystem);
-    dumm.loadAmber99Parameters();
+
+    //dumm.loadAmber99Parameters();
+
     dumm.setAllGlobalScaleFactors(0);
     GeneralForceSubsystem forces(matchingSystem);
     matchingSystem.adoptCompound(compoundCopy);
@@ -3228,94 +3230,93 @@ const String& BiopolymerResidue::getResidueTypeName() const {
 //  2) at the carbonyl carbon, for the next amino acid residue
 //  3) at the alpha carbon, for the side chain
 
-AminoAcidResidue AminoAcidResidue::create(const PdbResidue& pdbResidue) 
-{
-    const String& residueName(pdbResidue.getName());
-    
-    AminoAcidResidue answer = Alanine();
-    
-    if      (residueName == "ALA") answer = Alanine();
-    else if (residueName == "CYS") answer = Cysteine();
-    else if (residueName == "ASP") answer = Aspartate();
-    else if (residueName == "GLU") answer = Glutamate();
-    else if (residueName == "PHE") answer = Phenylalanine();
-    else if (residueName == "GLY") answer = Glycine();
-    else if (residueName == "HIS") answer = Histidine();
-    else if (residueName == "ILE") answer = Isoleucine();
-    else if (residueName == "LYS") answer = Lysine();
-    else if (residueName == "LEU") answer = Leucine();
-    else if (residueName == "MET") answer = Methionine();
-    else if (residueName == "ASN") answer = Asparagine();
-    else if (residueName == "PRO") answer = Proline();
-    else if (residueName == "GLN") answer = Glutamine();
-    else if (residueName == "ARG") answer = Arginine();
-    else if (residueName == "SER") answer = Serine();
-    else if (residueName == "THR") answer = Threonine();
-    else if (residueName == "VAL") answer = Valine();
-    else if (residueName == "TRP") answer = Tryptophan();
-    else if (residueName == "TYR") answer = Tyrosine();
-    
-    else 
-        SimTK_THROW1(Exception::UndefinedAminoAcidResidue, residueName);
-    
-    answer.setPdbResidueNumber( pdbResidue.getPdbResidueNumber() );
-    
-    return answer;
-}
 
-AminoAcidResidue AminoAcidResidue::create(char oneLetterCode) 
-{
-    switch(oneLetterCode) {
-    case 'A':
-        return Alanine();
-    case 'C':
-        return Cysteine();
-    // SCF created DisulphideBridgedCysteine, see Protein.h and mol.h
-    case 'X':
-        return DisulphideBridgedCysteine();
-    case 'D':
-        return Aspartate();
-    case 'E':
-        return Glutamate();
-    case 'F':
-        return Phenylalanine();
-    case 'G':
-        return Glycine();
-    case 'H':
-        return Histidine();
-    case 'I':
-        return Isoleucine();
-    case 'K':
-        return Lysine();
-    case 'L':
-        return Leucine();
-    case 'M':
-        return Methionine();
-    case 'N':
-        return Asparagine();
-    case 'P':
-        return Proline();
-    case 'Q':
-        return Glutamine();
-    case 'R':
-        return Arginine();
-    case 'S':
-        return Serine();
-    case 'T':
-        return Threonine();
-    case 'V':
-        return Valine();
-    case 'W':
-        return Tryptophan();
-    case 'Y':
-        return Tyrosine();
-    }
+
+// AminoAcidResidue AminoAcidResidue::create(const PdbResidue& pdbResidue) 
+// {
+//     const String& residueName(pdbResidue.getName());    
+//     AminoAcidResidue answer = Alanine();  
+//     if      (residueName == "ALA") answer = Alanine();
+//     else if (residueName == "CYS") answer = Cysteine();
+//     else if (residueName == "ASP") answer = Aspartate();
+//     else if (residueName == "GLU") answer = Glutamate();
+//     else if (residueName == "PHE") answer = Phenylalanine();
+//     else if (residueName == "GLY") answer = Glycine();
+//     else if (residueName == "HIS") answer = Histidine();
+//     else if (residueName == "ILE") answer = Isoleucine();
+//     else if (residueName == "LYS") answer = Lysine();
+//     else if (residueName == "LEU") answer = Leucine();
+//     else if (residueName == "MET") answer = Methionine();
+//     else if (residueName == "ASN") answer = Asparagine();
+//     else if (residueName == "PRO") answer = Proline();
+//     else if (residueName == "GLN") answer = Glutamine();
+//     else if (residueName == "ARG") answer = Arginine();
+//     else if (residueName == "SER") answer = Serine();
+//     else if (residueName == "THR") answer = Threonine();
+//     else if (residueName == "VAL") answer = Valine();
+//     else if (residueName == "TRP") answer = Tryptophan();
+//     else if (residueName == "TYR") answer = Tyrosine(); 
+//     else 
+//         SimTK_THROW1(Exception::UndefinedAminoAcidResidue, residueName);  
+//     answer.setPdbResidueNumber( pdbResidue.getPdbResidueNumber() );   
+//     return answer;
+// }
+
+// AminoAcidResidue AminoAcidResidue::create(char oneLetterCode) 
+// {
+//     switch(oneLetterCode) {
+//     case 'A':
+//         return Alanine();
+//     case 'C':
+//         return Cysteine();
+//     // SCF created DisulphideBridgedCysteine, see Protein.h and mol.h
+//     case 'X':
+//         return DisulphideBridgedCysteine();
+//     case 'D':
+//         return Aspartate();
+//     case 'E':
+//         return Glutamate();
+//     case 'F':
+//         return Phenylalanine();
+//     case 'G':
+//         return Glycine();
+//     case 'H':
+//         return Histidine();
+//     case 'I':
+//         return Isoleucine();
+//     case 'K':
+//         return Lysine();
+//     case 'L':
+//         return Leucine();
+//     case 'M':
+//         return Methionine();
+//     case 'N':
+//         return Asparagine();
+//     case 'P':
+//         return Proline();
+//     case 'Q':
+//         return Glutamine();
+//     case 'R':
+//         return Arginine();
+//     case 'S':
+//         return Serine();
+//     case 'T':
+//         return Threonine();
+//     case 'V':
+//         return Valine();
+//     case 'W':
+//         return Tryptophan();
+//     case 'Y':
+//         return Tyrosine();
+//     }
     
 
-    assert(false);
+//     assert(false);
 
-    return Alanine();
-}
+//     return Alanine();
+// }
+
+
 
 std::ostream& operator<<(std::ostream& o, const BondInfo& binfo) {
     o << "BONDINFO: BondIndex=" << binfo.id << "inb,outb BondCenterIndices=" 
@@ -3345,230 +3346,231 @@ std::ostream& operator<<(std::ostream& o, const AtomInfo& ai) {
 /// RibonucleotideResidue ///
 /////////////////////////////
 
-RibonucleotideResidue RibonucleotideResidue::create(char oneLetterCode) {
-    switch(oneLetterCode) {
-    case 'A':
-        return Adenylate();
-        break;
-    case 'C':
-        return Cytidylate();
-        break;
-    case 'G':
-        return Guanylate();
-        break;
-    case 'U':
-        return Uridylate();
-        break;
-    default:
-        assert(false);
-    }
+// RibonucleotideResidue RibonucleotideResidue::create(char oneLetterCode) {
+//     switch(oneLetterCode) {
+//     case 'A':
+//         return Adenylate();
+//         break;
+//     case 'C':
+//         return Cytidylate();
+//         break;
+//     case 'G':
+//         return Guanylate();
+//         break;
+//     case 'U':
+//         return Uridylate();
+//         break;
+//     default:
+//         assert(false);
+//     }
 
-    assert(false);
+//     assert(false);
 
-    return Adenylate();
-}
+//     return Adenylate();
+// }
 
-RibonucleotideResidue RibonucleotideResidue::create(const PdbResidue& pdbResidue, String chainId) 
-{
-	RibonucleotideResidue answer("Unknown residue");
+// RibonucleotideResidue RibonucleotideResidue::create(const PdbResidue& pdbResidue, String chainId) 
+// {
+// 	RibonucleotideResidue answer("Unknown residue");
 
-	String pdbResidueName(pdbResidue.getName());
-    // The residue name should be "A  ", but we'll be relaxed about where the
-    // spaces are.
-    pdbResidueName.trimWhiteSpace();
-	if      (pdbResidueName == "A")
-		answer = Adenylate();
-	else if (pdbResidueName == "C")
-		answer = Cytidylate();
-	else if (pdbResidueName == "G")
-		answer = Guanylate();
-	else if (pdbResidueName == "U")
-		answer = Uridylate();
-	else 
-	{
-		throw std::range_error(String("Unrecognized Ribonucleotide residue name: '") + pdbResidueName + "'");
-	}
+// 	String pdbResidueName(pdbResidue.getName());
+//     // The residue name should be "A  ", but we'll be relaxed about where the
+//     // spaces are.
+//     pdbResidueName.trimWhiteSpace();
+// 	if      (pdbResidueName == "A")
+// 		answer = Adenylate();
+// 	else if (pdbResidueName == "C")
+// 		answer = Cytidylate();
+// 	else if (pdbResidueName == "G")
+// 		answer = Guanylate();
+// 	else if (pdbResidueName == "U")
+// 		answer = Uridylate();
+// 	else 
+// 	{
+// 		throw std::range_error(String("Unrecognized Ribonucleotide residue name: '") + pdbResidueName + "'");
+// 	}
 
-	answer.setPdbResidueNumber(pdbResidue.getPdbResidueNumber());
-        answer.setPdbChainId(chainId);
-	answer.matchDefaultDihedralAngles(answer.createAtomTargets(pdbResidue,false));
+// 	answer.setPdbResidueNumber(pdbResidue.getPdbResidueNumber());
+//         answer.setPdbChainId(chainId);
+// 	answer.matchDefaultDihedralAngles(answer.createAtomTargets(pdbResidue,false));
 
-	return answer;
-}
+// 	return answer;
+// }
+
 
 //////////////////////////////////
 /// DeoxyribonucleotideResidue ///
 //////////////////////////////////
 
-DeoxyribonucleotideResidue DeoxyribonucleotideResidue::create(char oneLetterCode) {
-    switch(oneLetterCode) {
-    case 'A':
-        return Deoxyadenosine();
-        break;
-    case 'C':
-        return Deoxycytidine();
-        break;
-    case 'G':
-        return Deoxyguanosine();
-        break;
-    case 'T':
-        return Deoxythymidine();
-        break;
-    default:
-        assert(false);
-    }
+// DeoxyribonucleotideResidue DeoxyribonucleotideResidue::create(char oneLetterCode) {
+//     switch(oneLetterCode) {
+//     case 'A':
+//         return Deoxyadenosine();
+//         break;
+//     case 'C':
+//         return Deoxycytidine();
+//         break;
+//     case 'G':
+//         return Deoxyguanosine();
+//         break;
+//     case 'T':
+//         return Deoxythymidine();
+//         break;
+//     default:
+//         assert(false);
+//     }
 
-    assert(false);
+//     assert(false);
 
-    return Deoxyadenosine();
-}
+//     return Deoxyadenosine();
+// }
 
-DeoxyribonucleotideResidue DeoxyribonucleotideResidue::create(const PdbResidue& pdbResidue, String chainId) 
-{
-	DeoxyribonucleotideResidue answer("Unknown residue");
+// DeoxyribonucleotideResidue DeoxyribonucleotideResidue::create(const PdbResidue& pdbResidue, String chainId) 
+// {
+// 	DeoxyribonucleotideResidue answer("Unknown residue");
 
-	String pdbResidueName(pdbResidue.getName());
-    // The residue name should be "A  ", but we'll be relaxed about where the
-    // spaces are.
-    pdbResidueName.trimWhiteSpace();
-	if      (pdbResidueName == "DA")
-		answer = Deoxyadenosine();
-	else if (pdbResidueName == "DC")
-		answer = Deoxycytidine();
-	else if (pdbResidueName == "DG")
-		answer = Deoxyguanosine();
-	else if (pdbResidueName == "DT")
-		answer = Deoxythymidine();
-	else 
-	{
-		throw std::range_error(String("Unrecognized Deoxyribonucleotide residue name: '") + pdbResidueName + "'");
-	}
+// 	String pdbResidueName(pdbResidue.getName());
+//     // The residue name should be "A  ", but we'll be relaxed about where the
+//     // spaces are.
+//     pdbResidueName.trimWhiteSpace();
+// 	if      (pdbResidueName == "DA")
+// 		answer = Deoxyadenosine();
+// 	else if (pdbResidueName == "DC")
+// 		answer = Deoxycytidine();
+// 	else if (pdbResidueName == "DG")
+// 		answer = Deoxyguanosine();
+// 	else if (pdbResidueName == "DT")
+// 		answer = Deoxythymidine();
+// 	else 
+// 	{
+// 		throw std::range_error(String("Unrecognized Deoxyribonucleotide residue name: '") + pdbResidueName + "'");
+// 	}
 
-	answer.setPdbResidueNumber(pdbResidue.getPdbResidueNumber());
-        answer.setPdbChainId(chainId);
-	answer.matchDefaultDihedralAngles(answer.createAtomTargets(pdbResidue,false));
+// 	answer.setPdbResidueNumber(pdbResidue.getPdbResidueNumber());
+//         answer.setPdbChainId(chainId);
+// 	answer.matchDefaultDihedralAngles(answer.createAtomTargets(pdbResidue,false));
 
-	return answer;
-}
+// 	return answer;
+// }
 
-void Protein::loadFromPdbChain(const PdbChain& pdbChain, SimTK::Real targetRms)
-{
-	setPdbChainId( pdbChain.getChainId() );
+// void Protein::loadFromPdbChain(const PdbChain& pdbChain, SimTK::Real targetRms)
+// {
+// 	setPdbChainId( pdbChain.getChainId() );
 
-    // 1) Link canonical residue types into a chain
-    // (the conformation will not yet match the pdbChain though)
-    for (Pdb::ResidueIndex resIx(0); resIx < pdbChain.getNumResidues();  ++resIx)
-    {
-        const PdbResidue& pdbResidue = pdbChain.getResidue(resIx);
+//     // 1) Link canonical residue types into a chain
+//     // (the conformation will not yet match the pdbChain though)
+//     for (Pdb::ResidueIndex resIx(0); resIx < pdbChain.getNumResidues();  ++resIx)
+//     {
+//         const PdbResidue& pdbResidue = pdbChain.getResidue(resIx);
         
-        AminoAcidResidue newResidue = AminoAcidResidue::create(pdbResidue);
-        newResidue.assignBiotypes();
-        newResidue.setPdbChainId( pdbChain.getChainId() );
+//         AminoAcidResidue newResidue = AminoAcidResidue::create(pdbResidue);
+//         newResidue.assignBiotypes();
+//         newResidue.setPdbChainId( pdbChain.getChainId() );
         
-        const String& residueName = String(pdbResidue.getName()) + String(pdbResidue.getPdbResidueNumber());
-        appendResidue( residueName, newResidue );
-    }
+//         const String& residueName = String(pdbResidue.getName()) + String(pdbResidue.getPdbResidueNumber());
+//         appendResidue( residueName, newResidue );
+//     }
     
-    // Set the dihedrals to those observed, especially on rigid bonds, so ObservedPointFitter will have
-    // an easier time.
-    // matchDefaultAtomChirality() will prevent optimization trouble for inverted chiral centers
-    // matchDefaultDihedralAngles will prevent trouble for cis-peptide bonds
-    Compound::AtomTargetLocations atomTargets = createAtomTargets(pdbChain,false);
+//     // Set the dihedrals to those observed, especially on rigid bonds, so ObservedPointFitter will have
+//     // an easier time.
+//     // matchDefaultAtomChirality() will prevent optimization trouble for inverted chiral centers
+//     // matchDefaultDihedralAngles will prevent trouble for cis-peptide bonds
+//     Compound::AtomTargetLocations atomTargets = createAtomTargets(pdbChain,false);
 
-    matchDefaultTopLevelTransform(atomTargets);
-    //cout << "Initial residual = " << getTransformAndResidual(atomTargets).residual << endl;
-    matchDefaultAtomChirality(atomTargets); // Chirality must agree for a good match
-    matchDefaultDihedralAngles(atomTargets); // e.g. rigid cis-peptide bonds must agree for good match
-	matchDefaultTopLevelTransform(atomTargets);
-    // Make a copy of the current structure, so we can attach it to a temporary CompoundSystem for optimization        
-    Protein proteinCopy = *this;
-    proteinCopy.assignBiotypes();
-    CompoundSystem matchingSystem;
-    DuMMForceFieldSubsystem dumm(matchingSystem);
-    SimbodyMatterSubsystem matchingMatter(matchingSystem);
-    dumm.loadAmber99Parameters();
-    dumm.setAllGlobalScaleFactors(0);
-    GeneralForceSubsystem forces(matchingSystem);
-    matchingSystem.adoptCompound(proteinCopy);
-    matchingSystem.modelCompounds();
-    matchingSystem.realizeTopology();
-    State& state = matchingSystem.updDefaultState();
-    matchingSystem.realize(state, Stage::Position);
-    Compound::AtomTargetLocations optimizationAtomTargets = proteinCopy.createAtomTargets(pdbChain,false);
-    std::map<MobilizedBodyIndex, std::vector<Vec3> > stations;
-    std::map<MobilizedBodyIndex, std::vector<Vec3> > targetLocations;
-    for (Compound::AtomTargetLocations::const_iterator targetIx = optimizationAtomTargets.begin(); targetIx != optimizationAtomTargets.end(); ++targetIx)
-    {
-        Compound::AtomIndex atomId = targetIx->first;
-        MobilizedBodyIndex bodyId = proteinCopy.getAtomMobilizedBodyIndex(atomId);
-        stations[bodyId].push_back(proteinCopy.getAtomLocationInMobilizedBodyFrame(atomId));
-        targetLocations[bodyId].push_back(targetIx->second);            
-    }
+//     matchDefaultTopLevelTransform(atomTargets);
+//     //cout << "Initial residual = " << getTransformAndResidual(atomTargets).residual << endl;
+//     matchDefaultAtomChirality(atomTargets); // Chirality must agree for a good match
+//     matchDefaultDihedralAngles(atomTargets); // e.g. rigid cis-peptide bonds must agree for good match
+// 	matchDefaultTopLevelTransform(atomTargets);
+//     // Make a copy of the current structure, so we can attach it to a temporary CompoundSystem for optimization        
+//     Protein proteinCopy = *this;
+//     proteinCopy.assignBiotypes();
+//     CompoundSystem matchingSystem;
+//     DuMMForceFieldSubsystem dumm(matchingSystem);
+//     SimbodyMatterSubsystem matchingMatter(matchingSystem);
+//     dumm.loadAmber99Parameters();
+//     dumm.setAllGlobalScaleFactors(0);
+//     GeneralForceSubsystem forces(matchingSystem);
+//     matchingSystem.adoptCompound(proteinCopy);
+//     matchingSystem.modelCompounds();
+//     matchingSystem.realizeTopology();
+//     State& state = matchingSystem.updDefaultState();
+//     matchingSystem.realize(state, Stage::Position);
+//     Compound::AtomTargetLocations optimizationAtomTargets = proteinCopy.createAtomTargets(pdbChain,false);
+//     std::map<MobilizedBodyIndex, std::vector<Vec3> > stations;
+//     std::map<MobilizedBodyIndex, std::vector<Vec3> > targetLocations;
+//     for (Compound::AtomTargetLocations::const_iterator targetIx = optimizationAtomTargets.begin(); targetIx != optimizationAtomTargets.end(); ++targetIx)
+//     {
+//         Compound::AtomIndex atomId = targetIx->first;
+//         MobilizedBodyIndex bodyId = proteinCopy.getAtomMobilizedBodyIndex(atomId);
+//         stations[bodyId].push_back(proteinCopy.getAtomLocationInMobilizedBodyFrame(atomId));
+//         targetLocations[bodyId].push_back(targetIx->second);            
+//     }
     
-    // Use ObservedPointFitter to optimize geometry
-    std::vector<MobilizedBodyIndex> bodyList;
-    std::vector<std::vector<Vec3> > stationList;
-    std::vector<std::vector<Vec3> > targetList;
-    for (std::map<MobilizedBodyIndex, std::vector<Vec3> >::const_iterator iter = stations.begin(); iter != stations.end(); iter++) {
-        bodyList.push_back(iter->first);
-        stationList.push_back(iter->second);
-        targetList.push_back(targetLocations.find(iter->first)->second);
-    }
+//     // Use ObservedPointFitter to optimize geometry
+//     std::vector<MobilizedBodyIndex> bodyList;
+//     std::vector<std::vector<Vec3> > stationList;
+//     std::vector<std::vector<Vec3> > targetList;
+//     for (std::map<MobilizedBodyIndex, std::vector<Vec3> >::const_iterator iter = stations.begin(); iter != stations.end(); iter++) {
+//         bodyList.push_back(iter->first);
+//         stationList.push_back(iter->second);
+//         targetList.push_back(targetLocations.find(iter->first)->second);
+//     }
 
 
-	// ObservedPointFitter takes a while, and occasionally aborts with line search trouble,
-	// So lets try a minimization using custom forces
-	bool useObservedPointFitter = true;
-	if (useObservedPointFitter) {
-        // sherm 100307: Optimizers now use relative tolerance.
-        //Real tolerance = .001; // 0.1%
-	    //Real rmsd = ObservedPointFitter::findBestFit(matchingSystem, state, bodyList, stationList, targetList, tolerance);
-        //std::cout << "Rmsd is " << rmsd << std::endl;
-	}
-	else {
-		const MobilizedBody& groundBody = matchingMatter.getGround();
-		for (int b = 0; b < (int)bodyList.size(); ++b)
-		{
-			const MobilizedBody& atomBody = matchingMatter.getMobilizedBody(bodyList[b]);
-			for (int s = 0; s < (int)stationList[b].size(); ++s)
-			{
-				const Vec3& atomLocation = stationList[b][s];
-				const Vec3& targetLocation = targetList[b][s];
-				Force::TwoPointLinearSpring(forces, atomBody, atomLocation, groundBody, targetLocation, 1000.0, 0.0);
-			}
-		}
-		state = matchingSystem.realizeTopology();
-		matchingSystem.realize(state, Stage::Position);
-		LocalEnergyMinimizer::minimizeEnergy(matchingSystem, state, 15.0);
-	}
+// 	// ObservedPointFitter takes a while, and occasionally aborts with line search trouble,
+// 	// So lets try a minimization using custom forces
+// 	bool useObservedPointFitter = true;
+// 	if (useObservedPointFitter) {
+//         // sherm 100307: Optimizers now use relative tolerance.
+//         //Real tolerance = .001; // 0.1%
+// 	    //Real rmsd = ObservedPointFitter::findBestFit(matchingSystem, state, bodyList, stationList, targetList, tolerance);
+//         //std::cout << "Rmsd is " << rmsd << std::endl;
+// 	}
+// 	else {
+// 		const MobilizedBody& groundBody = matchingMatter.getGround();
+// 		for (int b = 0; b < (int)bodyList.size(); ++b)
+// 		{
+// 			const MobilizedBody& atomBody = matchingMatter.getMobilizedBody(bodyList[b]);
+// 			for (int s = 0; s < (int)stationList[b].size(); ++s)
+// 			{
+// 				const Vec3& atomLocation = stationList[b][s];
+// 				const Vec3& targetLocation = targetList[b][s];
+// 				Force::TwoPointLinearSpring(forces, atomBody, atomLocation, groundBody, targetLocation, 1000.0, 0.0);
+// 			}
+// 		}
+// 		state = matchingSystem.realizeTopology();
+// 		matchingSystem.realize(state, Stage::Position);
+// 		LocalEnergyMinimizer::minimizeEnergy(matchingSystem, state, 15.0);
+// 	}
 
-  /*  
-    // Stuff optimized coordinates into a string
-    std::ostringstream optimizedPdbStringOut;
-    matchingSystem.realize(state, Stage::Position);
-    proteinCopy.writePdb(state, optimizedPdbStringOut);
+//   /*  
+//     // Stuff optimized coordinates into a string
+//     std::ostringstream optimizedPdbStringOut;
+//     matchingSystem.realize(state, Stage::Position);
+//     proteinCopy.writePdb(state, optimizedPdbStringOut);
     
-	// std::ofstream match1dOut("match1d.pdb"); // 
-	// proteinCopy.writePdb(state, match1dOut);
+// 	// std::ofstream match1dOut("match1d.pdb"); // 
+// 	// proteinCopy.writePdb(state, match1dOut);
 
-    // Create another PdbStructure, and match the dihedral angles to that
-    std::istringstream optimizedPdbStringIn(optimizedPdbStringOut.str());
-    PdbStructure optimizedStructure(optimizedPdbStringIn);
-    Compound::AtomTargetLocations optimizedAtomTargets = createAtomTargets(optimizedStructure,false);
+//     // Create another PdbStructure, and match the dihedral angles to that
+//     std::istringstream optimizedPdbStringIn(optimizedPdbStringOut.str());
+//     PdbStructure optimizedStructure(optimizedPdbStringIn);
+//     Compound::AtomTargetLocations optimizedAtomTargets = createAtomTargets(optimizedStructure,false);
 
-	// optimizedStructure.write(std::ofstream("match1e.pdb"));
+// 	// optimizedStructure.write(std::ofstream("match1e.pdb"));
 
-	// Here is the trouble...
-	matchDefaultDihedralAngles(optimizedAtomTargets);
+// 	// Here is the trouble...
+// 	matchDefaultDihedralAngles(optimizedAtomTargets);
 
-	// Use original atom locations for top level transform
-    matchDefaultTopLevelTransform(optimizedAtomTargets);        
-*/
-	// cout << "Residual after optimization = " << getTransformAndResidual(atomTargets).residual << endl;
+// 	// Use original atom locations for top level transform
+//     matchDefaultTopLevelTransform(optimizedAtomTargets);        
+// */
+// 	// cout << "Residual after optimization = " << getTransformAndResidual(atomTargets).residual << endl;
 
-	// std::ofstream match2Out("match2.pdb");
-	// writeDefaultPdb(match2Out);
-}
+// 	// std::ofstream match2Out("match2.pdb");
+// 	// writeDefaultPdb(match2Out);
+// }
 
 
 } // namespace SimTK

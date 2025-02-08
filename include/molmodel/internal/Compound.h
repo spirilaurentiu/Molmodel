@@ -1542,17 +1542,17 @@ public:
 /**
  *  AliphaticHydrogen is a hydrogen atom for bonding to AliphaticCarbon atoms (see below)
  */
-class  AliphaticHydrogen : public UnivalentAtom {
-public:
-    explicit AliphaticHydrogen(const AtomName& atomName = "H" ///< name for new atom, defaults to "H"
-        ) 
-        : UnivalentAtom(atomName, Element::Hydrogen())
-    {
-        setDefaultInboardBondLength(0.1112); // for bonding to aliphatic carbon
+// class  AliphaticHydrogen : public UnivalentAtom {
+// public:
+//     explicit AliphaticHydrogen(const AtomName& atomName = "H" ///< name for new atom, defaults to "H"
+//         ) 
+//         : UnivalentAtom(atomName, Element::Hydrogen())
+//     {
+//         setDefaultInboardBondLength(0.1112); // for bonding to aliphatic carbon
 
-        setCompoundName("AliphaticHydrogenAtom");
-    }
-};
+//         setCompoundName("AliphaticHydrogenAtom");
+//     }
+// };
 
 
 /**
@@ -1560,57 +1560,56 @@ public:
  *
  * The default geometry is perfectly terahedral, which is not bad for many uses.
  */
-class  AliphaticCarbon : public QuadrivalentAtom {
-public:
-    explicit AliphaticCarbon(const AtomName& atomName = "C" ///< name for new atom, defaults to "C"
-        ) 
-        : QuadrivalentAtom(atomName, Element::Carbon()) 
-    {
-        // In case this bonds to another aliphatic carbon
-        setDefaultInboardBondLength(0.15620); // for bonding to another aliphatic carbon
+// class  AliphaticCarbon : public QuadrivalentAtom {
+// public:
+//     explicit AliphaticCarbon(const AtomName& atomName = "C" ///< name for new atom, defaults to "C"
+//         ) 
+//         : QuadrivalentAtom(atomName, Element::Carbon()) 
+//     {
+//         // In case this bonds to another aliphatic carbon
+//         setDefaultInboardBondLength(0.15620); // for bonding to another aliphatic carbon
 
-        setCompoundName("AliphaticCarbon");
-    }
-};
+//         setCompoundName("AliphaticCarbon");
+//     }
+// };
 
 
 /**
  * MethyleneGroup is -CH2- group for bonding to aliphatic carbon and a second something
  */
-class  MethyleneGroup : public Compound {
-public:
-    MethyleneGroup() {
-        //static const mdunits::Length C_Hdistance = 0.1112; // nanometers
+// class  MethyleneGroup : public Compound {
+// public:
+//     MethyleneGroup() {
+//         //static const mdunits::Length C_Hdistance = 0.1112; // nanometers
 
-        setBaseAtom(AliphaticCarbon("C"));
-        bondAtom(AliphaticHydrogen("H1"), "C/bond3");
-        bondAtom(AliphaticHydrogen("H2"), "C/bond4");
-        nameBondCenter("bond1", "C/bond1");
-        nameBondCenter("bond2", "C/bond2");
+//         setBaseAtom(AliphaticCarbon("C"));
+//         bondAtom(AliphaticHydrogen("H1"), "C/bond3");
+//         bondAtom(AliphaticHydrogen("H2"), "C/bond4");
+//         nameBondCenter("bond1", "C/bond1");
+//         nameBondCenter("bond2", "C/bond2");
 
-        setDefaultInboardBondLength(0.15620); // for bonding to another aliphatic carbon
+//         setDefaultInboardBondLength(0.15620); // for bonding to another aliphatic carbon
 
-        setCompoundName("MethyleneGroup");
-    }
-};
+//         setCompoundName("MethyleneGroup");
+//     }
+// };
 
 
 /**
  *  MethylGroup is CH3 for attaching to aliphatic carbon
  */
-class  MethylGroup : public Compound {
-public:
-    MethylGroup() {
-        setBaseAtom(AliphaticCarbon("C"));
-        bondAtom(AliphaticHydrogen("H1"), "C/bond2");
-        bondAtom(AliphaticHydrogen("H2"), "C/bond3");
-        bondAtom(AliphaticHydrogen("H3"), "C/bond4");
-        nameBondCenter("bond", "C/bond1");
-
-        setDefaultInboardBondLength(0.15620); // for bonding to another aliphatic carbon
-        setCompoundName("MethylGroup");
-    }
-};
+// class  MethylGroup : public Compound {
+// public:
+//     MethylGroup() {
+//         setBaseAtom(AliphaticCarbon("C"));
+//         bondAtom(AliphaticHydrogen("H1"), "C/bond2");
+//         bondAtom(AliphaticHydrogen("H2"), "C/bond3");
+//         bondAtom(AliphaticHydrogen("H3"), "C/bond4");
+//         nameBondCenter("bond", "C/bond1");
+//         setDefaultInboardBondLength(0.15620); // for bonding to another aliphatic carbon
+//         setCompoundName("MethylGroup");
+//     }
+// };
 
 /**
  * \brief Two atom C-H group in six membered aromatic rings.
@@ -1618,86 +1617,74 @@ public:
  * Was intended to be used as a building block for aromatic rings like benzene or phenylalanine,
  * but it turns out to be just as easy to build those using one atom at a time
  */
-class  AromaticSixMemberedCHGroup : public Compound {
-public:
-    AromaticSixMemberedCHGroup() {
-        static const mdunits::Length C_Hdistance = 0.1080; // in nanometers, from tinker amber99.dat
-        static const mdunits::Length C_Cdistance = 0.1400; // in nanometers, from tinker amber99.dat
-
-        setBaseAtom( TrivalentAtom("C", Element::Carbon(), 120*Deg2Rad, 120*Deg2Rad) );
-        bondAtom( UnivalentAtom("H", Element::Hydrogen()), "C/bond3", C_Hdistance);
-
-        // remember to change default length for bonding other other things
-        setDefaultInboardBondLength(C_Cdistance); // for bonding to other aromatic CH
-
-        setCompoundName("AromaticSixMemberedCHGroup");
-    }
-};
+// class  AromaticSixMemberedCHGroup : public Compound {
+// public:
+//     AromaticSixMemberedCHGroup() {
+//         static const mdunits::Length C_Hdistance = 0.1080; // in nanometers, from tinker amber99.dat
+//         static const mdunits::Length C_Cdistance = 0.1400; // in nanometers, from tinker amber99.dat
+//         setBaseAtom( TrivalentAtom("C", Element::Carbon(), 120*Deg2Rad, 120*Deg2Rad) );
+//         bondAtom( UnivalentAtom("H", Element::Hydrogen()), "C/bond3", C_Hdistance);
+//         // remember to change default length for bonding other other things
+//         setDefaultInboardBondLength(C_Cdistance); // for bonding to other aromatic CH
+//         setCompoundName("AromaticSixMemberedCHGroup");
+//     }
+// };
 
 
 /**
  * AlcoholOHGroup is OH group for attachment to aliphatic carbon
  */
-class  AlcoholOHGroup : public Compound {
-public:
-    AlcoholOHGroup() {
-        static const mdunits::Length O_Hdistance = 0.0960; // nanometers
-
-        setBaseAtom( BivalentAtom("O", Element::Oxygen(), 108.50 * Deg2Rad) );
-
-        bondAtom( UnivalentAtom("H", Element::Hydrogen()), "O/bond2", O_Hdistance );
-        nameBondCenter("bond", "O/bond1");
-
-        // In case of bonding to aliphatic carbon
-        setDefaultInboardBondLength(0.1410); // for bonding to aliphatic carbon
-
-        setCompoundName("AlcoholOHGroup");
-    }
-};
+// class  AlcoholOHGroup : public Compound {
+// public:
+//     AlcoholOHGroup() {
+//         static const mdunits::Length O_Hdistance = 0.0960; // nanometers
+//         setBaseAtom( BivalentAtom("O", Element::Oxygen(), 108.50 * Deg2Rad) );
+//         bondAtom( UnivalentAtom("H", Element::Hydrogen()), "O/bond2", O_Hdistance );
+//         nameBondCenter("bond", "O/bond1");
+//         // In case of bonding to aliphatic carbon
+//         setDefaultInboardBondLength(0.1410); // for bonding to aliphatic carbon
+//         setCompoundName("AlcoholOHGroup");
+//     }
+// };
 
 
 /**
  * PrimaryAmineGroup is NH3<sup>+</sup> for attachment to tetrahedral carbon
  */
-class  PrimaryAmineGroup : public Compound {
-public:
-    PrimaryAmineGroup() {
-        static const mdunits::Length H_Ndistance = 0.1010; // nanometers
-        static const mdunits::Length N_Cdistance = 0.1471; // in nanometers, for bonding to aliphatic carbon
+// class  PrimaryAmineGroup : public Compound {
+// public:
+//     PrimaryAmineGroup() {
+//         static const mdunits::Length H_Ndistance = 0.1010; // nanometers
+//         static const mdunits::Length N_Cdistance = 0.1471; // in nanometers, for bonding to aliphatic carbon
+//         setBaseAtom( QuadrivalentAtom("N", Element::Nitrogen()) );
+//         bondAtom( UnivalentAtom("H1", Element::Hydrogen()), "N/bond2", H_Ndistance);
+//         bondAtom( UnivalentAtom("H2", Element::Hydrogen()), "N/bond3", H_Ndistance);
+//         bondAtom( UnivalentAtom("H3", Element::Hydrogen()), "N/bond4", H_Ndistance);
 
-        setBaseAtom( QuadrivalentAtom("N", Element::Nitrogen()) );
-        bondAtom( UnivalentAtom("H1", Element::Hydrogen()), "N/bond2", H_Ndistance);
-        bondAtom( UnivalentAtom("H2", Element::Hydrogen()), "N/bond3", H_Ndistance);
-        bondAtom( UnivalentAtom("H3", Element::Hydrogen()), "N/bond4", H_Ndistance);
-
-        setDefaultInboardBondLength(N_Cdistance); // for bonding to aliphatic carbon
-    }
-};
+//         setDefaultInboardBondLength(N_Cdistance); // for bonding to aliphatic carbon
+//     }
+// };
 
 
 /**
  * CaboxylateGroup is COO<sup>-</sup> for attachment to tetrahedral carbon
  */
-class  CarboxylateGroup : public Compound {
-public:
-    CarboxylateGroup() {
-        // parameters from Tinker amber99.param
-        static const mdunits::Length O_Cdistance = 0.1250; // nanometers
-        static const mdunits::Length C_CtDistance = 0.15220; // nanometers
-        static const Angle O_C_Oangle = 126*Deg2Rad;
-
-        // we actually use the inboard-C-O angle during construction
-        static const Angle O_C_CtAngle = 180*Deg2Rad - 0.5*O_C_Oangle;
-
-        setBaseAtom( TrivalentAtom("C", Element::Carbon(), O_C_CtAngle, O_C_CtAngle) );
-        bondAtom( UnivalentAtom("O1", Element::Oxygen()), "C/bond2", O_Cdistance);
-        bondAtom( UnivalentAtom("O2", Element::Oxygen()), "C/bond3", O_Cdistance);
-
-        setDefaultInboardBondLength(C_CtDistance);
-
-        nameBondCenter("bond", "C/bond1");
-    }
-};
+// class  CarboxylateGroup : public Compound {
+// public:
+//     CarboxylateGroup() {
+//         // parameters from Tinker amber99.param
+//         static const mdunits::Length O_Cdistance = 0.1250; // nanometers
+//         static const mdunits::Length C_CtDistance = 0.15220; // nanometers
+//         static const Angle O_C_Oangle = 126*Deg2Rad;
+//         // we actually use the inboard-C-O angle during construction
+//         static const Angle O_C_CtAngle = 180*Deg2Rad - 0.5*O_C_Oangle;
+//         setBaseAtom( TrivalentAtom("C", Element::Carbon(), O_C_CtAngle, O_C_CtAngle) );
+//         bondAtom( UnivalentAtom("O1", Element::Oxygen()), "C/bond2", O_Cdistance);
+//         bondAtom( UnivalentAtom("O2", Element::Oxygen()), "C/bond3", O_Cdistance);
+//         setDefaultInboardBondLength(C_CtDistance);
+//         nameBondCenter("bond", "C/bond1");
+//     }
+// };
 
 /**
  * \brief Base class for complete covalently connected molecules.
@@ -1722,101 +1709,76 @@ protected:
 /**
  * \brief The noble gas argon, which does not bond with other atoms
  */
-class  Argon : public Molecule {
-public:
-    Argon() {
-        setPdbResidueName("AR ");
+// class  Argon : public Molecule {
+// public:
+//     Argon() {
+//         setPdbResidueName("AR ");
 
-        setBaseAtom( "Ar", Biotype::Argon() );
+//         setBaseAtom( "Ar", Biotype::Argon() );
 
-        setCompoundName("Argon");
-    }
-};
+//         setCompoundName("Argon");
+//     }
+// };
 
 
 /**
  * \brief The simplest hydrocarbon methane, CH<sub>4</sub>
  */
-class  Methane : public Molecule {
-public:
-    Methane() 
-    {
-        setBaseCompound("methyl", MethylGroup());
-        inheritAtomNames("methyl");
-
-        // Ordinarily, methyl group bonds to aliphatic carbon,
-        // and has a default bond length to match.
-        // Here we turn off the methyl inboard bond, so the
-        // AliphaticHydrogen will, as desired, dictate the bond length
-        convertInboardBondCenterToOutboard();
-
-        bondAtom(AliphaticHydrogen("H4"), "methyl/bond", 0.1112);
-
-        setBiotypeIndex( "C", Biotype::MethaneC().getIndex() );
-        setBiotypeIndex( "H1", Biotype::MethaneH().getIndex() );
-        setBiotypeIndex( "H2", Biotype::MethaneH().getIndex() );
-        setBiotypeIndex( "H3", Biotype::MethaneH().getIndex() );
-        setBiotypeIndex( "H4", Biotype::MethaneH().getIndex() );
-
-        setCompoundName("Methane");
-
-
-    }
-};
+// class  Methane : public Molecule {
+// public:
+//     Methane() 
+//     {
+//         setBaseCompound("methyl", MethylGroup());
+//         inheritAtomNames("methyl");
+//         // Ordinarily, methyl group bonds to aliphatic carbon,
+//         // and has a default bond length to match.
+//         // Here we turn off the methyl inboard bond, so the
+//         // AliphaticHydrogen will, as desired, dictate the bond length
+//         convertInboardBondCenterToOutboard();
+//         bondAtom(AliphaticHydrogen("H4"), "methyl/bond", 0.1112);
+//         setBiotypeIndex( "C", Biotype::MethaneC().getIndex() );
+//         setBiotypeIndex( "H1", Biotype::MethaneH().getIndex() );
+//         setBiotypeIndex( "H2", Biotype::MethaneH().getIndex() );
+//         setBiotypeIndex( "H3", Biotype::MethaneH().getIndex() );
+//         setBiotypeIndex( "H4", Biotype::MethaneH().getIndex() );
+//         setCompoundName("Methane");
+//     }
+// };
 
 /**
  * \brief The small hydrocarbon ethane, C<sub>2</sub>H<sub>6</sub>, which has a single torsion degree of freedom.
  */
-class  Ethane : public Molecule {
-public:
-    Ethane() 
-    {
-        setPdbResidueName("EHN");
-
-        setBaseCompound("methyl1", MethylGroup());
-        nameAtom("C1", "methyl1/C", Biotype::EthaneC().getIndex() );
-        nameAtom("H1", "methyl1/H1", Biotype::EthaneH().getIndex() );
-        nameAtom("H2", "methyl1/H2", Biotype::EthaneH().getIndex() );
-        nameAtom("H3", "methyl1/H3", Biotype::EthaneH().getIndex() );
-
-        // This first methyl is a base, not a decoration
-        convertInboardBondCenterToOutboard();
-
-        bondCompound("methyl2", MethylGroup(), "methyl1/bond");
-
-        nameAtom("C2", "methyl2/C", Biotype::EthaneC().getIndex() );
-        nameAtom("H4", "methyl2/H1", Biotype::EthaneH().getIndex() );
-        nameAtom("H5", "methyl2/H2", Biotype::EthaneH().getIndex() );
-        nameAtom("H6", "methyl2/H3", Biotype::EthaneH().getIndex() );
-
-        defineDihedralAngle("torsion", "H1", "C1", "C2", "H4");
-
-        setDefaultTorsionAngle(180*Deg2Rad);
-        // setBondRotatable(false, "C1", "C2");
-
-        setCompoundName("Ethane");
-
-    }
-
-    /**
-     * \brief Sets dihedral angle about C-C bond 
-     *
-     * \return a reference to this Ethane object
-     */
-    Ethane& setDefaultTorsionAngle(Angle angle ///< dihedral angle about C-C bond in radians
-        ) {
-        setDefaultDihedralAngle("torsion", angle);
-
-        return *this;
-    }
-
-    /**
-     * \return the default (initial) dihedral angle about the C-C bond
-     */
-    Angle calcDefaultTorsionAngle() const {
-        return calcDefaultDihedralAngle("torsion");
-    }
-};
+// class  Ethane : public Molecule {
+// public:
+//     Ethane() 
+//     {
+//         setPdbResidueName("EHN");
+//         setBaseCompound("methyl1", MethylGroup());
+//         nameAtom("C1", "methyl1/C", Biotype::EthaneC().getIndex() );
+//         nameAtom("H1", "methyl1/H1", Biotype::EthaneH().getIndex() );
+//         nameAtom("H2", "methyl1/H2", Biotype::EthaneH().getIndex() );
+//         nameAtom("H3", "methyl1/H3", Biotype::EthaneH().getIndex() );
+//         // This first methyl is a base, not a decoration
+//         convertInboardBondCenterToOutboard();
+//         bondCompound("methyl2", MethylGroup(), "methyl1/bond");
+//         nameAtom("C2", "methyl2/C", Biotype::EthaneC().getIndex() );
+//         nameAtom("H4", "methyl2/H1", Biotype::EthaneH().getIndex() );
+//         nameAtom("H5", "methyl2/H2", Biotype::EthaneH().getIndex() );
+//         nameAtom("H6", "methyl2/H3", Biotype::EthaneH().getIndex() );
+//         defineDihedralAngle("torsion", "H1", "C1", "C2", "H4");
+//         setDefaultTorsionAngle(180*Deg2Rad);
+//         // setBondRotatable(false, "C1", "C2");
+//         setCompoundName("Ethane");
+//     }
+//     Ethane& setDefaultTorsionAngle(Angle angle ///< dihedral angle about C-C bond in radians
+//         ) {
+//         setDefaultDihedralAngle("torsion", angle);
+//         return *this;
+//     }
+//     Angle calcDefaultTorsionAngle() const {
+//         return calcDefaultDihedralAngle("torsion");
+//     }
+// };
 
 /**
  * Base class for individual residue building blocks that comprise a Biopolymer chain

@@ -2553,517 +2553,516 @@ DuMM::ChargedAtomTypeIndex DuMMForceFieldSubsystem::getBiotypeChargedAtomType(Bi
     return getRep().getBiotypeChargedAtomType(biotypeIx);
 }
 
-void DuMMForceFieldSubsystem::loadAmber99Parameters() 
-{
-    Biotype::initializePopularBiotypes();
+// void DuMMForceFieldSubsystem::loadAmber99Parameters() 
+// {
+//     Biotype::initializePopularBiotypes();
+//     populateAmber99Params(*this);
+// }
 
-    populateAmber99Params(*this);
-}
+// void DuMMForceFieldSubsystem::loadTestMoleculeParameters()
+// {
+//     Biotype::initializePopularBiotypes();
 
-void DuMMForceFieldSubsystem::loadTestMoleculeParameters()
-{
-    Biotype::initializePopularBiotypes();
+//     // TODO - these hard-coded chargedAtomTypeIndexs are not too cool
+//     // TODO - these charges are made up
+//     defineChargedAtomType(DuMM::ChargedAtomTypeIndex(5000), "Methane C",   DuMM::AtomClassIndex(1),  0.04);
+//     defineChargedAtomType(DuMM::ChargedAtomTypeIndex(5001), "Methane H",  DuMM::AtomClassIndex(34),  -0.01);
+//     setBiotypeChargedAtomType(DuMM::ChargedAtomTypeIndex(5000), Biotype::MethaneC().getIndex());
+//     setBiotypeChargedAtomType(DuMM::ChargedAtomTypeIndex(5001), Biotype::MethaneH().getIndex());
 
-    // TODO - these hard-coded chargedAtomTypeIndexs are not too cool
-    // TODO - these charges are made up
-    defineChargedAtomType(DuMM::ChargedAtomTypeIndex(5000), "Methane C",   DuMM::AtomClassIndex(1),  0.04);
-    defineChargedAtomType(DuMM::ChargedAtomTypeIndex(5001), "Methane H",  DuMM::AtomClassIndex(34),  -0.01);
-    setBiotypeChargedAtomType(DuMM::ChargedAtomTypeIndex(5000), Biotype::MethaneC().getIndex());
-    setBiotypeChargedAtomType(DuMM::ChargedAtomTypeIndex(5001), Biotype::MethaneH().getIndex());
-
-    defineChargedAtomType(DuMM::ChargedAtomTypeIndex(5002), "Ethane C",   DuMM::AtomClassIndex(1),  0.03);
-    defineChargedAtomType(DuMM::ChargedAtomTypeIndex(5003), "Ethane H",  DuMM::AtomClassIndex(34),  -0.01);
-    setBiotypeChargedAtomType(DuMM::ChargedAtomTypeIndex(5002), Biotype::EthaneC().getIndex());
-    setBiotypeChargedAtomType(DuMM::ChargedAtomTypeIndex(5003), Biotype::EthaneH().getIndex());
-}
+//     defineChargedAtomType(DuMM::ChargedAtomTypeIndex(5002), "Ethane C",   DuMM::AtomClassIndex(1),  0.03);
+//     defineChargedAtomType(DuMM::ChargedAtomTypeIndex(5003), "Ethane H",  DuMM::AtomClassIndex(34),  -0.01);
+//     setBiotypeChargedAtomType(DuMM::ChargedAtomTypeIndex(5002), Biotype::EthaneC().getIndex());
+//     setBiotypeChargedAtomType(DuMM::ChargedAtomTypeIndex(5003), Biotype::EthaneH().getIndex());
+// }
 
 
-void DuMMForceFieldSubsystem::populateFromTinkerParameterFile(std::istream& tinkerStream) 
-{
+// void DuMMForceFieldSubsystem::populateFromTinkerParameterFile(std::istream& tinkerStream) 
+// {
 
-    //////////////////////////////////////////////////////
-    // 1) Read Tinker parameter file one line at a time //
-    //////////////////////////////////////////////////////
+//     //////////////////////////////////////////////////////
+//     // 1) Read Tinker parameter file one line at a time //
+//     //////////////////////////////////////////////////////
 
-    Real radiusSizeScale = 1.0; // set to 0.5 for diameter parameter sets vs. 1.0 for radius
-    Real radiusTypeScale = 1.0; // set to 2^(1/6) for sigma(R0) vs. 1.0 for Rmin
+//     Real radiusSizeScale = 1.0; // set to 0.5 for diameter parameter sets vs. 1.0 for radius
+//     Real radiusTypeScale = 1.0; // set to 2^(1/6) for sigma(R0) vs. 1.0 for Rmin
 
-    // Bookkeeping to retrieve element and valence during biotype definition
-    std::map<DuMM::AtomClassIndex, int> atomicNumberByAtomClassIndex;
-    std::map<DuMM::AtomClassIndex, int> valenceByAtomClassIndex;
-    std::map<DuMM::ChargedAtomTypeIndex, DuMM::AtomClassIndex> atomClassIdByChargedAtomTypeIndex;
+//     // Bookkeeping to retrieve element and valence during biotype definition
+//     std::map<DuMM::AtomClassIndex, int> atomicNumberByAtomClassIndex;
+//     std::map<DuMM::AtomClassIndex, int> valenceByAtomClassIndex;
+//     std::map<DuMM::ChargedAtomTypeIndex, DuMM::AtomClassIndex> atomClassIdByChargedAtomTypeIndex;
 
-    std::string tinkerParamFileLine;
-    while( getline( tinkerStream, tinkerParamFileLine ) ) {
-        std::stringstream lineStream(tinkerParamFileLine);
+//     std::string tinkerParamFileLine;
+//     while( getline( tinkerStream, tinkerParamFileLine ) ) {
+//         std::stringstream lineStream(tinkerParamFileLine);
 
-        // Get the first word on the line of text from the file
-        // Significant words include "atom", "vdw", "bond", etc.
-        String recordType;
-        lineStream >> recordType;
+//         // Get the first word on the line of text from the file
+//         // Significant words include "atom", "vdw", "bond", etc.
+//         String recordType;
+//         lineStream >> recordType;
 
-        // forcefield name
-        if (recordType == "forcefield") {
-            lineStream >> updRep().forcefieldName;
-        }
+//         // forcefield name
+//         if (recordType == "forcefield") {
+//             lineStream >> updRep().forcefieldName;
+//         }
 
-        // VDWTYPE [LENNARD-JONES/BUCKINGHAM/BUFFERED-14-7/MM3-HBOND/GAUSSIAN]
-        else if (recordType == "vdwtype") {
-            String vdwType;
-            lineStream >> vdwType;
+//         // VDWTYPE [LENNARD-JONES/BUCKINGHAM/BUFFERED-14-7/MM3-HBOND/GAUSSIAN]
+//         else if (recordType == "vdwtype") {
+//             String vdwType;
+//             lineStream >> vdwType;
 
-            if (vdwType == "LENNARD-JONES") ; // OK
-            else { // DuMMForcefieldSubsystem doesn't know about other vdw models
-                SimTK_THROW1( Exception::Cant,"Parse Exception: Can't use van der Waals model other than LENNARD-JONES" );
-            }
-        }
+//             if (vdwType == "LENNARD-JONES") ; // OK
+//             else { // DuMMForcefieldSubsystem doesn't know about other vdw models
+//                 SimTK_THROW1( Exception::Cant,"Parse Exception: Can't use van der Waals model other than LENNARD-JONES" );
+//             }
+//         }
 
-        // RADIUSRULE [ARITHMETIC/GEOMETRIC/CUBIC-MEAN]
-        else if (recordType == "radiusrule") {
-            String rule;
-            lineStream >> rule;
+//         // RADIUSRULE [ARITHMETIC/GEOMETRIC/CUBIC-MEAN]
+//         else if (recordType == "radiusrule") {
+//             String rule;
+//             lineStream >> rule;
 
-            if (rule == "ARITHMETIC")
-                setVdwMixingRule(LorentzBerthelot);
-            else if (rule == "GEOMETRIC")
-                setVdwMixingRule(Jorgensen);
-            else if (rule == "CUBIC-MEAN")
-                setVdwMixingRule(HalgrenHHG);
-            else { // DuMMForcefieldSubsystem doesn't know about other vdw models
-                SimTK_THROW1( Exception::Cant,"Parse Exception: Unrecognized radius rule" );
-            }
-        }
+//             if (rule == "ARITHMETIC")
+//                 setVdwMixingRule(LorentzBerthelot);
+//             else if (rule == "GEOMETRIC")
+//                 setVdwMixingRule(Jorgensen);
+//             else if (rule == "CUBIC-MEAN")
+//                 setVdwMixingRule(HalgrenHHG);
+//             else { // DuMMForcefieldSubsystem doesn't know about other vdw models
+//                 SimTK_THROW1( Exception::Cant,"Parse Exception: Unrecognized radius rule" );
+//             }
+//         }
 
-        // RADIUSTYPE [R-MIN/SIGMA]
-        else if (recordType == "radiustype") {
-            String radiusType;
-            lineStream >> radiusType;
+//         // RADIUSTYPE [R-MIN/SIGMA]
+//         else if (recordType == "radiustype") {
+//             String radiusType;
+//             lineStream >> radiusType;
             
-            if (radiusType == "R-MIN")
-                radiusTypeScale = 1.0;
-            else if (radiusType == "SIGMA") 
-                radiusTypeScale = pow(2.0, (1.0/6.0));
-        }
+//             if (radiusType == "R-MIN")
+//                 radiusTypeScale = 1.0;
+//             else if (radiusType == "SIGMA") 
+//                 radiusTypeScale = pow(2.0, (1.0/6.0));
+//         }
 
-        else if (recordType == "radiussize") {
-            String radiusSize;
-            lineStream >> radiusSize;
+//         else if (recordType == "radiussize") {
+//             String radiusSize;
+//             lineStream >> radiusSize;
 
-            if (radiusSize == "RADIUS")
-                radiusSizeScale = 1.0;
-            else if (radiusSize == "DIAMETER")
-                radiusSizeScale = 0.5;
-            else {
-                SimTK_THROW1( Exception::Cant, "Parse Error: unrecognized radius size" );
-            }
-        }
+//             if (radiusSize == "RADIUS")
+//                 radiusSizeScale = 1.0;
+//             else if (radiusSize == "DIAMETER")
+//                 radiusSizeScale = 0.5;
+//             else {
+//                 SimTK_THROW1( Exception::Cant, "Parse Error: unrecognized radius size" );
+//             }
+//         }
 
-        // EPSILONRULE [GEOMETRIC/ARITHMETIC/HARMONIC/HHG]
-        // TODO - DuMM currently lumps this with RADIUSRULE
-        else if (recordType == "epsilonrule") {
-            String epsilonRule; 
-            lineStream >> epsilonRule;
+//         // EPSILONRULE [GEOMETRIC/ARITHMETIC/HARMONIC/HHG]
+//         // TODO - DuMM currently lumps this with RADIUSRULE
+//         else if (recordType == "epsilonrule") {
+//             String epsilonRule; 
+//             lineStream >> epsilonRule;
 
-            if (epsilonRule == "GEOMETRIC") {
-                if (getVdwMixingRule() == LorentzBerthelot) continue; // already geometric
-                else if (getVdwMixingRule() == Jorgensen) continue; // already geometric
-                else setVdwMixingRule(Jorgensen);
-            }
-            else if (epsilonRule == "HHG") {
-                setVdwMixingRule(HalgrenHHG);
-            }
-            else {
-                SimTK_THROW1( Exception::Cant, "Parse Error: unrecognized epsilon rule" );
-            }
-        }
+//             if (epsilonRule == "GEOMETRIC") {
+//                 if (getVdwMixingRule() == LorentzBerthelot) continue; // already geometric
+//                 else if (getVdwMixingRule() == Jorgensen) continue; // already geometric
+//                 else setVdwMixingRule(Jorgensen);
+//             }
+//             else if (epsilonRule == "HHG") {
+//                 setVdwMixingRule(HalgrenHHG);
+//             }
+//             else {
+//                 SimTK_THROW1( Exception::Cant, "Parse Error: unrecognized epsilon rule" );
+//             }
+//         }
 
-        else if (recordType == "vdw-14-scale") {
-            Real vdw14Scale;
-            lineStream >> vdw14Scale;
+//         else if (recordType == "vdw-14-scale") {
+//             Real vdw14Scale;
+//             lineStream >> vdw14Scale;
 
-            setVdw14ScaleFactor(1.0 / vdw14Scale);
-        }
+//             setVdw14ScaleFactor(1.0 / vdw14Scale);
+//         }
 
-        else if (recordType == "chg-14-scale") {
-            Real chg14Scale;
-            lineStream >> chg14Scale;
+//         else if (recordType == "chg-14-scale") {
+//             Real chg14Scale;
+//             lineStream >> chg14Scale;
 
-            setCoulomb14ScaleFactor(1.0 / chg14Scale);
-        }
+//             setCoulomb14ScaleFactor(1.0 / chg14Scale);
+//         }
 
-        else if (recordType == "dielectric") {
-            Real dielectric;
-            lineStream >> dielectric;
+//         else if (recordType == "dielectric") {
+//             Real dielectric;
+//             lineStream >> dielectric;
 
-            if (dielectric != 1.0) {
-                SimTK_THROW1( Exception::Cant, "Can't use dielectric other than 1.0" );
-            }
-        }
+//             if (dielectric != 1.0) {
+//                 SimTK_THROW1( Exception::Cant, "Can't use dielectric other than 1.0" );
+//             }
+//         }
 
-        // "atom" records
-        // 'atom      1    14    N       "Glycine N"                 7     14.010     3'
-        else if (recordType == "atom") 
-        {
-            int integer;
-            lineStream >> integer;
-            DuMM::ChargedAtomTypeIndex chargedAtomTypeIndex(integer);
+//         // "atom" records
+//         // 'atom      1    14    N       "Glycine N"                 7     14.010     3'
+//         else if (recordType == "atom") 
+//         {
+//             int integer;
+//             lineStream >> integer;
+//             DuMM::ChargedAtomTypeIndex chargedAtomTypeIndex(integer);
 
-            lineStream >> integer;
-            DuMM::AtomClassIndex atomClassId(integer);
+//             lineStream >> integer;
+//             DuMM::AtomClassIndex atomClassId(integer);
 
-            String atomClassName;
-            lineStream >> atomClassName;
+//             String atomClassName;
+//             lineStream >> atomClassName;
 
-            // Use getline() to get field between quotation marks
-            std::string chargedAtomTypeName;
-            // First try grabs spaces
-            std::getline(lineStream, chargedAtomTypeName, '"');
-            // Second try grabs string
-            std::getline(lineStream, chargedAtomTypeName, '"');
+//             // Use getline() to get field between quotation marks
+//             std::string chargedAtomTypeName;
+//             // First try grabs spaces
+//             std::getline(lineStream, chargedAtomTypeName, '"');
+//             // Second try grabs string
+//             std::getline(lineStream, chargedAtomTypeName, '"');
 
-            int elementNumber; 
-            lineStream >> elementNumber;
+//             int elementNumber; 
+//             lineStream >> elementNumber;
 
-            Real atomMass;
-            lineStream >> atomMass;
+//             Real atomMass;
+//             lineStream >> atomMass;
 
-            int valence;
-            lineStream >> valence;
+//             int valence;
+//             lineStream >> valence;
 
-            // we don't yet know vdwRadius and vdwWellDepth
-            if (!isValidAtomClass(atomClassId)) {
-                defineIncompleteAtomClass_KA(
-                    atomClassId, 
-                    atomClassName.c_str(), 
-                    elementNumber, 
-                    valence);
+//             // we don't yet know vdwRadius and vdwWellDepth
+//             if (!isValidAtomClass(atomClassId)) {
+//                 defineIncompleteAtomClass_KA(
+//                     atomClassId, 
+//                     atomClassName.c_str(), 
+//                     elementNumber, 
+//                     valence);
 
-            }
-            atomicNumberByAtomClassIndex[atomClassId] = elementNumber;
-            valenceByAtomClassIndex[atomClassId] = valence;
+//             }
+//             atomicNumberByAtomClassIndex[atomClassId] = elementNumber;
+//             valenceByAtomClassIndex[atomClassId] = valence;
 
-            // we don't yet know atomic partial charge
-            defineIncompleteChargedAtomType_KA(
-                chargedAtomTypeIndex, 
-                chargedAtomTypeName.c_str(),
-                atomClassId);
+//             // we don't yet know atomic partial charge
+//             defineIncompleteChargedAtomType_KA(
+//                 chargedAtomTypeIndex, 
+//                 chargedAtomTypeName.c_str(),
+//                 atomClassId);
 
-            atomClassIdByChargedAtomTypeIndex[chargedAtomTypeIndex] = atomClassId;
-        }
+//             atomClassIdByChargedAtomTypeIndex[chargedAtomTypeIndex] = atomClassId;
+//         }
        
-        // "vdw" records, e.g.
-        // 'vdw          1              1.9080     0.1094'
-        // RecordType   AtomClass      Radius     WellDepth
-        else if (recordType == "vdw") 
-        {
-            int integer;
-            lineStream >> integer;
-            DuMM::AtomClassIndex atomClassId(integer);
+//         // "vdw" records, e.g.
+//         // 'vdw          1              1.9080     0.1094'
+//         // RecordType   AtomClass      Radius     WellDepth
+//         else if (recordType == "vdw") 
+//         {
+//             int integer;
+//             lineStream >> integer;
+//             DuMM::AtomClassIndex atomClassId(integer);
 
-            Real radius;
-            lineStream >> radius;
-            radius *= radiusSizeScale;
-            radius *= radiusTypeScale;
+//             Real radius;
+//             lineStream >> radius;
+//             radius *= radiusSizeScale;
+//             radius *= radiusTypeScale;
 
-            Real wellDepth;
-            lineStream >> wellDepth;
+//             Real wellDepth;
+//             lineStream >> wellDepth;
 
-            setAtomClassVdwParameters_KA(atomClassId, radius, wellDepth);
-        }
+//             setAtomClassVdwParameters_KA(atomClassId, radius, wellDepth);
+//         }
 
-        // "bond" records
-        // bond stretching parameters
-        // 'bond         1   22          320.0     1.4100'
-        else if (recordType == "bond")
-        {
-            int integer;
-            lineStream >> integer;
-            DuMM::AtomClassIndex atomClassId1(integer);
+//         // "bond" records
+//         // bond stretching parameters
+//         // 'bond         1   22          320.0     1.4100'
+//         else if (recordType == "bond")
+//         {
+//             int integer;
+//             lineStream >> integer;
+//             DuMM::AtomClassIndex atomClassId1(integer);
 
-            lineStream >> integer;
-            DuMM::AtomClassIndex atomClassId2(integer);
+//             lineStream >> integer;
+//             DuMM::AtomClassIndex atomClassId2(integer);
 
-            Real stiffness;
-            lineStream >> stiffness;
+//             Real stiffness;
+//             lineStream >> stiffness;
 
-            Real length;
-            lineStream >> length;
+//             Real length;
+//             lineStream >> length;
 
-            if ( isValidAtomClass(atomClassId1) && isValidAtomClass(atomClassId2) )
-                defineBondStretch_KA(atomClassId1, atomClassId2, stiffness, length);
-        }
+//             if ( isValidAtomClass(atomClassId1) && isValidAtomClass(atomClassId2) )
+//                 defineBondStretch_KA(atomClassId1, atomClassId2, stiffness, length);
+//         }
 
-        // "angle" records
-        // angle bending parameters
-        // 'angle       10    1   34     50.00     109.50'
-        else if (recordType == "angle") {
-            int integer;
-            lineStream >> integer;
-            DuMM::AtomClassIndex atomClassId1(integer);
+//         // "angle" records
+//         // angle bending parameters
+//         // 'angle       10    1   34     50.00     109.50'
+//         else if (recordType == "angle") {
+//             int integer;
+//             lineStream >> integer;
+//             DuMM::AtomClassIndex atomClassId1(integer);
 
-            lineStream >> integer;
-            DuMM::AtomClassIndex atomClassId2(integer);
+//             lineStream >> integer;
+//             DuMM::AtomClassIndex atomClassId2(integer);
 
-            lineStream >> integer;
-            DuMM::AtomClassIndex atomClassId3(integer);
+//             lineStream >> integer;
+//             DuMM::AtomClassIndex atomClassId3(integer);
 
-            Real stiffness;
-            lineStream >> stiffness;
+//             Real stiffness;
+//             lineStream >> stiffness;
 
-            Real angle;
-            lineStream >> angle;
+//             Real angle;
+//             lineStream >> angle;
 
-            defineBondBend_KA(atomClassId1, atomClassId2, atomClassId3, stiffness, angle);
-        }
+//             defineBondBend_KA(atomClassId1, atomClassId2, atomClassId3, stiffness, angle);
+//         }
 
-        // improper torsions
-        // imptors      1   14    2   24         10.500  180.0  2
-        else if (recordType == "imptors") 
-        {
-            int integer;
-            lineStream >> integer;
-            DuMM::AtomClassIndex atomClassId1(integer);
+//         // improper torsions
+//         // imptors      1   14    2   24         10.500  180.0  2
+//         else if (recordType == "imptors") 
+//         {
+//             int integer;
+//             lineStream >> integer;
+//             DuMM::AtomClassIndex atomClassId1(integer);
 
-            lineStream >> integer;
-            DuMM::AtomClassIndex atomClassId2(integer);
+//             lineStream >> integer;
+//             DuMM::AtomClassIndex atomClassId2(integer);
 
-            lineStream >> integer;
-            DuMM::AtomClassIndex atomClassId3(integer);
+//             lineStream >> integer;
+//             DuMM::AtomClassIndex atomClassId3(integer);
 
-            lineStream >> integer;
-            DuMM::AtomClassIndex atomClassId4(integer);
+//             lineStream >> integer;
+//             DuMM::AtomClassIndex atomClassId4(integer);
 
-            Real amplitudeInKcal;
-            lineStream >> amplitudeInKcal;
+//             Real amplitudeInKcal;
+//             lineStream >> amplitudeInKcal;
 
-            Real phaseAngleInDegrees;
-            lineStream >> phaseAngleInDegrees;
+//             Real phaseAngleInDegrees;
+//             lineStream >> phaseAngleInDegrees;
 
-            int periodicity;
-            lineStream >> periodicity;
+//             int periodicity;
+//             lineStream >> periodicity;
 
-            defineAmberImproperTorsion_KA
-               (atomClassId1, atomClassId2, atomClassId3, atomClassId4,
-                periodicity, amplitudeInKcal, phaseAngleInDegrees);
-        }
+//             defineAmberImproperTorsion_KA
+//                (atomClassId1, atomClassId2, atomClassId3, atomClassId4,
+//                 periodicity, amplitudeInKcal, phaseAngleInDegrees);
+//         }
 
-        // "torsion" records
-        // 'torsion      1    1    1    1     0.200 180.0 1   0.250 180.0 2   0.180   0.0 3'
-        // OR
-        // 'torsion     23    1    1   23          0.144    0.0  3      1.175    0.0  2'
-        // OR
-        // 'torsion      1    1    1    2          0.156    0.0  3'
-        else if (recordType == "torsion") 
-        {
-            int integer;
-            lineStream >> integer;
-            DuMM::AtomClassIndex atomClassId1(integer);
+//         // "torsion" records
+//         // 'torsion      1    1    1    1     0.200 180.0 1   0.250 180.0 2   0.180   0.0 3'
+//         // OR
+//         // 'torsion     23    1    1   23          0.144    0.0  3      1.175    0.0  2'
+//         // OR
+//         // 'torsion      1    1    1    2          0.156    0.0  3'
+//         else if (recordType == "torsion") 
+//         {
+//             int integer;
+//             lineStream >> integer;
+//             DuMM::AtomClassIndex atomClassId1(integer);
 
-            lineStream >> integer;
-            DuMM::AtomClassIndex atomClassId2(integer);
+//             lineStream >> integer;
+//             DuMM::AtomClassIndex atomClassId2(integer);
 
-            lineStream >> integer;
-            DuMM::AtomClassIndex atomClassId3(integer);
+//             lineStream >> integer;
+//             DuMM::AtomClassIndex atomClassId3(integer);
 
-            lineStream >> integer;
-            DuMM::AtomClassIndex atomClassId4(integer);
+//             lineStream >> integer;
+//             DuMM::AtomClassIndex atomClassId4(integer);
 
-            // figure out how many fields are on this line
-            int numberOfFields = 0;
-            size_t pos = 0;
-            while(pos != String::npos) {
-                pos = tinkerParamFileLine.find_first_not_of(" ", pos);
-                pos = tinkerParamFileLine.find_first_of(" ", pos);
-                ++numberOfFields;
-            }
+//             // figure out how many fields are on this line
+//             int numberOfFields = 0;
+//             size_t pos = 0;
+//             while(pos != String::npos) {
+//                 pos = tinkerParamFileLine.find_first_not_of(" ", pos);
+//                 pos = tinkerParamFileLine.find_first_of(" ", pos);
+//                 ++numberOfFields;
+//             }
 
-            assert(numberOfFields >= 8);
+//             assert(numberOfFields >= 8);
 
-            Real amplitude1;
-            lineStream >> amplitude1;
+//             Real amplitude1;
+//             lineStream >> amplitude1;
 
-            Real phase1;
-            lineStream >> phase1;
+//             Real phase1;
+//             lineStream >> phase1;
 
-            int periodicity1;
-            lineStream >> periodicity1;
+//             int periodicity1;
+//             lineStream >> periodicity1;
 
-            if (numberOfFields == 8) {
-                defineBondTorsion_KA(
-                    atomClassId1, atomClassId2, atomClassId3, atomClassId4,
-                    periodicity1, amplitude1, phase1
-                    );
-                continue;
-            }
+//             if (numberOfFields == 8) {
+//                 defineBondTorsion_KA(
+//                     atomClassId1, atomClassId2, atomClassId3, atomClassId4,
+//                     periodicity1, amplitude1, phase1
+//                     );
+//                 continue;
+//             }
 
-            assert(numberOfFields >= 11);
+//             assert(numberOfFields >= 11);
 
-            Real amplitude2;
-            lineStream >> amplitude2;
+//             Real amplitude2;
+//             lineStream >> amplitude2;
 
-            Real phase2;
-            lineStream >> phase2;
+//             Real phase2;
+//             lineStream >> phase2;
 
-            int periodicity2;
-            lineStream >> periodicity2;
+//             int periodicity2;
+//             lineStream >> periodicity2;
 
-            if (numberOfFields == 11) {
-                defineBondTorsion_KA(
-                    atomClassId1, atomClassId2, atomClassId3, atomClassId4,
-                    periodicity1, amplitude1, phase1,
-                    periodicity2, amplitude2, phase2
-                    );
-                continue;
-            }
+//             if (numberOfFields == 11) {
+//                 defineBondTorsion_KA(
+//                     atomClassId1, atomClassId2, atomClassId3, atomClassId4,
+//                     periodicity1, amplitude1, phase1,
+//                     periodicity2, amplitude2, phase2
+//                     );
+//                 continue;
+//             }
 
-            assert(numberOfFields == 14);
+//             assert(numberOfFields == 14);
 
-            Real amplitude3;
-            lineStream >> amplitude3;
+//             Real amplitude3;
+//             lineStream >> amplitude3;
 
-            Real phase3;
-            lineStream >> phase3;
+//             Real phase3;
+//             lineStream >> phase3;
 
-            int periodicity3;
-            lineStream >> periodicity3;
+//             int periodicity3;
+//             lineStream >> periodicity3;
 
-            defineBondTorsion_KA(
-                atomClassId1, atomClassId2, atomClassId3, atomClassId4,
-                periodicity1, amplitude1, phase1,
-                periodicity2, amplitude2, phase2,
-                periodicity3, amplitude3, phase3
-                );
-            continue;
+//             defineBondTorsion_KA(
+//                 atomClassId1, atomClassId2, atomClassId3, atomClassId4,
+//                 periodicity1, amplitude1, phase1,
+//                 periodicity2, amplitude2, phase2,
+//                 periodicity3, amplitude3, phase3
+//                 );
+//             continue;
 
-        }
+//         }
 
-        // atom partial charge records, e.g.
-        // 'charge       1       -0.4157'
-        // RecordType AtomChargedType Charge
-        else if ( recordType == "charge" ) {
-            int integer;
-            lineStream >> integer;
-            DuMM::ChargedAtomTypeIndex chargedAtomTypeIndex(integer);
+//         // atom partial charge records, e.g.
+//         // 'charge       1       -0.4157'
+//         // RecordType AtomChargedType Charge
+//         else if ( recordType == "charge" ) {
+//             int integer;
+//             lineStream >> integer;
+//             DuMM::ChargedAtomTypeIndex chargedAtomTypeIndex(integer);
 
-            Real charge;
-            lineStream >> charge;
+//             Real charge;
+//             lineStream >> charge;
 
-            setChargedAtomTypeCharge(chargedAtomTypeIndex, charge);
-        }
+//             setChargedAtomTypeCharge(chargedAtomTypeIndex, charge);
+//         }
 
-        // "biotype" records, e.g.
-        // 'biotype      1    N       "Glycine"                   1'
-        // RecordType Biotype AtomName ResidueName          AtomClass
-        else if ( recordType == "biotype" ) 
-        {
-            int integer;
-            lineStream >> integer;
-            TinkerBiotypeIndex tinkerBiotypeIndex(integer);
+//         // "biotype" records, e.g.
+//         // 'biotype      1    N       "Glycine"                   1'
+//         // RecordType Biotype AtomName ResidueName          AtomClass
+//         else if ( recordType == "biotype" ) 
+//         {
+//             int integer;
+//             lineStream >> integer;
+//             TinkerBiotypeIndex tinkerBiotypeIndex(integer);
 
-            String atomName;
-            lineStream >> atomName;
+//             String atomName;
+//             lineStream >> atomName;
 
-            String residueName;
-            // Use getline() to get field between quotation marks
-            // First try grabs spaces
-            std::getline(lineStream, residueName, '"');
-            // Second try grabs string
-            std::getline(lineStream, residueName, '"');
+//             String residueName;
+//             // Use getline() to get field between quotation marks
+//             // First try grabs spaces
+//             std::getline(lineStream, residueName, '"');
+//             // Second try grabs string
+//             std::getline(lineStream, residueName, '"');
 
-            lineStream >> integer;
-            DuMM::ChargedAtomTypeIndex chargedAtomTypeIndex(integer);
+//             lineStream >> integer;
+//             DuMM::ChargedAtomTypeIndex chargedAtomTypeIndex(integer);
 
-            // Resolve element and valence
-            DuMM::AtomClassIndex atomClassId = atomClassIdByChargedAtomTypeIndex[chargedAtomTypeIndex];
-            int atomicNumber = atomicNumberByAtomClassIndex[atomClassId];
-            int valence = valenceByAtomClassIndex[atomClassId];
+//             // Resolve element and valence
+//             DuMM::AtomClassIndex atomClassId = atomClassIdByChargedAtomTypeIndex[chargedAtomTypeIndex];
+//             int atomicNumber = atomicNumberByAtomClassIndex[atomClassId];
+//             int valence = valenceByAtomClassIndex[atomClassId];
 
-            // Resolve ordinality
-            // Parse residueName into residueName and context
-            // TODO - include nucleotide nomenclature, if necessary
-            Ordinality::Residue ordinality = Ordinality::Any;
+//             // Resolve ordinality
+//             // Parse residueName into residueName and context
+//             // TODO - include nucleotide nomenclature, if necessary
+//             Ordinality::Residue ordinality = Ordinality::Any;
 
-            // Separate residue name from ordinality indicator
-            // case of "Acetyl N-Terminus"
-            // Handle "N-Terminal GLY"
-            auto pos1 = residueName.find("N-Term");
-            if (pos1 != std::string::npos) {
-                ordinality = Ordinality::Initial;
+//             // Separate residue name from ordinality indicator
+//             // case of "Acetyl N-Terminus"
+//             // Handle "N-Terminal GLY"
+//             auto pos1 = residueName.find("N-Term");
+//             if (pos1 != std::string::npos) {
+//                 ordinality = Ordinality::Initial;
 
-                // e.g. "N-Terminal GLY"
-                if (pos1 == 0) 
-                    residueName.replace(pos1, 11, "");
-                // e.g. "Acetyl N-Terminus"
-                else 
-                    residueName.replace(pos1-1, 11, "");
-            }
+//                 // e.g. "N-Terminal GLY"
+//                 if (pos1 == 0) 
+//                     residueName.replace(pos1, 11, "");
+//                 // e.g. "Acetyl N-Terminus"
+//                 else 
+//                     residueName.replace(pos1-1, 11, "");
+//             }
 
-            pos1 = residueName.find("C-Term");
-            if (pos1 != std::string::npos) {
-                ordinality = Ordinality::Final;
+//             pos1 = residueName.find("C-Term");
+//             if (pos1 != std::string::npos) {
+//                 ordinality = Ordinality::Final;
 
-                // e.g. "C-Terminal GLY"
-                if (pos1 == 0) 
-                    residueName.replace(pos1, 11, "");
-                // e.g. "N-MeAmide C-Terminus"
-                else 
-                    residueName.replace(pos1-1, 11, "");
-            }
+//                 // e.g. "C-Terminal GLY"
+//                 if (pos1 == 0) 
+//                     residueName.replace(pos1, 11, "");
+//                 // e.g. "N-MeAmide C-Terminus"
+//                 else 
+//                     residueName.replace(pos1-1, 11, "");
+//             }
             
-            // Nucleic acid biotypes, e.g.
-            // "5'-Hydroxyl, RNA"
-            // "5'-Phosphate OS, DNA"
-            pos1 = residueName.find("5'-");
-            if (pos1 != std::string::npos) {
-            	ordinality = Ordinality::Initial;
-            	residueName.replace(pos1, 3, "");
+//             // Nucleic acid biotypes, e.g.
+//             // "5'-Hydroxyl, RNA"
+//             // "5'-Phosphate OS, DNA"
+//             pos1 = residueName.find("5'-");
+//             if (pos1 != std::string::npos) {
+//             	ordinality = Ordinality::Initial;
+//             	residueName.replace(pos1, 3, "");
             	
-                // get rid of that annoying wrongly placed atom name in the terminal phosphates
-            	pos1 = residueName.find(" OP,");
-            	if (pos1 != std::string::npos) residueName.replace(pos1, 4, ",");
-            	pos1 = residueName.find(" OS,");
-            	if (pos1 != std::string::npos) residueName.replace(pos1, 4, ",");
-            	pos1 = residueName.find(" P,");
-            	if (pos1 != std::string::npos) residueName.replace(pos1, 3, ",");
+//                 // get rid of that annoying wrongly placed atom name in the terminal phosphates
+//             	pos1 = residueName.find(" OP,");
+//             	if (pos1 != std::string::npos) residueName.replace(pos1, 4, ",");
+//             	pos1 = residueName.find(" OS,");
+//             	if (pos1 != std::string::npos) residueName.replace(pos1, 4, ",");
+//             	pos1 = residueName.find(" P,");
+//             	if (pos1 != std::string::npos) residueName.replace(pos1, 3, ",");
             	
-            }
-            pos1 = residueName.find("3'-");
-            if (pos1 != std::string::npos) {
-            	ordinality = Ordinality::Final;
-            	residueName.replace(pos1, 3, "");
+//             }
+//             pos1 = residueName.find("3'-");
+//             if (pos1 != std::string::npos) {
+//             	ordinality = Ordinality::Final;
+//             	residueName.replace(pos1, 3, "");
             	
-                // get rid of that annoying wrongly placed atom name in the terminal phosphates
-            	pos1 = residueName.find(" OP,");
-            	if (pos1 != std::string::npos) residueName.replace(pos1, 4, ",");
-            	pos1 = residueName.find(" OS,");
-            	if (pos1 != std::string::npos) residueName.replace(pos1, 4, ",");
-            	pos1 = residueName.find(" P,");
-            	if (pos1 != std::string::npos) residueName.replace(pos1, 3, ",");
-            }
+//                 // get rid of that annoying wrongly placed atom name in the terminal phosphates
+//             	pos1 = residueName.find(" OP,");
+//             	if (pos1 != std::string::npos) residueName.replace(pos1, 4, ",");
+//             	pos1 = residueName.find(" OS,");
+//             	if (pos1 != std::string::npos) residueName.replace(pos1, 4, ",");
+//             	pos1 = residueName.find(" P,");
+//             	if (pos1 != std::string::npos) residueName.replace(pos1, 3, ",");
+//             }
 
-            BiotypeIndex biotypeIx;
+//             BiotypeIndex biotypeIx;
 
-            if ( Biotype::exists(residueName.c_str(), atomName.c_str(), ordinality) ) {
-                Biotype& biotype = Biotype::upd( residueName.c_str(), atomName.c_str(), ordinality );
-                biotypeIx = biotype.getIndex();
+//             if ( Biotype::exists(residueName.c_str(), atomName.c_str(), ordinality) ) {
+//                 Biotype& biotype = Biotype::upd( residueName.c_str(), atomName.c_str(), ordinality );
+//                 biotypeIx = biotype.getIndex();
 
-                biotype.setTinkerBiotypeIndex(tinkerBiotypeIndex);
-            }
+//                 biotype.setTinkerBiotypeIndex(tinkerBiotypeIndex);
+//             }
 
-            else biotypeIx = Biotype::defineTinkerBiotype(tinkerBiotypeIndex
-                                                          , Element::getByAtomicNumber(atomicNumber)
-                                                          , valence
-                                                          , residueName.c_str()
-                                                          , atomName.c_str()
-                                                          , ordinality
-            );
+//             else biotypeIx = Biotype::defineTinkerBiotype(tinkerBiotypeIndex
+//                                                           , Element::getByAtomicNumber(atomicNumber)
+//                                                           , valence
+//                                                           , residueName.c_str()
+//                                                           , atomName.c_str()
+//                                                           , ordinality
+//             );
 
-            setBiotypeChargedAtomType(chargedAtomTypeIndex, biotypeIx);
-        }
+//             setBiotypeChargedAtomType(chargedAtomTypeIndex, biotypeIx);
+//         }
 
-    }
+//     }
 
-}
+// }
 
 
 
