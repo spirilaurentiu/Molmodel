@@ -51,18 +51,12 @@ class CompoundSystem;
 class Compound;
 class CompoundRep;
 
-// Make sure class is instantiated just once in the library
-// #ifndef DO_INSTANTIATE_COMPOUND_PIMPL_HANDLE
-//    template class SimTK_MOLMODEL_EXPORT PIMPLHandle<Compound, CompoundRep>;
-// #endif
-
 /**
  * \brief Namespace for description of allowed bond motions.
  */
 namespace BondMobility {
     /**
      * \brief Which motions are allowed for a particular covalent bond.
-     *
      * An enum applied to each covalent bond in a Compound.
      * Used to specify the degrees of freedom of that
      * bond during subsequent construction of a multibody model in simbody.
@@ -80,8 +74,8 @@ namespace BondMobility {
         LineOrientationM = 10, ///< Two rotational mobilities // NEWMOB
         UniversalM = 11, ///< Cap de bara
         Spherical = 12, ///< BAT coordinates
-        AnglePin = 13,
-        BendStretch = 14,
+        AnglePin = 13, ///< Rotation perpendicular to bond and bond-1 plane
+        BendStretch = 14, ///< Translation along bond and rotation perpendicular to bond
         Slider = 15 ///< Translation along bond
     };
     static Mobility Default = Torsion;
@@ -90,7 +84,6 @@ namespace BondMobility {
 
 /**
  * \brief The base class for atoms, molecules, and chemical groups.
- *
  * The Compound class is the base for all molecular entities in the SimTK
  * Molmodel API.
  */
@@ -108,7 +101,6 @@ public:
 
     /**
      * \brief Type for name of a particular subcompound within a Compound.
-     *
      * Compound::Name is used as an index to subcompounds of a parent compound, e.g. "methyl group gamma"
      */
     typedef String Name;
@@ -130,7 +122,6 @@ public:
 
     /**
      * \brief Type for name of a particular bond center within a Compound or atom.
-     *
      * Compound::BondCenterName is not intrinsic to the bond center itself, but rather the 
      * relationship between a bond center and a particular atom or Compound.
      * BondCenterNames are local to a particular compound.  In contrast, BondCenterPathNames
@@ -142,7 +133,6 @@ public:
 
     /**
      * \brief Type for name of a particular named dihedral angle within a Compound.
-     *
      * Compound::DihedralName is not intrinsic to the dihedral angle itself, but rather the 
      * relationship between a dihedral angle and a particular Compound.
      */
@@ -150,7 +140,6 @@ public:
 
     /**
      * \brief Type for name of a particular bond center within a Compound, possibly including subcompound indirection.
-     *
      * Compound::BondCenterPathName is not intrinsic to the bond center itself, but rather the 
      * relationship between a bond center and a particular Compound.
      * BondCenterPathNames may be qualified by subcompound indirection, in contrast to BondCenterNames.
@@ -162,7 +151,6 @@ public:
 
     /**
      * \brief Type for name of a particular atom within a Compound, possibly including subcompound path.
-     *
      * Compound::AtomPathName is not intrinsic to the atom itself, but rather the relationship
      * between an atom and a particular Compound.  A particular atom may have different
      * names in a compound and its subcompounds.  For example, a particular atom might
@@ -174,17 +162,6 @@ public:
      * but is a valid AtomPathName.
      */
     typedef String AtomPathName;
-
-    // Unique classes which behave like type-safe ints. These are local
-    // to Compound.
-
-    /**
-     * Compound::Index type is an integer index into subcompounds of a Compound.  It is NOT
-     * instrinsic to the subcompound, but represents the relationship between a subcompound
-     * and precisely one of its parent compounds.
-     */
-    // SimTK_DEFINE_UNIQUE_LOCAL_INDEX_TYPE(Compound,Index);
-
 
     /**
      * Compound::AtomIndex type is an integer index into atoms of a Compound.  It is NOT
@@ -221,20 +198,18 @@ public:
 
     /// @}
 
-
+    ///////////////////////////////////////////////////////////////////////////
     /// \name Molecular topology methods
     /// @{
 
     /**
      * \brief default Compound constructor.
-     *
      * Create an empty compound object representing a simulatable molecular structure.
      */
     Compound();
 
     /**
      * \brief Construct a Compound with a type name.
-     *
      * Create an empty compound object representing a simulatable molecular structure.
      * The name is intended to represent the class of molecule being represented.
      * e.g. "ethane", not "ethane number 3"
@@ -245,9 +220,7 @@ public:
     // TODO check if it is correct and does not result in undefined behaviour.
     virtual ~Compound() = default;
 
-    /**
-     * \return the number of atoms in the Compound, including those within subcompounds.
-     */
+    /// \return the number of atoms in the Compound, including those within subcompounds.
     int getNumAtoms() const;
 
     /// \return total number of BondCenters in a Compound, including its subcompounds
@@ -282,8 +255,7 @@ public:
 
 
     /** 
-     *  Add the first atom unconnected to anything else (yet).
-     *
+     * \brief Add the first atom unconnected to anything else (yet).
      * \return a reference to this compound object
      */
     Compound& setBaseAtom(
@@ -292,8 +264,7 @@ public:
         const Transform& location = Vec3(0)  ///< default location of the new atom being created in orthogonal nanometers.  Defaults to (0,0,0)
         );
     /** 
-     *  Add the first atom unconnected to anything else (yet).
-     *
+     * \brief Add the first atom unconnected to anything else (yet).
      * \return a reference to this compound object
      */
     Compound& setBaseAtom(
@@ -303,9 +274,8 @@ public:
         );  
 
     /** 
-     *  Add a first subcompound containing exactly one atom, so the Compound::AtomName can be reused for the Compound::Name.
-     *  This atom is not connected to anything else (yet).
-     * 
+     * \brief  Add a first subcompound containing exactly one atom, so the Compound::AtomName can be reused for the Compound::Name.
+     * This atom is not connected to anything else (yet).
      * \return a reference to this compound object
      */
     Compound& setBaseAtom(
@@ -314,8 +284,7 @@ public:
         ); 
 
     /** 
-     *  Add a first subcompound without attaching it to anything.
-     * 
+     *  \brief Add a first subcompound without attaching it to anything.
      * \return a reference to this compound object
      */
     Compound& setBaseCompound(
@@ -325,9 +294,8 @@ public:
         );
 
     /** 
-     *  Add a subcompound containing exactly one atom, so the Compound::AtomName can be reused for the Compound::Name.
+     *  \brief Add a subcompound containing exactly one atom, so the Compound::AtomName can be reused for the Compound::Name.
      *  This atom is connected to existing material.
-     * 
      * \return a reference to this compound object
      */
     Compound& bondAtom(
@@ -339,11 +307,9 @@ public:
         );
 
     /** 
-     *  Bond atom using default bond length and dihedral angle.
-     *
+     *  \brief Bond atom using default bond length and dihedral angle.
      *  Bond length and dihedral angle must have already been predefined in the 
      *  parent *or* the child BondCenter, but not both
-     * 
      * \return a reference to this compound object
      */
     Compound& bondAtom(
@@ -353,7 +319,6 @@ public:
 
     /** 
      *  \brief Add a subcompound attached by its inboard bond to an existing bond center
-     * 
      * \return a reference to this compound object
      */
     Compound& bondCompound(
@@ -366,8 +331,7 @@ public:
         );
 
     /** 
-     *  Add a subcompound attached by its inboard bond to an existing bond center
-     * 
+     *  \brief Add a subcompound attached by its inboard bond to an existing bond center
      *  Shorter version uses default bond length and dihedral angle,
      *  which must have been predefined in the parent *or* the child BondCenter,
      *  but not both.
@@ -382,7 +346,6 @@ public:
 
     /** 
      *  \brief Add a subcompound attached by its inboard bond to an existing bond center
-     *  
      *  Shorter version uses default bond length and dihedral angle,
      *  which must have been predefined in the parent *or* the child BondCenter,
      *  but not both.
@@ -397,19 +360,17 @@ public:
         );
 
     /** 
-     *  setInboardBondCenter assigns special status to a bond center.
+     *  \brief setInboardBondCenter assigns special status to a bond center.
      *  There can be at most one inboard bond center in a Compound.
      *  Only an inboard bond center can be used to bond to a parent compound
-     * 
      * \return a reference to this compound object
      */
     Compound& setInboardBondCenter(
         const Compound::BondCenterName& centerName ///< name of existing BondCenter to use as inboard BondCenter
         );
 
-    /** Make so that this compound can no longer be a child to the geometry of another compound
+    /** \brief Make so that this compound can no longer be a child to the geometry of another compound
      *  Raises an error if the inboard bond center is already bonded.
-     * 
      * \return a reference to this compound object
      */
     Compound& convertInboardBondCenterToOutboard();
@@ -548,12 +509,15 @@ public:
 
     /// @}
     // end topology methods
+    // ------------------------------------------------------------------------
 
-
+    ///////////////////////////////////////////////////////////////////////////
     /// \name Molecular geometry methods
     /// @{
+    
     // EU
     Transform calcAtomFrameInGroundFrame(const State& state, Compound::AtomIndex atomId) const;
+
     /**
      * Compute atom location in local Compound frame
      * 

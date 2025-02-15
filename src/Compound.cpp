@@ -34,9 +34,9 @@
 
 #define DO_INSTANTIATE_COMPOUND_PIMPL_HANDLE
 #include "molmodel/internal/Compound.h"
-#include "molmodel/internal/Protein.h"
-#include "molmodel/internal/RNA.h"
-#include "molmodel/internal/DNA.h"
+// #include "molmodel/internal/Protein.h"
+// #include "molmodel/internal/RNA.h"
+// #include "molmodel/internal/DNA.h"
 #undef DO_INSTANTIATE_COMPOUND_PIMPL_HANDLE
 
 #include "CompoundRep.h"
