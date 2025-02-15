@@ -1574,16 +1574,16 @@ public:
 
         //drl BEGIN
 
-        const std::vector<std::vector<double>>& getEnergies_drl_bon();
-        const std::vector<std::vector<double>>& getEnergies_drl_ang();     
-        const std::vector<std::vector<double>>& getEnergies_drl_tor();
-        const std::vector<std::vector<double>>& getEnergies_drl_n14();
-        const std::vector<std::vector<double>>& getEnergies_drl_vdw();
-        const std::vector<std::vector<double>>& getEnergies_drl_cou();           
-        const std::vector<OpenMM::Vec3>& getForces_drl_bon();
-        const std::vector<OpenMM::Vec3>& getForces_drl_ang();
-        const std::vector<OpenMM::Vec3>& getForces_drl_tor();
-        const std::vector<OpenMM::Vec3>& getForces_drl_n14();
+        // const std::vector<std::vector<double>>& getEnergies_drl_bon();
+        // const std::vector<std::vector<double>>& getEnergies_drl_ang();     
+        // const std::vector<std::vector<double>>& getEnergies_drl_tor();
+        // const std::vector<std::vector<double>>& getEnergies_drl_n14();
+        // const std::vector<std::vector<double>>& getEnergies_drl_vdw();
+        // const std::vector<std::vector<double>>& getEnergies_drl_cou();           
+        // const std::vector<OpenMM::Vec3>& getForces_drl_bon();
+        // const std::vector<OpenMM::Vec3>& getForces_drl_ang();
+        // const std::vector<OpenMM::Vec3>& getForces_drl_tor();
+        // const std::vector<OpenMM::Vec3>& getForces_drl_n14();
 
         //drl END
 
