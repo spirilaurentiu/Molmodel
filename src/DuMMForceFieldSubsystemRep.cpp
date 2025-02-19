@@ -3424,7 +3424,7 @@ MassProperties Cluster::calcMassProperties
         //const Real atomMass = mm.getAtomMass(dAIx);
 
 		// std::cout << std::fixed << std::setprecision(6);
-		std::cout <<"STUDY_Cluster::calcMassProperties" <<" dAIx "<< dAIx <<" mass "<< atomMass << std::endl;
+		//std::cout <<"STUDY_Cluster::calcMassProperties" <<" dAIx "<< dAIx <<" mass "<< atomMass << std::endl;
 
         // Get the mass of the nucleus
         SimTK::Real femto2nano = 0.000001;
@@ -3449,7 +3449,7 @@ MassProperties Cluster::calcMassProperties
     }
     com /= mass;
 
-    std::cout << "[INERTIA Cluster::calcMassProperties] " << inertia <<" " << inertia_Spheres << std::endl;
+    //std::cout << "[INERTIA Cluster::calcMassProperties] " << inertia <<" " << inertia_Spheres << std::endl;
 
     return MassProperties(mass,com,inertia).calcTransformedMassProps(tr);
     //return MassProperties(mass,com,inertia_Spheres).calcTransformedMassProps(tr);
