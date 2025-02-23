@@ -2463,9 +2463,6 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
         && isEnergyCacheRealized(s))
         return; // nothing to do
 
-
-    //std::cout << "STUDY DuMMForceFieldSubsystemRep::realizeForcesAndEnergy" << std::endl;
-
     // Get access to the matter subsystem so we can access the bodies.
     // const MultibodySystem&        mbs    = getMultibodySystem();
     //const SimbodyMatterSubsystem& matter = mbs.getMatterSubsystem();
@@ -2489,16 +2486,15 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
     const Vector_<Vec3>& inclAtomPos_G     = getIncludedAtomPositionsInG(s);
 
 
-        // BONDED FORCES //
+    // BONDED FORCES //
 
-    if ( ! ( usingOpenMM && ! wantOpenMMCalcOnlyNonBonded ) ) {
+    if ( ( usingOpenMM && ! wantOpenMMCalcOnlyNonBonded ) ) { // Calculate with OpenMM
+        ;
+    }else  { // Calculate with DuMM
 
-        const bool doStretch = bondStretchGlobalScaleFactor != 0
-                               || customBondStretchGlobalScaleFactor != 0;
-        const bool doBend = bondBendGlobalScaleFactor != 0
-                            || customBondBendGlobalScaleFactor != 0;
-        const bool doTorsion = bondTorsionGlobalScaleFactor != 0
-                               || customBondTorsionGlobalScaleFactor != 0;
+        const bool doStretch = bondStretchGlobalScaleFactor != 0 || customBondStretchGlobalScaleFactor != 0;
+        const bool doBend = bondBendGlobalScaleFactor != 0 || customBondBendGlobalScaleFactor != 0;
+        const bool doTorsion = bondTorsionGlobalScaleFactor != 0 || customBondTorsionGlobalScaleFactor != 0;
         const bool doImproper = amberImproperTorsionGlobalScaleFactor != 0;
 
         for (DuMMIncludedBodyIndex incBodyIx(0);
@@ -2539,32 +2535,22 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
                                              inclBodyForces_G, energy);
             }
         }
-        TRACE_OPENMM (("CALC BONDED with DUMM: Ebonded = " + std::to_string(energy) +  " \n").c_str());
+        std::cout << (("CALC BONDED with DUMM: Ebonded = " + std::to_string(energy) +  " \n"));
     }
 
 
-
-
-                // NONBONDED FORCES //
-
-   // TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: trying to evaluate nonbonded\n");
+    // NONBONDED FORCES //
+    std::cout << "DuMM: Nof nonbonded atoms = " << getNumNonbondAtoms() << std::endl;
     if (getNumNonbondAtoms()) {
-   //     TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: getNumNonbondAtoms != 0\n");
-        // We'll use GPU acceleration if possible; otherwise parallel computation;
-        // otherwise serial calculation here.
 
         if (usingOpenMM) {
-    //        TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: using OpenMM\n");
-     //       TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: assert passed\n");
 
             // Calculate forces and energy.
             // TODO: should calculate energy only when it is asked for.
 
-            TRACE_OPENMM (("BEFORE OpenMM\t" + std::to_string(energy) +  " \n").c_str());
             openMMPlugin.calcOpenMMEnergyAndForces(
                 inclAtomStation_G, inclAtomPos_G, true /*forces*/, true /*energy*/,
                 inclBodyForces_G, energy);
-            TRACE_OPENMM (("AFTER OpenMM\t" + std::to_string(energy) +  " \n").c_str());
 
             // All done!
             markIncludedAtomForceCacheRealized(s);
@@ -2573,27 +2559,19 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
             return;
         }
 
-        // We're not using OpenMM; calculate these terms here as best we can.
-        if (usingMultithreaded) {
-     //       TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: using multithreading\n");
-            // Parallel calculation.
-            NonbondedForceTask task
-               (*this, inclAtomPos_G, inclAtomForce_G, energy);
-     //       TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: about to execute nonbondedExecutor with: ");
-      //      TRACE(std::to_string(numThreadsInUse).c_str());
-      //      TRACE(" threads\n");
+        if (usingMultithreaded) { // Parallel calculation in multiple threads.
+            NonbondedForceTask task (*this, inclAtomPos_G, inclAtomForce_G, energy);
+
             nonbondedExecutor->execute(task, Parallel2DExecutor::HalfMatrix);
 
-            TRACE_OPENMM (("CALC NONBONDED with DUMM Parallel2DExecutor: Energy = " + std::to_string(energy) +  " \n").c_str());
+            //TRACE_OPENMM (("CALC NONBONDED with DUMM Parallel2DExecutor: Energy = " + std::to_string(energy) +  " \n").c_str());
 
-        } else {
-            // Serial calculation in this thread.
-      //      TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: begin serial calculation\n");
+        } else { // Serial calculation in this thread.
+
             if (!(coulombGlobalScaleFactor==0 && vdwGlobalScaleFactor==0)) {
-      //          TRACE("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy: scale factor not 0\n");
                 calcNonbondedForces(inclAtomPos_G, inclAtomForce_G, energy);
 
-                TRACE_OPENMM (("CALC NONBONDED with DUMM SingleThread: Energy = " + std::to_string(energy) +  " \n").c_str());
+                //TRACE_OPENMM (("CALC NONBONDED with DUMM SingleThread: Energy = " + std::to_string(energy) +  " \n").c_str());
 
             }
         }
@@ -2602,7 +2580,7 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
         if (gbsaGlobalScaleFactor != 0) {
             calcGBSAForces(inclAtomStation_G, inclAtomPos_G, usingMultithreaded,
                            gbsaGlobalScaleFactor, inclBodyForces_G, energy);
-            TRACE_OPENMM (("CALC GBSA with DUMM : Energy = " + std::to_string(energy) +  " \n").c_str());
+            //TRACE_OPENMM (("CALC GBSA with DUMM : Energy = " + std::to_string(energy) +  " \n").c_str());
         }
     }
 
@@ -2669,7 +2647,6 @@ int DuMMForceFieldSubsystemRep::realizeSubsystemDynamicsImpl(const State& s) con
 Real DuMMForceFieldSubsystemRep::calcPotentialEnergy(const State& state) const {
     // Currently there is no way to compute only the energy, although it
     // would be somewhat cheaper if forces aren't needed.
-
 
     realizeForcesAndEnergy(state);
 
