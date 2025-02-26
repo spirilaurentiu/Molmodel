@@ -318,6 +318,8 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
     // TODO: As it is now, it should work only with a fully flexible setup (nonbonded index)
     if( ! dumm->wantOpenMMCalcOnlyNonBonded ){
 
+        //TRACE_OPENMM("CALC BONDED IN OPENMM");
+
         for (DuMMIncludedBodyIndex incBodyIx(0);
              incBodyIx < dumm->getNumIncludedBodies(); ++incBodyIx) {
 
@@ -610,9 +612,9 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
     if (wantEnergy)
         {energy += openMMState.getPotentialEnergy();}
 
-    TRACE_OPENMM(("OpenMM_Energy\t" +
-        std::to_string(openMMState.getPotentialEnergy()) + 
-        "\n").c_str());
+    // TRACE_OPENMM(("OpenMM_Energy\t" +
+    //     std::to_string(openMMState.getPotentialEnergy()) + 
+    //     "\n").c_str());
 }
 
 

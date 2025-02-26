@@ -2535,12 +2535,13 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
                                              inclBodyForces_G, energy);
             }
         }
-        std::cout << (("CALC BONDED with DUMM: Ebonded = " + std::to_string(energy) +  " \n"));
+        std::cout << (("Warning: CALC BONDED with DUMM: Ebonded = " + std::to_string(energy) +  " \n"));
     }
 
 
     // NONBONDED FORCES //
-    std::cout << "DuMM: Nof nonbonded atoms = " << getNumNonbondAtoms() << std::endl;
+    //std::cout << "DuMM: Nof nonbonded atoms = " << getNumNonbondAtoms() << std::endl;
+
     if (getNumNonbondAtoms()) {
 
         if (usingOpenMM) {
