@@ -1961,6 +1961,8 @@ public:
     // last change to Position-stage state variables.
     Real calcPotentialEnergy(const State& state) const;
 
+    SimTK::Real calcFullPotentialEnergyOpenMM(const State& s) const;
+
     // We scale short range interactions but only for bonds which cross bodies.
     void scaleBondedAtoms(const IncludedAtom&   atom,  
                           Array_<Real,DuMM::NonbondAtomIndex>&     vdwScale,  

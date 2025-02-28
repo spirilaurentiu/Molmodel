@@ -119,6 +119,7 @@ void stdcout_OpenmmTorsion(int a1num, int a2num, int a3num, int a4num, double pe
 // Main functions
 // --------------------------------------------
 
+
 /*! <!--
  * Bonded energy calculation only works for fully flexible setup !!
  * Initialize (/ allocate):

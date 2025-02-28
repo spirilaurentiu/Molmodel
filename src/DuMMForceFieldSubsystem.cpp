@@ -1798,6 +1798,12 @@ void DuMMForceFieldSubsystem::setUseOpenMMIntegration(bool use)
     updRep().wantOpenMMIntegration = use; }
 
 
+SimTK::Real DuMMForceFieldSubsystem::calcFullPotentialEnergyOpenMM(const State& s) const
+{
+    return getRep().calcFullPotentialEnergyOpenMM(s);
+}
+
+
 Real DuMMForceFieldSubsystem::OMM_calcPotentialEnergy() const
 { return getRep().openMMPlugin.calcPotentialEnergy();} 
 
@@ -1805,7 +1811,7 @@ Real DuMMForceFieldSubsystem::OMM_calcKineticEnergy() const
 { return getRep().openMMPlugin.calcKineticEnergy();} 
 
 void DuMMForceFieldSubsystem::OMM_integrateTrajectory( int steps )
-{ return updRep().openMMPlugin.integrateTrajectory(steps);}  
+{ return updRep().openMMPlugin.integrateTrajectory(steps);}
 
 SimTK::Vec3 DuMMForceFieldSubsystem::calcAtomLocationInGroundFrameThroughOMM(
     DuMM::AtomIndex daix ) const

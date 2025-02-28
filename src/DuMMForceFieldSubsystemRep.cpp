@@ -2449,6 +2449,58 @@ void DuMMForceFieldSubsystemRep::calcGBSAForces
 //..............................CALC GBSA FORCES................................
 
 
+SimTK::Real DuMMForceFieldSubsystemRep::calcFullPotentialEnergyOpenMM(const State& s) const
+{
+    SimTK::Real fullEnergy = 0;
+
+    if (!usingOpenMM) {return fullEnergy;}
+
+    const MultibodySystem&        mbs    = getMultibodySystem();
+    const SimbodyMatterSubsystem& matter = mbs.getMatterSubsystem();
+
+    Vector_<Vec3>  AllAtomStation_G = getIncludedAtomStationCache(s);
+    Vector_<Vec3>  AllAtomPos_G     = getIncludedAtomPositionCache(s);     
+    AllAtomStation_G.resize( getNumAllAtoms() );
+    AllAtomPos_G.resize( getNumAllAtoms() );
+
+    // Iterate all bodies
+    for (DuMMIncludedBodyIndex dbx(0); dbx < AllBodies.size(); ++dbx) {
+
+        const IncludedBody&      currentBody  = AllBodies[dbx];
+        const MobilizedBodyIndex mbx     = currentBody.mobodIx;
+        const MobilizedBody&     mobod   = matter.getMobilizedBody(mbx);
+
+        const Transform&    X_GB  = mobod.getBodyTransform(s);
+        const Rotation&     R_GB  = X_GB.R();
+        const Vec3&         p_GB  = X_GB.p();
+
+
+	    // First we make sure we have updated all atoms positions
+	    int iax_count = 0;
+        for (DuMM::IncludedAtomIndex iax=currentBody.beginAllAtoms; iax != currentBody.endAllAtoms; ++iax)
+        {
+            const Vec3& station_B_All = getAllAtomStation(iax);
+            // atomic coordinates with respect to Ground frame
+            const Vec3 p_BS_G = R_GB * station_B_All; 
+            AllAtomStation_G[iax] = p_BS_G;
+            AllAtomPos_G[iax]     = p_GB + p_BS_G;
+
+            iax_count++;
+        }  
+    }
+
+    TRACE_OPENMM("calcFullPotentialEnergyOpenMM AllAtomStation_G.size() = "
+        + std::to_string(AllAtomStation_G.size()) + "\n");
+
+    Vector_<SpatialVec> AllBodyForces_G(AllBodies.size(), SpatialVec(Vec3(0), Vec3(0)));
+
+    openMMPlugin.calcOpenMMEnergyAndForces(
+        AllAtomStation_G, AllAtomPos_G, true /*forces*/, true /*energy*/,
+        AllBodyForces_G, fullEnergy);
+
+
+    return fullEnergy;
+}
 
 //------------------------------------------------------------------------------
 //                          REALIZE FORCES AND ENERGY
@@ -2485,6 +2537,7 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
     const Vector_<Vec3>& inclAtomStation_G = getIncludedAtomStationsInG(s);
     const Vector_<Vec3>& inclAtomPos_G     = getIncludedAtomPositionsInG(s);
 
+    //TODO: Very ambiguous. Need to clean up.
 
     // BONDED FORCES //
 
@@ -2565,14 +2618,14 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
 
             nonbondedExecutor->execute(task, Parallel2DExecutor::HalfMatrix);
 
-            //TRACE_OPENMM (("CALC NONBONDED with DUMM Parallel2DExecutor: Energy = " + std::to_string(energy) +  " \n").c_str());
+            TRACE_OPENMM (("CALC NONBONDED with DUMM Parallel2DExecutor: Energy = " + std::to_string(energy) +  " \n").c_str());
 
         } else { // Serial calculation in this thread.
 
             if (!(coulombGlobalScaleFactor==0 && vdwGlobalScaleFactor==0)) {
                 calcNonbondedForces(inclAtomPos_G, inclAtomForce_G, energy);
 
-                //TRACE_OPENMM (("CALC NONBONDED with DUMM SingleThread: Energy = " + std::to_string(energy) +  " \n").c_str());
+                TRACE_OPENMM (("CALC NONBONDED with DUMM SingleThread: Energy = " + std::to_string(energy) +  " \n").c_str());
 
             }
         }
@@ -2581,7 +2634,7 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
         if (gbsaGlobalScaleFactor != 0) {
             calcGBSAForces(inclAtomStation_G, inclAtomPos_G, usingMultithreaded,
                            gbsaGlobalScaleFactor, inclBodyForces_G, energy);
-            //TRACE_OPENMM (("CALC GBSA with DUMM : Energy = " + std::to_string(energy) +  " \n").c_str());
+            TRACE_OPENMM (("CALC GBSA with DUMM : Energy = " + std::to_string(energy) +  " \n").c_str());
         }
     }
 

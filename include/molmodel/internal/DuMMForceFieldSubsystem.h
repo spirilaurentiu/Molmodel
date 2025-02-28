@@ -1465,6 +1465,8 @@ bool getUseOpenMMCalcOnlyNonBonded() const;
     Real OMM_calcPotentialEnergy() const;
     Real OMM_calcKineticEnergy() const;
 
+    SimTK::Real calcFullPotentialEnergyOpenMM(const State& s) const;
+
 /** Return OpennMMPluginIterface pointer**/
 OpenMMPluginInterface*  getOpenMMPluginIfc() const;
 
