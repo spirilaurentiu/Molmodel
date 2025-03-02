@@ -76,7 +76,7 @@ void stdcout_OpenmmNonbParticle(
     int nax, double sqrtCoulombScale, double charge,
     double sigma, double vdwGlobalScaleFactor, double wellDepth)
 {
-    std::cout << "OpenMM added particle "
+    std::cout << "OMMPlugin added particle "
         << nax <<" " << sqrtCoulombScale <<" "
         << charge <<" " << sigma <<" " 
         << vdwGlobalScaleFactor <<" " << wellDepth <<" "
@@ -230,7 +230,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
             ommNonbondedForce->addParticle(sqrtCoulombScale*charge, sigma, 
                                         dumm->vdwGlobalScaleFactor*wellDepth);
 
-            // stdcout_OpenmmNonbParticle(nax, sqrtCoulombScale, charge, sigma, dumm->vdwGlobalScaleFactor, wellDepth);
+            //stdcout_OpenmmNonbParticle(nax, sqrtCoulombScale, charge, sigma, dumm->vdwGlobalScaleFactor, wellDepth);
             #ifdef __DRILLING__
                 stdcout_OpenmmNonbParticle(nax, sqrtCoulombScale, charge, sigma, dumm->vdwGlobalScaleFactor, wellDepth);
             #endif
@@ -287,10 +287,6 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                     // PBC - Periodic Boundary Conditions __end__
                     // ----------------------------------------------
 
-
-        // System takes over heap ownership of the force.
-        openMMSystem->addForce(ommNonbondedForce.get());
-        ommNonbondedForce.release();
     }
 
     // GBSA
@@ -309,10 +305,8 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
         }
 
         // System takes over heap ownership of the force.
-        openMMSystem->addForce(ommGBSAOBCForce.get());
-        ommGBSAOBCForce.release();
-        
-        std::cout << "OpenMMPlugin added GBSA scaled at" << dumm->gbsaGlobalScaleFactor << std::endl;
+        ///// openMMSystem->addForce(ommGBSAOBCForce.get()); ommGBSAOBCForce.release();
+        ///// std::cout << "OpenMMPlugin added GBSA scaled at" << dumm->gbsaGlobalScaleFactor << std::endl;
     }
 
     // Add bonded forces
@@ -348,7 +342,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                             ommHarmonicBondStretch->addBond(a1num, a2num,
                                                  bondStretch.d0, // * OpenMM::NmPerAngstrom,
                                                  bondStretch.k * 2.0); // * OpenMM::KJPerKcal OR * OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm);
-                            // stdcout_OpenmmBond(a1num, a2num, bondStretch.d0, bondStretch.k * 2.0); std::cout<<std::flush;
+                            //stdcout_OpenmmBond(a1num, a2num, bondStretch.d0, bondStretch.k * 2.0); std::cout<<std::flush;
                             
                             #ifdef __DRILLING__
                                 stdcout_OpenmmBond(a1num, a2num, bondStretch.d0, bondStretch.k * 2.0);
@@ -378,7 +372,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                                                bb.theta0,
                                                bb.k * 2 ); // * OpenMM::KJPerKcal);
 
-                            // stdcout_OpenmmAngle(a1num, a2num, a3num, bb.theta0, bb.k); std::cout<<std::flush;
+                            //stdcout_OpenmmAngle(a1num, a2num, a3num, bb.theta0, bb.k * 2); std::cout<<std::flush;
 
                             #ifdef __DRILLING__
                                 PrintOpenMMAngle(a1num, a2num, a3num, bb.theta0, bb.k);
@@ -407,8 +401,13 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                                                         bt.terms[i].periodicity,
                                                         bt.terms[i].theta0,
                                                         bt.terms[i].amplitude);
+                                                        
+                                //stdcout_OpenmmTorsion(a1num, a2num, a3num, a4num,
+                                //    bt.terms[i].periodicity, bt.terms[i].theta0, bt.terms[i].amplitude);
+
                                 #ifdef __DRILLING__
-                                    stdcout_OpenmmTorsion(a1num, a2num, a3num, a4num, bt.terms[i].periodicity, bt.terms[i].theta0, bt.terms[i].amplitude);
+                                    stdcout_OpenmmTorsion(a1num, a2num, a3num, a4num,
+                                        bt.terms[i].periodicity, bt.terms[i].theta0, bt.terms[i].amplitude);
                                 #endif                                                        
                             }
                         }
@@ -441,6 +440,9 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                                                             bt.terms[i].periodicity,
                                                             bt.terms[i].theta0,
                                                             bt.terms[i].amplitude);
+
+                                    //stdcout_OpenmmTorsion(a1num, a2num, a3num, a4num, bt.terms[i].periodicity, bt.terms[i].theta0, bt.terms[i].amplitude);
+                                                            
                                     #ifdef __DRILLING__
                                         stdcout_OpenmmTorsion(a1num, a2num, a3num, a4num, bt.terms[i].periodicity, bt.terms[i].theta0, bt.terms[i].amplitude);
                                     #endif                                                             
@@ -452,14 +454,11 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
             }
         }
 
-        openMMSystem->addForce(ommHarmonicBondStretch.get());
-        ommHarmonicBondStretch.release();
+        openMMSystem->addForce(ommHarmonicBondStretch.get()); ommHarmonicBondStretch.release();
+        openMMSystem->addForce(ommHarmonicAngleForce.get()); ommHarmonicAngleForce.release();
+        openMMSystem->addForce(ommPeriodicTorsionForce.get()); ommPeriodicTorsionForce.release();
+        openMMSystem->addForce(ommNonbondedForce.get()); ommNonbondedForce.release();
 
-        openMMSystem->addForce(ommHarmonicAngleForce.get());
-        ommHarmonicAngleForce.release();
-
-        openMMSystem->addForce(ommPeriodicTorsionForce.get());
-        ommPeriodicTorsionForce.release();
     }
 
     // Get the thermostat
