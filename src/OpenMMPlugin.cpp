@@ -566,7 +566,7 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
 
     
     setOpenMMPositions(includedAtomPos_G);
-    TRACE_OPENMM("Nof atoms passed to OpenMM: " + std::to_string(includedAtomPos_G.size()) + "\n");
+    //TRACE_OPENMM("Nof atoms passed to OpenMM: " + std::to_string(includedAtomPos_G.size()) + "\n");
 
     int openMMStateDataTypes_Drill = 0;
 
