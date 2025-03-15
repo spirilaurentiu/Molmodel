@@ -206,7 +206,11 @@ void buildUpRigidBody(Compound::AtomIndex cAIx,
  * X_parentBC_childBC
  * --> */
 CompoundSystem&
-CompoundSystem::calc_XPF_XBM_new(SimTK::Transform& Fr_X_Mr, SimTK::Transform& X_parentBC_childBC, BondMobility::Mobility bondMobility, std::vector<SimTK::Transform>& PFBM)
+CompoundSystem::calc_XPF_XBM_new(
+    SimTK::Transform& Fr_X_Mr,
+    SimTK::Transform& X_parentBC_childBC,
+    BondMobility::Mobility bondMobility,
+    std::vector<SimTK::Transform>& PFBM)
 {
     // Get bond geometry
     Transform X_childBC_parentBC = ~X_parentBC_childBC;
