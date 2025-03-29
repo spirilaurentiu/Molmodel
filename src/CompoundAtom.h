@@ -627,17 +627,6 @@ private:
     Compound::BondCenterIndex childBondCenterIndex;
     Compound::BondCenterIndex parentBondCenterIndex;
 
-    // 3 possibilities of bond type
-    // 1) Ring closing bond, originally defined in this compound (as opposed to within a subcompound)
-    // bool amRingClosingBond; // the bond should know
-
-    // 2) Subcompound bond - bond created within a subcompound - so delegate to subcompound
-    //bool             amSubcompoundBond;
-    //Compound::Index     subcompoundId;
-    //Compound::BondIndex subcompoundBondIndex;
-    
-    // 3) Local bond - primary bond connecting this compound to an immediate subcompound
-    // bool             amLocalBond;
     Bond             bond;
     //Compound         localBondSubcompound;
 

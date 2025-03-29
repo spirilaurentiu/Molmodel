@@ -2678,14 +2678,6 @@ public:
         // return bondIndex;
     }
 
-    //bool hasLocalSubcompound(const Compound::Name& name) const {
-    //    return localSubcompoundIdsByName.find(name) != localSubcompoundIdsByName.end();
-    //}
-
-    //bool hasBondedSubcompound(const Compound::Name& name) const {
-    //    return bondCenterIndexesByCompoundName.find(name) != bondCenterIndexesByCompoundName.end();
-    //}
-
     CompoundRep& setBondMobility(BondMobility::Mobility mobility, const Compound::AtomName& atom1, const Compound::AtomName& atom2) 
     {
         AtomInfo& atomInfo1 = updAtomInfo(atom1);
@@ -2945,19 +2937,12 @@ private:
 
     Compound::Name name; // set on construction; means whatever you like
 
-    // The following comment may be wrong cmb Feb 2009
-    // local subcompounds placed directly - NOT those placed by bonds
-    // std::vector<CompoundInfo> allSubcompounds; // [Compound::Index]
-    // std::vector<Compound> localSubcompounds;
-    // std::map<Compound::Name, Compound::Index> subcompoundIdsByName;
-    // std::map<int, Transform> localSubcompoundTransformsById;
-
     // BondCenters
     std::vector<BondCenterInfo>              allBondCenters; // [Compound::BondCenterIndex]
     std::map<String, Compound::BondCenterIndex> BCName_To_BCIx;
     BondCenterInfo::AtomKeyMap               bondCenterIndicesByAtomKey;
 
-    // Bonds
+    // BondInfos
     // bonds do not contain subcompounds
     std::vector<BondInfo> allBonds; // [Compound::BondIndex]
     std::map< std::pair<Compound::AtomIndex, Compound::AtomIndex>, Compound::BondIndex > 
