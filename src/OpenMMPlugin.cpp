@@ -306,8 +306,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
 
         // System takes over heap ownership of the force.
         openMMSystem->addForce(ommGBSAOBCForce.get()); ommGBSAOBCForce.release();
-        std::cout << "OpenMMPlugin added GBSA scaled at " << dumm->gbsaGlobalScaleFactor << std::endl;
-
+        std::cout << "OpenMMPlugin added GBSA scaled at" << dumm->gbsaGlobalScaleFactor << std::endl;
     }
 
     // Add bonded forces
