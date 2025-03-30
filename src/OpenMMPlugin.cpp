@@ -305,8 +305,9 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
         }
 
         // System takes over heap ownership of the force.
-        ///// openMMSystem->addForce(ommGBSAOBCForce.get()); ommGBSAOBCForce.release();
-        ///// std::cout << "OpenMMPlugin added GBSA scaled at" << dumm->gbsaGlobalScaleFactor << std::endl;
+        openMMSystem->addForce(ommGBSAOBCForce.get()); ommGBSAOBCForce.release();
+        std::cout << "OpenMMPlugin added GBSA scaled at " << dumm->gbsaGlobalScaleFactor << std::endl;
+
     }
 
     // Add bonded forces
@@ -541,6 +542,9 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
     // for (const auto& atom : openMMState.getPositions()) {
     //     atomLocationsCache.push_back(SimTK::Vec3(atom[0], atom[1], atom[2]));
     // }
+
+    //std::cout << "OpenMM::System::forceName " <<  (openMMSystem.getForce(openMMSystem->getNumForces() - 1))->getName() << std::endl; // TODO delete
+
 
     return openMMContext->getPlatform().getName();
 }
