@@ -606,8 +606,14 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
             includedBodyForces_G[ibx] += SpatialVec(includedAtomStation_G[iax] % simForce, simForce);
 
             // Print
-            // const DuMM::AtomIndex& dAIx = includedAtom.atomIndex;
-            // const DuMMAtom& dummAtom = dumm->getAtom(dAIx);
+            const DuMM::AtomIndex& dAIx = includedAtom.atomIndex;
+            //const DuMMAtom& dummAtom = dumm->getAtom(dAIx);
+            // std::cout<<"OMM"
+            //     <<" nax_dAIx "<< nax <<" "<< dAIx
+            //     <<" simF "<< simForce[0]<<" "<<simForce[1]<<" "<<simForce[2]<<" "
+            //     <<" inclAtomSta_G "<< includedAtomStation_G[iax][0]<<" "<<includedAtomStation_G[iax][1]<<" "<<includedAtomStation_G[iax][2]<<" "
+            //     << std::endl<<std::flush;
+            //std::cout<<std::flush;
 
         }
 
