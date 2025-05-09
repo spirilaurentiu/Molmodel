@@ -115,6 +115,41 @@ void stdcout_OpenmmTorsion(int a1num, int a2num, int a3num, int a4num, double pe
 }
 
 
+const double TOL = 1e-6;
+
+std::tuple<OpenMM::Vec3, OpenMM::Vec3, OpenMM::Vec3> computePeriodicBoxVectors(double a_length, double b_length, double c_length,
+                                                        double alpha, double beta, double gamma) {
+    // Compute the box vectors
+    OpenMM::Vec3 a(a_length, 0.0, 0.0);
+
+    OpenMM::Vec3 b(b_length * std::cos(gamma),
+           b_length * std::sin(gamma),
+           0.0);
+
+    double cx = c_length * std::cos(beta);
+    double cy = c_length * (std::cos(alpha) - std::cos(beta) * std::cos(gamma)) / std::sin(gamma);
+    double cz = std::sqrt(c_length * c_length - cx * cx - cy * cy);
+
+    OpenMM::Vec3 c(cx, cy, cz);
+
+    // Zero out small components
+    for (int i = 0; i < 3; i++) {
+        if (std::abs(a[i]) < TOL) a[i] = 0.0;
+        if (std::abs(b[i]) < TOL) b[i] = 0.0;
+        if (std::abs(c[i]) < TOL) c[i] = 0.0;
+    }
+
+    // Reduced form (OpenMM requirement)
+    if (b[1] != 0.0)
+        c -= b * std::round(c[1] / b[1]);
+    if (a[0] != 0.0)
+        c -= a * std::round(c[0] / a[0]);
+    if (a[0] != 0.0)
+        b -= a * std::round(b[0] / a[0]);
+
+    return std::make_tuple(a, b, c);
+}
+
 // -------------------------------------------- 
 // Main functions
 // --------------------------------------------
@@ -182,6 +217,59 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
 
     // Allocate OpenMM system and add particles to it
     openMMSystem = std::make_unique<OpenMM::System>();
+
+
+
+                        // ----------------------------------------------
+                        // PBC - Periodic Boundary Conditions __begin__
+                        // ----------------------------------------------
+                        #ifdef __PBC__ // _pbc_
+
+std::cout<<"OpenMMPlugin::__PBC__ "<<" _begin_ "<<std::endl<<std::flush;
+
+                            double angle_alpha = 1.5708;
+                            double angle_beta = 1.5708;
+                            double angle_gamma = 1.5708;
+
+                            double boxLength_X = 10; // Example box length in angstroms
+                            double boxLength_Y = 10; // Example box length in angstroms
+                            double boxLength_Z = 10; // Example box length in angstroms
+
+                            auto periodicBoxVectors = computePeriodicBoxVectors(
+                                boxLength_X, boxLength_Y, boxLength_Z,
+                                angle_alpha, angle_beta, angle_gamma);
+
+                            OpenMM::Vec3 pbcVector_X = std::get<0>(periodicBoxVectors);
+                            OpenMM::Vec3 pbcVector_Y = std::get<1>(periodicBoxVectors);
+                            OpenMM::Vec3 pbcVector_Z = std::get<2>(periodicBoxVectors);
+
+                            std::cout<<"OpenMMPlugin::__PBC__ "<<" pbcVector_X " << pbcVector_X[0]<<" "<<pbcVector_X[1]<<" "<<pbcVector_X[2] <<std::endl<<std::flush;
+                            std::cout<<"OpenMMPlugin::__PBC__ "<<" pbcVector_Y " << pbcVector_Y[0]<<" "<<pbcVector_Y[1]<<" "<<pbcVector_Y[2] <<std::endl<<std::flush;
+                            std::cout<<"OpenMMPlugin::__PBC__ "<<" pbcVector_Z " << pbcVector_Z[0]<<" "<<pbcVector_Z[1]<<" "<<pbcVector_Z[2] <<std::endl<<std::flush;
+
+                            openMMSystem->setDefaultPeriodicBoxVectors(pbcVector_X, pbcVector_Y, pbcVector_Z);
+
+                            //openMMContext->setPeriodicBoxVectors(pbcVector_X, pbcVector_Y, pbcVector_Z);
+
+                            double alpha = 0.3; // Typical alpha value
+
+                            double gridSpacing = 0.1; // Typical grid spacing
+
+                            int nx = 64; // Typical grid dimensions
+                            int ny = 64;
+                            int nz = 64;
+
+                            //ommNonbondedForce->setPMEParameters(alpha, nx, ny, nz);
+
+                            std::cout << "Set OpenMM System PBC " << std::endl;
+                        
+                        # endif
+                        // ----------------------------------------------
+                        // PBC - Periodic Boundary Conditions __end__
+                        // ----------------------------------------------
+
+                        
+
     for (DuMM::NonbondAtomIndex nax(0); nax < dumm->getNumNonbondAtoms(); ++nax) {
 
         //openMMSystem->addParticle(masses[nax]);
@@ -249,43 +337,6 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
 
         // Register all the 1-2 bonds between nonbond atoms for scaling.
         ommNonbondedForce->createExceptionsFromBonds(ommBonds, dumm->coulombScale14, dumm->vdwScale14);
-
-
-                    // ----------------------------------------------
-                    // PBC - Periodic Boundary Conditions __begin__
-                    // ----------------------------------------------
-                    #ifdef __PBC__ // _pbc_
-
-                        double angle_X = 1.5708;
-                        double angle_Y = 1.5708;
-                        double angle_Z = 1.5708;
-
-                        double boxLength_X = 1.5; // Example box length in angstroms
-                        double boxLength_Y = 1.5; // Example box length in angstroms
-                        double boxLength_Z = 1.5; // Example box length in angstroms
-
-                        OpenMM::Vec3 pbcVector_X(boxLength_X, 0, 0);
-                        OpenMM::Vec3 pbcVector_Y(0, boxLength_Y, 0);
-                        OpenMM::Vec3 pbcVector_Z(0, 0, boxLength_Z);
-
-                        openMMSystem->setDefaultPeriodicBoxVectors(pbcVector_X, pbcVector_Y, pbcVector_Z);
-
-                        double alpha = 0.3; // Typical alpha value
-
-                        double gridSpacing = 0.1; // Typical grid spacing
-
-                        int nx = 64; // Typical grid dimensions
-                        int ny = 64;
-                        int nz = 64;
-
-                        ommNonbondedForce->setPMEParameters(alpha, nx, ny, nz);
-
-                        std::cout << "Set OpenMM System PBC " << std::endl;
-                    
-                    # endif
-                    // ----------------------------------------------
-                    // PBC - Periodic Boundary Conditions __end__
-                    // ----------------------------------------------
 
     }
 
@@ -520,7 +571,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
             return "";
         }
 
-        std::cout << "NOTE: Created OpenMM context with " << PLATFORM_NAME << " platform with relative speed " << speed << std::endl;
+            std::cout << "NOTE: Created OpenMM context with " << PLATFORM_NAME << " platform with relative speed " << speed << std::endl;
 
 
     } catch (const std::exception& e) {
@@ -536,12 +587,10 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
     // // Prepare positions cache
     // openMMState = openMMContext->getState(OpenMM::State::Positions);
     // const auto numAtoms = openMMState.getPositions().size();
-
     // atomLocationsCache.reserve(numAtoms);
     // for (const auto& atom : openMMState.getPositions()) {
     //     atomLocationsCache.push_back(SimTK::Vec3(atom[0], atom[1], atom[2]));
     // }
-
     //std::cout << "OpenMM::System::forceName " <<  (openMMSystem.getForce(openMMSystem->getNumForces() - 1))->getName() << std::endl; // TODO delete
 
 
@@ -593,6 +642,8 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
 
     // std::cout << "Energy: " << openMMState.getPotentialEnergy() << std::endl;
 
+    std::cout << "OMMForces"; // print print print
+
     if (wantForces) {
         const std::vector<OpenMM::Vec3>& openMMForces = openMMState.getForces();
         for (DuMM::NonbondAtomIndex nax(0); nax < dumm->getNumNonbondAtoms(); ++nax)
@@ -606,10 +657,18 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
             includedBodyForces_G[ibx] += SpatialVec(includedAtomStation_G[iax] % simForce, simForce);
 
             // Print
-            // const DuMM::AtomIndex& dAIx = includedAtom.atomIndex;
+            const DuMM::AtomIndex& dAIx = includedAtom.atomIndex;
+            SpatialVec spatialForce = SpatialVec(includedAtomStation_G[iax] % simForce, simForce);
+            Vec3 torque_G = spatialForce(0);
+            Vec3 force_G = spatialForce(1);
+            std::cout <<" "<< dAIx <<" "<< torque_G[0] <<" "<< torque_G[1] <<" "<< torque_G[2]; // print print print
+            std::cout <<" "<<               force_G[0] <<" "<<  force_G[1] <<" "<<  force_G[2]; // print print print
+            std::cout << std::endl; // print print print
+
             // const DuMMAtom& dummAtom = dumm->getAtom(dAIx);
 
         }
+
 
     }
 
