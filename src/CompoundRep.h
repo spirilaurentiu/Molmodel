@@ -538,56 +538,47 @@ public:
     			getAtomInfo(atom4).getIndex() );
     }
     
-    // determine difference, in radians, between dihedral defined by these bond centers (nominal),
-    // and dihedral defined by "canonical" bond centers (internal).
-    // nominal = internal + offset => offset = nominal - internal
+    /*! <!-- 
+    * determine difference, in radians, between dihedral defined by these bond centers (nominal),
+    * and dihedral defined by "canonical" bond centers (internal).
+    * nominal = internal + offset => offset = nominal - internal -->
+    */
     Angle calcDefaultInternalDihedralOffsetAngle(
             Compound::BondCenterIndex bondCenterIndex21, 
             Compound::BondCenterIndex bondCenterIndex34) const
     {
         Compound::AtomIndex atomIndex2 = getBondCenterInfo(bondCenterIndex21).getAtomIndex();
         Compound::AtomIndex atomIndex3 = getBondCenterInfo(bondCenterIndex34).getAtomIndex();
-
         const AtomInfo& atomInfo2 = getAtomInfo(atomIndex2);
         const AtomInfo& atomInfo3 = getAtomInfo(atomIndex3);
-
-        // Sanity check topology
         assert( atomsAreBonded(atomInfo2, atomInfo3) ); // absolutely required
-
-        // Find central bond
-        //const BondInfo& bondInfo23 = getBondInfo(atomInfo2, atomInfo3);
-        //const Bond& bond23 = getBond(bondInfo23);
 
         // Identify the bond centers associated with the atom2-atom3 bond
         const BondCenterInfo& bondCenterInfo23 = getBondCenterInfo(atomInfo2, atomInfo3);
         const BondCenterInfo& bondCenterInfo32 = getBondCenterInfo(atomInfo3, atomInfo2);
-        // sanity check those central bond centers
         assert(bondCenterInfo23.getAtomIndex() == atomIndex2);
         assert(bondCenterInfo32.getAtomIndex() == atomIndex3);
 
         // 1) Identify canonical bond centers for internal dihedral angle
         // Usually bond-center number zero(0), unless zero participates in the atom2-atom3 bond
         CompoundAtom::BondCenterIndex canonicalCenterIndex2(0); // default to zero
-        if (bondCenterInfo23.getAtomBondCenterIndex() == 0) // unless zero is used for 2->3 bond
+        if (bondCenterInfo23.getAtomBondCenterIndex() == 0){ // unless zero is used for 2->3 bond
             canonicalCenterIndex2 = CompoundAtom::BondCenterIndex(1);
+        }
 
         CompoundAtom::BondCenterIndex canonicalCenterIndex3(0); // default to zero
-        if (bondCenterInfo32.getAtomBondCenterIndex() == 0) // unless zero is used for 2->3 bond
+        if (bondCenterInfo32.getAtomBondCenterIndex() == 0){ // unless zero is used for 2->3 bond
             canonicalCenterIndex3 = CompoundAtom::BondCenterIndex(1);
-
-        // debug
-        // Compound::AtomName n2 = getAtomName(atomIndex2);
-        // Compound::AtomName n3 = getAtomName(atomIndex3);
+        }
 
         // 2) Compute offsets for actual bond centers
         // * offsetAngle1 is counter-clockwise angle from canonical bond center on atom2 to atom1, viewed
         // down the atom3-atom2 axis.
         const BondCenterInfo& bondCenterInfo21 = getBondCenterInfo(bondCenterIndex21);
         Angle offsetAngle1;
-        if (canonicalCenterIndex2 == bondCenterInfo21.getAtomBondCenterIndex())
+        if (canonicalCenterIndex2 == bondCenterInfo21.getAtomBondCenterIndex()){
             offsetAngle1 = 0.0;
-        else
-        {
+        }else{
 
             // trick the bond-vector version of calcDihedralAngle into giving the offset angle at the atom
             const CompoundAtom& atom2 = getAtom(atomIndex2);
@@ -601,18 +592,15 @@ public:
                 offsetAngle1 = 0.0;
             else
                 offsetAngle1 = SimTK::calcDihedralAngle(dirRefAtom1, dirBond, dirAtom1);
-
-            // assert(offsetAngle1 != 0);
         }
 
         // * offsetAngle4 is counter-clockwise angle from canonical bond center on atom3 to atom4, viewed
         // down the atom3-atom2 axis.
         const BondCenterInfo& bondCenterInfo34 = getBondCenterInfo(bondCenterIndex34);
         Angle offsetAngle4 = std::numeric_limits<Angle>::max(); // TODO might use std::optionatl, should look into it
-        if (canonicalCenterIndex3 == bondCenterInfo34.getAtomBondCenterIndex())
+        if (canonicalCenterIndex3 == bondCenterInfo34.getAtomBondCenterIndex()){
             offsetAngle4 = 0.0;
-        else
-        {
+        }else{
 
             // trick the bond-vector version of calcDihedralAngle into giving the offset angle at the atom
             const CompoundAtom& atom3 = getAtom(atomIndex3);
@@ -622,12 +610,12 @@ public:
 
             // Sometimes bond direction is colinear with atom direction, if chirality is hosed
             double problemCheck = std::abs(dot(dirBond, dirAtom4));
-            if (problemCheck > 0.999)
+            if (problemCheck > 0.999){
                 offsetAngle1 = 0.0;
-            else
+            }else{
                 offsetAngle4 = SimTK::calcDihedralAngle(dirRefAtom4, dirBond, dirAtom4);
+            }
 
-            // assert(offsetAngle4 != 0);
         }
 
         if(offsetAngle4 == std::numeric_limits<Angle>::max()) {
@@ -648,7 +636,6 @@ public:
             while ( SimTK::Pi < offsetAngle ) offsetAngle -= 2 * SimTK::Pi;
         }
         //std::cout << "RECONSTRUCT STEP 1.0.3 " << offsetAngle4 << std::endl << std::flush;
-
         // debugging
         //std::cout << "  total offset = " << offsetAngle * DuMM::Rad2Deg;
         //std::cout << "; offset1 = " << offsetAngle1 * DuMM::Rad2Deg;

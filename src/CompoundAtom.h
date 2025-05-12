@@ -154,15 +154,6 @@ public:
         mobility = m;
         return *this;
     }
-    //bool isRotatable() const {
-    //    return amRotatable;
-    //}
-
-    // Bond& setRotatable(bool b) {
-    //     amRotatable = b;
-    //     return *this;
-    // }
-
 
     Bond& setDefaultDihedralAngle(Angle angle) {
         defaultDihedral = angle;
@@ -549,7 +540,6 @@ public:
 
         // 3) rotate 180 degrees about y-axis to face the parent bond center
         Transform aboutFace( Rotation(180*Deg2Rad, YAxis) );
-        //Transform aboutFace( Rotation(180*Deg2Rad, ZAxis) ); // NEWMOB
 
         Transform BC1_X_BC2 = dihedral * bondLength * aboutFace;
         //std::cout<<__FILE__<<":"<<__LINE__<<std::endl;
