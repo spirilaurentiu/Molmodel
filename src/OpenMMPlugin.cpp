@@ -594,6 +594,7 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
     // std::cout << "Energy: " << openMMState.getPotentialEnergy() << std::endl;
 
     if (wantForces) {
+
         const std::vector<OpenMM::Vec3>& openMMForces = openMMState.getForces();
         for (DuMM::NonbondAtomIndex nax(0); nax < dumm->getNumNonbondAtoms(); ++nax)
         {
@@ -607,13 +608,20 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
 
             // Print
             const DuMM::AtomIndex& dAIx = includedAtom.atomIndex;
+            std::cout<<"OMM:"; // print print print
+
+            SpatialVec spatialForce = SpatialVec(includedAtomStation_G[iax] % simForce, simForce);
+            Vec3 torque_G = spatialForce(0);
+            Vec3 force_G = spatialForce(1);
+
+            std::cout <<" "<< dAIx <<" "<< torque_G[0] <<" "<< torque_G[1] <<" "<< torque_G[2]; // print print print
+            std::cout <<" "<<               force_G[0] <<" "<<  force_G[1] <<" "<<  force_G[2]; // print print print
+            std::cout << std::endl; // print print print
+
             //const DuMMAtom& dummAtom = dumm->getAtom(dAIx);
-            // std::cout<<"OMM"
-            //     <<" nax_dAIx "<< nax <<" "<< dAIx
-            //     <<" simF "<< simForce[0]<<" "<<simForce[1]<<" "<<simForce[2]<<" "
+            // std::cout<<
             //     <<" inclAtomSta_G "<< includedAtomStation_G[iax][0]<<" "<<includedAtomStation_G[iax][1]<<" "<<includedAtomStation_G[iax][2]<<" "
             //     << std::endl<<std::flush;
-            //std::cout<<std::flush;
 
         }
 

@@ -364,19 +364,12 @@ CompoundRep& CompoundRep::bondAtom(
     const Compound::BondCenterPathName& parentBondName, 
     mdunits::Length                      distance,
     Angle                         dihedral,
-    BondMobility::Mobility        mobility
-    ) 
+    BondMobility::Mobility        mobility) 
 {
-    // Only top level compounds can construct new topology
-    // assert(! hasParentCompound() );
-    // assert(! atomCompound.getImpl().hasParentCompound() );
-
     // Bond atom as any other compound
-    const Compound::AtomName atomName =
-        atomCompound.getAtomName(Compound::AtomIndex(0));
+    const Compound::AtomName atomName = atomCompound.getAtomName(Compound::AtomIndex(0));
 
-    bondCompound(atomName, atomCompound, parentBondName,
-        distance, dihedral, mobility);
+    bondCompound(atomName, atomCompound, parentBondName, distance, dihedral, mobility);
 
     // Add atom name and bond center names to this compound
     inheritAtomNames(atomName);
@@ -384,69 +377,48 @@ CompoundRep& CompoundRep::bondAtom(
     return *this;
 }
 
-// Compute atom location in local compound frame
-/*! <!-- __fill__ -->
-*/
+/*! <!-- Compute atom frame in local compound frame --> */
 Transform CompoundRep::calcDefaultAtomFrameInCompoundFrame(const Compound::AtomName& name) const {
     assert(hasAtom(name));
-    //cout<<__FILE__<<":"<<__LINE__<<" name "<<name<<endl;
     const Compound::AtomIndex atomId = getAtomInfo(name).getIndex();
-    //cout<<__FILE__<<":"<<__LINE__<<" atomId "<<atomId<<endl;
     return calcDefaultAtomFrameInCompoundFrame(atomId);
 }
 
-// Compute atom location in local compound frame
-/*! <!-- __fill__ -->
-*/
+/*! <!-- Compute atom location in local compound frame --> */
 Vec3 CompoundRep::calcDefaultAtomLocationInCompoundFrame(const Compound::AtomName& name) const 
 {
     return calcDefaultAtomFrameInCompoundFrame(name).p();
 }
 
-// Compute atom location in local compound frame
-/*! <!-- __fill__ -->
-*/
+/*! <!-- Compute default atom frame in Top frame --> */
 Transform CompoundRep::calcDefaultAtomFrameInGroundFrame(const Compound::AtomName& name) const 
 {
-    // TODO - this only works for top level compounds
-    // assert(! hasParentCompound() );
-
     return getTopLevelTransform() * calcDefaultAtomFrameInCompoundFrame(name);
 }
 
-// Compute atom location in local compound frame
-/*! <!-- __fill__ -->
-*/
+/*! <!-- Compute default atom location in Top frame --> */
 Vec3 CompoundRep::calcDefaultAtomLocationInGroundFrame(const Compound::AtomName& name) const 
 {
     return calcDefaultAtomFrameInGroundFrame(name).p();
 }
 
-/*!
- * <!-- Absorbs the compound and deals with the bond -->
-*/
-// Add a subcompound attached by a bond to an existing atom. Ex:
-// bondCompound("H1", MonovalentAtom(Element::Hydrogen()), "bond", "C/bond2",
-// C_Hdistance );
+/*! <!-- Absorbs the compound and deals with the bond --> */
 CompoundRep& CompoundRep::bondCompound(
     const Compound::Name&           name, 
     const Compound&                 subcompoundArg, 
     const Compound::BondCenterPathName&   parentBondName, 
     mdunits::Length                        distance,
     Angle                           dihedral,
-    BondMobility::Mobility          mobility
-    ) 
+    BondMobility::Mobility          mobility ) 
 {
     // Assert dihedral is not nan
     assert(! isNaN(dihedral) );
 
     // Absorb the new compound
-    const Compound::BondCenterIndex inboardBondCenterIndex = 
-        absorbSubcompound(name, subcompoundArg, false);
+    const Compound::BondCenterIndex inboardBondCenterIndex = absorbSubcompound(name, subcompoundArg, false);
 
     // Get atoms to bond
-    const Compound::BondCenterIndex outboardBondCenterIndex =
-        getBondCenterInfo(parentBondName).getIndex();
+    const Compound::BondCenterIndex outboardBondCenterIndex = getBondCenterInfo(parentBondName).getIndex();
 
     // Don't bond this compound's official inboard bond center as outboard
     if (hasInboardBondCenter()) {
@@ -464,18 +436,9 @@ CompoundRep& CompoundRep::bondCompound(
 
     // Update bond info using subcompound
     Compound::BondIndex bondIndex(allBonds.size());
-    allBonds.push_back(BondInfo(bondIndex,
-        outboardBondCenterIndex,
-        inboardBondCenterIndex,
-        Bond(distance, dihedral, false)));
+    allBonds.push_back(BondInfo(bondIndex, outboardBondCenterIndex, inboardBondCenterIndex, Bond(distance, dihedral, false)));
     
     indexNewBond(updBondInfo(bondIndex));
-
-    //const Compound::BondIndex bondIndex = 
-    //      bondBondCenters(outboardBondCenterIndex, inboardBondCenterIndex,
-    //      distance, dihedral);
-    //
-    //const BondInfo& bondInfo = getBondInfo(bondIndex);
 
     // Set bond mobility
     Bond& bond = updBond(updBondInfo(bondIndex));
@@ -484,8 +447,9 @@ CompoundRep& CompoundRep::bondCompound(
     return *this;
 }
 
-
-// Shorter version uses default bond length and dihedral angle
+/*!
+ * <!-- Shorter version uses default bond length and dihedral angle -->
+*/
 CompoundRep& CompoundRep::bondCompound(
     const Compound::Name&         n, 
     const Compound&               c, 
@@ -1300,8 +1264,7 @@ Compound::BondCenterIndex CompoundRep::absorbSubcompound(
     const CompoundRep& subcompoundRep  = subcompound.getImpl();
 
     // Create a parent-child map with (key = aIx) and (value = parentAIx)
-    std::map<Compound::AtomIndex, Compound::AtomIndex>
-        atomId_To_parentAtomId;
+    std::map<Compound::AtomIndex, Compound::AtomIndex> atomId_To_parentAtomId;
 
     // Add all Subcompound atomInfos to the this Comopound list of atomInfos
     // and populate the parent-child map
@@ -1325,18 +1288,14 @@ Compound::BondCenterIndex CompoundRep::absorbSubcompound(
     // Generate names = "SubcompoundName + / + atomName" and add them 
     // to AtomInfos of the Subcompound
     // Add all Subcompound atomNames to the Subcompound atomIdsByName
-    std::map<Compound::AtomName,
-             Compound::AtomIndex>::const_iterator atomName_To_atomId_It;
+    std::map<Compound::AtomName, Compound::AtomIndex>::const_iterator atomName_To_atomId_It;
 
     for ( atomName_To_atomId_It  = subcompoundRep.atomName_To_atomId.begin();
           atomName_To_atomId_It != subcompoundRep.atomName_To_atomId.end();
         ++atomName_To_atomId_It)
     {
-        Compound::AtomIndex parentIx = 
-            atomId_To_parentAtomId[atomName_To_atomId_It->second];
-
+        Compound::AtomIndex parentIx = atomId_To_parentAtomId[atomName_To_atomId_It->second];
         Compound::AtomName parentName = scName + "/" + atomName_To_atomId_It->first;
-
         AtomInfo& parentAtomInfo = updAtomInfo(parentIx);
         parentAtomInfo.addName(parentName);
         atomName_To_atomId[parentName] = parentIx;
@@ -1345,8 +1304,7 @@ Compound::BondCenterIndex CompoundRep::absorbSubcompound(
     // Set "main" atom name last, to make it stick
     for ( Compound::AtomIndex scAIx(0); scAIx < subcompound.getNumAtoms(); ++scAIx)
     {
-        const AtomInfo& childAtomInfo =
-            subcompoundRep.getAtomInfo(scAIx);
+        const AtomInfo& childAtomInfo = subcompoundRep.getAtomInfo(scAIx);
         Compound::AtomIndex parentIx = atomId_To_parentAtomId[scAIx];
 
         Compound::AtomName parentName = scName + "/" + childAtomInfo.getName();
@@ -1358,26 +1316,22 @@ Compound::BondCenterIndex CompoundRep::absorbSubcompound(
 
     // Create a map of parentBC[childBC] scBCIx_To_parentBCIx
     // copy even bonded centers, for use in dihedral nomenclature
-    std::map<Compound::BondCenterIndex, Compound::BondCenterIndex>
-        scBCIx_To_parentBCIx;
+    std::map<Compound::BondCenterIndex, Compound::BondCenterIndex> scBCIx_To_parentBCIx;
     for (Compound::BondCenterIndex BCIx(0); BCIx < subcompound.getNumBondCenters(); ++BCIx) 
     {
-        //const BondCenter&   scBc     = subcompoundRep.getBondCenter(bond);
-        const BondCenterInfo&     scBcInfo = subcompoundRep.getBondCenterInfo(BCIx);
+        const BondCenterInfo& scBcInfo = subcompoundRep.getBondCenterInfo(BCIx);
 
         const AtomInfo& atomInfo = getAtomInfo(atomId_To_parentAtomId[scBcInfo.getAtomIndex()]);
 
         addBondCenterInfo( atomInfo.getIndex(), scBcInfo.getAtomBondCenterIndex() );
 
-        const BondCenterInfo& parentBondCenterInfo =
-            getBondCenterInfo( atomInfo.getIndex(), scBcInfo.getAtomBondCenterIndex() );
+        const BondCenterInfo& parentBondCenterInfo = getBondCenterInfo( atomInfo.getIndex(), scBcInfo.getAtomBondCenterIndex() );
 
         scBCIx_To_parentBCIx[BCIx] = parentBondCenterInfo.getIndex();
     }
 
     // Insert Bond center names into BCName_To_BCIx map
-    std::map<String, Compound::BondCenterIndex>::const_iterator
-        BCName_To_BCIx_It;
+    std::map<String, Compound::BondCenterIndex>::const_iterator BCName_To_BCIx_It;
     for (   BCName_To_BCIx_It  = subcompoundRep.BCName_To_BCIx.begin();
             BCName_To_BCIx_It != subcompoundRep.BCName_To_BCIx.end();
           ++BCName_To_BCIx_It)
@@ -1430,12 +1384,10 @@ Compound::BondCenterIndex CompoundRep::absorbSubcompound(
     }
 
     // copy dihedral angles
-    std::map<String, DihedralAngle>::const_iterator
-        AtomName_To_dihedralAngles_It;
+    std::map<String, DihedralAngle>::const_iterator AtomName_To_dihedralAngles_It;
     for (   AtomName_To_dihedralAngles_It = subcompoundRep.AtomName_To_dihedralAngles.begin();
             AtomName_To_dihedralAngles_It != subcompoundRep.AtomName_To_dihedralAngles.end();
-          ++AtomName_To_dihedralAngles_It)
-    {
+          ++AtomName_To_dihedralAngles_It) {
         const DihedralAngle& scAngle = AtomName_To_dihedralAngles_It->second;
         Compound::BondCenterIndex bc1 = scBCIx_To_parentBCIx[scAngle.getBondCenter1Id()];
         Compound::BondCenterIndex bc2 = scBCIx_To_parentBCIx[scAngle.getBondCenter2Id()];
