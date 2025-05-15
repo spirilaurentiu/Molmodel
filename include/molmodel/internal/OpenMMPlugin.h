@@ -12,13 +12,13 @@
 #include <exception>
 #include <cassert>
 
-// #ifndef __DRILLING__
-// #define __DRILLING__
-// #endif
-
-#ifndef __PBC__ // _pbc_
-#define __PBC__ 0
+#ifndef __DRILLING__
+#define __DRILLING__
 #endif
+
+// #ifndef __PBC__ // _pbc_
+// #define __PBC__ 0
+// #endif
 
 
 // Minimum number of bits needed to represent a number in binary

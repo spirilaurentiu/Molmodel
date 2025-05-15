@@ -225,7 +225,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                         // ----------------------------------------------
                         #ifdef __PBC__ // _pbc_
 
-std::cout<<"OpenMMPlugin::__PBC__ "<<" _begin_ "<<std::endl<<std::flush;
+                            std::cout<<"OpenMMPlugin::__PBC__ "<<" _begin_ "<<std::endl<<std::flush;
 
                             double angle_alpha = 1.5708;
                             double angle_beta = 1.5708;
@@ -426,7 +426,7 @@ std::cout<<"OpenMMPlugin::__PBC__ "<<" _begin_ "<<std::endl<<std::flush;
                             //stdcout_OpenmmAngle(a1num, a2num, a3num, bb.theta0, bb.k * 2); std::cout<<std::flush;
 
                             #ifdef __DRILLING__
-                                PrintOpenMMAngle(a1num, a2num, a3num, bb.theta0, bb.k);
+                                stdcout_OpenmmAngle(a1num, a2num, a3num, bb.theta0, bb.k);
                             #endif
                         }
                     }
@@ -622,17 +622,17 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
 
     int openMMStateDataTypes_Drill = 0;
 
-    // #ifdef __DRILLING__
-    //     int openMMStateDataTypes = openMMState.getDataTypes();
-    //     //std::string openMMStateDataTypes_Str = toBinary(openMMStateDataTypes);
-    //     //std::cout << "[OPENMM_DATA_TYPES]: in binary" <<" " << openMMStateDataTypes <<" " << openMMStateDataTypes_Str << std::endl;
-    //     openMMStateDataTypes_Drill = ((wantEnergy?OpenMM::State::Forces_drl_bon:0)
-    //                                 | (wantEnergy?OpenMM::State::Forces_drl_ang:0)
-    //                                 | (wantEnergy?OpenMM::State::Forces_drl_tor:0)
-    //                                 | (wantEnergy?OpenMM::State::Forces_drl_n14:0)
-    //                                 | (wantEnergy?OpenMM::State::Forces_drl_vdw:0)
-    //                                 | (wantEnergy?OpenMM::State::Forces_drl_cou:0));
-    // #endif
+    #ifdef __DRILLING__
+        int openMMStateDataTypes = openMMState.getDataTypes();
+        //std::string openMMStateDataTypes_Str = toBinary(openMMStateDataTypes);
+        //std::cout << "[OPENMM_DATA_TYPES]: in binary" <<" " << openMMStateDataTypes <<" " << openMMStateDataTypes_Str << std::endl;
+        openMMStateDataTypes_Drill = ((wantEnergy?OpenMM::State::Forces_drl_bon:0)
+                                    | (wantEnergy?OpenMM::State::Forces_drl_ang:0)
+                                    | (wantEnergy?OpenMM::State::Forces_drl_tor:0)
+                                    | (wantEnergy?OpenMM::State::Forces_drl_n14:0)
+                                    | (wantEnergy?OpenMM::State::Forces_drl_vdw:0)
+                                    | (wantEnergy?OpenMM::State::Forces_drl_cou:0));
+    #endif
 
     // Ask for energy, forces, or both.
     openMMState = openMMContext->getState(
@@ -642,7 +642,7 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
 
     // std::cout << "Energy: " << openMMState.getPotentialEnergy() << std::endl;
 
-    std::cout << "OMMForces"; // print print print
+    //std::cout << "OMMForces"; // print print print
 
     if (wantForces) {
 
@@ -658,17 +658,14 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
             includedBodyForces_G[ibx] += SpatialVec(includedAtomStation_G[iax] % simForce, simForce);
 
             // Print
-            const DuMM::AtomIndex& dAIx = includedAtom.atomIndex;
-            std::cout<<"OMM:"; // print print print
-
-            SpatialVec spatialForce = SpatialVec(includedAtomStation_G[iax] % simForce, simForce);
-            Vec3 torque_G = spatialForce(0);
-            Vec3 force_G = spatialForce(1);
-
-            std::cout <<" "<< dAIx <<" "<< torque_G[0] <<" "<< torque_G[1] <<" "<< torque_G[2]; // print print print
-            std::cout <<" "<<               force_G[0] <<" "<<  force_G[1] <<" "<<  force_G[2]; // print print print
-            std::cout << std::endl; // print print print
-
+            // const DuMM::AtomIndex& dAIx = includedAtom.atomIndex;
+            // std::cout<<"OMM:"; // print print print
+            // SpatialVec spatialForce = SpatialVec(includedAtomStation_G[iax] % simForce, simForce);
+            // Vec3 torque_G = spatialForce(0);
+            // Vec3 force_G = spatialForce(1);
+            // std::cout <<" "<< dAIx <<" "<< torque_G[0] <<" "<< torque_G[1] <<" "<< torque_G[2]; // print print print
+            // std::cout <<" "<<               force_G[0] <<" "<<  force_G[1] <<" "<<  force_G[2]; // print print print
+            // std::cout << std::endl << std::flush; // print print print
 
         }
 
