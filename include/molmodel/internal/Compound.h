@@ -76,7 +76,8 @@ namespace BondMobility {
         Spherical = 12, ///< BAT coordinates
         AnglePin = 13, ///< Rotation perpendicular to bond and bond-1 plane
         BendStretch = 14, ///< Translation along bond and rotation perpendicular to bond
-        Slider = 15 ///< Translation along bond
+        Slider = 15, ///< Translation along bond
+        OrthoSpherical = 16 ///< BAT coordinates
     };
     static Mobility Default = Torsion;
 

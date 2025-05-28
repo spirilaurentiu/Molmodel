@@ -162,6 +162,7 @@ void buildUpRigidBody(Compound::AtomIndex cAIx,
         || (bond.getMobility() == BondMobility::Slider)
         || (bond.getMobility() == BondMobility::Cylinder)
         || (bond.getMobility() == BondMobility::Spherical)
+        || (bond.getMobility() == BondMobility::OrthoSpherical)
         || (bond.getMobility() == BondMobility::BallF)
         || (bond.getMobility() == BondMobility::BallM))
         {
@@ -299,7 +300,15 @@ CompoundSystem::calc_XPF_XBM_new(
     //      with the Z axis switched to Y
     else if(bondMobility == BondMobility::Spherical){
         PFBM[1] = X_childBC_parentBC 
-            * XAxis_To_ZAxis * XAxis_To_YAxis;
+            //* XAxis_To_ZAxis * XAxis_To_YAxis // NEWMOB NEWMOB
+            ;
+        PFBM[0] = Fr_X_Mr * PFBM[1];
+    }
+    
+    else if(bondMobility == BondMobility::OrthoSpherical){
+        PFBM[1] = X_childBC_parentBC 
+            //* XAxis_To_ZAxis * XAxis_To_YAxis // NEWMOB NEWMOB
+            ;
         PFBM[0] = Fr_X_Mr * PFBM[1];
     }
 
@@ -440,6 +449,12 @@ CompoundSystem::calc_XPF_XBM(
     //    - X_MB is the inboard bond parent BC to child BC transform
     //      with the Z axis switched to Y
     else if(bondMobility == BondMobility::Spherical){
+        PFBM[1] = X_childBC_parentBC 
+            * XAxis_To_ZAxis * XAxis_To_YAxis;
+        PFBM[0] = oldX_PB * PFBM[1];
+    }
+
+    else if(bondMobility == BondMobility::OrthoSpherical){
         PFBM[1] = X_childBC_parentBC 
             * XAxis_To_ZAxis * XAxis_To_YAxis;
         PFBM[0] = oldX_PB * PFBM[1];
@@ -1229,6 +1244,17 @@ void CompoundSystem::modelOneCompound(
 
                     MobilizedBody::SphericalCoords sphereBody(
                         parentMobod, PFBM[0], massProps, PFBM[1]);
+                    sphereBody.setRadialAxis(ZAxis); // NEWMOB NEWMOB
+
+                    unitInboardBond.setSphericalBody(sphereBody, 0, 0, 0); // BAT coordinates
+                    unit.mbx = sphereBody.getMobilizedBodyIndex();
+                    // std::cout << " Sphe";
+
+                }else if(unitInboardBond.getMobility() == BondMobility::OrthoSpherical) {
+
+                    MobilizedBody::SphericalCoords sphereBody(
+                        parentMobod, PFBM[0], massProps, PFBM[1]);
+                    sphereBody.setRadialAxis(XAxis); // NEWMOB NEWMOB
 
                     unitInboardBond.setSphericalBody(sphereBody, 0, 0, 0); // BAT coordinates
                     unit.mbx = sphereBody.getMobilizedBodyIndex();

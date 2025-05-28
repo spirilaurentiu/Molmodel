@@ -190,6 +190,12 @@ public:
             //sphere.setNegateRadial(); // common convention for BAT : translation along -Z
             sphere.setOneQ(state, 0, angleInRadians); // azimuth angle
 
+        }else if(mobility == BondMobility::OrthoSpherical) { // NEWMOB NEWMOB
+            MobilizedBody::SphericalCoords &sphere = (MobilizedBody::SphericalCoords &) matter.updMobilizedBody(pinJointId);
+            sphere.setRadialAxis(CoordinateAxis::XCoordinateAxis()); // set translation along X
+            sphere.setNegateRadial(); // common convention for BAT : translation along -Z
+            sphere.setOneQ(state, 0, angleInRadians); // azimuth angle            
+
         }else if((mobility == BondMobility::BallF) || (mobility == BondMobility::BallM)){ // Gmol NEWMOB
 
             MobilizedBody::Ball &ball = (MobilizedBody::Ball &) matter.updMobilizedBody(pinJointId);
@@ -282,6 +288,15 @@ public:
     }
 
     Bond& setSphericalBody(MobilizedBody::SphericalCoords& sphere, Real argDefaultLength, Angle argDefaultAngle, Angle argDefaultDihedral)
+    {
+        pinJointId = sphere.getMobilizedBodyIndex();
+
+        sphere.setDefaultQ(Vec3(argDefaultDihedral, argDefaultAngle, argDefaultLength));
+
+        return *this;
+    }
+
+    Bond& setOrthoSphericalBody(MobilizedBody::SphericalCoords& sphere, Real argDefaultLength, Angle argDefaultAngle, Angle argDefaultDihedral)
     {
         pinJointId = sphere.getMobilizedBodyIndex();
 
@@ -458,6 +473,11 @@ public:
 
             const MobilizedBody::SphericalCoords& sphere = (const MobilizedBody::SphericalCoords&) matter.getMobilizedBody(pinJointId);
             return (sphere.getQ(state))[0];
+
+        }else if(mobility == BondMobility::OrthoSpherical){
+
+            const MobilizedBody::SphericalCoords& sphere = (const MobilizedBody::SphericalCoords&) matter.getMobilizedBody(pinJointId);
+            return (sphere.getQ(state))[0];            
 
         }else if(mobility == BondMobility::UniversalM){
 
