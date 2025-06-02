@@ -193,7 +193,7 @@ public:
         }else if(mobility == BondMobility::OrthoSpherical) { // NEWMOB NEWMOB
             MobilizedBody::SphericalCoords &sphere = (MobilizedBody::SphericalCoords &) matter.updMobilizedBody(pinJointId);
             sphere.setRadialAxis(CoordinateAxis::XCoordinateAxis()); // set translation along X
-            sphere.setNegateRadial(); // common convention for BAT : translation along -Z
+            sphere.setNegateRadial(true); // common convention for BAT : translation along -Z
             sphere.setOneQ(state, 0, angleInRadians); // azimuth angle            
 
         }else if((mobility == BondMobility::BallF) || (mobility == BondMobility::BallM)){ // Gmol NEWMOB
@@ -1218,8 +1218,6 @@ public:
 
         // This creates a Rotation whose X axis is in "direction", and whose Y axis
         // is (at least roughly) in direction ydir.
-
-
         //std::cout << "direction: " << direction[0] <<" " << direction[1] <<" " << direction[2] <<std::endl; // YDIRBUG
         //std::cout << "yAxisIndex: " << yAxisIndex  <<std::endl;
         //std::cout << "ydir: " << ydir[0] <<" " << ydir[1] <<" " << ydir[2] <<std::endl;

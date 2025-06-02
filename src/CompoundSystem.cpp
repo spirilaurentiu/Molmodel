@@ -1100,6 +1100,14 @@ void CompoundSystem::modelOneCompound(
             //     );
             calc_XPF_XBM_new(Fr_X_Mr, X_parentBC_childBC, unitInboardBond.getMobility(), PFBM);
 
+            if(unitInboardBond.getMobility() == BondMobility::OrthoSpherical){
+                Transform X_parentAtom_BC = compound.calcDefaultBondCenterFrameInParentAtomFrame(parentAtomId, originAtomId);
+                Transform X_childAtom_BC = compound.calcDefaultBondCenterFrameInChildAtomFrame(parentAtomId, originAtomId);
+                Transform X_BC_childAtom = ~X_childAtom_BC;
+                PFBM[0] = X_parentAtom_BC; // BAT from Compound
+                PFBM[1] = X_parentBC_childBC * X_BC_childAtom; // BAT from Compound
+            }
+
 
             if(false){ // STUDY
 

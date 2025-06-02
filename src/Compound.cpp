@@ -2383,6 +2383,46 @@ Transform Compound::getDefaultBondCenterFrameInOtherBondCenterFrame(
     return bond.getDefaultBondCenterFrameInOtherBondCenterFrame();
 }
 
+/* <!-- Compute the default bond center frame in the atom frame 
+--> */
+Transform Compound::calcDefaultBondCenterFrameInParentAtomFrame(Compound::AtomIndex atom1parent, Compound::AtomIndex atom2child){
+    CompoundRep& rep = updImpl();
+    const SimTK::CompoundAtom & atom = rep.getAtom(atom1parent);
+    
+    AtomInfo& atomInfo1 = rep.updAtomInfo(atom1parent);
+    AtomInfo& atomInfo2 = rep.updAtomInfo(atom2child);
+    BondInfo& bondInfo = rep.updBondInfo(atomInfo1, atomInfo2);
+    //Bond& bond = rep.updBond(bondInfo);
+
+    const BondCenterInfo& parentBondCenterInfo = rep.getBondCenterInfo(bondInfo.getParentBondCenterIndex());
+    //const BondCenterInfo& childBondCenterInfo = rep.getBondCenterInfo(bondInfo.getChildBondCenterIndex());
+
+    CompoundAtom::BondCenterIndex parentBCIx_inAtom = parentBondCenterInfo.getAtomBondCenterIndex();    // get BCIx in atom !
+
+    Transform parentBCFrame_inAtom = atom.calcDefaultBondCenterFrameInAtomFrame(parentBCIx_inAtom);    // get BCFrame
+
+    return parentBCFrame_inAtom;
+}
+
+Transform Compound::calcDefaultBondCenterFrameInChildAtomFrame(Compound::AtomIndex atom1parent, Compound::AtomIndex atom2child){
+    CompoundRep& rep = updImpl();
+    const SimTK::CompoundAtom & atom = rep.getAtom(atom2child);
+    
+    AtomInfo& atomInfo1 = rep.updAtomInfo(atom1parent);
+    AtomInfo& atomInfo2 = rep.updAtomInfo(atom2child);
+    BondInfo& bondInfo = rep.updBondInfo(atomInfo1, atomInfo2);
+    //Bond& bond = rep.updBond(bondInfo);
+
+    //const BondCenterInfo& parentBondCenterInfo = rep.getBondCenterInfo(bondInfo.getParentBondCenterIndex());
+    const BondCenterInfo& childBondCenterInfo = rep.getBondCenterInfo(bondInfo.getChildBondCenterIndex());
+
+    CompoundAtom::BondCenterIndex childBCIx_inAtom = childBondCenterInfo.getAtomBondCenterIndex();    // get BCIx in atom !
+
+    Transform childBCFrame_inAtom = atom.calcDefaultBondCenterFrameInAtomFrame(childBCIx_inAtom);    // get BCFrame
+
+    return childBCFrame_inAtom;
+}
+
 Compound& Compound::convertInboardBondCenterToOutboard() {
     updImpl().convertInboardBondCenterToOutboard();
     return *this;

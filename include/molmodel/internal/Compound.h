@@ -705,7 +705,17 @@ public:
      */
     Transform getDefaultBondCenterFrameInOtherBondCenterFrame(Compound::AtomIndex atom1, Compound::AtomIndex atom2);
 
-
+    /**
+     * \brief Compute the default bond center frame in the atom frame
+     * This is the frame of the bond center that is located at the
+     * midpoint between two atoms, in the frame of the first atom.
+     *
+     * \param atom1 ///< first atom index
+     * \param atom2 ///< second atom index
+     * \return Transform representing the bond center frame in the first atom's frame
+     */
+    Transform calcDefaultBondCenterFrameInParentAtomFrame(Compound::AtomIndex parentAtom1, Compound::AtomIndex childAtom2);
+    Transform calcDefaultBondCenterFrameInChildAtomFrame(Compound::AtomIndex parentAtom1, Compound::AtomIndex childAtom2);
 
     /**
      * \brief Create a mapping between this Compound and atom locations in a PdbStructure
