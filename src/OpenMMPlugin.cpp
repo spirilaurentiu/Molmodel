@@ -646,6 +646,13 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
 
     if (wantForces) {
 
+        // #pragma region TO_BE_DELETED_DRILL_FIELD
+        // const std::map<std::string, double> ommStateParams = openMMState.getParameters();
+        // for(const auto& param : ommStateParams) {
+        //     std::cout << "OMM State Param: " << param.first << " = " << param.second << std::endl;
+        // }
+        // #pragma endregion TO_BE_DELETED_DRILL_FIELD
+
         const std::vector<OpenMM::Vec3>& openMMForces = openMMState.getForces();
         for (DuMM::NonbondAtomIndex nax(0); nax < dumm->getNumNonbondAtoms(); ++nax)
         {
@@ -657,14 +664,15 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
             const Vec3 simForce(ommForce[0], ommForce[1], ommForce[2]);
             includedBodyForces_G[ibx] += SpatialVec(includedAtomStation_G[iax] % simForce, simForce);
 
-            // Print
+            // // Print
             // const DuMM::AtomIndex& dAIx = includedAtom.atomIndex;
             // std::cout<<"OMM:"; // print print print
             // SpatialVec spatialForce = SpatialVec(includedAtomStation_G[iax] % simForce, simForce);
             // Vec3 torque_G = spatialForce(0);
             // Vec3 force_G = spatialForce(1);
-            // std::cout <<" "<< dAIx <<" "<< torque_G[0] <<" "<< torque_G[1] <<" "<< torque_G[2]; // print print print
-            // std::cout <<" "<<               force_G[0] <<" "<<  force_G[1] <<" "<<  force_G[2]; // print print print
+            // std::cout <<" "<< ibx <<" "<< dAIx
+            //           <<" "<< torque_G[0] <<" "<< torque_G[1] <<" "<< torque_G[2]; // print print print
+            // std::cout <<" "<< force_G[0] <<" "<<  force_G[1] <<" "<<  force_G[2]; // print print print
             // std::cout << std::endl << std::flush; // print print print
 
         }
