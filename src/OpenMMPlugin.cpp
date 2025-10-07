@@ -622,7 +622,7 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
 
     int openMMStateDataTypes_Drill = 0;
 
-    #ifdef __DRILLING__
+    #if __DRILLING__ == 1
         int openMMStateDataTypes = openMMState.getDataTypes();
         //std::string openMMStateDataTypes_Str = toBinary(openMMStateDataTypes);
         //std::cout << "[OPENMM_DATA_TYPES]: in binary" <<" " << openMMStateDataTypes <<" " << openMMStateDataTypes_Str << std::endl;

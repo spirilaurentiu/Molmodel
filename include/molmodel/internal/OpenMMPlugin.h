@@ -159,7 +159,7 @@ public:
     /** @name Drilling drl.**/
     /**@{**/
 
-    #ifdef __DRILLING__
+    #if __DRILLING__ == 1
     const std::vector<std::vector<double>>& getEnergies_drl_bon(){return openMMState.getEnergies_drl_bon();}
     const std::vector<std::vector<double>>& getEnergies_drl_ang(){return openMMState.getEnergies_drl_ang();}
     const std::vector<std::vector<double>>& getEnergies_drl_tor(){return openMMState.getEnergies_drl_tor();}
