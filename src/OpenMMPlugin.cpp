@@ -632,13 +632,17 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
                                     | (wantEnergy?OpenMM::State::Forces_drl_n14:0)
                                     | (wantEnergy?OpenMM::State::Forces_drl_vdw:0)
                                     | (wantEnergy?OpenMM::State::Forces_drl_cou:0));
-    #endif
-
     // Ask for energy, forces, or both.
     openMMState = openMMContext->getState(
         (wantForces?OpenMM::State::Forces:0) | (wantEnergy?OpenMM::State::Energy:0)
         | openMMStateDataTypes_Drill
     );
+    #else
+        // Ask for energy, forces, or both.
+        openMMState = openMMContext->getState(
+            (wantForces?OpenMM::State::Forces:0) | (wantEnergy?OpenMM::State::Energy:0)
+        );
+    #endif
 
     // std::cout << "Energy: " << openMMState.getPotentialEnergy() << std::endl;
 
