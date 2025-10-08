@@ -172,16 +172,48 @@ public:
     const std::vector<OpenMM::Vec3>& getForces_drl_n14(){return openMMState.getForces_drl_n14();}
 
     #else
-    const std::vector<std::vector<double>>& getEnergies_drl_bon(){}
-    const std::vector<std::vector<double>>& getEnergies_drl_ang(){}
-    const std::vector<std::vector<double>>& getEnergies_drl_tor(){}
-    const std::vector<std::vector<double>>& getEnergies_drl_n14(){}           
-    const std::vector<std::vector<double>>& getEnergies_drl_vdw(){}
-    const std::vector<std::vector<double>>& getEnergies_drl_cou(){}           
-    const std::vector<OpenMM::Vec3>& getForces_drl_bon(){}
-    const std::vector<OpenMM::Vec3>& getForces_drl_ang(){}
-    const std::vector<OpenMM::Vec3>& getForces_drl_tor(){}
-    const std::vector<OpenMM::Vec3>& getForces_drl_n14(){}  
+    
+    const std::vector<std::vector<double>>& getEnergies_drl_bon(){
+        static const std::vector<std::vector<double>> empty;
+        return empty;
+    }
+    const std::vector<std::vector<double>>& getEnergies_drl_ang(){
+        static const std::vector<std::vector<double>> empty;
+        return empty;
+    }
+    const std::vector<std::vector<double>>& getEnergies_drl_tor(){
+        static const std::vector<std::vector<double>> empty;
+        return empty;
+    }
+    const std::vector<std::vector<double>>& getEnergies_drl_n14(){
+        static const std::vector<std::vector<double>> empty;
+        return empty;
+    }           
+    const std::vector<std::vector<double>>& getEnergies_drl_vdw(){
+        static const std::vector<std::vector<double>> empty;
+        return empty;
+    }
+    const std::vector<std::vector<double>>& getEnergies_drl_cou(){
+        static const std::vector<std::vector<double>> empty;
+        return empty;
+    }         
+    const std::vector<OpenMM::Vec3>& getForces_drl_bon(){
+        static const std::vector<OpenMM::Vec3> empty;
+        return empty;
+    }
+    const std::vector<OpenMM::Vec3>& getForces_drl_ang(){
+        static const std::vector<OpenMM::Vec3> empty;
+        return empty;
+    }
+    const std::vector<OpenMM::Vec3>& getForces_drl_tor(){
+        static const std::vector<OpenMM::Vec3> empty;
+        return empty;
+    }
+    const std::vector<OpenMM::Vec3>& getForces_drl_n14(){
+        static const std::vector<OpenMM::Vec3> empty;
+        return empty;
+    }
+
     #endif
 
 	/**@}**/
