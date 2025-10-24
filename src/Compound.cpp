@@ -326,9 +326,6 @@ CompoundRep& CompoundRep::setBaseAtom(
     // assert(! hasParentCompound() );
     // assert(! compound.getImpl().hasParentCompound() );
 
-    std::cout << "SP_NEW CompoundRep::setBaseAtom " << std::endl;
-    std::cout << location ;
-
     Compound::AtomName atomName = compound.getAtomName(Compound::AtomIndex(0));
     setBaseCompound(atomName, compound, location);
     inheritAtomNames(atomName);
