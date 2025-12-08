@@ -444,6 +444,22 @@ CompoundRep& CompoundRep::bondCompound(
     Bond& bond = updBond(updBondInfo(bondIndex));
     bond.setMobility(mobility);
 
+    
+    // const BondInfo& bondInfo = getBondInfo(bondIndex);
+    // const BondCenterInfo& parentBondCenterInfo = getBondCenterInfo(bondInfo.getParentBondCenterIndex());
+    // const BondCenterInfo& childBondCenterInfo = getBondCenterInfo(bondInfo.getChildBondCenterIndex());
+    
+    // const AtomInfo& parentAtomInfo = getAtomInfo(parentBondCenterInfo.getAtomIndex());
+    // const AtomInfo& childAtomInfo = getAtomInfo(childBondCenterInfo.getAtomIndex());
+    
+    // Compound::AtomIndex cAIx_0 = parentAtomInfo.getIndex();
+    // Compound::AtomIndex cAIx_1 = childAtomInfo.getIndex();
+    
+    // std::cout << std::endl;
+    // std::cout << "Bonding subcompound " << name << " via bond centers " << parentBondName << " and inboard center index " << inboardBondCenterIndex << ", actual atom indices " << cAIx_0 << " and " << cAIx_1 << std::endl;
+    // std::cout << "Atom 1: " << childAtomInfo.getName() << " Atom 2: " << parentAtomInfo.getName() << std::endl;
+    // std::cout << std::endl;
+
     return *this;
 }
 

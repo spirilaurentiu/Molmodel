@@ -372,7 +372,7 @@ public:
 // set the stiffness k to 0.
 class BondStretch {
 public:
-    // no default constructor
+    BondStretch() = default;
     explicit BondStretch(AtomClassIndexPair key) 
     :   classes(key), k(-1), d0(-1) 
     {   assert(classes.isValid()); }
@@ -380,11 +380,7 @@ public:
     :   classes(key), k(stiffnessInKJperNmSq), d0(lengthInNm)
     {   assert(classes.isValid() && k>=0 && d0>=0); }
 
-    // Clean up CustomBondStretch terms.
-    ~BondStretch() {
-        for (int i=0; i < (int)customTerms.size(); ++i)
-            delete customTerms[i];
-    }
+    ~BondStretch() = default;
 
     bool hasBuiltinTerm() const {return k >= 0;}
     bool hasCustomTerm()  const {return !customTerms.empty();}
@@ -396,10 +392,9 @@ public:
         assert(classes.isValid() && k>=0 && d0>=0); 
     }
 
-    int addCustomTerm(DuMM::CustomBondStretch* custom) {
-        const int index = (int)customTerms.size();
-        customTerms.push_back(custom);
-        return index;
+    int addCustomTerm(std::unique_ptr<DuMM::CustomBondStretch> custom) {
+        customTerms.push_back(std::move(custom));
+        return static_cast<int>(customTerms.size() - 1);
     }
 
     bool isValid() const
@@ -427,7 +422,8 @@ public:
     Real d0; // distance at which force is 0 (in nm)
 
     // We own the heap space here. Don't forget to clean up!
-    Array_< DuMM::CustomBondStretch* > customTerms;
+    // Array_< DuMM::CustomBondStretch* > customTerms;
+    std::vector<std::unique_ptr<DuMM::CustomBondStretch>> customTerms;
 };
 
 

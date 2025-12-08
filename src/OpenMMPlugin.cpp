@@ -280,6 +280,10 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
 
     }
 
+    std::cout << "OpenMMPlugin adding NonbondedForce with coulombScale14" 
+              << dumm->coulombScale14 << " and vdwScale14 " 
+              << dumm->vdwScale14 << std::endl;
+
     // Nonbonded forces
     if (dumm->coulombGlobalScaleFactor!=0 || dumm->vdwGlobalScaleFactor!=0) {
         ommNonbondedForce->setNonbondedMethod( OpenMM::NonbondedForce::NonbondedMethod( dumm->nonbondedMethod ) );
@@ -289,7 +293,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
         // Scale charges by sqrt of scale factor so that products of charges 
         // scale linearly.
         const Real sqrtCoulombScale = std::sqrt(dumm->coulombGlobalScaleFactor);
-
+        
         // Here we'll define all the OpenMM particles, one per DuMM nonbond
         // atom. We'll also build up the list of all 1-2 bonds between nonbond
         // atoms which will be used by OpenMM as an exceptions list, with
@@ -318,10 +322,10 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
             ommNonbondedForce->addParticle(sqrtCoulombScale*charge, sigma, 
                                         dumm->vdwGlobalScaleFactor*wellDepth);
 
-            //stdcout_OpenmmNonbParticle(nax, sqrtCoulombScale, charge, sigma, dumm->vdwGlobalScaleFactor, wellDepth);
-            #ifdef __DRILLING__
-                stdcout_OpenmmNonbParticle(nax, sqrtCoulombScale, charge, sigma, dumm->vdwGlobalScaleFactor, wellDepth);
-            #endif
+            // //stdcout_OpenmmNonbParticle(nax, sqrtCoulombScale, charge, sigma, dumm->vdwGlobalScaleFactor, wellDepth);
+            // #ifdef __DRILLING__
+            //     stdcout_OpenmmNonbParticle(nax, sqrtCoulombScale, charge, sigma, dumm->vdwGlobalScaleFactor, wellDepth);
+            // #endif
 
             // Collect 1-2 bonds to other nonbond atoms. Note that we 
             // don't care about bodies here -- every atom is considered
@@ -338,27 +342,31 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
         // Register all the 1-2 bonds between nonbond atoms for scaling.
         ommNonbondedForce->createExceptionsFromBonds(ommBonds, dumm->coulombScale14, dumm->vdwScale14);
 
+        std::cout << "OpenMMPlugin added NonbondedForce with "
+                  << dumm->getNumNonbondAtoms() << " particles and "
+                  << ommBonds.size() << " 1-2 bonds." << std::endl;
+
     }
 
-    // GBSA
-    // When it is called for the i'th time, it specifies the parameters for the i'th particle.
-    if (dumm->gbsaGlobalScaleFactor != 0) {
-        ommGBSAOBCForce->setSolventDielectric(dumm->gbsaSolventDielectric);
-        ommGBSAOBCForce->setSoluteDielectric(dumm->gbsaSoluteDielectric);
+    // // GBSA
+    // // When it is called for the i'th time, it specifies the parameters for the i'th particle.
+    // if (dumm->gbsaGlobalScaleFactor != 0) {
+    //     ommGBSAOBCForce->setSolventDielectric(dumm->gbsaSolventDielectric);
+    //     ommGBSAOBCForce->setSoluteDielectric(dumm->gbsaSoluteDielectric);
 
-        // Watch the units here. OpenMM works exclusively in MD (nm, kJ/mol). 
-        // CPU GBSA uses Angstrom, kCal/mol.
-        for (DuMM::NonbondAtomIndex nax(0); nax < dumm->getNumNonbondAtoms(); ++nax) 
-        {
-            ommGBSAOBCForce->addParticle(dumm->gbsaAtomicPartialCharges[nax],
-                                      dumm->gbsaRadii[nax]*OpenMM::NmPerAngstrom,
-                                      dumm->gbsaObcScaleFactors[nax]); 
-        }
+    //     // Watch the units here. OpenMM works exclusively in MD (nm, kJ/mol). 
+    //     // CPU GBSA uses Angstrom, kCal/mol.
+    //     for (DuMM::NonbondAtomIndex nax(0); nax < dumm->getNumNonbondAtoms(); ++nax) 
+    //     {
+    //         ommGBSAOBCForce->addParticle(dumm->gbsaAtomicPartialCharges[nax],
+    //                                   dumm->gbsaRadii[nax]*OpenMM::NmPerAngstrom,
+    //                                   dumm->gbsaObcScaleFactors[nax]); 
+    //     }
 
-        // System takes over heap ownership of the force.
-        openMMSystem->addForce(ommGBSAOBCForce.get()); ommGBSAOBCForce.release();
-        std::cout << "OpenMMPlugin added GBSA scaled at" << dumm->gbsaGlobalScaleFactor << std::endl;
-    }
+    //     // System takes over heap ownership of the force.
+    //     openMMSystem->addForce(ommGBSAOBCForce.get()); ommGBSAOBCForce.release();
+    //     std::cout << "OpenMMPlugin added GBSA scaled at" << dumm->gbsaGlobalScaleFactor << std::endl;
+    // }
 
     // Add bonded forces
     // TODO: As it is now, it should work only with a fully flexible setup (nonbonded index)
@@ -393,11 +401,11 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                             ommHarmonicBondStretch->addBond(a1num, a2num,
                                                  bondStretch.d0, // * OpenMM::NmPerAngstrom,
                                                  bondStretch.k * 2.0); // * OpenMM::KJPerKcal OR * OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm);
-                            //stdcout_OpenmmBond(a1num, a2num, bondStretch.d0, bondStretch.k * 2.0); std::cout<<std::flush;
+                            // //stdcout_OpenmmBond(a1num, a2num, bondStretch.d0, bondStretch.k * 2.0); std::cout<<std::flush;
                             
-                            #ifdef __DRILLING__
-                                stdcout_OpenmmBond(a1num, a2num, bondStretch.d0, bondStretch.k * 2.0);
-                            #endif
+                            // #ifdef __DRILLING__
+                            //     stdcout_OpenmmBond(a1num, a2num, bondStretch.d0, bondStretch.k * 2.0);
+                            // #endif
 
                         }
                     }
@@ -423,11 +431,11 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                                                bb.theta0,
                                                bb.k * 2 ); // * OpenMM::KJPerKcal);
 
-                            //stdcout_OpenmmAngle(a1num, a2num, a3num, bb.theta0, bb.k * 2); std::cout<<std::flush;
+                            // //stdcout_OpenmmAngle(a1num, a2num, a3num, bb.theta0, bb.k * 2); std::cout<<std::flush;
 
-                            #ifdef __DRILLING__
-                                stdcout_OpenmmAngle(a1num, a2num, a3num, bb.theta0, bb.k);
-                            #endif
+                            // #ifdef __DRILLING__
+                            //     stdcout_OpenmmAngle(a1num, a2num, a3num, bb.theta0, bb.k);
+                            // #endif
                         }
                     }
                 }
@@ -453,13 +461,13 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                                                         bt.terms[i].theta0,
                                                         bt.terms[i].amplitude);
                                                         
-                                //stdcout_OpenmmTorsion(a1num, a2num, a3num, a4num,
-                                //    bt.terms[i].periodicity, bt.terms[i].theta0, bt.terms[i].amplitude);
+                                // //stdcout_OpenmmTorsion(a1num, a2num, a3num, a4num,
+                                // //    bt.terms[i].periodicity, bt.terms[i].theta0, bt.terms[i].amplitude);
 
-                                #ifdef __DRILLING__
-                                    stdcout_OpenmmTorsion(a1num, a2num, a3num, a4num,
-                                        bt.terms[i].periodicity, bt.terms[i].theta0, bt.terms[i].amplitude);
-                                #endif                                                        
+                                // #ifdef __DRILLING__
+                                //     stdcout_OpenmmTorsion(a1num, a2num, a3num, a4num,
+                                //         bt.terms[i].periodicity, bt.terms[i].theta0, bt.terms[i].amplitude);
+                                // #endif                                                        
                             }
                         }
                     }
@@ -492,11 +500,11 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                                                             bt.terms[i].theta0,
                                                             bt.terms[i].amplitude);
 
-                                    //stdcout_OpenmmTorsion(a1num, a2num, a3num, a4num, bt.terms[i].periodicity, bt.terms[i].theta0, bt.terms[i].amplitude);
+                                    // //stdcout_OpenmmTorsion(a1num, a2num, a3num, a4num, bt.terms[i].periodicity, bt.terms[i].theta0, bt.terms[i].amplitude);
                                                             
-                                    #ifdef __DRILLING__
-                                        stdcout_OpenmmTorsion(a1num, a2num, a3num, a4num, bt.terms[i].periodicity, bt.terms[i].theta0, bt.terms[i].amplitude);
-                                    #endif                                                             
+                                    // #ifdef __DRILLING__
+                                    //     stdcout_OpenmmTorsion(a1num, a2num, a3num, a4num, bt.terms[i].periodicity, bt.terms[i].theta0, bt.terms[i].amplitude);
+                                    // #endif                                                             
                                 }
                             }
                         }
@@ -707,7 +715,32 @@ void OpenMMPluginInterface::integrateTrajectory(int steps)
     //     <<" at default thermostat T "<< openMMThermostat->getDefaultTemperature()
     //     << std::endl;
 
+
+
+
+    openMMState = openMMContext->getState(OpenMM::State::Positions | OpenMM::State::Energy);
+    std::cout << "OMMDEBUG Position of atom 0 before integration: "
+        << openMMState.getPositions()[0][0] <<" "
+        << openMMState.getPositions()[0][1] <<" "
+        << openMMState.getPositions()[0][2] <<" "
+        << std::endl;
+    std::cout << "OMMDEBUG Potential energy before integration: "
+        << openMMState.getPotentialEnergy()
+        << std::endl;
+
     openMMIntegrator->step(steps);
+
+    openMMState = openMMContext->getState(OpenMM::State::Positions | OpenMM::State::Energy);
+    std::cout << "OMMDEBUG Position of atom 0 after integration: "
+        << openMMState.getPositions()[0][0] <<" "
+        << openMMState.getPositions()[0][1] <<" "
+        << openMMState.getPositions()[0][2] <<" "
+        << std::endl;
+    std::cout << "OMMDEBUG Potential energy after integration: "
+        << openMMState.getPotentialEnergy();
+
+
+
 
     // // Print coordinates after integration
     // std::cout << "After integration:" << std::endl;

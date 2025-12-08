@@ -1216,6 +1216,10 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
             const DuMM::AtomClassIndex c2 = getAtomClassIndex(bx);
             ia.stretch[b12] = getBondStretch(c1, c2);
 
+            // std::cout << "sele id " << (int)ax+1 << " or id " << (int)bx+1
+            //           << " bond stretch with atom classes "
+            //           << (int)c1 << " " << (int)c2 << std::endl;
+
             SimTK_REALIZECHECK2_ALWAYS(ia.stretch[b12],
                 Stage::Topology, getMySubsystemIndex(), getName(),
                 "Couldn't find bond stretch parameters for included "
@@ -1243,6 +1247,16 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
                 (int)c1, (int)c2, (int)c3);
         }
 
+        // // parse all atoms and print their charged atom types for debugging
+        // for (DuMM::AtomIndex i(0); i < atoms.size(); ++i) {
+        //     std::cout << "STEP_3: Compound atom index: " << i
+        //               << " Charged atom type index: " << getAtom(i).chargedAtomTypeIndex
+        //               << " Atom class index: " << chargedAtomTypes[getAtom(i).chargedAtomTypeIndex].atomClassIx
+        //               << std::endl;
+        // }
+
+        // throw std::runtime_error("STEP_2: Debugging stop.");
+
         // Save a BondTorsion entry for each cross-body 1-4 bond
         ia.force14.resize(x.xbond14.size());
         ia.torsion.resize(x.xbond14.size());
@@ -1252,6 +1266,26 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
             ia.force14[b14][0] = atoms[bx[0]].inclAtomIndex;
             ia.force14[b14][1] = atoms[bx[1]].inclAtomIndex;
             ia.force14[b14][2] = atoms[bx[2]].inclAtomIndex;
+
+            ; // suppress unused variable warning
+
+            const ChargedAtomType& type0 = chargedAtomTypes[getChargedAtomTypeIndex(ax)];
+            const ChargedAtomType& type1 = chargedAtomTypes[getChargedAtomTypeIndex(bx[0])];
+            const ChargedAtomType& type2 = chargedAtomTypes[getChargedAtomTypeIndex(bx[1])];
+            const ChargedAtomType& type3 = chargedAtomTypes[getChargedAtomTypeIndex(bx[2])];
+
+            // std::cout << "STEP_2: XBond14 compound atom indices: " << ax << " " << bx[0] << " " << bx[1] << " " << bx[2] <<
+            //     " ; atom classes: " << type0.atomClassIx << " " << type1.atomClassIx << " " << type2.atomClassIx << " " << type3.atomClassIx <<
+            //     " ; charged atom types: " << getChargedAtomTypeIndex(ax) << " " << getChargedAtomTypeIndex(bx[0]) << " " << getChargedAtomTypeIndex(bx[1]) << " " << getChargedAtomTypeIndex(bx[2]) <<
+            // std::endl;
+
+            // std::cout << "sele id " << (int)ax+1 << " or id " << (int)bx[0]+1
+            //           << " or id " << (int)bx[1]+1 << " or id " << (int)bx[2]+1
+            //           << " bond torsion with atom classes "
+            //           << (int)c1 << " "
+            //           << (int)getAtomClassIndex(bx[0]) << " "
+            //           << (int)getAtomClassIndex(bx[1]) << " "
+            //           << (int)getAtomClassIndex(bx[2]) << std::endl;
 
             const DuMM::AtomClassIndex c2 = getAtomClassIndex(bx[0]);
             const DuMM::AtomClassIndex c3 = getAtomClassIndex(bx[1]);

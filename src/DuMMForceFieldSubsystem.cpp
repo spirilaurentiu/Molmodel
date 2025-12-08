@@ -59,7 +59,7 @@ using namespace SimTK;
     // DUMM FORCE FIELD SUBSYSTEM //
     ////////////////////////////////
 
-/*static*/ bool 
+/*static*/ bool
 DuMMForceFieldSubsystem::isInstanceOf(const Subsystem& s) {
     return DuMMForceFieldSubsystemRep::isA(s.getSubsystemGuts());
 }
@@ -74,24 +74,24 @@ DuMMForceFieldSubsystem::updDowncast(Subsystem& s) {
     return reinterpret_cast<DuMMForceFieldSubsystem&>(s);
 }
 
-const DuMMForceFieldSubsystemRep& 
+const DuMMForceFieldSubsystemRep&
 DuMMForceFieldSubsystem::getRep() const {
     return dynamic_cast<const DuMMForceFieldSubsystemRep&>( getSubsystemGuts() );
 }
-DuMMForceFieldSubsystemRep&       
+DuMMForceFieldSubsystemRep&
 DuMMForceFieldSubsystem::updRep() {
     return dynamic_cast<DuMMForceFieldSubsystemRep&>( updSubsystemGuts() );
 }
 
 // Create Subsystem but don't associate it with any System. This isn't much use except
 // for making std::vector's, which require a default constructor to be available.
-DuMMForceFieldSubsystem::DuMMForceFieldSubsystem() 
+DuMMForceFieldSubsystem::DuMMForceFieldSubsystem()
   : ForceSubsystem()
 {
     adoptSubsystemGuts(new DuMMForceFieldSubsystemRep());
 }
 
-DuMMForceFieldSubsystem::DuMMForceFieldSubsystem(MolecularMechanicsSystem& mms) 
+DuMMForceFieldSubsystem::DuMMForceFieldSubsystem(MolecularMechanicsSystem& mms)
   : ForceSubsystem()
 {
     adoptSubsystemGuts(new DuMMForceFieldSubsystemRep());
@@ -251,7 +251,7 @@ void DuMMForceFieldSubsystem::setDuMMAtomMass(SimTK::DuMM::AtomIndex dAIx, SimTK
     DuMMForceFieldSubsystemRep& dummRep = updRep();
 
     // Watch for nonsense arguments.
-    //SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class1), mm.ApiClassName, MethodName, 
+    //SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class1), mm.ApiClassName, MethodName,
     //    "class1=%d which is not a valid atom class Index", (int) class1);
 
     dummRep.setAtomMass(dAIx, atomicMass);
@@ -273,7 +273,7 @@ void DuMMForceFieldSubsystem::defineIncompleteAtomClass
         "atom class Index %d invalid: must be nonnegative", (int) atomClassIx);
     SimTK_APIARGCHECK1_ALWAYS(mm.isValidElement(elementNumber), mm.ApiClassName, MethodName,
         "element %d invalid: must be a valid atomic number and have an entry here",elementNumber);
-    SimTK_APIARGCHECK1_ALWAYS(valence >= 0, mm.ApiClassName, MethodName, 
+    SimTK_APIARGCHECK1_ALWAYS(valence >= 0, mm.ApiClassName, MethodName,
         "expected valence %d invalid: must be nonnegative", valence);
 
         // Make sure there is a slot available for this atom class.
@@ -281,8 +281,8 @@ void DuMMForceFieldSubsystem::defineIncompleteAtomClass
         mm.atomClasses.resize(atomClassIx+1);
 
         // Make sure this atom class hasn't already been defined.
-    SimTK_APIARGCHECK2_ALWAYS(!mm.atomClasses[atomClassIx].isValid(), mm.ApiClassName, MethodName, 
-        "atom class Index %d is already in use for '%s'", (int) atomClassIx, 
+    SimTK_APIARGCHECK2_ALWAYS(!mm.atomClasses[atomClassIx].isValid(), mm.ApiClassName, MethodName,
+        "atom class Index %d is already in use for '%s'", (int) atomClassIx,
         mm.atomClasses[atomClassIx].name.c_str());
 
 	if (mm.atomClassIndicesByName.find(atomClassName) != mm.atomClassIndicesByName.end()) {
@@ -292,13 +292,13 @@ void DuMMForceFieldSubsystem::defineIncompleteAtomClass
 		}
 	}
 
-	mm.insertNewAtomClass( AtomClass(atomClassIx, atomClassName, elementNumber, valence, 
+	mm.insertNewAtomClass( AtomClass(atomClassIx, atomClassName, elementNumber, valence,
                                             NaN, NaN) );
 
 
 }
 
-void DuMMForceFieldSubsystem::setAtomClassVdwParameters(DuMM::AtomClassIndex atomClassIx, Real vdwRadiusInNm, Real vdwWellDepthInKJPerMol) 
+void DuMMForceFieldSubsystem::setAtomClassVdwParameters(DuMM::AtomClassIndex atomClassIx, Real vdwRadiusInNm, Real vdwWellDepthInKJPerMol)
 {
     static const char* MethodName = "setAtomClassVdwParameters";
 
@@ -309,9 +309,9 @@ void DuMMForceFieldSubsystem::setAtomClassVdwParameters(DuMM::AtomClassIndex ato
     SimTK_APIARGCHECK1_ALWAYS(atomClassIx.isValid(), mm.ApiClassName, MethodName,
         "atom class Index %d invalid: must be nonnegative", (int) atomClassIx);
 
-    SimTK_APIARGCHECK1_ALWAYS(vdwRadiusInNm >= 0, mm.ApiClassName, MethodName, 
+    SimTK_APIARGCHECK1_ALWAYS(vdwRadiusInNm >= 0, mm.ApiClassName, MethodName,
         "van der Waals radius %g invalid: must be nonnegative", vdwRadiusInNm);
-    SimTK_APIARGCHECK1_ALWAYS(vdwWellDepthInKJPerMol >= 0, mm.ApiClassName, MethodName, 
+    SimTK_APIARGCHECK1_ALWAYS(vdwWellDepthInKJPerMol >= 0, mm.ApiClassName, MethodName,
         "van der Waals energy well depth %g invalid: must be nonnegative", vdwWellDepthInKJPerMol);
 
     AtomClass& atomClass = mm.atomClasses[atomClassIx];
@@ -348,8 +348,8 @@ void DuMMForceFieldSubsystem::defineIncompleteChargedAtomType
         mm.chargedAtomTypes.resize(chargedAtomTypeIndex+1);
 
         // Check that this slot is not already in use.
-    SimTK_APIARGCHECK2_ALWAYS(!mm.chargedAtomTypes[chargedAtomTypeIndex].isValid(), mm.ApiClassName, MethodName, 
-        "charged atom type index %d is already in use for '%s'", (int) chargedAtomTypeIndex, 
+    SimTK_APIARGCHECK2_ALWAYS(!mm.chargedAtomTypes[chargedAtomTypeIndex].isValid(), mm.ApiClassName, MethodName,
+        "charged atom type index %d is already in use for '%s'", (int) chargedAtomTypeIndex,
         mm.chargedAtomTypes[chargedAtomTypeIndex].name.c_str());
 
 	mm.insertNewChargedAtomType(ChargedAtomType(chargedAtomTypeIndex, typeName, atomClassIx, NaN));
@@ -422,9 +422,7 @@ void DuMMForceFieldSubsystem::defineBondStretch
         // Attempt to create a new bond stretch entry containing no valid
         // terms. If there was already an entry it will be returned instead
         // and no insertion is performed.
-    std::pair<std::map<AtomClassIndexPair,BondStretch>::iterator, bool> ret = 
-      mm.bondStretch.insert(std::pair<AtomClassIndexPair,BondStretch>
-        (key, BondStretch(key)));
+    std::pair<std::map<AtomClassIndexPair,BondStretch>::iterator, bool> ret = mm.bondStretch.emplace(key, key);
 
     BondStretch& bondStretchEntry = ret.first->second;
 
@@ -435,40 +433,43 @@ void DuMMForceFieldSubsystem::defineBondStretch
             "There was already a different built-in bond stretch term for atom class pair (%d,%d); only one is allowed."
             "\nUse a CustomBondStretch term if you need another term for the same atom class pair.",
             (int)key[0], (int)key[1]);
-    } else
+    } else {
         bondStretchEntry.setBuiltinTerm(stiffnessInKJPerNmSq,nominalLengthInNm);
+    }
 }
 
 void DuMMForceFieldSubsystem::defineCustomBondStretch
     (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2, DuMM::CustomBondStretch* customBondStretch)
 {
-    static const char* MethodName = "defineCustomBondStretch";
+    SimTK_ASSERT_ALWAYS(true, "DuMMForceFieldSubsystem::defineCustomBondStretch is no longer supported.");
 
-    invalidateSubsystemTopologyCache();
+    // static const char* MethodName = "defineCustomBondStretch";
 
-    DuMMForceFieldSubsystemRep& mm = updRep();
+    // invalidateSubsystemTopologyCache();
 
-        // Watch for nonsense arguments.
-    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class1), mm.ApiClassName, MethodName, 
-        "class1=%d which is not a valid atom class Index", (int) class1);
-    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class2), mm.ApiClassName, MethodName, 
-        "class2=%d which is not a valid atom class Index", (int) class2);
-    SimTK_APIARGCHECK_ALWAYS(customBondStretch, mm.ApiClassName, MethodName, 
-        "CustomBondStretch pointer was null");
+    // DuMMForceFieldSubsystemRep& mm = updRep();
 
-        // We canonicalize the key so that the atom class pair has the 
-        // lower class Index first.
-    const AtomClassIndexPair key(class1,class2,true);
+    //     // Watch for nonsense arguments.
+    // SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class1), mm.ApiClassName, MethodName, 
+    //     "class1=%d which is not a valid atom class Index", (int) class1);
+    // SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class2), mm.ApiClassName, MethodName, 
+    //     "class2=%d which is not a valid atom class Index", (int) class2);
+    // SimTK_APIARGCHECK_ALWAYS(customBondStretch, mm.ApiClassName, MethodName, 
+    //     "CustomBondStretch pointer was null");
 
-        // Attempt to create a new bond stretch entry containing no valid
-        // terms. If there was already an entry it will be returned instead
-        // and no insertion is performed.
-    std::pair<std::map<AtomClassIndexPair,BondStretch>::iterator, bool> ret = 
-      mm.bondStretch.insert(std::pair<AtomClassIndexPair,BondStretch>
-        (key, BondStretch(key)));
+    //     // We canonicalize the key so that the atom class pair has the 
+    //     // lower class Index first.
+    // const AtomClassIndexPair key(class1,class2,true);
 
-    BondStretch& bondStretchEntry = ret.first->second;
-    bondStretchEntry.addCustomTerm(customBondStretch);
+    //     // Attempt to create a new bond stretch entry containing no valid
+    //     // terms. If there was already an entry it will be returned instead
+    //     // and no insertion is performed.
+    // std::pair<std::map<AtomClassIndexPair,BondStretch>::iterator, bool> ret = 
+    //   mm.bondStretch.insert(std::pair<AtomClassIndexPair,BondStretch>
+    //     (key, BondStretch(key)));
+
+    // BondStretch& bondStretchEntry = ret.first->second;
+    // bondStretchEntry.addCustomTerm(customBondStretch);
 }
 
 void DuMMForceFieldSubsystem::defineBondBend
@@ -481,17 +482,17 @@ void DuMMForceFieldSubsystem::defineBondBend
     DuMMForceFieldSubsystemRep& mm = updRep();
 
         // Watch for nonsense arguments.
-    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class1), mm.ApiClassName, MethodName, 
+    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class1), mm.ApiClassName, MethodName,
         "class1=%d which is not a valid atom class Index", (int) class1);
-    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class2), mm.ApiClassName, MethodName, 
+    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class2), mm.ApiClassName, MethodName,
         "class2=%d which is not a valid atom class Index", (int) class2);
-    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class3), mm.ApiClassName, MethodName, 
+    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class3), mm.ApiClassName, MethodName,
         "class3=%d which is not a valid atom class Index", (int) class3);
-    SimTK_APIARGCHECK1_ALWAYS(stiffnessInKJPerRadSq >= 0, mm.ApiClassName, MethodName, 
+    SimTK_APIARGCHECK1_ALWAYS(stiffnessInKJPerRadSq >= 0, mm.ApiClassName, MethodName,
         "stiffness %g is not valid: must be nonnegative", stiffnessInKJPerRadSq);
-    SimTK_APIARGCHECK1_ALWAYS(0 <= nominalAngleInDeg && nominalAngleInDeg <= 180, 
-        mm.ApiClassName, MethodName, 
-        "nominal angle %g is not valid: must be between 0 and 180 degrees, inclusive", 
+    SimTK_APIARGCHECK1_ALWAYS(0 <= nominalAngleInDeg && nominalAngleInDeg <= 180,
+        mm.ApiClassName, MethodName,
+        "nominal angle %g is not valid: must be between 0 and 180 degrees, inclusive",
         nominalAngleInDeg);
 
         // We canonicalize the key so that the first classIndex is no larger than the third.
@@ -500,7 +501,7 @@ void DuMMForceFieldSubsystem::defineBondBend
         // Attempt to create a new bond bend entry containing no valid
         // terms. If there was already an entry it will be returned instead
         // and no insertion is performed.
-    std::pair<std::map<AtomClassIndexTriple,BondBend>::iterator, bool> ret = 
+    std::pair<std::map<AtomClassIndexTriple,BondBend>::iterator, bool> ret =
         mm.bondBend.insert(std::pair<AtomClassIndexTriple,BondBend>
             (key, BondBend(key)));
 
@@ -508,9 +509,9 @@ void DuMMForceFieldSubsystem::defineBondBend
 
     if (bondBendEntry.hasBuiltinTerm()) {
         SimTK_APIARGCHECK3_ALWAYS(
-               bondBendEntry.k==stiffnessInKJPerRadSq 
-            && bondBendEntry.theta0==nominalAngleInDeg*DuMM::Deg2Rad, 
-            mm.ApiClassName, MethodName, 
+               bondBendEntry.k==stiffnessInKJPerRadSq
+            && bondBendEntry.theta0==nominalAngleInDeg*DuMM::Deg2Rad,
+            mm.ApiClassName, MethodName,
             "There was already a different built-in bond bend term for atom class triple (%d,%d,%d); only one is allowed."
             "\nUse a CustomBondBend term if you need another term for the same atom class triple.",
             (int)key[0], (int)key[1], (int)key[2]);
@@ -519,7 +520,7 @@ void DuMMForceFieldSubsystem::defineBondBend
 }
 
 void DuMMForceFieldSubsystem::defineCustomBondBend
-   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2, DuMM::AtomClassIndex class3, 
+   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2, DuMM::AtomClassIndex class3,
     DuMM::CustomBondBend* customBondBend)
 {
     static const char* MethodName = "defineCustomBondBend";
@@ -529,13 +530,13 @@ void DuMMForceFieldSubsystem::defineCustomBondBend
     DuMMForceFieldSubsystemRep& mm = updRep();
 
         // Watch for nonsense arguments.
-    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class1), mm.ApiClassName, MethodName, 
+    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class1), mm.ApiClassName, MethodName,
         "class1=%d which is not a valid atom class Index", (int) class1);
-    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class2), mm.ApiClassName, MethodName, 
+    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class2), mm.ApiClassName, MethodName,
         "class2=%d which is not a valid atom class Index", (int) class2);
-    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class3), mm.ApiClassName, MethodName, 
+    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class3), mm.ApiClassName, MethodName,
         "class3=%d which is not a valid atom class Index", (int) class3);
-    SimTK_APIARGCHECK_ALWAYS(customBondBend, mm.ApiClassName, MethodName, 
+    SimTK_APIARGCHECK_ALWAYS(customBondBend, mm.ApiClassName, MethodName,
         "CustomBondBend pointer was null");
 
         // We canonicalize the key so that the first classIndex is no larger than the third.
@@ -544,7 +545,7 @@ void DuMMForceFieldSubsystem::defineCustomBondBend
         // Attempt to create a new bond bend entry containing no valid
         // terms. If there was already an entry it will be returned instead
         // and no insertion is performed.
-    std::pair<std::map<AtomClassIndexTriple,BondBend>::iterator, bool> ret = 
+    std::pair<std::map<AtomClassIndexTriple,BondBend>::iterator, bool> ret =
       mm.bondBend.insert(std::pair<AtomClassIndexTriple,BondBend>
         (key, BondBend(key)));
 
@@ -552,13 +553,38 @@ void DuMMForceFieldSubsystem::defineCustomBondBend
     bondBendEntry.addCustomTerm(customBondBend);
 }
 
-// 
+constexpr SimTK::Real EPSILON = 1e-2;
+
+bool is_in_range_simple(double angle) {
+    // Check if angle >= MIN_ANGLE - EPSILON AND angle <= MAX_ANGLE + EPSILON.
+    // However, if the boundaries themselves have floating-point error (e.g., from calculations),
+    // you might need a more complex comparison, but for fixed bounds (-180.0, 180.0), 
+    // the following is generally acceptable:
+
+    const double MIN_ANGLE = -180.0;
+    const double MAX_ANGLE = 180.0;
+    
+    return (angle >= MIN_ANGLE - EPSILON) && (angle <= MAX_ANGLE + EPSILON);
+}
+
+inline bool almostEqual(SimTK::Real a, SimTK::Real b) {
+    return std::fabs(a - b) <= EPSILON * std::max({1.0, std::fabs(a), std::fabs(b)});
+}
+
+inline bool anglesAlmostEqual(double a, double b) {
+    double diff = std::fmod(a - b + 180.0, 360.0);
+    if (diff < 0) diff += 360.0;
+    diff -= 180.0;
+    return std::fabs(diff) <= EPSILON;
+}
+
+//
 // This is a utility method that checks for invalid inputs to the defineBondTorsion() and
 // defineAmberImproperTorsion() functions, and then inserts the built in torsion terms
 // if they are legitimate.
 //
-void DuMMForceFieldSubsystemRep::defineAnyTorsion 
-   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2, 
+void DuMMForceFieldSubsystemRep::defineAnyTorsion
+   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2,
     DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4,
     bool shouldCanonicalizeClassOrder,
     int periodicity1, Real amp1InKJ, Real phase1InDegrees,
@@ -590,7 +616,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
             "amplitude1(%g) is not valid: must be nonnegative", amp1InKJ);*/
         //scf changed 0 to -180 to allow NAST right handed helices
 
-        SimTK_APIARGCHECK1_ALWAYS(-180 <= phase1InDegrees && phase1InDegrees <= 180, ApiClassName, CallingMethodName,
+        SimTK_APIARGCHECK1_ALWAYS(is_in_range_simple(phase1InDegrees), ApiClassName, CallingMethodName,
             "phaseAngle1(%g) is not valid: must be between -180 and 180 degrees, inclusive", phase1InDegrees);
 
             // No repeats.
@@ -608,7 +634,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
         /*        SimTK_APIARGCHECK1_ALWAYS(amp2InKJ >= 0, ApiClassName, CallingMethodName,
             "amplitude2(%g) is not valid: must be nonnegative", amp2InKJ);*/
 
-        SimTK_APIARGCHECK1_ALWAYS(0 <= phase2InDegrees && phase2InDegrees <= 180, ApiClassName, CallingMethodName,
+        SimTK_APIARGCHECK1_ALWAYS(is_in_range_simple(phase2InDegrees), ApiClassName, CallingMethodName,
             "phaseAngle2(%g) is not valid: must be between 0 and 180 degrees, inclusive", phase2InDegrees);
 
             // No repeats.
@@ -625,7 +651,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
         /*        SimTK_APIARGCHECK1_ALWAYS(amp3InKJ >= 0, ApiClassName, CallingMethodName,
             "amplitude3(%g) is not valid: must be nonnegative", amp3InKJ);*/
 
-        SimTK_APIARGCHECK1_ALWAYS(0 <= phase3InDegrees && phase3InDegrees <= 180, ApiClassName, CallingMethodName,
+        SimTK_APIARGCHECK1_ALWAYS(is_in_range_simple(phase3InDegrees), ApiClassName, CallingMethodName,
             "phaseAngle3(%g) is not valid: must be between 0 and 180 degrees, inclusive", phase3InDegrees);
             // (we've already checked for any possible repeats)
     }
@@ -639,7 +665,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
         // Attempt to create a new bond torsion entry containing no valid
         // terms. If there was already an entry it will be returned instead
         // and no insertion is performed.
-    std::pair<std::map<AtomClassIndexQuad,BondTorsion>::iterator, bool> ret = 
+    std::pair<std::map<AtomClassIndexQuad,BondTorsion>::iterator, bool> ret =
       torsionMap.insert(std::pair<AtomClassIndexQuad,BondTorsion>
         (key, BondTorsion(key)));
 
@@ -664,7 +690,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
     if (periodicity1 != -1) {
         const TorsionTerm& term1 = bondTorsionEntry.getTermWithPeriod(periodicity1);
         if (term1.isValid()) {
-            SimTK_APIARGCHECK5_ALWAYS(term1.amplitude==amp1InKJ && term1.theta0==phase1InDegrees,
+            SimTK_APIARGCHECK5_ALWAYS(almostEqual(term1.amplitude, amp1InKJ) && anglesAlmostEqual(term1.theta0 * DuMM::Rad2Deg, phase1InDegrees),
                 ApiClassName, CallingMethodName,
                 "atom class quad (%d,%d,%d,%d) already had a different term with periodicity %d",
                 (int)class1,(int)class2,(int)class3,(int)class4,periodicity1);
@@ -674,7 +700,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
     if (periodicity2 != -1) {
         const TorsionTerm& term2 = bondTorsionEntry.getTermWithPeriod(periodicity2);
         if (term2.isValid()) {
-            SimTK_APIARGCHECK5_ALWAYS(term2.amplitude==amp2InKJ && term2.theta0==phase2InDegrees,
+            SimTK_APIARGCHECK5_ALWAYS(almostEqual(term2.amplitude, amp2InKJ) && anglesAlmostEqual(term2.theta0 * DuMM::Rad2Deg, phase2InDegrees),
                 ApiClassName, CallingMethodName,
                 "atom class quad (%d,%d,%d,%d) already had a different term with periodicity %d",
                 (int)class1,(int)class2,(int)class3,(int)class4,periodicity2);
@@ -684,7 +710,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
     if (periodicity3 != -1) {
         const TorsionTerm& term3 = bondTorsionEntry.getTermWithPeriod(periodicity3);
         if (term3.isValid()) {
-            SimTK_APIARGCHECK5_ALWAYS(term3.amplitude==amp3InKJ && term3.theta0==phase3InDegrees,
+            SimTK_APIARGCHECK5_ALWAYS(almostEqual(term3.amplitude, amp3InKJ) && anglesAlmostEqual(term3.theta0 * DuMM::Rad2Deg, phase3InDegrees),
                 ApiClassName, CallingMethodName,
                 "atom class quad (%d,%d,%d,%d) already had a different term with periodicity %d",
                 (int)class1,(int)class2,(int)class3,(int)class4,periodicity3);
@@ -693,13 +719,13 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
     }
 }
 
-// 
+//
 // This is a utility method that checks for invalid inputs to the defineBondTorsion() and
 // defineAmberImproperTorsion() functions, and then inserts the built in torsion terms
 // if they are legitimate.
 //
-void DuMMForceFieldSubsystemRep::defineAnyTorsion 
-   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2, 
+void DuMMForceFieldSubsystemRep::defineAnyTorsion
+   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2,
     DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4,
     bool shouldCanonicalizeClassOrder,
     int periodicity1, Real amp1InKJ, Real phase1InDegrees,
@@ -732,7 +758,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
             "amplitude1(%g) is not valid: must be nonnegative", amp1InKJ);*/
         //scf changed 0 to -180 to allow NAST right handed helices
 
-        SimTK_APIARGCHECK1_ALWAYS(-180 <= phase1InDegrees && phase1InDegrees <= 180, ApiClassName, CallingMethodName,
+        SimTK_APIARGCHECK1_ALWAYS(is_in_range_simple(phase1InDegrees), ApiClassName, CallingMethodName,
             "phaseAngle1(%g) is not valid: must be between -180 and 180 degrees, inclusive", phase1InDegrees);
 
             // No repeats.
@@ -750,7 +776,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
         /*        SimTK_APIARGCHECK1_ALWAYS(amp2InKJ >= 0, ApiClassName, CallingMethodName,
             "amplitude2(%g) is not valid: must be nonnegative", amp2InKJ);*/
 
-        SimTK_APIARGCHECK1_ALWAYS(0 <= phase2InDegrees && phase2InDegrees <= 180, ApiClassName, CallingMethodName,
+        SimTK_APIARGCHECK1_ALWAYS(is_in_range_simple(phase2InDegrees), ApiClassName, CallingMethodName,
             "phaseAngle2(%g) is not valid: must be between 0 and 180 degrees, inclusive", phase2InDegrees);
 
             // No repeats.
@@ -767,7 +793,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
         /*        SimTK_APIARGCHECK1_ALWAYS(amp3InKJ >= 0, ApiClassName, CallingMethodName,
             "amplitude3(%g) is not valid: must be nonnegative", amp3InKJ);*/
 
-        SimTK_APIARGCHECK1_ALWAYS(0 <= phase3InDegrees && phase3InDegrees <= 180, ApiClassName, CallingMethodName,
+        SimTK_APIARGCHECK1_ALWAYS(is_in_range_simple(phase3InDegrees), ApiClassName, CallingMethodName,
             "phaseAngle3(%g) is not valid: must be between 0 and 180 degrees, inclusive", phase3InDegrees);
             // (we've already checked for any possible repeats)
     }
@@ -780,7 +806,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
         /*        SimTK_APIARGCHECK1_ALWAYS(amp3InKJ >= 0, ApiClassName, CallingMethodName,
             "amplitude3(%g) is not valid: must be nonnegative", amp3InKJ);*/
 
-        SimTK_APIARGCHECK1_ALWAYS(0 <= phase4InDegrees && phase4InDegrees <= 180, ApiClassName, CallingMethodName,
+        SimTK_APIARGCHECK1_ALWAYS(is_in_range_simple(phase4InDegrees), ApiClassName, CallingMethodName,
             "phaseAngle4(%g) is not valid: must be between 0 and 180 degrees, inclusive", phase4InDegrees);
             // (we've already checked for any possible repeats)
     }
@@ -794,7 +820,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
         // Attempt to create a new bond torsion entry containing no valid
         // terms. If there was already an entry it will be returned instead
         // and no insertion is performed.
-    std::pair<std::map<AtomClassIndexQuad,BondTorsion>::iterator, bool> ret = 
+    std::pair<std::map<AtomClassIndexQuad,BondTorsion>::iterator, bool> ret =
       torsionMap.insert(std::pair<AtomClassIndexQuad,BondTorsion>
         (key, BondTorsion(key)));
 
@@ -821,7 +847,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
     if (periodicity1 != -1) {
         const TorsionTerm& term1 = bondTorsionEntry.getTermWithPeriod(periodicity1);
         if (term1.isValid()) {
-            SimTK_APIARGCHECK5_ALWAYS(term1.amplitude==amp1InKJ && term1.theta0==phase1InDegrees,
+            SimTK_APIARGCHECK5_ALWAYS(almostEqual(term1.amplitude, amp1InKJ) && anglesAlmostEqual(term1.theta0 * DuMM::Rad2Deg, phase1InDegrees),
                 ApiClassName, CallingMethodName,
                 "atom class quad (%d,%d,%d,%d) already had a different term with periodicity %d",
                 (int)class1,(int)class2,(int)class3,(int)class4,periodicity1);
@@ -831,7 +857,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
     if (periodicity2 != -1) {
         const TorsionTerm& term2 = bondTorsionEntry.getTermWithPeriod(periodicity2);
         if (term2.isValid()) {
-            SimTK_APIARGCHECK5_ALWAYS(term2.amplitude==amp2InKJ && term2.theta0==phase2InDegrees,
+            SimTK_APIARGCHECK5_ALWAYS(almostEqual(term2.amplitude, amp2InKJ) && anglesAlmostEqual(term2.theta0 * DuMM::Rad2Deg, phase2InDegrees),
                 ApiClassName, CallingMethodName,
                 "atom class quad (%d,%d,%d,%d) already had a different term with periodicity %d",
                 (int)class1,(int)class2,(int)class3,(int)class4,periodicity2);
@@ -841,7 +867,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
     if (periodicity3 != -1) {
         const TorsionTerm& term3 = bondTorsionEntry.getTermWithPeriod(periodicity3);
         if (term3.isValid()) {
-            SimTK_APIARGCHECK5_ALWAYS(term3.amplitude==amp3InKJ && term3.theta0==phase3InDegrees,
+            SimTK_APIARGCHECK5_ALWAYS(almostEqual(term3.amplitude, amp3InKJ) && anglesAlmostEqual(term3.theta0 * DuMM::Rad2Deg, phase3InDegrees),
                 ApiClassName, CallingMethodName,
                 "atom class quad (%d,%d,%d,%d) already had a different term with periodicity %d",
                 (int)class1,(int)class2,(int)class3,(int)class4,periodicity3);
@@ -851,7 +877,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
     if (periodicity4 != -1) {
         const TorsionTerm& term4 = bondTorsionEntry.getTermWithPeriod(periodicity4);
         if (term4.isValid()) {
-            SimTK_APIARGCHECK5_ALWAYS(term4.amplitude==amp4InKJ && term4.theta0==phase4InDegrees,
+            SimTK_APIARGCHECK5_ALWAYS(almostEqual(term4.amplitude, amp4InKJ) && anglesAlmostEqual(term4.theta0 * DuMM::Rad2Deg, phase4InDegrees),
                 ApiClassName, CallingMethodName,
                 "atom class quad (%d,%d,%d,%d) already had a different term with periodicity %d",
                 (int)class1,(int)class2,(int)class3,(int)class4,periodicity4);
@@ -860,13 +886,13 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
     }
 }
 
-// 
+//
 // This is a utility method that checks for invalid inputs to the defineBondTorsion() and
 // defineAmberImproperTorsion() functions, and then inserts the built in torsion terms
 // if they are legitimate. Written by S.A.T. for dihedral with 5 periodicities.
 //
-void DuMMForceFieldSubsystemRep::defineAnyTorsion 
-   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2, 
+void DuMMForceFieldSubsystemRep::defineAnyTorsion
+   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2,
     DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4,
     bool shouldCanonicalizeClassOrder,
     int periodicity1, Real amp1InKJ, Real phase1InDegrees,
@@ -975,7 +1001,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
         // Attempt to create a new bond torsion entry containing no valid
         // terms. If there was already an entry it will be returned instead
         // and no insertion is performed.
-    std::pair<std::map<AtomClassIndexQuad,BondTorsion>::iterator, bool> ret = 
+    std::pair<std::map<AtomClassIndexQuad,BondTorsion>::iterator, bool> ret =
       torsionMap.insert(std::pair<AtomClassIndexQuad,BondTorsion>
         (key, BondTorsion(key)));
 
@@ -1055,14 +1081,14 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
 }
 
 
-// 
+//
 // We allow up to 3 terms in a single torsion function, with three different
 // periodicities. If any of these are unused, set the corresponding periodicity
 // to -1.
 //
 void DuMMForceFieldSubsystem::defineBondTorsion
-   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2, 
-    DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4, 
+   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2,
+    DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4,
     int periodicity1, Real amp1InKJ, Real phase1InDegrees,
     int periodicity2, Real amp2InKJ, Real phase2InDegrees,
     int periodicity3, Real amp3InKJ, Real phase3InDegrees)
@@ -1072,7 +1098,7 @@ void DuMMForceFieldSubsystem::defineBondTorsion
     invalidateSubsystemTopologyCache();
 
     DuMMForceFieldSubsystemRep& mm = updRep();
-    mm.defineAnyTorsion(class1, class2, class3, class4, true, // canonicalize 
+    mm.defineAnyTorsion(class1, class2, class3, class4, true, // canonicalize
                      periodicity1, amp1InKJ, phase1InDegrees,
                      periodicity2, amp2InKJ, phase2InDegrees,
                      periodicity3, amp3InKJ, phase3InDegrees,
@@ -1080,14 +1106,14 @@ void DuMMForceFieldSubsystem::defineBondTorsion
                      MethodName);
 }
 
-// 
+//
 // We allow up to 4 terms in a single torsion function, with three different
 // periodicities. If any of these are unused, set the corresponding periodicity
 // to -1.
 //
 void DuMMForceFieldSubsystem::defineBondTorsion
-   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2, 
-    DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4, 
+   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2,
+    DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4,
     int periodicity1, Real amp1InKJ, Real phase1InDegrees,
     int periodicity2, Real amp2InKJ, Real phase2InDegrees,
     int periodicity3, Real amp3InKJ, Real phase3InDegrees,
@@ -1098,7 +1124,7 @@ void DuMMForceFieldSubsystem::defineBondTorsion
     invalidateSubsystemTopologyCache();
 
     DuMMForceFieldSubsystemRep& mm = updRep();
-    mm.defineAnyTorsion(class1, class2, class3, class4, true, // canonicalize 
+    mm.defineAnyTorsion(class1, class2, class3, class4, true, // canonicalize
                      periodicity1, amp1InKJ, phase1InDegrees,
                      periodicity2, amp2InKJ, phase2InDegrees,
                      periodicity3, amp3InKJ, phase3InDegrees,
@@ -1108,13 +1134,13 @@ void DuMMForceFieldSubsystem::defineBondTorsion
 }
 
 
-// 
+//
 // Torsion with up to five terms (Added by S.A.T., as it is needed
 // when simulating lipids).
 //
 void DuMMForceFieldSubsystem::defineBondTorsion
-   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2, 
-    DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4, 
+   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2,
+    DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4,
     int periodicity1, Real amp1InKJ, Real phase1InDegrees,
     int periodicity2, Real amp2InKJ, Real phase2InDegrees,
     int periodicity3, Real amp3InKJ, Real phase3InDegrees,
@@ -1126,7 +1152,7 @@ void DuMMForceFieldSubsystem::defineBondTorsion
     invalidateSubsystemTopologyCache();
 
     DuMMForceFieldSubsystemRep& mm = updRep();
-    mm.defineAnyTorsion(class1, class2, class3, class4, true, // canonicalize 
+    mm.defineAnyTorsion(class1, class2, class3, class4, true, // canonicalize
                      periodicity1, amp1InKJ, phase1InDegrees,
                      periodicity2, amp2InKJ, phase2InDegrees,
                      periodicity3, amp3InKJ, phase3InDegrees,
@@ -1138,7 +1164,7 @@ void DuMMForceFieldSubsystem::defineBondTorsion
 
 
 void DuMMForceFieldSubsystem::defineCustomBondTorsion
-   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2, 
+   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2,
     DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4,
     DuMM::CustomBondTorsion* customBondTorsion)
 {
@@ -1149,15 +1175,15 @@ void DuMMForceFieldSubsystem::defineCustomBondTorsion
     DuMMForceFieldSubsystemRep& mm = updRep();
 
         // Watch for nonsense arguments.
-    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class1), mm.ApiClassName, MethodName, 
+    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class1), mm.ApiClassName, MethodName,
         "class1=%d which is not a valid atom class Index", (int) class1);
-    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class2), mm.ApiClassName, MethodName, 
+    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class2), mm.ApiClassName, MethodName,
         "class2=%d which is not a valid atom class Index", (int) class2);
-    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class3), mm.ApiClassName, MethodName, 
+    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class3), mm.ApiClassName, MethodName,
         "class3=%d which is not a valid atom class Index", (int) class3);
-    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class3), mm.ApiClassName, MethodName, 
+    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtomClass(class3), mm.ApiClassName, MethodName,
         "class4=%d which is not a valid atom class Index", (int) class4);
-    SimTK_APIARGCHECK_ALWAYS(customBondTorsion, mm.ApiClassName, MethodName, 
+    SimTK_APIARGCHECK_ALWAYS(customBondTorsion, mm.ApiClassName, MethodName,
         "CustomBondTorsion pointer was null");
 
         // Canonicalize atom class quad by reversing order if necessary so that the
@@ -1167,7 +1193,7 @@ void DuMMForceFieldSubsystem::defineCustomBondTorsion
         // Attempt to create a new bond torsion entry containing no valid
         // terms. If there was already an entry it will be returned instead
         // and no insertion is performed.
-    std::pair<std::map<AtomClassIndexQuad,BondTorsion>::iterator, bool> ret = 
+    std::pair<std::map<AtomClassIndexQuad,BondTorsion>::iterator, bool> ret =
       mm.bondTorsion.insert(std::pair<AtomClassIndexQuad,BondTorsion>
         (key, BondTorsion(key)));
 
@@ -1177,36 +1203,36 @@ void DuMMForceFieldSubsystem::defineCustomBondTorsion
 
 // Convenient signature for a bond torsion with only one term.
 void DuMMForceFieldSubsystem::defineBondTorsion
-   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2, 
-    DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4, 
+   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2,
+    DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4,
     int periodicity1, Real amp1InKJ, Real phase1InDegrees)
 {
-    defineBondTorsion(class1, class2, class3, class4, 
+    defineBondTorsion(class1, class2, class3, class4,
                       periodicity1,amp1InKJ,phase1InDegrees,
                       -1,0.,0., -1,0.,0.);
 }
 
 // Convenient signature for a bond torsion with two terms.
 void DuMMForceFieldSubsystem::defineBondTorsion
-   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2, 
-    DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4, 
+   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2,
+    DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4,
     int periodicity1, Real amp1InKJ, Real phase1InDegrees,
     int periodicity2, Real amp2InKJ, Real phase2InDegrees)
 {
-    defineBondTorsion(class1, class2, class3, class4, 
+    defineBondTorsion(class1, class2, class3, class4,
                       periodicity1,amp1InKJ,phase1InDegrees,
                       periodicity2,amp2InKJ,phase2InDegrees,
                       -1,0.,0.);
 }
 
-// 
+//
 // This function is based on the defineBondTorsion function.
 // As with the normal bond torsions, we allow up to 3 terms in a single torsion function,
 // with three different periodicities. If any of these are unused, set the corresponding
 // periodicity to -1.
 //
 void DuMMForceFieldSubsystem::defineAmberImproperTorsion
-   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2, 
+   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2,
     DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4,
     int periodicity1, Real amp1InKJ, Real phase1InDegrees,
     int periodicity2, Real amp2InKJ, Real phase2InDegrees,
@@ -1217,7 +1243,7 @@ void DuMMForceFieldSubsystem::defineAmberImproperTorsion
     invalidateSubsystemTopologyCache();
 
     DuMMForceFieldSubsystemRep& mm = updRep();
-    mm.defineAnyTorsion(class1, class2, class3, class4, false, // don't canonicalize 
+    mm.defineAnyTorsion(class1, class2, class3, class4, false, // don't canonicalize
                  periodicity1, amp1InKJ, phase1InDegrees,
                  periodicity2, amp2InKJ, phase2InDegrees,
                  periodicity3, amp3InKJ, phase3InDegrees,
@@ -1227,7 +1253,7 @@ void DuMMForceFieldSubsystem::defineAmberImproperTorsion
 
 // Convenient signature for an amber improper torsion with only one term.
 void DuMMForceFieldSubsystem::defineAmberImproperTorsion
-   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2, 
+   (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2,
     DuMM::AtomClassIndex class3, DuMM::AtomClassIndex class4,
     int periodicity1, Real amp1InKJ, Real phase1InDegrees)
 {
@@ -1254,14 +1280,14 @@ void DuMMForceFieldSubsystem::setVdwMixingRule(VdwMixingRule rule) {
     invalidateSubsystemTopologyCache();
 
     DuMMForceFieldSubsystemRep& mm = updRep();
-    mm.vdwMixingRule = rule; 
+    mm.vdwMixingRule = rule;
 }
 
-DuMMForceFieldSubsystem::VdwMixingRule 
+DuMMForceFieldSubsystem::VdwMixingRule
 DuMMForceFieldSubsystem::getVdwMixingRule() const {
     //static const char* MethodName = "getVdwMixingRule";
     const DuMMForceFieldSubsystemRep& mm = getRep();
-    return mm.vdwMixingRule; 
+    return mm.vdwMixingRule;
 }
 
 const char*
@@ -1269,10 +1295,10 @@ DuMMForceFieldSubsystem::getVdwMixingRuleName(VdwMixingRule rule) const {
     static const char* MethodName = "getVdwMixingRuleName";
     switch(rule) {
     case WaldmanHagler:     return "Waldman-Hagler";
-    case HalgrenHHG:        return "Halgren-HHG";        
-    case Jorgensen:         return "Jorgensen";        
-    case LorentzBerthelot:  return "Lorentz-Berthelot"; 
-    case Kong:              return "Kong";          
+    case HalgrenHHG:        return "Halgren-HHG";
+    case Jorgensen:         return "Jorgensen";
+    case LorentzBerthelot:  return "Lorentz-Berthelot";
+    case Kong:              return "Kong";
     default:
         SimTK_APIARGCHECK1_ALWAYS(false, "DuMMForceFieldSubsystem", MethodName,
         "Unknown van der Waals mixing rule %d", (int)rule);
@@ -1441,7 +1467,7 @@ void DuMMForceFieldSubsystem::setBondBendGlobalScaleFactor(Real fac) {
 }
 void DuMMForceFieldSubsystem::setBondTorsionGlobalScaleFactor(Real fac) {
     static const char* MethodName = "setBondTorsionScaleFactor";
- 
+
     invalidateSubsystemTopologyCache();
 
     DuMMForceFieldSubsystemRep& mm = updRep();
@@ -1671,7 +1697,7 @@ includeAllInterbodyBondsForOneBody(MobilizedBodyIndex mobod) {
 
 void DuMMForceFieldSubsystem::
 includeAllInterbodyBondsBetweenTwoBodies
-   (MobilizedBodyIndex mobod1, MobilizedBodyIndex mobod2) 
+   (MobilizedBodyIndex mobod1, MobilizedBodyIndex mobod2)
 {
     invalidateSubsystemTopologyCache();
     InclusionListSpec& inclList = updRep().inclList;
@@ -1689,7 +1715,7 @@ getNumIncludedAtoms() const {
 
 DuMM::AtomIndex DuMMForceFieldSubsystem::
 getAtomIndexOfIncludedAtom
-   (DuMM::IncludedAtomIndex incAtomIndex) const 
+   (DuMM::IncludedAtomIndex incAtomIndex) const
 {
     // Don't check in Release mode since this might get called a lot and
     // presumably we just checked in getNumIncludedAtoms().
@@ -1708,7 +1734,7 @@ getNumNonbondAtoms() const {
 
 DuMM::IncludedAtomIndex DuMMForceFieldSubsystem::
 getIncludedAtomIndexOfNonbondAtom
-   (DuMM::NonbondAtomIndex nbAtomIndex) const 
+   (DuMM::NonbondAtomIndex nbAtomIndex) const
 {
     // Don't check in Release mode since this might get called a lot and
     // presumably we just checked in getNumNonbondAtoms().
@@ -1767,7 +1793,7 @@ void DuMMForceFieldSubsystem::setNumThreadsRequested(int nThreads)
 {   invalidateSubsystemTopologyCache();
     updRep().numThreadsRequested = nThreads > 0 ? nThreads : 0; }
 
-int DuMMForceFieldSubsystem::getNumThreadsInUse() const 
+int DuMMForceFieldSubsystem::getNumThreadsInUse() const
 {   return getRep().numThreadsInUse; }
 
 
@@ -1805,10 +1831,10 @@ SimTK::Real DuMMForceFieldSubsystem::calcFullPotentialEnergyOpenMM(const State& 
 
 
 Real DuMMForceFieldSubsystem::OMM_calcPotentialEnergy() const
-{ return getRep().openMMPlugin.calcPotentialEnergy();} 
+{ return getRep().openMMPlugin.calcPotentialEnergy();}
 
 Real DuMMForceFieldSubsystem::OMM_calcKineticEnergy() const
-{ return getRep().openMMPlugin.calcKineticEnergy();} 
+{ return getRep().openMMPlugin.calcKineticEnergy();}
 
 void DuMMForceFieldSubsystem::OMM_integrateTrajectory( int steps )
 { return updRep().openMMPlugin.integrateTrajectory(steps);}
@@ -1839,27 +1865,27 @@ float DuMMForceFieldSubsystem::getOpenMMstepsize() const
 {   return getRep().stepsize; }
 
 void DuMMForceFieldSubsystem::setDuMMTimestep(float argTimestep)
-{   
+{
     invalidateSubsystemTopologyCache(); // TODO: why?
 
     updRep().stepsize = argTimestep;
     //updRep().openMMPlugin.setTimestep(argTimestep);
 
     // std::cout << "OMMDEBUG DuMMForceFieldSubsystem::setOpenMMstepsize stepsizes "
-    //     <<" "<< updRep().stepsize 
-    //     <<" "<< argTimestep 
+    //     <<" "<< updRep().stepsize
+    //     <<" "<< argTimestep
     //     << std::endl << std::flush;
-    
+
 }
 
 float DuMMForceFieldSubsystem::getOpenMMtemperature() const
 {   return getRep().temperature; }
 
 void DuMMForceFieldSubsystem::setDuMMTemperature(float value)
-{   
+{
     updRep().temperature = value;
     //updRep().openMMPlugin.setVelocitiesToTemperature(value);
-    
+
     // std::cout<<"SETTING TEMPERATURE in DUMM "<<std::endl << getRep().temperature <<std::endl<< std::flush;
 }
 
@@ -1896,11 +1922,11 @@ bool DuMMForceFieldSubsystem::getAllowOpenMMReference() const
 {   return getRep().allowOpenMMReference; }
 
 void DuMMForceFieldSubsystem::setAllowOpenMMReference(bool allow)
-{   
+{
     invalidateSubsystemTopologyCache();
     updRep().allowOpenMMReference = allow; }
 
-bool DuMMForceFieldSubsystem::isUsingOpenMM() const 
+bool DuMMForceFieldSubsystem::isUsingOpenMM() const
 {   return getRep().usingOpenMM; }
 
 std::string DuMMForceFieldSubsystem::getOpenMMPlatformInUse() const {
@@ -1922,7 +1948,7 @@ DuMM::AtomIndex DuMMForceFieldSubsystem::addAtom(DuMM::ChargedAtomTypeIndex char
 
     DuMMForceFieldSubsystemRep& mm = updRep();
 
-    SimTK_APIARGCHECK1_ALWAYS(mm.isValidChargedAtomType(chargedAtomTypeIndex), mm.ApiClassName, MethodName, 
+    SimTK_APIARGCHECK1_ALWAYS(mm.isValidChargedAtomType(chargedAtomTypeIndex), mm.ApiClassName, MethodName,
         "charged atom type %d is not valid", (int) chargedAtomTypeIndex);
 
     const DuMM::AtomIndex atomIndex = (const DuMM::AtomIndex)mm.atoms.size();
@@ -1998,7 +2024,7 @@ void DuMMForceFieldSubsystem::placeClusterInCluster
         // Make sure that parent cluster doesn't already contain child cluster, either directly
         // or recursively through its subclusters.
     SimTK_APIARGCHECK4_ALWAYS(!parent.containsCluster(childClusterIndex), mm.ApiClassName, MethodName,
-        "parent cluster %d('%s') already contains child cluster %d('%s')", 
+        "parent cluster %d('%s') already contains child cluster %d('%s')",
         (int) parentClusterIndex, parent.name.c_str(), (int) childClusterIndex, child.name.c_str());
 
         // Make sure the new child cluster doesn't contain any atoms which are already in
@@ -2015,8 +2041,8 @@ void DuMMForceFieldSubsystem::placeClusterInCluster
 }
 
 void DuMMForceFieldSubsystem::attachClusterToBody
-   (DuMM::ClusterIndex clusterIndex, MobilizedBodyIndex mobodIx, 
-    const Transform& placementInNm) 
+   (DuMM::ClusterIndex clusterIndex, MobilizedBodyIndex mobodIx,
+    const Transform& placementInNm)
 {
     static const char* MethodName = "attachClusterToBody";
 
@@ -2025,7 +2051,7 @@ void DuMMForceFieldSubsystem::attachClusterToBody
     DuMMForceFieldSubsystemRep& mm = updRep();
 
         // Make sure we've seen this cluster before, and that the body number is well formed.
-    SimTK_APIARGCHECK1_ALWAYS(mm.isValidCluster(clusterIndex), 
+    SimTK_APIARGCHECK1_ALWAYS(mm.isValidCluster(clusterIndex),
         mm.ApiClassName, MethodName,
         "cluster Index %d is not valid", (int) clusterIndex);
     SimTK_APIARGCHECK1_ALWAYS(mobodIx.isValid(), mm.ApiClassName, MethodName,
@@ -2034,7 +2060,7 @@ void DuMMForceFieldSubsystem::attachClusterToBody
     const Cluster& child  = mm.getCluster(clusterIndex);
 
         // Child must not already be attached to a body.
-    SimTK_APIARGCHECK3_ALWAYS(!child.isAttachedToBody(), 
+    SimTK_APIARGCHECK3_ALWAYS(!child.isAttachedToBody(),
         mm.ApiClassName, MethodName,
         "cluster %d('%s') is already attached to body %d so cannot now be"
         " attached to a body",
@@ -2044,21 +2070,21 @@ void DuMMForceFieldSubsystem::attachClusterToBody
     DuMM::AtomIndex    tempAtomIndex;
     MobilizedBodyIndex tempBodyIndex;
     SimTK_APIARGCHECK4_ALWAYS(
-        !child.containsAnyAtomsAttachedToABody(tempAtomIndex,tempBodyIndex,mm), 
+        !child.containsAnyAtomsAttachedToABody(tempAtomIndex,tempBodyIndex,mm),
         mm.ApiClassName, MethodName,
         "cluster %d('%s') contains atom %d which is already attached to body %d"
         " so the cluster cannot now be attached to another body",
-        (int)clusterIndex, child.name.c_str(), (int)tempAtomIndex, 
+        (int)clusterIndex, child.name.c_str(), (int)tempAtomIndex,
         (int)tempBodyIndex);
 
     // Create an entry for the body if necessary, and its corresponding cluster.
     DuMMBodyIndex duMMBodyIndex = mm.ensureDuMMBodyEntryExists(mobodIx);
-    Cluster&      bodyCluster   = 
+    Cluster&      bodyCluster   =
         mm.updCluster(mm.getDuMMBody(duMMBodyIndex).getClusterIndex());
 
         // Make sure that body cluster doesn't already contain child cluster, either directly
         // or recursively through its subclusters.
-    SimTK_APIARGCHECK3_ALWAYS(!bodyCluster.containsCluster(clusterIndex), 
+    SimTK_APIARGCHECK3_ALWAYS(!bodyCluster.containsCluster(clusterIndex),
         mm.ApiClassName, MethodName,
         "cluster %d('%s') is already attached (directly or indirectly) to"
         " body %d", (int)clusterIndex, child.name.c_str(), (int)mobodIx);
@@ -2069,11 +2095,11 @@ void DuMMForceFieldSubsystem::attachClusterToBody
 
 // EU COMMENT BEGIN
 void DuMMForceFieldSubsystem::attachAtomToBody
-   (DuMM::AtomIndex atomIndex, MobilizedBodyIndex bodyIndex, 
+   (DuMM::AtomIndex atomIndex, MobilizedBodyIndex bodyIndex,
     const Vec3& stationInNm)
 // EU BEGIN
 //void DuMMForceFieldSubsystem::attachAtomToBody
-//   (DuMM::AtomIndex atomIndex, MobilizedBodyIndex bodyIndex, 
+//   (DuMM::AtomIndex atomIndex, MobilizedBodyIndex bodyIndex,
 //    Vec3 stationInNm)
 // EU END
 {
@@ -2090,7 +2116,7 @@ void DuMMForceFieldSubsystem::attachAtomToBody
         "body number %d is not valid: must be nonnegative", (int)bodyIndex);
 
         // The atom must not already be attached to a body, even this one.
-    SimTK_APIARGCHECK2_ALWAYS(!mm.getAtom(atomIndex).isAttachedToBody(), 
+    SimTK_APIARGCHECK2_ALWAYS(!mm.getAtom(atomIndex).isAttachedToBody(),
         mm.ApiClassName, MethodName,
         "atom %d is already attached to body %d so cannot now be attached"
         " to a body",
@@ -2266,7 +2292,7 @@ Vec3 DuMMForceFieldSubsystem::getAtomStationOnBody(DuMM::AtomIndex atomIndex) co
 
 
 // EU BEGIN
-/// Set the station at which a particular atom is fixed on its body. 
+/// Set the station at which a particular atom is fixed on its body.
 /// An exception will be thrown if this atom is not fixed to any body.
 void DuMMForceFieldSubsystem::bsetAtomStationOnBody(DuMM::AtomIndex atomIndex, Vec3 new_station_B){
     static const char* MethodName = "getAtomStationOnBody";
@@ -2285,7 +2311,7 @@ void DuMMForceFieldSubsystem::bsetAtomStationOnBody(DuMM::AtomIndex atomIndex, V
     a.station_B = new_station_B;
 }
 
-/// Set the station at which a particular atom is fixed on its body. 
+/// Set the station at which a particular atom is fixed on its body.
 /// An exception will be thrown if this atom is not fixed to any body.
 void DuMMForceFieldSubsystem::bsetAllAtomStationOnBody(DuMM::AtomIndex atomIndex, Vec3 new_station_B){
     static const char* MethodName = "getAtomStationOnBody";
@@ -2325,7 +2351,7 @@ DuMMForceFieldSubsystem::bsetAtomPlacementStation(
     //AtomPlacement ap(DuMM::AtomIndex(0), Vec3(0));
     //ap.station = Vec3(1);
 
-    // Iterate DuMMBody - DuMMBodyIndex list and search 
+    // Iterate DuMMBody - DuMMBodyIndex list and search
     for (DuMMBodyIndex dBIx(0); dBIx < mm.duMMSubsetOfBodies.size(); ++dBIx) {
 
         // Get DuMMBody and Mbx
@@ -2333,11 +2359,11 @@ DuMMForceFieldSubsystem::bsetAtomPlacementStation(
         const MobodIndex mbx = dummBody.getMobilizedBodyIndex();
 
         // Found the DuMMBody with required Mbx
-        if(mbx == inputMbx){ 
+        if(mbx == inputMbx){
 
             // Get the corresponding cluster
             const Cluster& cluster = mm.getCluster(dummBody.clusterIndex);
-            
+
             // Iterate AtomPlacementSet of this Cluster
             for (AtomPlacementSet::iterator app = cluster.getAllContainedAtoms().begin();
                 app != cluster.getAllContainedAtoms().end();
@@ -2356,7 +2382,7 @@ DuMMForceFieldSubsystem::bsetAtomPlacementStation(
             } //every atom
         } // found the mobod
     } // every DummBody
-  
+
 }
 
 
@@ -2404,7 +2430,7 @@ DuMM::ClusterIndex DuMMForceFieldSubsystem::bgetMobodClusterIndex(MobilizedBodyI
   for (DuMMBodyIndex bnum(0); bnum < mm.duMMSubsetOfBodies.size(); ++bnum) {
     const DuMMBody& b = mm.duMMSubsetOfBodies[bnum];
     const MobodIndex mbx = b.getMobilizedBodyIndex();
-    if(mbx == inputMbx){ 
+    if(mbx == inputMbx){
       // Make sure that we've seen this clusters before.
       //SimTK_APIARGCHECK1_ALWAYS(mm.isValidCluster(clusterIndex), mm.ApiClassName, MethodName,
       //  "cluster Index %d is not valid", (int) b.clusterIndex);
@@ -2451,7 +2477,7 @@ Vec3 DuMMForceFieldSubsystem::getAtomStationInCluster(DuMM::AtomIndex atomIndex,
 
     const Cluster& c = mm.getCluster(clusterIndex);
     const AtomPlacementSet& atoms = c.getAllContainedAtoms();
-    const AtomPlacementSet::const_iterator ap = 
+    const AtomPlacementSet::const_iterator ap =
         atoms.find(AtomPlacement(atomIndex,Vec3(0)));
 
         // We're going to be upset of this cluster doesn't contain this atom.
@@ -2476,12 +2502,12 @@ Transform DuMMForceFieldSubsystem::getClusterPlacementInCluster(DuMM::ClusterInd
     const Cluster& child  = mm.getCluster(childClusterIndex);
 
     const ClusterPlacementSet& clusters = parent.getAllContainedClusters();
-    const ClusterPlacementSet::const_iterator cp = 
+    const ClusterPlacementSet::const_iterator cp =
         clusters.find(ClusterPlacement(childClusterIndex,Transform()));
 
         // We're going to be upset of the parent cluster doesn't contain the child.
     SimTK_APIARGCHECK4_ALWAYS(cp != clusters.end(), mm.ApiClassName, MethodName,
-        "cluster %d('%s') does not contain cluster %d('%d')", 
+        "cluster %d('%s') does not contain cluster %d('%d')",
         (int) parentClusterIndex, parent.name.c_str(), (int) childClusterIndex, child.name.c_str());
 
     return cp->placement;
@@ -2534,7 +2560,7 @@ long long DuMMForceFieldSubsystem::getForceEvaluationCount() const
 	return getRep().getForceEvaluationCount();
 }
 
-std::ostream& DuMMForceFieldSubsystemRep::generateBiotypeChargedAtomTypeSelfCode(std::ostream& os) const 
+std::ostream& DuMMForceFieldSubsystemRep::generateBiotypeChargedAtomTypeSelfCode(std::ostream& os) const
 {
     std::map<BiotypeIndex, DuMM::ChargedAtomTypeIndex>::const_iterator i;
     for (i = chargedAtomTypesByBiotype.begin(); i != chargedAtomTypesByBiotype.end(); ++i)
@@ -2545,12 +2571,12 @@ std::ostream& DuMMForceFieldSubsystemRep::generateBiotypeChargedAtomTypeSelfCode
     return os;
 }
 
-std::ostream& DuMMForceFieldSubsystem::generateBiotypeChargedAtomTypeSelfCode(std::ostream& os) const 
+std::ostream& DuMMForceFieldSubsystem::generateBiotypeChargedAtomTypeSelfCode(std::ostream& os) const
 {
     return getRep().generateBiotypeChargedAtomTypeSelfCode(os);
 }
 
-void DuMMForceFieldSubsystem::setBiotypeChargedAtomType(DuMM::ChargedAtomTypeIndex chargedAtomTypeIndex, BiotypeIndex biotypeIx) 
+void DuMMForceFieldSubsystem::setBiotypeChargedAtomType(DuMM::ChargedAtomTypeIndex chargedAtomTypeIndex, BiotypeIndex biotypeIx)
 {
     updRep().setBiotypeChargedAtomType(chargedAtomTypeIndex, biotypeIx);
 }
@@ -2559,7 +2585,7 @@ DuMM::ChargedAtomTypeIndex DuMMForceFieldSubsystem::getBiotypeChargedAtomType(Bi
     return getRep().getBiotypeChargedAtomType(biotypeIx);
 }
 
-// void DuMMForceFieldSubsystem::loadAmber99Parameters() 
+// void DuMMForceFieldSubsystem::loadAmber99Parameters()
 // {
 //     Biotype::initializePopularBiotypes();
 //     populateAmber99Params(*this);
@@ -2583,7 +2609,7 @@ DuMM::ChargedAtomTypeIndex DuMMForceFieldSubsystem::getBiotypeChargedAtomType(Bi
 // }
 
 
-// void DuMMForceFieldSubsystem::populateFromTinkerParameterFile(std::istream& tinkerStream) 
+// void DuMMForceFieldSubsystem::populateFromTinkerParameterFile(std::istream& tinkerStream)
 // {
 
 //     //////////////////////////////////////////////////////
@@ -2643,10 +2669,10 @@ DuMM::ChargedAtomTypeIndex DuMMForceFieldSubsystem::getBiotypeChargedAtomType(Bi
 //         else if (recordType == "radiustype") {
 //             String radiusType;
 //             lineStream >> radiusType;
-            
+
 //             if (radiusType == "R-MIN")
 //                 radiusTypeScale = 1.0;
-//             else if (radiusType == "SIGMA") 
+//             else if (radiusType == "SIGMA")
 //                 radiusTypeScale = pow(2.0, (1.0/6.0));
 //         }
 
@@ -2666,7 +2692,7 @@ DuMM::ChargedAtomTypeIndex DuMMForceFieldSubsystem::getBiotypeChargedAtomType(Bi
 //         // EPSILONRULE [GEOMETRIC/ARITHMETIC/HARMONIC/HHG]
 //         // TODO - DuMM currently lumps this with RADIUSRULE
 //         else if (recordType == "epsilonrule") {
-//             String epsilonRule; 
+//             String epsilonRule;
 //             lineStream >> epsilonRule;
 
 //             if (epsilonRule == "GEOMETRIC") {
@@ -2707,7 +2733,7 @@ DuMM::ChargedAtomTypeIndex DuMMForceFieldSubsystem::getBiotypeChargedAtomType(Bi
 
 //         // "atom" records
 //         // 'atom      1    14    N       "Glycine N"                 7     14.010     3'
-//         else if (recordType == "atom") 
+//         else if (recordType == "atom")
 //         {
 //             int integer;
 //             lineStream >> integer;
@@ -2726,7 +2752,7 @@ DuMM::ChargedAtomTypeIndex DuMMForceFieldSubsystem::getBiotypeChargedAtomType(Bi
 //             // Second try grabs string
 //             std::getline(lineStream, chargedAtomTypeName, '"');
 
-//             int elementNumber; 
+//             int elementNumber;
 //             lineStream >> elementNumber;
 
 //             Real atomMass;
@@ -2738,9 +2764,9 @@ DuMM::ChargedAtomTypeIndex DuMMForceFieldSubsystem::getBiotypeChargedAtomType(Bi
 //             // we don't yet know vdwRadius and vdwWellDepth
 //             if (!isValidAtomClass(atomClassId)) {
 //                 defineIncompleteAtomClass_KA(
-//                     atomClassId, 
-//                     atomClassName.c_str(), 
-//                     elementNumber, 
+//                     atomClassId,
+//                     atomClassName.c_str(),
+//                     elementNumber,
 //                     valence);
 
 //             }
@@ -2749,17 +2775,17 @@ DuMM::ChargedAtomTypeIndex DuMMForceFieldSubsystem::getBiotypeChargedAtomType(Bi
 
 //             // we don't yet know atomic partial charge
 //             defineIncompleteChargedAtomType_KA(
-//                 chargedAtomTypeIndex, 
+//                 chargedAtomTypeIndex,
 //                 chargedAtomTypeName.c_str(),
 //                 atomClassId);
 
 //             atomClassIdByChargedAtomTypeIndex[chargedAtomTypeIndex] = atomClassId;
 //         }
-       
+
 //         // "vdw" records, e.g.
 //         // 'vdw          1              1.9080     0.1094'
 //         // RecordType   AtomClass      Radius     WellDepth
-//         else if (recordType == "vdw") 
+//         else if (recordType == "vdw")
 //         {
 //             int integer;
 //             lineStream >> integer;
@@ -2823,7 +2849,7 @@ DuMM::ChargedAtomTypeIndex DuMMForceFieldSubsystem::getBiotypeChargedAtomType(Bi
 
 //         // improper torsions
 //         // imptors      1   14    2   24         10.500  180.0  2
-//         else if (recordType == "imptors") 
+//         else if (recordType == "imptors")
 //         {
 //             int integer;
 //             lineStream >> integer;
@@ -2858,7 +2884,7 @@ DuMM::ChargedAtomTypeIndex DuMMForceFieldSubsystem::getBiotypeChargedAtomType(Bi
 //         // 'torsion     23    1    1   23          0.144    0.0  3      1.175    0.0  2'
 //         // OR
 //         // 'torsion      1    1    1    2          0.156    0.0  3'
-//         else if (recordType == "torsion") 
+//         else if (recordType == "torsion")
 //         {
 //             int integer;
 //             lineStream >> integer;
@@ -2959,7 +2985,7 @@ DuMM::ChargedAtomTypeIndex DuMMForceFieldSubsystem::getBiotypeChargedAtomType(Bi
 //         // "biotype" records, e.g.
 //         // 'biotype      1    N       "Glycine"                   1'
 //         // RecordType Biotype AtomName ResidueName          AtomClass
-//         else if ( recordType == "biotype" ) 
+//         else if ( recordType == "biotype" )
 //         {
 //             int integer;
 //             lineStream >> integer;
@@ -2996,10 +3022,10 @@ DuMM::ChargedAtomTypeIndex DuMMForceFieldSubsystem::getBiotypeChargedAtomType(Bi
 //                 ordinality = Ordinality::Initial;
 
 //                 // e.g. "N-Terminal GLY"
-//                 if (pos1 == 0) 
+//                 if (pos1 == 0)
 //                     residueName.replace(pos1, 11, "");
 //                 // e.g. "Acetyl N-Terminus"
-//                 else 
+//                 else
 //                     residueName.replace(pos1-1, 11, "");
 //             }
 
@@ -3008,13 +3034,13 @@ DuMM::ChargedAtomTypeIndex DuMMForceFieldSubsystem::getBiotypeChargedAtomType(Bi
 //                 ordinality = Ordinality::Final;
 
 //                 // e.g. "C-Terminal GLY"
-//                 if (pos1 == 0) 
+//                 if (pos1 == 0)
 //                     residueName.replace(pos1, 11, "");
 //                 // e.g. "N-MeAmide C-Terminus"
-//                 else 
+//                 else
 //                     residueName.replace(pos1-1, 11, "");
 //             }
-            
+
 //             // Nucleic acid biotypes, e.g.
 //             // "5'-Hydroxyl, RNA"
 //             // "5'-Phosphate OS, DNA"
@@ -3022,7 +3048,7 @@ DuMM::ChargedAtomTypeIndex DuMMForceFieldSubsystem::getBiotypeChargedAtomType(Bi
 //             if (pos1 != std::string::npos) {
 //             	ordinality = Ordinality::Initial;
 //             	residueName.replace(pos1, 3, "");
-            	
+
 //                 // get rid of that annoying wrongly placed atom name in the terminal phosphates
 //             	pos1 = residueName.find(" OP,");
 //             	if (pos1 != std::string::npos) residueName.replace(pos1, 4, ",");
@@ -3030,13 +3056,13 @@ DuMM::ChargedAtomTypeIndex DuMMForceFieldSubsystem::getBiotypeChargedAtomType(Bi
 //             	if (pos1 != std::string::npos) residueName.replace(pos1, 4, ",");
 //             	pos1 = residueName.find(" P,");
 //             	if (pos1 != std::string::npos) residueName.replace(pos1, 3, ",");
-            	
+
 //             }
 //             pos1 = residueName.find("3'-");
 //             if (pos1 != std::string::npos) {
 //             	ordinality = Ordinality::Final;
 //             	residueName.replace(pos1, 3, "");
-            	
+
 //                 // get rid of that annoying wrongly placed atom name in the terminal phosphates
 //             	pos1 = residueName.find(" OP,");
 //             	if (pos1 != std::string::npos) residueName.replace(pos1, 4, ",");
@@ -3090,25 +3116,25 @@ CalcFullPotEnergyIncludingRigidBodies ( const State& state ) const {
     //drl BEGIN
 
     const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_bon(){return updRep().openMMPlugin.getEnergies_drl_bon();}
-    const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_ang(){return updRep().openMMPlugin.getEnergies_drl_ang();}    
+    const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_ang(){return updRep().openMMPlugin.getEnergies_drl_ang();}
     const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_tor(){return updRep().openMMPlugin.getEnergies_drl_tor();}
     const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_n14(){return updRep().openMMPlugin.getEnergies_drl_n14();}
     const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_vdw(){return updRep().openMMPlugin.getEnergies_drl_vdw();}
-    const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_cou(){return updRep().openMMPlugin.getEnergies_drl_cou();}           
+    const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_cou(){return updRep().openMMPlugin.getEnergies_drl_cou();}
     const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_bon(){return updRep().openMMPlugin.getForces_drl_bon();}
     const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_ang(){return updRep().openMMPlugin.getForces_drl_ang();}
     const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_tor(){return updRep().openMMPlugin.getForces_drl_tor();}
     const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_n14(){return updRep().openMMPlugin.getForces_drl_n14();}
 
     // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_bon(){}
-    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_ang(){}     
+    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_ang(){}
     // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_tor(){}
     // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_n14(){}
     // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_vdw(){}
-    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_cou(){}           
+    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_cou(){}
     // const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_bon(){}
     // const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_ang(){}
     // const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_tor(){}
-    // const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_n14(){}    
-    
+    // const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_n14(){}
+
     //drl END
