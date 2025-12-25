@@ -81,6 +81,31 @@ namespace BondMobility {
     };
     static Mobility Default = Torsion;
 
+    /**
+     * Converts a Mobility enum value to its string representation.
+     * Returns "Unknown" if the value is not recognized.
+     */
+    inline const char* getBondMobilityName(Mobility m) {
+        switch (m) {
+            case Mobility::Free:             return "Free";
+            case Mobility::Torsion:          return "Torsion";
+            case Mobility::Rigid:            return "Rigid";
+            case Mobility::BallF:            return "BallF";
+            case Mobility::BallM:            return "BallM";
+            case Mobility::Cylinder:         return "Cylinder";
+            case Mobility::Translation:      return "Translation";
+            case Mobility::FreeLine:         return "FreeLine";
+            case Mobility::LineOrientationF: return "LineOrientationF";
+            case Mobility::LineOrientationM: return "LineOrientationM";
+            case Mobility::UniversalM:       return "UniversalM";
+            case Mobility::Spherical:        return "Spherical";
+            case Mobility::AnglePin:         return "AnglePin";
+            case Mobility::BendStretch:      return "BendStretch";
+            case Mobility::Slider:           return "Slider";
+            case Mobility::OrthoSpherical:   return "OrthoSpherical";
+            default:                         return "Unknown";
+        }
+    }
 }
 
 /**
@@ -703,7 +728,7 @@ public:
      * @param atom2
      * @return
      */
-    Transform getDefaultBondCenterFrameInOtherBondCenterFrame(Compound::AtomIndex atom1, Compound::AtomIndex atom2);
+    Transform getDefaultBondCenterFrameInOtherBondCenterFrame(Compound::AtomIndex atom1, Compound::AtomIndex atom2) const;
 
     /**
      * \brief Compute the default bond center frame in the atom frame
@@ -714,8 +739,8 @@ public:
      * \param atom2 ///< second atom index
      * \return Transform representing the bond center frame in the first atom's frame
      */
-    Transform calcDefaultBondCenterFrameInParentAtomFrame(Compound::AtomIndex parentAtom1, Compound::AtomIndex childAtom2);
-    Transform calcDefaultBondCenterFrameInChildAtomFrame(Compound::AtomIndex parentAtom1, Compound::AtomIndex childAtom2);
+    Transform calcDefaultBondCenterFrameInParentAtomFrame(Compound::AtomIndex parentAtom1, Compound::AtomIndex childAtom2) const;
+    Transform calcDefaultBondCenterFrameInChildAtomFrame(Compound::AtomIndex parentAtom1, Compound::AtomIndex childAtom2) const;
 
     /**
      * \brief Create a mapping between this Compound and atom locations in a PdbStructure
