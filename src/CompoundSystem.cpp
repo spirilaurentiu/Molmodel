@@ -493,6 +493,7 @@ void CompoundSystem::modelOneCompound(
     // ------------------------------------------------------------------------
     // (0) Calc default Compound atom frames in Top
     // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&$$$$
+	#pragma region MODEL_0
 
     if (showDebugMessages){cout << "modelOneCompound" << endl;}
 
@@ -521,12 +522,14 @@ void CompoundSystem::modelOneCompound(
     std::map<DuMM::ClusterIndex, RigidUnit> rigidUnits;
     std::map<Compound::AtomIndex, AtomBonding> atomBondings;
 
+    #pragma endregion MODEL_0
 
     // ------------------------------------------------------------------------
     // (1) - Create initial AtomBonding data for each atom.
     //     - Add DuMM atoms
     // No bonds are cached in this loop.
     // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&$$$$
+	#pragma region MODEL_1
 
     if (showDebugMessages) {cout << "Step 1 create atomBonds" << endl;}
 
@@ -570,7 +573,8 @@ void CompoundSystem::modelOneCompound(
         // }
 
     } // every atom
-
+    
+    #pragma endregion MODEL_1
 
     // ------------------------------------------------------------------------
     // (2) - Add DuMM bonds
