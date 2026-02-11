@@ -421,7 +421,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
 //                         const DuMM::IncludedAtomIndex a2num = a1.force13[b13][0];
 //                         const DuMM::IncludedAtomIndex a3num = a1.force13[b13][1];
 
-//                         const BondBend& bb = *a1.bend[b13];
+//                         const RoboAngle& bb = *a1.bend[b13];
 
 //                         if (bb.hasBuiltinTerm()) {
 
@@ -619,7 +619,7 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
     Vector_<SpatialVec>&    includedBodyForces_G,
     Real&                   energy) const
 {
-    SimTK_ASSERT_ALWAYS(true, "OpenMMPluginInterface::calcOpenMMEnergyAndForces() is no longer supported.");
+    // SimTK_ASSERT_ALWAYS(false, "OpenMMPluginInterface::calcOpenMMEnergyAndForces() is no longer supported.");
 
     // if (!(wantForces || wantEnergy))
     //     return;
@@ -699,7 +699,7 @@ void OpenMMPluginInterface::calcOpenMMEnergyAndForces
 */
 void OpenMMPluginInterface::integrateTrajectory(int steps)
 {
-    SimTK_ASSERT_ALWAYS(true, "OpenMMPluginInterface::integrateTrajectory() is no longer supported.");
+    // SimTK_ASSERT_ALWAYS(false, "OpenMMPluginInterface::integrateTrajectory() is no longer supported.");
 
     // // Print coordinates after integration
     // // std::cout << "After integration:" << std::endl;
@@ -765,7 +765,7 @@ void OpenMMPluginInterface::integrateTrajectory(int steps)
 void OpenMMPluginInterface::setOpenMMPositions(
     const SimTK::Vector_<SimTK::Vec3>& includedAtomPos_G ) const
 {
-    SimTK_ASSERT_ALWAYS(true, "OpenMMPluginInterface::setOpenMMPositions() is no longer supported.");
+    // SimTK_ASSERT_ALWAYS(false, "OpenMMPluginInterface::setOpenMMPositions() is no longer supported.");
 
     // assert(NonbondAtomsPositionsCache.size() == dumm->getNumNonbondAtoms());
     // assert(includedAtomPos_G.size() == dumm->getNumIncludedAtoms());
@@ -788,7 +788,7 @@ void OpenMMPluginInterface::setOpenMMPositions(
 void OpenMMPluginInterface::setOpenMMPositions(
     const std::vector<SimTK::Vec3>& positions)
 {
-    SimTK_ASSERT_ALWAYS(true, "OpenMMPluginInterface::setOpenMMPositions() is no longer supported.");
+    // SimTK_ASSERT_ALWAYS(false, "OpenMMPluginInterface::setOpenMMPositions() is no longer supported.");
 
     // // Make sure the memory cache is good
     // assert(PositionsCache.size() == positions.size());
@@ -810,7 +810,7 @@ void OpenMMPluginInterface::setOpenMMPositions(
 */
 const std::vector<OpenMM::Vec3>& OpenMMPluginInterface::getPositions() const
 {
-    SimTK_ASSERT_ALWAYS(true, "OpenMMPluginInterface::getPositions() is no longer supported.");
+    // SimTK_ASSERT_ALWAYS(false, "OpenMMPluginInterface::getPositions() is no longer supported.");
     return PositionsCache;
 
     // openMMState = openMMContext->getState(OpenMM::State::Positions);
@@ -823,7 +823,7 @@ const std::vector<OpenMM::Vec3>& OpenMMPluginInterface::getPositions() const
 */
 void OpenMMPluginInterface::updateAtomLocationsCache()
 {
-    SimTK_ASSERT_ALWAYS(true, "OpenMMPluginInterface::updateAtomLocationsCache() is no longer supported.");
+    // SimTK_ASSERT_ALWAYS(false, "OpenMMPluginInterface::updateAtomLocationsCache() is no longer supported.");
 
     // // openMMState = openMMContext->getState(OpenMM::State::Positions);
     // // return openMMState.getPositions();
@@ -844,7 +844,7 @@ void OpenMMPluginInterface::updateAtomLocationsCache()
 */
 SimTK::Vec3 OpenMMPluginInterface::getAtomPosition( int dummAtomIndex ) const
 {
-    SimTK_ASSERT_ALWAYS(true, "OpenMMPluginInterface::getAtomPosition() is no longer supported.");
+    // SimTK_ASSERT_ALWAYS(false, "OpenMMPluginInterface::getAtomPosition() is no longer supported.");
     return SimTK::Vec3(0,0,0);
 
     // SimTK::DuMM::AtomIndex dummAtomIndex_ai(dummAtomIndex);
@@ -869,7 +869,7 @@ SimTK::Vec3 OpenMMPluginInterface::getAtomPosition( int dummAtomIndex ) const
 */
 Real OpenMMPluginInterface::calcPotentialEnergy() const
 {
-    SimTK_ASSERT_ALWAYS(true, "OpenMMPluginInterface::calcPotentialEnergy() is no longer supported.");
+    // SimTK_ASSERT_ALWAYS(false, "OpenMMPluginInterface::calcPotentialEnergy() is no longer supported.");
     return 0.0;
     
     // openMMState = openMMContext->getState(OpenMM::State::Energy);
@@ -882,7 +882,7 @@ Real OpenMMPluginInterface::calcPotentialEnergy() const
 */
 Real OpenMMPluginInterface::calcKineticEnergy() const
 {
-    SimTK_ASSERT_ALWAYS(true, "OpenMMPluginInterface::calcKineticEnergy() is no longer supported.");
+    // SimTK_ASSERT_ALWAYS(false, "OpenMMPluginInterface::calcKineticEnergy() is no longer supported.");
     return 0.0;
 
     // openMMState = openMMContext->getState(OpenMM::State::Energy);
@@ -893,7 +893,7 @@ Real OpenMMPluginInterface::calcKineticEnergy() const
  * <!--  -->
 */
 void OpenMMPluginInterface::setVelocitiesToTemperature(SimTK::Real temperature, uint32_t seed) {
-    SimTK_ASSERT_ALWAYS(true, "OpenMMPluginInterface::setVelocitiesToTemperature() is no longer supported.");
+    // SimTK_ASSERT_ALWAYS(false, "OpenMMPluginInterface::setVelocitiesToTemperature() is no longer supported.");
 
     // // TODO why check
     // // std::cout << "setVelocitiesToTemperature " << temperature << " " << seed << std::endl;
@@ -907,7 +907,7 @@ void OpenMMPluginInterface::setVelocitiesToTemperature(SimTK::Real temperature, 
  * <!--  -->
 */
 void OpenMMPluginInterface::setParticleMass(int index, SimTK::Real mass) {
-    SimTK_ASSERT_ALWAYS(true, "OpenMMPluginInterface::setParticleMass() is no longer supported.");
+    // SimTK_ASSERT_ALWAYS(false, "OpenMMPluginInterface::setParticleMass() is no longer supported.");
 
     // std::cout << std::fixed << std::setprecision(6);
     // std::cout <<"STUDY_OpenMMPluginInterface::setParticleMass" <<" index "<< index <<" mass "<< mass << std::endl;    
@@ -918,13 +918,13 @@ void OpenMMPluginInterface::setParticleMass(int index, SimTK::Real mass) {
  * <!--  -->
 */
 void OpenMMPluginInterface::setOpenMMMasses(const std::vector<SimTK::Real>& argMasses) {
-    SimTK_ASSERT_ALWAYS(true, "OpenMMPluginInterface::setOpenMMMasses() is no longer supported.");
+    // SimTK_ASSERT_ALWAYS(false, "OpenMMPluginInterface::setOpenMMMasses() is no longer supported.");
     // this->masses = argMasses;
 }
 
 
 void OpenMMPluginInterface::setSeed(uint32_t seed) {
-    SimTK_ASSERT_ALWAYS(true, "OpenMMPluginInterface::setSeed() is no longer supported.");
+    // SimTK_ASSERT_ALWAYS(false, "OpenMMPluginInterface::setSeed() is no longer supported.");
     // this->seed = seed;
 }
 
@@ -932,7 +932,7 @@ void OpenMMPluginInterface::setSeed(uint32_t seed) {
  * <!--  -->
 */
 void OpenMMPluginInterface::setTimestep(Real stepsize) {
-    SimTK_ASSERT_ALWAYS(true, "OpenMMPluginInterface::setTimestep() is no longer supported.");
+    // SimTK_ASSERT_ALWAYS(false, "OpenMMPluginInterface::setTimestep() is no longer supported.");
     // openMMIntegrator->setStepSize(stepsize);
 }
 
@@ -946,7 +946,7 @@ void OpenMMPluginInterface::setTimestep(Real stepsize) {
 */
 void OpenMMPluginInterface::stdcout_OpenmmPositions(const std::string& header__ )
 {
-    SimTK_ASSERT_ALWAYS(true, "OpenMMPluginInterface::stdcout_OpenmmPositions() is no longer supported.");
+    // SimTK_ASSERT_ALWAYS(false, "OpenMMPluginInterface::stdcout_OpenmmPositions() is no longer supported.");
     
     // openMMState = openMMContext->getState(OpenMM::State::Positions);
     // const std::vector<OpenMM::Vec3>& omm_positions = openMMState.getPositions();

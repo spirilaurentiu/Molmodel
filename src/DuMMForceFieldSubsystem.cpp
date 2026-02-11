@@ -42,6 +42,8 @@
 
 #include "DuMMForceFieldSubsystemRep.h"
 #include "TinkerAmber99.h"
+#include "units.h"
+#include "OpenMM.hpp"
 
 //#ifndef DEBUG
 //#define DEBUG 1
@@ -441,7 +443,7 @@ void DuMMForceFieldSubsystem::defineBondStretch
 void DuMMForceFieldSubsystem::defineCustomBondStretch
     (DuMM::AtomClassIndex class1, DuMM::AtomClassIndex class2, DuMM::CustomBondStretch* customBondStretch)
 {
-    SimTK_ASSERT_ALWAYS(true, "DuMMForceFieldSubsystem::defineCustomBondStretch is no longer supported.");
+    SimTK_ASSERT_ALWAYS(false, "DuMMForceFieldSubsystem::defineCustomBondStretch is no longer supported.");
 
     // static const char* MethodName = "defineCustomBondStretch";
 
@@ -926,7 +928,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
             "amplitude1(%g) is not valid: must be nonnegative", amp1InKJ);*/
         //scf changed 0 to -180 to allow NAST right handed helices
 
-        SimTK_APIARGCHECK1_ALWAYS(-180 <= phase1InDegrees && phase1InDegrees <= 180, ApiClassName, CallingMethodName,
+        SimTK_APIARGCHECK1_ALWAYS(is_in_range_simple(phase1InDegrees), ApiClassName, CallingMethodName,
             "phaseAngle1(%g) is not valid: must be between -180 and 180 degrees, inclusive", phase1InDegrees);
 
             // No repeats.
@@ -944,7 +946,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
         /*        SimTK_APIARGCHECK1_ALWAYS(amp2InKJ >= 0, ApiClassName, CallingMethodName,
             "amplitude2(%g) is not valid: must be nonnegative", amp2InKJ);*/
 
-        SimTK_APIARGCHECK1_ALWAYS(0 <= phase2InDegrees && phase2InDegrees <= 180, ApiClassName, CallingMethodName,
+        SimTK_APIARGCHECK1_ALWAYS(is_in_range_simple(phase2InDegrees), ApiClassName, CallingMethodName,
             "phaseAngle2(%g) is not valid: must be between 0 and 180 degrees, inclusive", phase2InDegrees);
 
             // No repeats.
@@ -961,7 +963,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
         /*        SimTK_APIARGCHECK1_ALWAYS(amp3InKJ >= 0, ApiClassName, CallingMethodName,
             "amplitude3(%g) is not valid: must be nonnegative", amp3InKJ);*/
 
-        SimTK_APIARGCHECK1_ALWAYS(0 <= phase3InDegrees && phase3InDegrees <= 180, ApiClassName, CallingMethodName,
+        SimTK_APIARGCHECK1_ALWAYS(is_in_range_simple(phase3InDegrees), ApiClassName, CallingMethodName,
             "phaseAngle3(%g) is not valid: must be between 0 and 180 degrees, inclusive", phase3InDegrees);
             // (we've already checked for any possible repeats)
     }
@@ -974,7 +976,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
         /*        SimTK_APIARGCHECK1_ALWAYS(amp3InKJ >= 0, ApiClassName, CallingMethodName,
             "amplitude3(%g) is not valid: must be nonnegative", amp3InKJ);*/
 
-        SimTK_APIARGCHECK1_ALWAYS(0 <= phase4InDegrees && phase4InDegrees <= 180, ApiClassName, CallingMethodName,
+        SimTK_APIARGCHECK1_ALWAYS(is_in_range_simple(phase4InDegrees), ApiClassName, CallingMethodName,
             "phaseAngle4(%g) is not valid: must be between 0 and 180 degrees, inclusive", phase4InDegrees);
             // (we've already checked for any possible repeats)
     }
@@ -987,8 +989,8 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
         /*        SimTK_APIARGCHECK1_ALWAYS(amp3InKJ >= 0, ApiClassName, CallingMethodName,
             "amplitude3(%g) is not valid: must be nonnegative", amp3InKJ);*/
 
-        SimTK_APIARGCHECK1_ALWAYS(0 <= phase5InDegrees && phase5InDegrees <= 180, ApiClassName, CallingMethodName,
-            "phaseAngle5(%g) is not valid: must be between 0 and 180 degrees, inclusive", phase4InDegrees);
+        SimTK_APIARGCHECK1_ALWAYS(is_in_range_simple(phase5InDegrees), ApiClassName, CallingMethodName,
+            "phaseAngle5(%g) is not valid: must be between 0 and 180 degrees, inclusive", phase5InDegrees);
             // (we've already checked for any possible repeats)
     }
 
@@ -1030,7 +1032,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
     if (periodicity1 != -1) {
         const TorsionTerm& term1 = bondTorsionEntry.getTermWithPeriod(periodicity1);
         if (term1.isValid()) {
-            SimTK_APIARGCHECK5_ALWAYS(term1.amplitude==amp1InKJ && term1.theta0==phase1InDegrees,
+            SimTK_APIARGCHECK5_ALWAYS(almostEqual(term1.amplitude, amp1InKJ) && anglesAlmostEqual(term1.theta0 * SimTK::Rad2Deg, phase1InDegrees),
                 ApiClassName, CallingMethodName,
                 "atom class quad (%d,%d,%d,%d) already had a different term with periodicity %d",
                 (int)class1,(int)class2,(int)class3,(int)class4,periodicity1);
@@ -1040,17 +1042,38 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
     if (periodicity2 != -1) {
         const TorsionTerm& term2 = bondTorsionEntry.getTermWithPeriod(periodicity2);
         if (term2.isValid()) {
-            SimTK_APIARGCHECK5_ALWAYS(term2.amplitude==amp2InKJ && term2.theta0==phase2InDegrees,
-                ApiClassName, CallingMethodName,
-                "atom class quad (%d,%d,%d,%d) already had a different term with periodicity %d",
-                (int)class1,(int)class2,(int)class3,(int)class4,periodicity2);
+            const bool amplitudesEqual = almostEqual(term2.amplitude, amp2InKJ);
+            if (!amplitudesEqual) {
+                std::string errorMsg = "Atom class quad " +
+                    std::to_string((int)class1) + "," +
+                    std::to_string((int)class2) + "," +
+                    std::to_string((int)class3) + "," +
+                    std::to_string((int)class4) +
+                    " already had a different term with periodicity " + std::to_string(periodicity2) +
+                    ": existing amplitude=" + std::to_string(term2.amplitude) +
+                    " new amplitude=" + std::to_string(amp2InKJ);
+                SimTK_ASSERT_ALWAYS(amplitudesEqual, errorMsg.c_str());
+            }
+            
+            const bool phasesEqual = anglesAlmostEqual(term2.theta0 * SimTK::Rad2Deg, phase2InDegrees);
+            if (!phasesEqual) {
+                std::string errorMsg = "Atom class quad " +
+                    std::to_string((int)class1) + "," +
+                    std::to_string((int)class2) + "," +
+                    std::to_string((int)class3) + "," +
+                    std::to_string((int)class4) +
+                    " already had a different term with periodicity " + std::to_string(periodicity2) +
+                    ": existing phase=" + std::to_string(term2.theta0) +
+                    " new phase=" + std::to_string(phase2InDegrees);
+                SimTK_ASSERT_ALWAYS(phasesEqual, errorMsg.c_str());
+            }
         } else
             bondTorsionEntry.addBuiltinTerm(TorsionTerm(periodicity2, amp2InKJ, phase2InDegrees));
     }
     if (periodicity3 != -1) {
         const TorsionTerm& term3 = bondTorsionEntry.getTermWithPeriod(periodicity3);
         if (term3.isValid()) {
-            SimTK_APIARGCHECK5_ALWAYS(term3.amplitude==amp3InKJ && term3.theta0==phase3InDegrees,
+            SimTK_APIARGCHECK5_ALWAYS(almostEqual(term3.amplitude, amp3InKJ) && anglesAlmostEqual(term3.theta0 * SimTK::Rad2Deg, phase3InDegrees),
                 ApiClassName, CallingMethodName,
                 "atom class quad (%d,%d,%d,%d) already had a different term with periodicity %d",
                 (int)class1,(int)class2,(int)class3,(int)class4,periodicity3);
@@ -1060,7 +1083,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
     if (periodicity4 != -1) {
         const TorsionTerm& term4 = bondTorsionEntry.getTermWithPeriod(periodicity4);
         if (term4.isValid()) {
-            SimTK_APIARGCHECK5_ALWAYS(term4.amplitude==amp4InKJ && term4.theta0==phase4InDegrees,
+            SimTK_APIARGCHECK5_ALWAYS(almostEqual(term4.amplitude, amp4InKJ) && anglesAlmostEqual(term4.theta0 * SimTK::Rad2Deg, phase4InDegrees),
                 ApiClassName, CallingMethodName,
                 "atom class quad (%d,%d,%d,%d) already had a different term with periodicity %d",
                 (int)class1,(int)class2,(int)class3,(int)class4,periodicity4);
@@ -1071,7 +1094,7 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
     if (periodicity5 != -1) {
         const TorsionTerm& term5 = bondTorsionEntry.getTermWithPeriod(periodicity5);
         if (term5.isValid()) {
-            SimTK_APIARGCHECK5_ALWAYS(term5.amplitude==amp5InKJ && term5.theta0==phase5InDegrees,
+            SimTK_APIARGCHECK5_ALWAYS(almostEqual(term5.amplitude, amp5InKJ) && anglesAlmostEqual(term5.theta0 * SimTK::Rad2Deg, phase5InDegrees),
                 ApiClassName, CallingMethodName,
                 "atom class quad (%d,%d,%d,%d) already had a different term with periodicity %d",
                 (int)class1,(int)class2,(int)class3,(int)class4,periodicity5);
@@ -1080,8 +1103,6 @@ void DuMMForceFieldSubsystemRep::defineAnyTorsion
     }
 }
 
-
-//
 // We allow up to 3 terms in a single torsion function, with three different
 // periodicities. If any of these are unused, set the corresponding periodicity
 // to -1.
@@ -1839,6 +1860,19 @@ Real DuMMForceFieldSubsystem::OMM_calcKineticEnergy() const
 void DuMMForceFieldSubsystem::OMM_integrateTrajectory( int steps )
 { return updRep().openMMPlugin.integrateTrajectory(steps);}
 
+bool DuMMForceFieldSubsystem::integrateTrajectoryWithOpenMM(const State &state, int steps) {
+    // Tell this DuMM that we are using OpenMM for integration
+    // This will prevent it to copy positions from OpenMM back to OpenMM when computing energies and forces
+    updRep().integratesUsingOpenMM = true;
+
+    // Actual integration
+    return OPENMM::get().integrateTrajectory(getIncludedAtomPositionsInG(state), steps);
+}
+
+void DuMMForceFieldSubsystem::restoreOpenMMPositions() {
+    OPENMM::get().restorePositions();
+}
+
 SimTK::Vec3 DuMMForceFieldSubsystem::calcAtomLocationInGroundFrameThroughOMM(
     DuMM::AtomIndex daix ) const
 {
@@ -1884,9 +1918,6 @@ float DuMMForceFieldSubsystem::getOpenMMtemperature() const
 void DuMMForceFieldSubsystem::setDuMMTemperature(float value)
 {
     updRep().temperature = value;
-    //updRep().openMMPlugin.setVelocitiesToTemperature(value);
-
-    // std::cout<<"SETTING TEMPERATURE in DUMM "<<std::endl << getRep().temperature <<std::endl<< std::flush;
 }
 
 void DuMMForceFieldSubsystem::setOpenMMvelocities(SimTK::Real temperature, uint32_t seed)

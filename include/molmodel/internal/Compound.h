@@ -233,6 +233,8 @@ public:
      * Create an empty compound object representing a simulatable molecular structure.
      */
     Compound();
+    
+    void updBondLength(Compound::BondIndex compoundBondIndex, mdunits::Length newLengthInNm);
 
     /**
      * \brief Construct a Compound with a type name.
@@ -645,7 +647,7 @@ public:
 	* @param Given AtomIndex
 	* @return Inboard AtomIndex
    */
-    Compound::AtomIndex getInboardAtomIndex(Compound::AtomIndex& aIx) const;
+    Compound::AtomIndex getInboardAtomIndex(Compound::AtomIndex aIx) const;
 
    // EU END
  
@@ -1235,28 +1237,50 @@ public:
      *  \return a reference to this compound object
      */    
     Compound& setAtomBiotype(
-            const Compound::AtomPathName& atomName,
-            const String& biotypeResidueName,
-            const String& biotypeAtomName,
-            SimTK::Ordinality::Residue ordinality = SimTK::Ordinality::Any
-            )
-    {
-        Compound::AtomIndex atomIndex = getAtomIndex(atomName);
-        
-        if ( ! Biotype::exists(biotypeResidueName, biotypeAtomName, ordinality) ) {
-			Biotype::defineBiotype(
-                getAtomElement(atomIndex),
-                getNumBondCenters(atomIndex), 
+        const Compound::AtomPathName& atomName,
+        const String& biotypeResidueName,
+        const String& biotypeAtomName,
+        SimTK::Ordinality::Residue ordinality = SimTK::Ordinality::Any
+    ) {
+        // Check if this atom exists in this Compound
+        if (!hasAtom(atomName)) {
+            const std::string errorMsg = "setAtomBiotype: The atom '" + std::string(atomName) + 
+                                "' does not exist in this Compound.";
+            SimTK_ASSERT_ALWAYS(false, errorMsg.c_str());
+        }
+
+        const Compound::AtomIndex atomIndex = getAtomIndex(atomName);
+        const auto& element = getAtomElement(atomIndex);
+        const int valence = getNumBondCenters(atomIndex);
+
+        // 3. Define Biotype if it does not already exist
+        if (!Biotype::exists(biotypeResidueName, biotypeAtomName, ordinality)) {
+            Biotype::defineBiotype(
+                element,
+                valence, 
                 biotypeResidueName, 
                 biotypeAtomName, 
                 ordinality);
         }
-        
+
         const Biotype& biotype = Biotype::get(biotypeResidueName, biotypeAtomName, ordinality);
         
-        assert( biotype.getElement() == getAtomElement(atomIndex) );
-        assert( biotype.getValence() == getNumBondCenters(atomIndex) );
-        
+        // Check Element Compatibility
+        if (biotype.getElement() != element) {
+            std::string errorMsg = "Mismatched Element: Biotype '" + std::string(biotypeAtomName) + 
+                "' is defined for element " + biotype.getElement().getName().c_str() + " (atomic number: " + std::to_string(biotype.getElement().getAtomicNumber()) + ", mass: " + std::to_string(biotype.getElement().getMass()) +
+                "), but atom '" + std::string(atomName) + "' is element " + element.getName().c_str() + "( " + std::to_string(element.getAtomicNumber()) + ", mass: " + std::to_string(element.getMass()) + ").";
+            SimTK_ASSERT_ALWAYS(biotype.getElement() == element, errorMsg.c_str());
+        }
+
+        // Check Valence/Bond Center Compatibility
+        if (biotype.getValence() != valence) {
+            std::string errorMsg = "Mismatched Valence: Biotype '" + std::string(biotypeAtomName) + 
+                "' expects " + std::to_string(biotype.getValence()) + " bond centers, but atom '" + 
+                std::string(atomName) + "' has " + std::to_string(valence) + ".";
+            SimTK_ASSERT_ALWAYS(biotype.getValence() == valence, errorMsg.c_str());
+        }
+
         BiotypeIndex biotypeIndex = biotype.getIndex();
         setBiotypeIndex(atomName, biotypeIndex);
 

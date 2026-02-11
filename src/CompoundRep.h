@@ -865,7 +865,7 @@ public:
     /*!
     <!-- WIP Get the inboard atom index of a given atom implementation -->
     */
-    Compound::AtomIndex getInboardAtomIndex(Compound::AtomIndex& atomIx) const
+    Compound::AtomIndex getInboardAtomIndex(Compound::AtomIndex atomIx) const
     {
         const CompoundAtom& atom = getAtom(atomIx);
         const CompoundAtom::BondCenterIndex inboardBondCenterIx =
@@ -1335,10 +1335,8 @@ public:
         Angle breakPlanarityThreshold,
         bool flipAll=true)
     {
-
         // Build a map from an AtomIndex to a set of bonded AtomIndexes
-        std::map<Compound::AtomIndex, std::set<Compound::AtomIndex>>
-        atomNeighbors_Map = buildAtomNeighbors_Map(atomTargets); 
+        std::map<Compound::AtomIndex, std::set<Compound::AtomIndex>> atomNeighbors_Map = buildAtomNeighbors_Map(atomTargets); 
 
         // Main loop over atoms: Check the chirality of each atom
         Compound::AtomTargetLocations::const_iterator atomTargetLocIt;
@@ -2229,6 +2227,10 @@ public:
         Compound::BondIndex bi = AIxPair_To_BondIx.find(key)->second;
 
         return allBonds[bi];
+    }
+
+    BondInfo& updBondByIndex(Compound::BondIndex compoundBondIndex) {
+        return allBonds[compoundBondIndex];
     }
 
 	const Bond& getBond(Compound::AtomIndex atom1, Compound::AtomIndex atom2) {

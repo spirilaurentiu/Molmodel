@@ -1476,8 +1476,6 @@ std::ostream& operator<<(std::ostream& o, const InclusionListSpec& ils) {
     return o;
 }
 
-
-
 //-----------------------------------------------------------------------------
 //                       DuMM FORCE FIELD SUBSYSTEM REP
 //-----------------------------------------------------------------------------
@@ -1511,7 +1509,7 @@ public:
 
         wantOpenMMAcceleration      = false;
         wantOpenMMIntegration       = false;
-        wantOpenMMCalcOnlyNonBonded = true;
+        wantOpenMMCalcOnlyNonBonded = false;
         allowOpenMMReference        = false;
 
         gbsaIncludeAceApproximation = true;
@@ -2360,6 +2358,7 @@ private:
     void markIncludedBodyForceCacheRealized(const State& s) const
     {   markCacheValueRealized(s, inclBodyForceCacheIndex); }
 
+private:
 // TODO: I made this public so that the OpenMM Plugin could see these data 
 // members. It should use an appropriate set of access methods instead.
 public:
@@ -2551,7 +2550,10 @@ public:
     CacheEntryIndex         AllAtomPositionCacheIndex;
     bool internalListsRealized; // EU
 
-
+    // Yes, mutable just to modify them in a const member function :clown:
+    // Maps
+    mutable std::vector<NonBondedMapping> nonBondedMappings;
+    mutable bool integratesUsingOpenMM = false;
 };
 
 

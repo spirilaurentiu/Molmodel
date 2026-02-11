@@ -67,9 +67,11 @@ public:
         // March 6, 2008 -- adjust internal Transform of Compound, rather than 
         // saving the Transform in CompoundSystem
         newCompound.setTopLevelTransform(compoundTransform * newCompound.getTopLevelTransform());
-        std::cout << "SP_NEW  CompoundSystem::adoptCompound Top transforms:" << std::endl;
-        std::cout << compoundTransform;
-        std::cout << newCompound.getTopLevelTransform();
+        // std::cout << "SP_NEW  CompoundSystem::adoptCompound Top transforms:" << std::endl;
+        // std::cout << compoundTransform;
+        // std::cout << newCompound.getTopLevelTransform();
+
+        
         // assert((int) compoundTransforms.size() == (int) id);
         // compoundTransforms.push_back(compoundTransform);
 

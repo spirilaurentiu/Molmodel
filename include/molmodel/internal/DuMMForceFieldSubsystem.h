@@ -1467,6 +1467,9 @@ bool getUseOpenMMCalcOnlyNonBonded() const;
 
     SimTK::Real calcFullPotentialEnergyOpenMM(const State& s) const;
 
+    bool integrateTrajectoryWithOpenMM(const State &state, int steps);
+    void restoreOpenMMPositions();
+
 /** Return OpennMMPluginIterface pointer**/
 OpenMMPluginInterface*  getOpenMMPluginIfc() const;
 
@@ -1564,6 +1567,8 @@ private:
     const DuMMForceFieldSubsystemRep& getRep() const;
 
     friend class MolecularMechanicsSystem;
+
+    std::vector<OpenMM::Vec3> ommAtomsPositionsCache;
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------

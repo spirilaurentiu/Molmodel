@@ -56,6 +56,8 @@ using namespace SimTK;
 #include <fstream>
 #include <sys/resource.h> // memory
 
+#include "OpenMM.hpp"
+
 /*! <!-- Execute a command from within (Linux free) -->
 */
 std::string exec_molmodel(const char* cmd) {
@@ -1292,11 +1294,22 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
             const DuMM::AtomClassIndex c4 = getAtomClassIndex(bx[2]);
             ia.torsion[b14] = getBondTorsion(c1, c2, c3, c4);
 
-            SimTK_REALIZECHECK4_ALWAYS(ia.torsion[b14],
-                Stage::Topology, getMySubsystemIndex(), getName(),
-                "Couldn't find bond torsion parameters for included "
-                "cross-body atom class quad (%d,%d,%d,%d).",
-                (int)c1, (int)c2, (int)c3, (int)c4);
+            if (!ia.torsion[b14]) {
+
+                std::string message =
+                    "Couldn't find bond torsion parameters for included cross-body atom class quad (" +
+                    std::to_string(c1) + "," +
+                    std::to_string(c2) + "," +
+                    std::to_string(c3) + "," +
+                    std::to_string(c4) + ") for iAIx (" +
+                    std::to_string(iax) + "," +
+                    std::to_string(bx[0]) + "," +
+                    std::to_string(bx[1]) + "," +
+                    std::to_string(bx[2]) + ").";
+                
+                SimTK_REALIZECHECK_ALWAYS(ia.torsion[b14], Stage::Topology, getMySubsystemIndex(), getName(), message.c_str());
+            }
+
         }
 
 
@@ -1721,6 +1734,17 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         std::cout << "DuMMRep::realizeInternalLists memory .\n" << exec_molmodel("free") << std::endl << std::flush;
         std::cout << "DuMMRep::realizeInternalLists memory .\n" << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl << std::flush;
         std::cout << "DuMMRep::realizeInternalLists memory .\n" << getResourceUsage_m() << " kB" << std::endl << std::flush;
+    }
+
+    if (nonBondedMappings.empty()) {
+        for (DuMM::NonbondAtomIndex nbx(0); nbx < getNumNonbondAtoms(); ++nbx) {
+            const DuMM::AtomIndex dAIx = getAtomIndexOfNonbondAtom(nbx);
+            const DuMM::IncludedAtomIndex iax = getIncludedAtomIndexOfNonbondAtom(nbx);          
+            const IncludedAtom& includedAtom = getIncludedAtom(iax);
+            const DuMMIncludedBodyIndex ibx = includedAtom.inclBodyIndex;
+
+            nonBondedMappings.emplace_back(NonBondedMapping{int(dAIx), int(iax), int(ibx)});
+        }
     }
 
     return 0;
@@ -2625,7 +2649,6 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
         std::cout << (("Warning: CALC BONDED with DUMM: Ebonded = " + std::to_string(energy) +  " \n"));
     }
 
-
     // NONBONDED FORCES //
     //std::cout << "DuMM: Nof nonbonded atoms = " << getNumNonbondAtoms() << std::endl;
 
@@ -2636,9 +2659,12 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
             // Calculate forces and energy.
             // TODO: should calculate energy only when it is asked for.
 
-            openMMPlugin.calcOpenMMEnergyAndForces(
-                inclAtomStation_G, inclAtomPos_G, true /*forces*/, true /*energy*/,
-                inclBodyForces_G, energy);
+            // If we integrate using OpenMM, we don't need to reset positions in OpenMM (which is an expensive operation given that we have to copy to GPU)
+            OPENMM::get().getEnergyAndForces(integratesUsingOpenMM, nonBondedMappings, inclAtomStation_G, inclAtomPos_G, inclBodyForces_G, energy);
+
+            // openMMPlugin.calcOpenMMEnergyAndForces(
+            //     inclAtomStation_G, inclAtomPos_G, true /*forces*/, true /*energy*/,
+            //     inclBodyForces_G, energy);
 
             // All done!
             markIncludedAtomForceCacheRealized(s);

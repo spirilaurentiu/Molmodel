@@ -95,4 +95,11 @@ extern "C" {
     SimTK_MOLMODEL_EXPORT void SimTK_about_molmodel(const char* key, int maxlen, char* value);
 }
 
+// Map non bonded atom indices to the included atom indices and body indices for fast lookup
+struct NonBondedMapping {
+    int dummAtomIndex = 0;
+    int includedAtomIndex = 0;
+    int bodyIndex = 0;
+};
+
 #endif // SimTK_MOLMODEL_COMMON_H_

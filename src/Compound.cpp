@@ -326,9 +326,6 @@ CompoundRep& CompoundRep::setBaseAtom(
     // assert(! hasParentCompound() );
     // assert(! compound.getImpl().hasParentCompound() );
 
-    std::cout << "SP_NEW CompoundRep::setBaseAtom " << std::endl;
-    std::cout << location ;
-
     Compound::AtomName atomName = compound.getAtomName(Compound::AtomIndex(0));
     setBaseCompound(atomName, compound, location);
     inheritAtomNames(atomName);
@@ -411,8 +408,11 @@ CompoundRep& CompoundRep::bondCompound(
     Angle                           dihedral,
     BondMobility::Mobility          mobility ) 
 {
-    // Assert dihedral is not nan
-    assert(! isNaN(dihedral) );
+    // Boilerplate prefix for consistency
+    const std::string errorPrefix = "CompoundRep::bondCompound(): error when bonding atom `" + name + "` via parent bond center name `" + parentBondName + "` - ";
+
+    SimTK_ASSERT_ALWAYS(!SimTK::isNaN(dihedral), (errorPrefix + "dihedral angle is NaN.").c_str());
+    SimTK_ASSERT_ALWAYS(hasBondCenter(parentBondName), (errorPrefix + "bond center not found.").c_str());
 
     // Absorb the new compound
     const Compound::BondCenterIndex inboardBondCenterIndex = absorbSubcompound(name, subcompoundArg, false);
@@ -423,8 +423,7 @@ CompoundRep& CompoundRep::bondCompound(
     // Don't bond this compound's official inboard bond center as outboard
     if (hasInboardBondCenter()) {
 
-        const Compound::BondCenterIndex primaryInboardId =
-            getInboardBondCenterInfo().getIndex();
+        const Compound::BondCenterIndex primaryInboardId = getInboardBondCenterInfo().getIndex();
 
         if (primaryInboardId == outboardBondCenterIndex)
         {
@@ -432,7 +431,8 @@ CompoundRep& CompoundRep::bondCompound(
             // either that, or raise an exception...            
         }
     }
-    assert( ! getBondCenter(outboardBondCenterIndex).isInboard() );
+    
+    SimTK_ASSERT_ALWAYS(!getBondCenter(outboardBondCenterIndex).isInboard(), (errorPrefix + "cannot bond to an inboard bond center.").c_str());
 
     // Update bond info using subcompound
     Compound::BondIndex bondIndex(allBonds.size());
@@ -702,10 +702,18 @@ CompoundRep& CompoundRep::addRingClosingBond(
     BondMobility::Mobility mobility 
     ) 
 {
-    SimTK_ERRCHK1_ALWAYS(hasBondCenter(centerName1), "Compound::addRingClosingBond()",
-        "Couldn't find BondCenter '%s'.\n", centerName1.c_str());
-    SimTK_ERRCHK1_ALWAYS(hasBondCenter(centerName2), "Compound::addRingClosingBond()",
-        "Couldn't find BondCenter '%s'.\n", centerName2.c_str());
+    bool has1 = hasBondCenter(centerName1);
+    bool has2 = hasBondCenter(centerName2);
+
+    if (!has1 || !has2) {
+        std::stringstream msg;
+        msg << "Compound::addRingClosingBond(): One or more BondCenters were not found:\n"
+            << "  - Center 1: '" << centerName1 << "' [" << (has1 ? "FOUND" : "NOT FOUND") << "]\n"
+            << "  - Center 2: '" << centerName2 << "' [" << (has2 ? "FOUND" : "NOT FOUND") << "]";
+
+        // Trigger the assertion if any boolean is false
+        SimTK_ASSERT_ALWAYS(has1 && has2, msg.str().c_str());
+    }
 
     const Compound::BondCenterIndex id1 = getBondCenterInfo(centerName1).getIndex();
     const Compound::BondCenterIndex id2 = getBondCenterInfo(centerName2).getIndex();
@@ -727,10 +735,18 @@ CompoundRep& CompoundRep::addRingClosingBond(
     const Compound::BondCenterName& centerName2
     ) 
 {
-    SimTK_ERRCHK1_ALWAYS(hasBondCenter(centerName1), "Compound::addRingClosingBond()",
-        "Couldn't find BondCenter '%s'.\n", centerName1.c_str());
-    SimTK_ERRCHK1_ALWAYS(hasBondCenter(centerName2), "Compound::addRingClosingBond()",
-        "Couldn't find BondCenter '%s'.\n", centerName2.c_str());
+    bool has1 = hasBondCenter(centerName1);
+    bool has2 = hasBondCenter(centerName2);
+
+    if (!has1 || !has2) {
+        std::stringstream msg;
+        msg << "Compound::addRingClosingBond(): One or more BondCenters were not found:\n"
+            << "  - Center 1: '" << centerName1 << "' [" << (has1 ? "FOUND" : "NOT FOUND") << "]\n"
+            << "  - Center 2: '" << centerName2 << "' [" << (has2 ? "FOUND" : "NOT FOUND") << "]";
+
+        // Trigger the assertion if any boolean is false
+        SimTK_ASSERT_ALWAYS(has1 && has2, msg.str().c_str());
+    }
 
     const Compound::BondCenterIndex id1 = getBondCenterInfo(centerName1).getIndex();
     const Compound::BondCenterIndex id2 = getBondCenterInfo(centerName2).getIndex();
@@ -2211,7 +2227,7 @@ Compound& Compound::bsetFrameInMobilizedBodyFrame(Compound::AtomIndex atomIx, Tr
 <!-- Get the inboard atom of a given atom -->
 */
 Compound::AtomIndex Compound::getInboardAtomIndex(
-    Compound::AtomIndex& aIx) const
+    Compound::AtomIndex aIx) const
 {
     return getImpl().getInboardAtomIndex(aIx);
 }
@@ -2422,7 +2438,7 @@ Transform Compound::calcDefaultBondCenterFrameInChildAtomFrame(Compound::AtomInd
     const AtomInfo& atomInfo1 = rep.getAtomInfo(atom1parent);
     const AtomInfo& atomInfo2 = rep.getAtomInfo(atom2child);
     const BondInfo& bondInfo = rep.getBondInfo(atomInfo1, atomInfo2);
-    //Bond& bond = rep.updBond(bondInfo);
+    // const Bond& bond = rep.getBond(bondInfo);
 
     //const BondCenterInfo& parentBondCenterInfo = rep.getBondCenterInfo(bondInfo.getParentBondCenterIndex());
     const BondCenterInfo& childBondCenterInfo = rep.getBondCenterInfo(bondInfo.getChildBondCenterIndex());
@@ -2855,6 +2871,23 @@ Compound& Compound::inheritCompoundSynonyms(const Compound& otherCompound) {
 Compound::Compound(CompoundRep* rep) 
   : HandleBase(rep)
 {}
+
+
+
+
+
+
+
+void Compound::updBondLength(Compound::BondIndex compoundBondIndex, mdunits::Length newLengthInNm) {
+    updImpl().updBondByIndex(compoundBondIndex).updBond().setDefaultBondLength(newLengthInNm);
+}
+
+
+
+
+
+
+
 
 std::ostream& operator<<(std::ostream& o, const Compound& c) {
     c.getImpl().dumpCompoundRepToStream(o);
