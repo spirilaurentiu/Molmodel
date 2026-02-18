@@ -32,13 +32,13 @@
 #include "molmodel/internal/OpenMMPlugin.h"
 #include "DuMMForceFieldSubsystemRep.h"
 
-#if OPENMM_PLATFORM_CPU
-    #include "CpuPlatform.h"
-#elif OPENMM_PLATFORM_CUDA
-    #include "CudaPlatform.h"
-#elif OPENMM_PLATFORM_OPENCL
-        #include "OpenCLPlatform.h"
-#endif
+// #if OPENMM_PLATFORM_CPU
+//     #include "CpuPlatform.h"
+// #elif OPENMM_PLATFORM_CUDA
+//     #include "CudaPlatform.h"
+// #elif OPENMM_PLATFORM_OPENCL
+//         #include "OpenCLPlatform.h"
+// #endif
 
 
 
