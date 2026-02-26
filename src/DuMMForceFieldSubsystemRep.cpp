@@ -1747,18 +1747,18 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         }
     }
 
-    if (true) {
-        for (DuMM::NonbondAtomIndex nax(0); nax < getNumNonbondAtoms(); ++nax) {
-            const DuMM::IncludedAtomIndex iax = getIncludedAtomIndexOfNonbondAtom(nax);
-            const IncludedAtom& includedAtom = getIncludedAtom(iax);
-            const DuMMIncludedBodyIndex ibx = includedAtom.inclBodyIndex;
+    // if (true) {
+    //     for (DuMM::NonbondAtomIndex nax(0); nax < getNumNonbondAtoms(); ++nax) {
+    //         const DuMM::IncludedAtomIndex iax = getIncludedAtomIndexOfNonbondAtom(nax);
+    //         const IncludedAtom& includedAtom = getIncludedAtom(iax);
+    //         const DuMMIncludedBodyIndex ibx = includedAtom.inclBodyIndex;
 
-            // forces[nax]
-            getAtom(getAtomIndexOfNonbondAtom(nax)).forceIndex = nax;
+    //         // forces[nax]
+    //         getAtom(getAtomIndexOfNonbondAtom(nax)).forceIndex = nax;
 
 
-        }
-    }
+    //     }
+    // }
 
     return 0;
 }
