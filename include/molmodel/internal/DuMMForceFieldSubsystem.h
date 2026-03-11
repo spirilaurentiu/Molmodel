@@ -1457,18 +1457,13 @@ bool getUseOpenMMCalcOnlyNonBonded() const;
     // Needed in Gmolmodel
     const Vector_<Vec3>& getIncludedAtomPositionsInG(const State& s) const;
 
-    const std::vector<OpenMM::Vec3>& OMM_getPositions() const;
     void updateOMMAtomLocationCache();
 
     SimTK::Vec3 calcAtomLocationInGroundFrameThroughOMM( DuMM::AtomIndex daix ) const;
-    void OMM_integrateTrajectory( int steps );
-    Real OMM_calcPotentialEnergy() const;
-    Real OMM_calcKineticEnergy() const;
 
     SimTK::Real calcFullPotentialEnergyOpenMM(const State& s) const;
 
-    bool integrateTrajectoryWithOpenMM(const State &state, int steps);
-    void restoreOpenMMPositions();
+    bool integrateTrajectoryWithOpenMM(const State &state, int steps, SimTK::Real timeStepInPicoseconds);
 
 /** Return OpennMMPluginIterface pointer**/
 OpenMMPluginInterface*  getOpenMMPluginIfc() const;

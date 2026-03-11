@@ -1850,27 +1850,13 @@ SimTK::Real DuMMForceFieldSubsystem::calcFullPotentialEnergyOpenMM(const State& 
     return getRep().calcFullPotentialEnergyOpenMM(s);
 }
 
-
-Real DuMMForceFieldSubsystem::OMM_calcPotentialEnergy() const
-{ return getRep().openMMPlugin.calcPotentialEnergy();}
-
-Real DuMMForceFieldSubsystem::OMM_calcKineticEnergy() const
-{ return getRep().openMMPlugin.calcKineticEnergy();}
-
-void DuMMForceFieldSubsystem::OMM_integrateTrajectory( int steps )
-{ return updRep().openMMPlugin.integrateTrajectory(steps);}
-
-bool DuMMForceFieldSubsystem::integrateTrajectoryWithOpenMM(const State &state, int steps) {
+bool DuMMForceFieldSubsystem::integrateTrajectoryWithOpenMM(const State &state, int steps, SimTK::Real timeStepInPicoseconds) {
     // Tell this DuMM that we are using OpenMM for integration
     // This will prevent it to copy positions from OpenMM back to OpenMM when computing energies and forces
     updRep().integratesUsingOpenMM = true;
 
     // Actual integration
-    return OPENMM::get().integrateTrajectory(getIncludedAtomPositionsInG(state), steps);
-}
-
-void DuMMForceFieldSubsystem::restoreOpenMMPositions() {
-    OPENMM::get().restorePositions();
+    return OPENMM::get().integrateTrajectory(getIncludedAtomPositionsInG(state), steps, timeStepInPicoseconds);
 }
 
 SimTK::Vec3 DuMMForceFieldSubsystem::calcAtomLocationInGroundFrameThroughOMM(
@@ -1883,11 +1869,6 @@ SimTK::Vec3 DuMMForceFieldSubsystem::calcAtomLocationInGroundFrameThroughOMM(
 const Vector_<Vec3>&
 DuMMForceFieldSubsystem::getIncludedAtomPositionsInG(const State& s) const {
     return getRep().getIncludedAtomPositionsInG(s);
-}
-
-const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::OMM_getPositions() const
-{
-    return getRep().openMMPlugin.getPositions();
 }
 
 void DuMMForceFieldSubsystem::updateOMMAtomLocationCache()
