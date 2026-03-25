@@ -1851,11 +1851,6 @@ SimTK::Real DuMMForceFieldSubsystem::calcFullPotentialEnergyOpenMM(const State& 
 }
 
 bool DuMMForceFieldSubsystem::integrateTrajectoryWithOpenMM(const State &state, int steps, SimTK::Real timeStepInPicoseconds) {
-    // Tell this DuMM that we are using OpenMM for integration
-    // This will prevent it to copy positions from OpenMM back to OpenMM when computing energies and forces
-    updRep().integratesUsingOpenMM = true;
-
-    // Actual integration
     return OPENMM::get().integrateTrajectory(getIncludedAtomPositionsInG(state), steps, timeStepInPicoseconds);
 }
 

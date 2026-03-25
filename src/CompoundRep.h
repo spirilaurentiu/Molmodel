@@ -86,8 +86,16 @@ private:
     // COMPOUND REP //
     //////////////////
 
+typedef std::vector<Compound::AtomIndex> AtomIndexVector;
+
 class CompoundRep : public PIMPLImplementation<Compound,CompoundRep> 
 {
+    std::vector< AtomIndexVector > atomPairs;
+    std::map<Compound::AtomIndex, std::set<Compound::AtomIndex>> atomNeighbors_Map;
+    std::vector< AtomIndexVector > atomTriples;
+    std::vector< AtomIndexVector > atomRun;
+    std::vector< AtomIndexVector > atomQuads;
+
 public:
     friend class CompoundSystem;
     friend class ResidueInfo;
@@ -814,7 +822,10 @@ public:
     CompoundRep& PrintCompoundGeometry(const Compound::AtomTargetLocations& atomTargets){
 
         // Iterate atoms
-        std::vector< AtomIndexVector > atomRun = getBondedAtomRuns(1, atomTargets);
+        if (atomRun.empty()) {
+            atomRun = getBondedAtomRuns(1, atomTargets);
+        }
+
         std::cout << "CompoundRep::PrintCompoundGeometry atomTargets\n";
         for(const auto& atomRIx : atomRun) {
             const Compound::AtomIndex atomIx = atomRIx[0];
@@ -1213,8 +1224,6 @@ public:
 
     Transform calcDefaultAtomFrameInGroundFrame(Compound::AtomIndex atomId) const;
 
-    typedef std::vector<Compound::AtomIndex> AtomIndexVector;
-
 
     /*! <!-- get list of all runs of consecutive bonded atoms of run-length n from the atoms mentions in an AtomTargetLocations structure 
     * for example, to get a list of all bonded pairs, set run-length to 2.-->
@@ -1336,7 +1345,9 @@ public:
         bool flipAll=true)
     {
         // Build a map from an AtomIndex to a set of bonded AtomIndexes
-        std::map<Compound::AtomIndex, std::set<Compound::AtomIndex>> atomNeighbors_Map = buildAtomNeighbors_Map(atomTargets); 
+        if (atomNeighbors_Map.empty()) {
+            atomNeighbors_Map = buildAtomNeighbors_Map(atomTargets);
+        }
 
         // Main loop over atoms: Check the chirality of each atom
         Compound::AtomTargetLocations::const_iterator atomTargetLocIt;
@@ -1613,8 +1624,9 @@ public:
     */
     CompoundRep& matchDefaultBondLengths(const Compound::AtomTargetLocations& atomTargets) 
     {
-        // Get neighbour list: std::vector<std::vector<cAIx>>
-        std::vector< AtomIndexVector > atomPairs = getBondedAtomRuns(2, atomTargets);
+        if (atomPairs.empty()) {
+            atomPairs = getBondedAtomRuns(2, atomTargets);
+        }
 
         // Loop over those pairs of atoms and set the bond length default to the target distances
         // This method is broken into two parts like this to serve as an example for the more
@@ -1659,9 +1671,9 @@ public:
     */
     CompoundRep& matchDefaultBondAngles(const Compound::AtomTargetLocations& atomTargets) 
     {
-        //std::cout << "matchDefaultBondAngles" << std::endl;
-        //std::cout<<"BEGIN  matchDefaultBondAngles"<<std::endl;
-        std::vector< AtomIndexVector > atomTriples = getBondedAtomRuns(3, atomTargets);
+        if (atomTriples.empty()) {
+            atomTriples = getBondedAtomRuns(3, atomTargets);
+        }
 
         std::vector< AtomIndexVector >::const_iterator bonds13Ix;
         for (bonds13Ix = atomTriples.begin(); bonds13Ix != atomTriples.end(); ++bonds13Ix) 
@@ -1702,7 +1714,9 @@ public:
     */
     CompoundRep& matchDefaultDirections(const Compound::AtomTargetLocations& atomTargets){
         
-        std::vector< AtomIndexVector > atomRun = getBondedAtomRuns(1, atomTargets);
+        if (atomRun.empty()) {
+            atomRun = getBondedAtomRuns(1, atomTargets);
+        }
         
         for(const auto& atomRIx : atomRun) {
 
@@ -1811,9 +1825,9 @@ public:
             const Compound::AtomTargetLocations& atomTargets, 
             Compound::PlanarBondMatchingPolicy policy) 
     {
-        //std::cout << "matchDefaultDihedralAngles" << std::endl;
-        //std::cout<<"BEGIN   matchDefaultDihedralAngles"<<std::endl;
-        std::vector< AtomIndexVector > atomQuads = getBondedAtomRuns(4, atomTargets);
+        if (atomQuads.empty()) {
+            atomQuads = getBondedAtomRuns(4, atomTargets);
+        }
 
         std::vector< AtomIndexVector >::const_iterator bonds14Ix;
         for (bonds14Ix = atomQuads.begin(); bonds14Ix != atomQuads.end(); ++bonds14Ix) 

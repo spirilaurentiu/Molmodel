@@ -2553,7 +2553,6 @@ public:
     // Yes, mutable just to modify them in a const member function :clown:
     // Maps
     mutable std::vector<NonBondedMapping> nonBondedMappings;
-    mutable bool integratesUsingOpenMM = false;
 };
 
 

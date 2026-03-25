@@ -2669,15 +2669,10 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
 
         if (usingOpenMM) {
 
-            // Calculate forces and energy.
-            // TODO: should calculate energy only when it is asked for.
-
-            // If we integrate using OpenMM, we don't need to reset positions in OpenMM (which is an expensive operation given that we have to copy to GPU)
-            OPENMM::get().getEnergyAndForces(integratesUsingOpenMM, nonBondedMappings, inclAtomStation_G, inclAtomPos_G, inclBodyForces_G, energy);
-
-            // openMMPlugin.calcOpenMMEnergyAndForces(
-            //     inclAtomStation_G, inclAtomPos_G, true /*forces*/, true /*energy*/,
-            //     inclBodyForces_G, energy);
+            // Calculate per-atom forces for this system conformation
+            // Note that we don't evaluate energies here
+            OPENMM::get().updatePositionsCache(nonBondedMappings, inclAtomPos_G);
+            OPENMM::get().evaluateForces(nonBondedMappings, inclAtomStation_G, inclBodyForces_G);
 
             // All done!
             markIncludedAtomForceCacheRealized(s);
