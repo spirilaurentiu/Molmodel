@@ -41,10 +41,6 @@ provides molecular mechanics capability in a multibody framework. **/
 
 #include "molmodel/internal/common.h"
 #include "molmodel/internal/Biotype.h"
-
-#include "OpenMMPlugin.h"
-
-
 #include <cassert>
 
 
@@ -1441,32 +1437,13 @@ bool getUseOpenMMCalcOnlyNonBonded() const;
 // Used for OpenMM integration
     void setUseOpenMMIntegration(bool);
     bool getUseOpenMMIntegration() const;
-    void setDuMMTimestep(float);
-    float getOpenMMstepsize() const;
     void setDuMMTemperature(float);
     float getOpenMMtemperature() const;
-    void setOpenMMvelocities(SimTK::Real temperature, uint32_t seed);
-    void setOpenMMTimestep(SimTK::Real timestep);
-    void OMM_setOpenMMPositions(const std::vector<SimTK::Vec3>& positions);
-
-    void setOpenMMparticleMass(DuMM::NonbondAtomIndex nax, SimTK::Real mass);    
-    void setOpenMMMasses(const std::vector<SimTK::Real>& masses);
     
-    void setOpenMMseed(uint32_t seed);
-
     // Needed in Gmolmodel
     const Vector_<Vec3>& getIncludedAtomPositionsInG(const State& s) const;
 
-    void updateOMMAtomLocationCache();
-
-    SimTK::Vec3 calcAtomLocationInGroundFrameThroughOMM( DuMM::AtomIndex daix ) const;
-
-    SimTK::Real calcFullPotentialEnergyOpenMM(const State& s) const;
-
     bool integrateTrajectoryWithOpenMM(const State &state, int steps, SimTK::Real timeStepInPicoseconds);
-
-/** Return OpennMMPluginIterface pointer**/
-OpenMMPluginInterface*  getOpenMMPluginIfc() const;
 
 /** This allows us to use OpenMM even if only the Reference platform is 
 available. This is for testing/debugging; one should never use the Reference
@@ -1562,37 +1539,6 @@ private:
     const DuMMForceFieldSubsystemRep& getRep() const;
 
     friend class MolecularMechanicsSystem;
-
-    std::vector<OpenMM::Vec3> ommAtomsPositionsCache;
-
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
-//		        GMOLMODEL - EXTRA FUNCTIONALITIES
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
-public:
-
-        Real CalcFullPotEnergyIncludingRigidBodies ( const State& state ) const;
-
-        //drl BEGIN
-
-        const std::vector<std::vector<double>>& getEnergies_drl_bon();
-        const std::vector<std::vector<double>>& getEnergies_drl_ang();     
-        const std::vector<std::vector<double>>& getEnergies_drl_tor();
-        const std::vector<std::vector<double>>& getEnergies_drl_n14();
-        const std::vector<std::vector<double>>& getEnergies_drl_vdw();
-        const std::vector<std::vector<double>>& getEnergies_drl_cou();           
-        const std::vector<OpenMM::Vec3>& getForces_drl_bon();
-        const std::vector<OpenMM::Vec3>& getForces_drl_ang();
-        const std::vector<OpenMM::Vec3>& getForces_drl_tor();
-        const std::vector<OpenMM::Vec3>& getForces_drl_n14();
-
-        //drl END
-
-//------------------------------------------------------------------------------
-
-
-
 };
 
 /** This class is just a DuMMForceFieldSubsystem for which the constructor 

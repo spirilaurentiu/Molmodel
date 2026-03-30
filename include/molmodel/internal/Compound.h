@@ -35,9 +35,10 @@
 
 #include "SimTKsimbody.h"
 
+#include "molmodel/internal/BondCenter.hpp"
+
 #include "molmodel/internal/common.h"
 #include "DuMMForceFieldSubsystem.h"
-#include "molmodel/internal/Pdb.h"
 #include "molmodel/internal/Superpose.h"
 #include "molmodel/internal/units.h"
 #include <map>
@@ -45,6 +46,7 @@
 #include <iosfwd> // declare ostream without all the definitions
 
 namespace SimTK {
+
 class CompoundSystem;
 
 // Because of private data, put Compound implementation behind the curtain
@@ -218,7 +220,7 @@ public:
     SimTK_DEFINE_UNIQUE_LOCAL_INDEX_TYPE(Compound,BondIndex);
 
     /// Type for set of target atom locations to be used for structure matching
-    typedef std::map<AtomIndex, Vec3> AtomTargetLocations;
+    typedef std::vector<Vec3> AtomTargetLocations;
 
     class SingleAtom;
 
@@ -744,22 +746,6 @@ public:
     Transform calcDefaultBondCenterFrameInParentAtomFrame(Compound::AtomIndex parentAtom1, Compound::AtomIndex childAtom2) const;
     Transform calcDefaultBondCenterFrameInChildAtomFrame(Compound::AtomIndex parentAtom1, Compound::AtomIndex childAtom2) const;
 
-    /**
-     * \brief Create a mapping between this Compound and atom locations in a PdbStructure
-     * For use in the process of importing a configuration from a PDB file
-     */
-    virtual AtomTargetLocations createAtomTargets
-       (const class PdbStructure& targetStructure, 
-        bool                      guessCoordinates = false) const;
-    virtual AtomTargetLocations createAtomTargets
-       (const class PdbChain& targetChain, 
-        bool                  guessCoordinates = false) const;
-    virtual AtomTargetLocations createAtomTargets
-       (const class PdbResidue& targetResidue, 
-        bool                    guessCoordinates = false) const;
-
-
-
 	/** \brief Get list of all runs of consecutive bonded atoms of run-length n 
 	 * from the atoms mentions in an AtomTargetLocations structure
 	 * for example, to get a list of all bonded pairs, set run-length to 2.
@@ -822,69 +808,6 @@ public:
      */
     Compound& matchDefaultTopLevelTransform(const AtomTargetLocations& atomTargets);
 
-    /** \brief __no_desc__
-     * \param __no_param__ //
-     * \return a reference to this compound
-     */
-    TransformAndResidual getTransformAndResidual(const Compound::AtomTargetLocations& atomTargets) const;
-    
-
-    /// Adjust internal coordinates to match a collection of atom targets.
-    Compound& matchDefaultConfiguration(
-            const AtomTargetLocations& atomTargets, 
-            MatchStratagem matchStratagem = Match_Exact,
-            bool useObservedPointFitter = true,
-            Real minimizerTolerance = 150.0
-            ) 
-    {
-        if (matchStratagem == Compound::Match_TopologyOnly)
-            // do nothing, topology is already there
-            return *this;
-        
-        else if (matchStratagem == Compound::Match_Exact) 
-        {
-            // low tolerance breaks planarity just about everywhere
-            matchDefaultAtomChirality(atomTargets, 0.01, false);
-
-            matchDefaultBondLengths(atomTargets);
-            matchDefaultBondAngles(atomTargets);
-            matchDefaultDirections(atomTargets); // NEWMOB
-            
-            // Set dihedral angles even when bonded atoms are planar
-            matchDefaultDihedralAngles(atomTargets, Compound::DistortPlanarBonds);
-
-            matchDefaultTopLevelTransform(atomTargets);
-            
-            // No further optimization should be needed
-            
-            return *this;
-        }
-        
-        else if (matchStratagem == Compound::Match_Idealized) 
-        {
-            // Break planarity constraint only when input atoms are 90 degrees out of plane
-            matchDefaultAtomChirality(atomTargets, 90*Deg2Rad, true);
-            
-            // Avoid setting non zero/180 dihedral angles on bonded planar atoms
-            matchDefaultDihedralAngles(atomTargets, Compound::FlipPlanarBonds);
-            
-            matchDefaultTopLevelTransform(atomTargets);
-
-            // At this point the structure match is approximate and may have
-            // many bad contacts.  Optimization is needed
-            // TODO - ObservedPointFitter on internal coordinates
-            fitDefaultConfiguration(atomTargets, 0.005,useObservedPointFitter,minimizerTolerance);
-            matchDefaultDirections(atomTargets); // NEWMOB
-            return *this;
-        }
-            
-        else assert(false); // unknown match stratagem
-
-        return *this;
-    }
-
-
-
     /*!
     * <!-- Helper for calcDefaultAtomFramesInCompoundFrame. It sets a NaN flag for
     Top to inboard bond center transforms passed. -->
@@ -899,31 +822,7 @@ public:
     */
     Compound& calcDefaultAtomFramesInCompoundFrame(
         std::vector<Transform>& atomFrameCache);
-
-
-
-
-    /// Optimize adjustable degrees of freedom to best match atom targets
-    Compound& fitDefaultConfiguration(
-            const AtomTargetLocations& atomTargets,
-            SimTK::Real targetRms,
-            bool useObservedPointFitter = true,
-            Real minimizerTolerance = 150.0
-            );
     
-    /// Write current default(initial) Compound configuration into a PdbChain object
-    const Compound& populateDefaultPdbChain(
-        class PdbChain&, 
-        int& defaultNextResidueNumber,
-        const Transform& transform = Transform()) const;
-
-    /// Write dynamic Compound configuration into a PdbChain object
-    const Compound& populatePdbChain(
-        const State& state, 
-        class PdbChain&, 
-        int& defaultNextResidueNumber,
-        const Transform& transform = Transform()) const;
-
     /**
      * \brief Write the default (initial) configuration in Protein Data Bank (PDB) format.
      *
@@ -954,32 +853,6 @@ public:
     std::ostream& writeDefaultPdb(
         std::ostream& os, ///< output stream to write PDB coordinates to
         int& nextAtomSerialNumber, ///< mutable integer reference containing the next desired atom serial number
-        const Transform& transform = Transform() ///< optional change to location and orientation of molecule
-        ) const;
-
-    /**
-     * \brief Write the dynamic Compound configuration in Protein Data Bank (PDB) format.
-     *
-     * Starting with the first atom's serial number as one(1).
-     */
-    std::ostream& writePdb(
-        const State& state, ///< simbody state representing the current configuration of the molecule
-        std::ostream& os,  ///< output stream to write PDB coordinates to
-        const Transform& transform = Transform() ///< optional change to location and orientation of molecule
-        ) const;
-
-
-    /** 
-     * \brief Write the dynamic Compound configuration in Protein Data Bank (PDB) format.
-     *
-     * integer nextAtomSerialNumber reference is incremented within writePdb method, so that subsequent
-     * calls to this method using the same integer variable will continue numbering
-     * atoms where the previous call left off.
-     */
-    std::ostream& writePdb(
-        const State& state, ///< simbody state representing the current configuration of the molecule
-        std::ostream& os,  ///< output stream to write PDB coordinates to
-        int& nextAtomSerialNumber,  ///< mutable integer reference containing the next desired atom serial number
         const Transform& transform = Transform() ///< optional change to location and orientation of molecule
         ) const;
 
@@ -1729,392 +1602,63 @@ protected:
     explicit Molecule(CompoundRep* rep);
 };
 
+inline Real tripleProduct(const UnitVec3& a, const UnitVec3& b, const UnitVec3& c) {
+    return dot(cross(a,b), c);
+}
 
-/**
- * \brief The noble gas argon, which does not bond with other atoms
- */
-// class  Argon : public Molecule {
-// public:
-//     Argon() {
-//         setPdbResidueName("AR ");
+inline UnitVec3 planeNormal(const UnitVec3& a, const UnitVec3& b) {
+    return UnitVec3(cross(a,b));
+}
 
-//         setBaseAtom( "Ar", Biotype::Argon() );
-
-//         setCompoundName("Argon");
-//     }
-// };
-
-
-/**
- * \brief The simplest hydrocarbon methane, CH<sub>4</sub>
- */
-// class  Methane : public Molecule {
-// public:
-//     Methane() 
-//     {
-//         setBaseCompound("methyl", MethylGroup());
-//         inheritAtomNames("methyl");
-//         // Ordinarily, methyl group bonds to aliphatic carbon,
-//         // and has a default bond length to match.
-//         // Here we turn off the methyl inboard bond, so the
-//         // AliphaticHydrogen will, as desired, dictate the bond length
-//         convertInboardBondCenterToOutboard();
-//         bondAtom(AliphaticHydrogen("H4"), "methyl/bond", 0.1112);
-//         setBiotypeIndex( "C", Biotype::MethaneC().getIndex() );
-//         setBiotypeIndex( "H1", Biotype::MethaneH().getIndex() );
-//         setBiotypeIndex( "H2", Biotype::MethaneH().getIndex() );
-//         setBiotypeIndex( "H3", Biotype::MethaneH().getIndex() );
-//         setBiotypeIndex( "H4", Biotype::MethaneH().getIndex() );
-//         setCompoundName("Methane");
-//     }
-// };
-
-/**
- * \brief The small hydrocarbon ethane, C<sub>2</sub>H<sub>6</sub>, which has a single torsion degree of freedom.
- */
-// class  Ethane : public Molecule {
-// public:
-//     Ethane() 
-//     {
-//         setPdbResidueName("EHN");
-//         setBaseCompound("methyl1", MethylGroup());
-//         nameAtom("C1", "methyl1/C", Biotype::EthaneC().getIndex() );
-//         nameAtom("H1", "methyl1/H1", Biotype::EthaneH().getIndex() );
-//         nameAtom("H2", "methyl1/H2", Biotype::EthaneH().getIndex() );
-//         nameAtom("H3", "methyl1/H3", Biotype::EthaneH().getIndex() );
-//         // This first methyl is a base, not a decoration
-//         convertInboardBondCenterToOutboard();
-//         bondCompound("methyl2", MethylGroup(), "methyl1/bond");
-//         nameAtom("C2", "methyl2/C", Biotype::EthaneC().getIndex() );
-//         nameAtom("H4", "methyl2/H1", Biotype::EthaneH().getIndex() );
-//         nameAtom("H5", "methyl2/H2", Biotype::EthaneH().getIndex() );
-//         nameAtom("H6", "methyl2/H3", Biotype::EthaneH().getIndex() );
-//         defineDihedralAngle("torsion", "H1", "C1", "C2", "H4");
-//         setDefaultTorsionAngle(180*Deg2Rad);
-//         // setBondRotatable(false, "C1", "C2");
-//         setCompoundName("Ethane");
-//     }
-//     Ethane& setDefaultTorsionAngle(Angle angle ///< dihedral angle about C-C bond in radians
-//         ) {
-//         setDefaultDihedralAngle("torsion", angle);
-//         return *this;
-//     }
-//     Angle calcDefaultTorsionAngle() const {
-//         return calcDefaultDihedralAngle("torsion");
-//     }
-// };
-
-/**
- * Base class for individual residue building blocks that comprise a Biopolymer chain
- *
- * Derives from Compound.
- * (though that may not be obvious in the automatically generated API documentation).
- */
-class BiopolymerResidueRep;
-// class SimTK_MOLMODEL_EXPORT BiopolymerResidue : public Compound {
-class SimTK_MOLMODEL_EXPORT BiopolymerResidue : public Compound {
-public:   
-    /**
-     * \brief Constructor for BiopolymerResidue
-     */
-    BiopolymerResidue(
-        const Compound::Name& residueTypeName, ///< name for the type of BiopolymerResidue, e.g. "glycine"
-        const String& threeLetterCode, ///< three letter code for the type of residue, e.g. "GLY".  This name will be used in the ResidueType field when PDB files are created.
-        char oneLetterCode ///< one letter code for the type of residue.  e.g 'G'.  Use 'X' if the residue type is non-canonical.
-        );
-
-    /**
-     * \return a reference to this BiopolymerResidue
-     */
-    BiopolymerResidue& setOneLetterCode(char olc ///< The one-letter-code for this type of residue.  Currently not used for anything.
-        );
-
-    /**
-     * \return a reference to this BiopolymerResidue
-     */
-    BiopolymerResidue& setThreeLetterCode(const String& tlc ///< three letter code for the type of residue, e.g. "GLY".  This name will be used in the ResidueType field when PDB files are created.
-        );
-
-    /**
-     * \return a reference to this BiopolymerResidue
-     */
-    BiopolymerResidue& setResidueTypeName(const String& name ///< name for the type of BiopolymerResidue, e.g. "glycine"
-        );
-    
-    char getOneLetterCode() const;
-    const String& getThreeLetterCode() const;
-    const String& getResidueTypeName() const;
-
-    /**
-     * \brief Attempt to automatically assign a Biotype to each atom.
-     *
-     * Biotype assignments for each atom in a compound are required to match atoms to force field parameters.
-     * Residue name and atom name, including synonyms, are used to identify Biotypes.  Previous loading of relevant Biotypes from 
-     * a force field definition may be required for the assignBiotypes() method to work.
-     *
-     * \return true if Biotypes were successfully assigned
-     */
-    bool assignBiotypes(
-        Ordinality::Residue ordinality = Ordinality::Any ///< whether this residue is at the beginning, middle, or end of the Biopolymer chain.
-        );
-
-    Compound::AtomIndex getParentCompoundAtomIndex(AtomIndex residueAtomIndex) const;
-
-    SimTK_INSERT_DERIVED_HANDLE_DECLARATIONS(BiopolymerResidue,BiopolymerResidueRep,Compound);
-};
-
-class BiopolymerRep;
-
-// This class to point to residue atoms in a Biopolymer
-class ResidueInfo {
-public:
-    /**
-     * BiopolymerResidue::Index type is an integer index into residues of a Biopolymer.
-     */
-    SimTK_DEFINE_UNIQUE_LOCAL_INDEX_TYPE(ResidueInfo,Index);
-    SimTK_DEFINE_UNIQUE_LOCAL_INDEX_TYPE(ResidueInfo,AtomIndex);
-
-    class AtomInfo {
-    public:
-        friend class ResidueInfo;
-
-        AtomInfo(Compound::AtomIndex index, const Compound::AtomName& name) : 
-            biopolymerAtomIndex(index),
-            pdbAtomName(name)
-        {
-            synonyms.insert(name);
-        }
-
-        const std::set<Compound::AtomName>& getNames() const {
-            return synonyms;
-        }
-
-    private:
-        Compound::AtomIndex biopolymerAtomIndex;
-        String pdbAtomName;
-        std::set<Compound::AtomName> synonyms;
-    };
-
-
-    ResidueInfo(
-        ResidueInfo::Index ix, 
-        const Compound::Name& name, 
-        const BiopolymerResidue& res,
-        Compound::AtomIndex atomOffset,
-        char insertionCode = ' ');
-
-    AtomIndex addAtom(Compound::AtomIndex index, const Compound::AtomName& name) {
-        ResidueInfo::AtomIndex answer(atoms.size());
-        atoms.push_back(AtomInfo(index, name));
-        atomIdsByName[name] = answer;
-        return answer;
-    }
-    char getOneLetterCode() const {
-        return oneLetterCode;
-    }
-
-    void setOneLetterCode(char myCode) {
-        oneLetterCode = myCode;
-    }
-    size_t getNumAtoms() const {
-        return atoms.size();
-    }
-
-    const AtomInfo& getAtomInfo(AtomIndex a) const {
-        return atoms[a];
-    }
-    AtomInfo& updAtomInfo(AtomIndex a) {
-        return atoms[a];
-    }
-
-    const std::set<Compound::Name>& getNames() const {return synonyms;}
-
-    const Compound::Name& getPdbResidueName() const {
-        return pdbResidueName;
-    }
-
-    const int getPdbResidueNumber() const {
-        return pdbResidueNumber;
-    }
-
-    const char getPdbInsertionCode() const {
-        return pdbInsertionCode;
-    }
-
-    Compound::AtomIndex getAtomIndex(ResidueInfo::AtomIndex a) const {
-        return atoms[a].biopolymerAtomIndex;
-    }
-
-    Compound::AtomIndex getAtomIndex(Compound::AtomName a) const {
-        return atoms[atomIdsByName.find(a)->second].biopolymerAtomIndex;
-    }
-
-    const String& getAtomName(ResidueInfo::AtomIndex a) const {
-        return atoms[a].pdbAtomName;
-    }
-
-    const std::set<Compound::AtomName>& getAtomSynonyms(ResidueInfo::AtomIndex a) const {
-        return atoms[a].synonyms;
-    }
-
-    const Compound::Name& getName() const {return nameInCompound;}
-
-    ResidueInfo& setPdbResidueNumber(int num) {
-        pdbResidueNumber = num;
-        return *this;
-    }
-
-
-    ResidueInfo& setPdbInsertionCode(char insertionCode) {
-        pdbInsertionCode = insertionCode;
-        return *this;
-    }
-
-
-    ResidueInfo::Index getIndex() const {return index;}
-
-private:
-    ResidueInfo::Index index;
-    Compound::Name nameInCompound;
-    Compound::Name pdbResidueName;
-    char   oneLetterCode;
-    std::set<Compound::Name> synonyms;
-    int pdbResidueNumber;
-    char pdbInsertionCode;
-    std::vector<AtomInfo> atoms;
-    std::map<const Compound::Name, AtomIndex> atomIdsByName;
-    // TODO - put private data in ResidueInfoRep
-};
-
-/**
- * \brief The base class for DNA, RNA, and Protein molecules.
- *
- * Contains an ordered list of BiopolymerResidue subcompounds.
- * Derives from Molecule.
- * (though that may not be obvious in the automatically
- * generated API documentation).
- */
-class SimTK_MOLMODEL_EXPORT Biopolymer : public Molecule
+inline bool isChiralityMismatch(
+    const UnitVec3& s1, const UnitVec3& s2, const UnitVec3& s3,
+    const UnitVec3& t1, const UnitVec3& t2, const UnitVec3& t3)
 {
-public:
-    /**
-     * String representing the sequence of a Protein or nucleic acid (DNA or RNA).  For use in Biopolymer constructor.
-     */
-    typedef String Sequence;
-    
-    /**
-     * \brief Default constructore for Biopolymer.  Produces a Biopolymer with no atoms nor residues.
-     */
-    Biopolymer();
+    const Real sourceChirality = tripleProduct(s1,s2,s3);
+    const Real targetChirality = tripleProduct(t1,t2,t3);
+    return sourceChirality * targetChirality < 0;
+}
 
-    /**
-     * \return The number of residues in the polymer chain.
-     */
-    int getNumResidues() const;
+inline Real signedPlaneDeviation(const UnitVec3& vec, const UnitVec3& planeNormal) {
+    return dot(vec, planeNormal);
+}
 
-    /**
-     * \warning The residueIndex is ordinarily NOT the same as the PdbResidueNumber of the BiopolymerResidue.
-     *
-     * \return A read-only reference to a BiopolymerResidue subcompound of this Biopolymer molecule
-     */
-    const ResidueInfo& getResidue(
-        ResidueInfo::Index residueIndex ///< integer index of residue in context of this Biopolymer, in the range zero (0) to (getNumResidues() - 1).
-        ) const;
+inline bool exceedsPlanarityThreshold(Real signedDeviation, Angle threshold) {
+    return std::abs(signedDeviation) >= std::sin(threshold);
+}
 
-    /**
-     * \warning The residueIndex is ordinarily NOT the same as the PdbResidueNumber of the BiopolymerResidue.
-     *
-     * \return A mutable reference to a BiopolymerResidue subcompound of this Biopolymer molecule
-     */
-    ResidueInfo& updResidue(
-        ResidueInfo::Index residueIndex ///< integer index of residue in context of this Biopolymer, in the range zero (0) to (getNumResidues() - 1).
-        ); 
-
-    /**
-     * \return A read-only reference to a BiopolymerResidue subcompound of this Biopolymer molecule
-     */
-    const ResidueInfo& getResidue(
-        Compound::Name residueName ///< a Compound::Name for the BiopolymerResidue from the viewpoint of this Biopolymer.
-        ) const;
-
-    /**
-     * \return A mutable reference to a BiopolymerResidue subcompound of this Biopolymer molecule
-     */
-    ResidueInfo& updResidue(
-        Compound::Name residueName ///< a Compound::Name for the BiopolymerResidue from the viewpoint of this Biopolymer.
-        );
-
-    /**
-     * \warning The residueIndex is ordinarily NOT the same as the PdbResidueNumber of the BiopolymerResidue.
-     *
-     * \return A Compound::Name for a BiopolymerResidue from the viewpoint of this containing Biopolymer.
-     */
-    const Compound::Name& getResidueName(
-        ResidueInfo::Index residueIndex ///< integer index of residue in context of this Biopolymer, in the range zero (0) to (getNumResidues() - 1).
-        ) const;
-
-    // BiopolymerResidue createResidueCompound(ResidueInfo::Index r) const;
-
-    /**
-     * \brief This method renumbers the PDB Residue Numbers of the biopolymer chain to start at the supplied integer and increase consecutively.
-     *
-     * \return A reference to this Biopolymer.
-     *
-     */ 
-    Biopolymer& renumberPdbResidues(int firstPdbResidueNumber); 
-    
-    bool assignResidueBiotypes(ResidueInfo::Index, Ordinality::Residue);
-
-    /**
-     * \brief Attempt to automatically assign a Biotype to each atom.
-     *
-     * Biotype assignments for each atom in a compound are required to match atoms to force field parameters.
-     * Residue name and atom name, including synonyms, are used to identify Biotypes.  Previous loading of relevant Biotypes from 
-     * a force field definition may be required for the assignBiotypes() method to work.
-     */
-    void assignBiotypes();
-
-    /**
-     * \brief Attach a new residue onto the end of the current Biopolymer chain
-     */
-    ResidueInfo::Index appendResidue(
-        const Compound::Name& resName, ///< new name for the new residue, local to this parent Biopolymer.
-        const BiopolymerResidue& residue ///< template residue to copy onto the end of the chain.  The residue will be copied, not incorporated.
-        );
-
-    /**
-     * \brief Attach a new residue onto the end of the current Biopolymer chain
-     */
-    ResidueInfo::Index appendResidue(
-        const Compound::Name& resName, ///< new residue name, from the viewpoint of this parent Biopolymer
-        const BiopolymerResidue& residue, ///< template residue to copy onto the end of the chain.  The residue will be copied, not incorporated.
-        BondMobility::Mobility mobility ///< allowed motion of the new bond connecting the new residue to the rest of the chain
-        );
-
-    Biopolymer& setResidueBondMobility(ResidueInfo::Index, BondMobility::Mobility);
-    MobilizedBodyIndex getResidueAtomMobilizedBodyIndex(ResidueInfo::Index res, ResidueInfo::AtomIndex a) const {
-        return getAtomMobilizedBodyIndex(getResidue(res).getAtomIndex(a));
-    }
-    Vec3 getResidueAtomLocationInMobilizedBodyFrame(ResidueInfo::Index res, ResidueInfo::AtomIndex a) const {
-        return getAtomLocationInMobilizedBodyFrame(getResidue(res).getAtomIndex(a));
-    }
-
-    virtual AtomTargetLocations createAtomTargets
-       (const class PdbStructure& targetStructure, 
-        bool                      guessCoordinates = false) const;
-    virtual AtomTargetLocations createAtomTargets
-       (const class PdbChain& targetChain, 
-        bool                  guessCoordinates = false) const;
-
-    SimTK_INSERT_DERIVED_HANDLE_DECLARATIONS(Biopolymer, BiopolymerRep, Molecule);
-
-
-private:
-    // OBSOLETE; TODO: remove in SimTK 2.0
-    int getNResidues() const {return getNumResidues();}
-
+struct ReferenceIndices {
+    int zero;
+    int one;
+    int two;
 };
 
+inline ReferenceIndices resolveReferenceIndices(const std::vector<int>& atomBondCenterIndices) {
+    int zero = 0, one = 1, two = 2;
+
+    for (int i = 0; i < (int)atomBondCenterIndices.size(); ++i) {
+        int bcIx = atomBondCenterIndices[i];
+
+        if (bcIx == 0) {
+            if (one == i) one = zero;
+            else if (two == i) two = zero;
+            zero = i;
+        }
+        else if (bcIx == 1) {
+            if (zero == i) zero = one;
+            else if (two == i) two = one;
+            one = i;
+        }
+    }
+
+    return {zero, one, two};
+}
+
+inline bool isBondChiralityMismatch(const UnitVec3& s1, const UnitVec3& s2, const UnitVec3& si, const UnitVec3& t1, const UnitVec3& t2, const UnitVec3& ti) {
+    const Real sc = tripleProduct(s1, s2, si);
+    const Real tc = tripleProduct(t1, t2, ti);
+    return sc * tc < 0;
+}
 
 } // namespace SimTK
 

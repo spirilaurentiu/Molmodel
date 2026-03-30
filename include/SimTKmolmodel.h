@@ -59,16 +59,13 @@ will include this one). **/
 #include "molmodel/internal/DuMMForceFieldSubsystem.h"
 #include "molmodel/internal/MolecularMechanicsSystem.h"
 #include "molmodel/internal/CompoundSystem.h"
-#include "molmodel/internal/PDBReader.h"
-#include "molmodel/internal/Pdb.h"
 #include "molmodel/internal/Superpose.h"
-#include "molmodel/internal/PeriodicPdbWriter.h"
 #include "molmodel/internal/VanderWallSphere.h"
 #include "molmodel/internal/RiboseMobilizer.h"
-#include "molmodel/internal/PeriodicVmdReporter.h"
 #include "molmodel/internal/VelocityRescalingThermostat.h"
 #include "molmodel/internal/NoseHooverThermostat.h"
 #include "molmodel/internal/MassCenterMotionRemover.h"
 #include "molmodel/internal/CompoundModeler.h"
+#include "molmodel/internal/Span.hpp"
 
 #endif // SimTK_MOLMODEL_SimTKMOLMODEL_H_

@@ -50,8 +50,6 @@
 #include "gbsa/ObcParameters.h"
 #include "gbsa/CpuObc.h"
 
-#include "molmodel/internal/OpenMMPlugin.h"
-
 #include <string>
 #include <vector>
 #include <cmath>
@@ -1955,8 +1953,6 @@ public:
     // last change to Position-stage state variables.
     Real calcPotentialEnergy(const State& state) const;
 
-    SimTK::Real calcFullPotentialEnergyOpenMM(const State& s) const;
-
     // We scale short range interactions but only for bonds which cross bodies.
     void scaleBondedAtoms(const IncludedAtom&   atom,  
                           Array_<Real,DuMM::NonbondAtomIndex>&     vdwScale,  
@@ -2458,7 +2454,6 @@ public:
     bool wantOpenMMIntegration;
     bool wantOpenMMCalcOnlyNonBonded;
     bool allowOpenMMReference;
-    Real stepsize;
     Real temperature;
 
         // TOPOLOGICAL CACHE ENTRIES
@@ -2536,7 +2531,6 @@ public:
     // Used for OpenMM acceleration
     bool                    usingOpenMM;
     std::string             openMMPlatformInUse; // empty if none
-    OpenMMPluginInterface   openMMPlugin;
 
     CacheEntryIndex         inclAtomStationCacheIndex;
     CacheEntryIndex         inclAtomPositionCacheIndex;

@@ -1582,15 +1582,15 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
     // decide to use OpenMM, the flag usingOpenMM will be set true.
     mutableThis->usingOpenMM = false;
     if (wantOpenMMAcceleration ) {
-        mutableThis->openMMPlatformInUse = mutableThis->openMMPlugin.initializeOpenMM(allowOpenMMReference, this);
+        // mutableThis->openMMPlatformInUse = mutableThis->openMMPlugin.initializeOpenMM(allowOpenMMReference, this);
 
-        if (openMMPlatformInUse.empty()) {
-            if (tracing)
-                std::cout << "WARNING: DuMM: failed to initialize OpenMM\n";
-        }
+        // if (openMMPlatformInUse.empty()) {
+        //     if (tracing)
+        //         std::cout << "WARNING: DuMM: failed to initialize OpenMM\n";
+        // }
 
-        if (tracing)
-            std::cout << "NOTE: DuMM: using OpenMM platform '" << openMMPlatformInUse << "'\n";
+        // if (tracing)
+        //     std::cout << "NOTE: DuMM: using OpenMM platform '" << openMMPlatformInUse << "'\n";
 
         mutableThis->usingOpenMM = true;
     }
@@ -2519,60 +2519,6 @@ void DuMMForceFieldSubsystemRep::calcGBSAForces
 }
 //..............................CALC GBSA FORCES................................
 
-
-SimTK::Real DuMMForceFieldSubsystemRep::calcFullPotentialEnergyOpenMM(const State& s) const
-{
-    SimTK::Real fullEnergy = 0;
-
-    if (!usingOpenMM) {return fullEnergy;}
-
-    const MultibodySystem&        mbs    = getMultibodySystem();
-    const SimbodyMatterSubsystem& matter = mbs.getMatterSubsystem();
-
-    Vector_<Vec3>  AllAtomStation_G = getIncludedAtomStationCache(s);
-    Vector_<Vec3>  AllAtomPos_G     = getIncludedAtomPositionCache(s);     
-    AllAtomStation_G.resize( getNumAllAtoms() );
-    AllAtomPos_G.resize( getNumAllAtoms() );
-
-    // Iterate all bodies
-    for (DuMMIncludedBodyIndex dbx(0); dbx < AllBodies.size(); ++dbx) {
-
-        const IncludedBody&      currentBody  = AllBodies[dbx];
-        const MobilizedBodyIndex mbx     = currentBody.mobodIx;
-        const MobilizedBody&     mobod   = matter.getMobilizedBody(mbx);
-
-        const Transform&    X_GB  = mobod.getBodyTransform(s);
-        const Rotation&     R_GB  = X_GB.R();
-        const Vec3&         p_GB  = X_GB.p();
-
-
-	    // First we make sure we have updated all atoms positions
-	    int iax_count = 0;
-        for (DuMM::IncludedAtomIndex iax=currentBody.beginAllAtoms; iax != currentBody.endAllAtoms; ++iax)
-        {
-            const Vec3& station_B_All = getAllAtomStation(iax);
-            // atomic coordinates with respect to Ground frame
-            const Vec3 p_BS_G = R_GB * station_B_All; 
-            AllAtomStation_G[iax] = p_BS_G;
-            AllAtomPos_G[iax]     = p_GB + p_BS_G;
-
-            iax_count++;
-        }  
-    }
-
-    TRACE_OPENMM("calcFullPotentialEnergyOpenMM AllAtomStation_G.size() = "
-        + std::to_string(AllAtomStation_G.size()) + "\n");
-
-    Vector_<SpatialVec> AllBodyForces_G(AllBodies.size(), SpatialVec(Vec3(0), Vec3(0)));
-
-    openMMPlugin.calcOpenMMEnergyAndForces(
-        AllAtomStation_G, AllAtomPos_G, true /*forces*/, true /*energy*/,
-        AllBodyForces_G, fullEnergy);
-
-
-    return fullEnergy;
-}
-
 //------------------------------------------------------------------------------
 //                          REALIZE FORCES AND ENERGY
 //------------------------------------------------------------------------------
@@ -2771,8 +2717,7 @@ Real DuMMForceFieldSubsystemRep::calcPotentialEnergy(const State& state) const {
     // would be somewhat cheaper if forces aren't needed.
 
     realizeForcesAndEnergy(state);
-
-    //CalcFullPotEnergyIncludingRigidBodiesRep(state);
+    
     return getEnergyCache(state);
 }
 //............................CALC POTENTIAL ENERGY.............................

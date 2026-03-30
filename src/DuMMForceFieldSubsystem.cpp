@@ -45,16 +45,6 @@
 #include "units.h"
 #include "OpenMM.hpp"
 
-//#ifndef DEBUG
-//#define DEBUG 1
-//#endif
-
-#ifdef DEBUG
-#define TRACE(STR) printf("%s", STR);
-#else
-#define TRACE(STR)
-#endif
-
 using namespace SimTK;
 
     ////////////////////////////////
@@ -1844,20 +1834,8 @@ void DuMMForceFieldSubsystem::setUseOpenMMIntegration(bool use)
 {   invalidateSubsystemTopologyCache();
     updRep().wantOpenMMIntegration = use; }
 
-
-SimTK::Real DuMMForceFieldSubsystem::calcFullPotentialEnergyOpenMM(const State& s) const
-{
-    return getRep().calcFullPotentialEnergyOpenMM(s);
-}
-
 bool DuMMForceFieldSubsystem::integrateTrajectoryWithOpenMM(const State &state, int steps, SimTK::Real timeStepInPicoseconds) {
     return OPENMM::get().integrateTrajectory(getIncludedAtomPositionsInG(state), steps, timeStepInPicoseconds);
-}
-
-SimTK::Vec3 DuMMForceFieldSubsystem::calcAtomLocationInGroundFrameThroughOMM(
-    DuMM::AtomIndex daix ) const
-{
-    return getRep().openMMPlugin.getAtomPosition(daix);
 }
 
 // Needed in Gmolmodel
@@ -1866,63 +1844,12 @@ DuMMForceFieldSubsystem::getIncludedAtomPositionsInG(const State& s) const {
     return getRep().getIncludedAtomPositionsInG(s);
 }
 
-void DuMMForceFieldSubsystem::updateOMMAtomLocationCache()
-{
-    updRep().openMMPlugin.updateAtomLocationsCache();
-}
-
-float DuMMForceFieldSubsystem::getOpenMMstepsize() const
-{   return getRep().stepsize; }
-
-void DuMMForceFieldSubsystem::setDuMMTimestep(float argTimestep)
-{
-    invalidateSubsystemTopologyCache(); // TODO: why?
-
-    updRep().stepsize = argTimestep;
-    //updRep().openMMPlugin.setTimestep(argTimestep);
-
-    // std::cout << "OMMDEBUG DuMMForceFieldSubsystem::setOpenMMstepsize stepsizes "
-    //     <<" "<< updRep().stepsize
-    //     <<" "<< argTimestep
-    //     << std::endl << std::flush;
-
-}
-
 float DuMMForceFieldSubsystem::getOpenMMtemperature() const
 {   return getRep().temperature; }
 
 void DuMMForceFieldSubsystem::setDuMMTemperature(float value)
 {
     updRep().temperature = value;
-}
-
-void DuMMForceFieldSubsystem::setOpenMMvelocities(SimTK::Real temperature, uint32_t seed)
-{
-    updRep().openMMPlugin.setVelocitiesToTemperature(temperature, seed);
-}
-
-void DuMMForceFieldSubsystem::setOpenMMTimestep(SimTK::Real timestep)
-{
-    updRep().openMMPlugin.setTimestep(timestep);
-}
-
-void DuMMForceFieldSubsystem::OMM_setOpenMMPositions(const std::vector<SimTK::Vec3>& positions)
-{
-    updRep().openMMPlugin.setOpenMMPositions(positions);
-}
-
-void DuMMForceFieldSubsystem::setOpenMMseed(uint32_t seed) {
-    updRep().openMMPlugin.setSeed(seed);
-}
-
-void DuMMForceFieldSubsystem::setOpenMMparticleMass(DuMM::NonbondAtomIndex nax, SimTK::Real mass) {
-    // Get DuMM::AtomIndex as int
-    const int ix = getAtomIndexOfNonbondAtom(nax);
-    updRep().openMMPlugin.setParticleMass(ix, mass);
-}
-
-void DuMMForceFieldSubsystem::setOpenMMMasses(const std::vector<SimTK::Real>& masses) {
-    updRep().openMMPlugin.setOpenMMMasses(masses);
 }
 
 bool DuMMForceFieldSubsystem::getAllowOpenMMReference() const
@@ -3102,46 +3029,3 @@ DuMM::ChargedAtomTypeIndex DuMMForceFieldSubsystem::getBiotypeChargedAtomType(Bi
 //     }
 
 // }
-
-
-
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
-//		        GMOLMODEL - EXTRA FUNCTIONALITIES
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
-
-
-Real DuMMForceFieldSubsystem::
-CalcFullPotEnergyIncludingRigidBodies ( const State& state ) const {
-    static const char* MethodName = "CalcFullPotEnergyIncludingRigidBodies";
-    SimTK_STAGECHECK_TOPOLOGY_REALIZED_ALWAYS(subsystemTopologyHasBeenRealized(),
-                                              MethodName, "Subsystem", "DuMMForceFieldSubsystem");
-    return getRep().CalcFullPotEnergyIncludingRigidBodiesRep( state );
-}
-
-    //drl BEGIN
-
-    const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_bon(){return updRep().openMMPlugin.getEnergies_drl_bon();}
-    const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_ang(){return updRep().openMMPlugin.getEnergies_drl_ang();}
-    const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_tor(){return updRep().openMMPlugin.getEnergies_drl_tor();}
-    const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_n14(){return updRep().openMMPlugin.getEnergies_drl_n14();}
-    const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_vdw(){return updRep().openMMPlugin.getEnergies_drl_vdw();}
-    const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_cou(){return updRep().openMMPlugin.getEnergies_drl_cou();}
-    const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_bon(){return updRep().openMMPlugin.getForces_drl_bon();}
-    const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_ang(){return updRep().openMMPlugin.getForces_drl_ang();}
-    const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_tor(){return updRep().openMMPlugin.getForces_drl_tor();}
-    const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_n14(){return updRep().openMMPlugin.getForces_drl_n14();}
-
-    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_bon(){}
-    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_ang(){}
-    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_tor(){}
-    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_n14(){}
-    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_vdw(){}
-    // const std::vector<std::vector<double>>& DuMMForceFieldSubsystem::getEnergies_drl_cou(){}
-    // const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_bon(){}
-    // const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_ang(){}
-    // const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_tor(){}
-    // const std::vector<OpenMM::Vec3>& DuMMForceFieldSubsystem::getForces_drl_n14(){}
-
-    //drl END
