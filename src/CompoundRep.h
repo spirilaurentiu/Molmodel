@@ -32,57 +32,68 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#include "SimTKcommon.h"
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <numeric>
+#include <set>
+#include <string>
+#include <vector>
 
-#include "molmodel/internal/bondGeometry.h"
 #include "molmodel/internal/Compound.h"
 #include "molmodel/internal/CompoundSystem.h"
 #include "molmodel/internal/Superpose.h"
-#include "Span.hpp"
+#include "molmodel/internal/bondGeometry.h"
+
 #include "CompoundAtom.h"
-#include <fstream>
-#include <numeric>
-#include <iostream>
-#include <vector>
-#include <map>
-#include <string>
-#include <set>
+#include "SimTKcommon.h"
+#include "Span.hpp"
+
 using std::string;
 
 namespace SimTK {
 
 static const String InboardBondName = "inboard bond";
 
-//void invalidateAtomFrameCache(std::vector<Transform>& atomFrameCache, int numAtoms);
+// void invalidateAtomFrameCache(std::vector<Transform>& atomFrameCache, int numAtoms);
 
 class DihedralAngle {
-public:
-    DihedralAngle() 
-        : nomenclatureOffset(0*Deg2Rad)
-    {}
+    public:
+    DihedralAngle()
+        : nomenclatureOffset(0 * Deg2Rad) {
+    }
 
-    DihedralAngle(Compound::BondCenterIndex bc1, Compound::BondCenterIndex bc2, Angle o = 0*Deg2Rad) 
-        : nomenclatureOffset(o), bondCenter1(bc1), bondCenter2(bc2)
-        // , internalOffset(0)
-    {}
+    DihedralAngle(Compound::BondCenterIndex bc1, Compound::BondCenterIndex bc2, Angle o = 0 * Deg2Rad)
+        : nomenclatureOffset(o)
+        , bondCenter1(bc1)
+        , bondCenter2(bc2)
+    // , internalOffset(0)
+    {
+    }
 
-    Compound::BondCenterIndex getBondCenter1Id() const {return bondCenter1;}
-    Compound::BondCenterIndex getBondCenter2Id() const {return bondCenter2;}
-    Angle getNomenclatureOffset() const {return nomenclatureOffset;}
+    Compound::BondCenterIndex getBondCenter1Id() const {
+        return bondCenter1;
+    }
+    Compound::BondCenterIndex getBondCenter2Id() const {
+        return bondCenter2;
+    }
+    Angle getNomenclatureOffset() const {
+        return nomenclatureOffset;
+    }
 
     // Angle getInternalOffset() const {return internalOffset;}
     // void setInternalOffset(Angle a) {internalOffset = a;}
 
-private:
+    private:
     // Angle internalOffset; // this dihedral may be offset from canonical dihedral for this bond
     Angle nomenclatureOffset; // internal + offset = nominal
     Compound::BondCenterIndex bondCenter1;
     Compound::BondCenterIndex bondCenter2;
 };
 
-    //////////////////
-    // COMPOUND REP //
-    //////////////////
+//////////////////
+// COMPOUND REP //
+//////////////////
 
 typedef std::vector<Compound::AtomIndex> AtomIndexVector;
 
@@ -112,9 +123,8 @@ struct SOADihedrals {
     std::vector<Compound::BondIndex> bondIndex23;
 };
 
-class CompoundRep : public PIMPLImplementation<Compound,CompoundRep> 
-{
-private:
+class CompoundRep : public PIMPLImplementation<Compound, CompoundRep> {
+    private:
     SOABonds soaBonds;
     SOAAngles soaAngles;
     SOADihedrals soaDihedrals;
@@ -122,27 +132,27 @@ private:
     // std::vector<AtomIndexVector> atomPairs;
     // std::map<Compound::AtomIndex, std::set<Compound::AtomIndex>> atomNeighbors_Map;
     // std::vector< AtomIndexVector > atomTriples;
-    std::vector< AtomIndexVector > atomRun;
+    std::vector<AtomIndexVector> atomRun;
     // std::vector< AtomIndexVector > atomQuads;
 
-public:
+    public:
     friend class CompoundSystem;
     friend class ResidueInfo;
 
-    explicit CompoundRep(const String& n="UnknownCompoundType", const Transform& transform = Transform()) :
-        ownerSystem(0),
-        topLevelTransform(transform),
-        name(n),
-        pdbResidueNumber(-111111),
-        pdbResidueName("UNK"),
-        pdbChainId(' ')
-        //haveParentCompound(false)
+    explicit CompoundRep(const String& n = "UnknownCompoundType", const Transform& transform = Transform())
+        : ownerSystem(0)
+        , topLevelTransform(transform)
+        , name(n)
+        , pdbResidueNumber(-111111)
+        , pdbResidueName("UNK")
+        , pdbChainId(' ')
+    // haveParentCompound(false)
     {
-    	addCompoundSynonym(n);
+        addCompoundSynonym(n);
     }
 
-    CompoundRep&  setCompoundName(const Compound::Name& n) {
-        name=n; 
+    CompoundRep& setCompoundName(const Compound::Name& n) {
+        name = n;
         addCompoundSynonym(name);
         return *this;
     }
@@ -150,72 +160,69 @@ public:
         synonyms.insert(synonym);
         return *this;
     }
-    const Compound::Name& getCompoundName() const          {return name;}
+    const Compound::Name& getCompoundName() const {
+        return name;
+    }
 
     // This is concrete, but can be extended.
-    virtual ~CompoundRep() { }
-    virtual CompoundRep* clone() const {return new CompoundRep(*this);}
+    virtual ~CompoundRep() {
+    }
+    virtual CompoundRep* clone() const {
+        return new CompoundRep(*this);
+    }
 
     // int getNumSubcompounds() const {return allSubcompounds.size();}
 
-    void setMultibodySystem(MultibodySystem& system) 
-    {
+    void setMultibodySystem(MultibodySystem& system) {
         ownerSystem = &system;
-
     }
 
-    bool isOwnedBySystem() const {return ownerSystem != 0;}
+    bool isOwnedBySystem() const {
+        return ownerSystem != 0;
+    }
     // const CompoundSystem& getOwnerCompoundSystem() const {assert(ownerSystem); return *ownerSystem;}
-    const MultibodySystem& getOwnerMultibodySystem() const {assert(ownerSystem); return *ownerSystem;}
-    // Compound::Index getIdWithinOwnerCompoundSystem() const {assert(ownerSystem); return ixWithinOwnerSystem;}
+    const MultibodySystem& getOwnerMultibodySystem() const {
+        assert(ownerSystem);
+        return *ownerSystem;
+    }
+    // Compound::Index getIdWithinOwnerCompoundSystem() const {assert(ownerSystem); return
+    // ixWithinOwnerSystem;}
 
     // Add one simple atom unconnected to anything else
-    CompoundRep& setBaseAtom(
-        const Compound::AtomName& name, 
-        const Element& element,
-        const Transform& location);
+    CompoundRep&
+    setBaseAtom(const Compound::AtomName& name, const Element& element, const Transform& location);
 
-    CompoundRep& setBaseAtom(
-        const Compound::AtomName& name, 
-        const Biotype& biotype,
-        const Transform& location);
+    CompoundRep&
+    setBaseAtom(const Compound::AtomName& name, const Biotype& biotype, const Transform& location);
 
-    // Add a subcompound containing exactly one atom, so the Compound::AtomName can be reused for the Compound::Name
-    // This atom is not connected to anything else
-    CompoundRep& setBaseAtom(
-        const Compound::SingleAtom& compound,
-        const Transform& location);
+    // Add a subcompound containing exactly one atom, so the Compound::AtomName can be reused for the
+    // Compound::Name This atom is not connected to anything else
+    CompoundRep& setBaseAtom(const Compound::SingleAtom& compound, const Transform& location);
 
     // Add a subcompound without attaching it to anything
-    Compound::BondCenterIndex setBaseCompound(
-        const Compound::Name& n, 
-        const Compound& c,
-        const Transform& location);
+    Compound::BondCenterIndex
+    setBaseCompound(const Compound::Name& n, const Compound& c, const Transform& location);
 
-    // Add a subcompound containing exactly one atom, so the Compound::AtomName can be reused for the Compound::Name
-    // This atom is connected to existing material
-    CompoundRep& bondAtom(
-        const Compound::SingleAtom&   compound, 
-        const Compound::BondCenterPathName& parentBondName, 
-        mdunits::Length                      distance,
-        Angle                         dihedral = 0,
-        BondMobility::Mobility        mobility = BondMobility::Default
-        );
+    // Add a subcompound containing exactly one atom, so the Compound::AtomName can be reused for the
+    // Compound::Name This atom is connected to existing material
+    CompoundRep& bondAtom(const Compound::SingleAtom& compound,
+                          const Compound::BondCenterPathName& parentBondName,
+                          mdunits::Length distance,
+                          Angle dihedral = 0,
+                          BondMobility::Mobility mobility = BondMobility::Default);
 
     // Bond atom using default bond length and dihedral angle
-    CompoundRep& bondAtom(
-        const Compound::SingleAtom& compound, 
-        const Compound::BondCenterPathName& parentBondName) 
-    {
+    CompoundRep& bondAtom(const Compound::SingleAtom& compound,
+                          const Compound::BondCenterPathName& parentBondName) {
         // assert(! hasParentCompound());
         // assert(! compound.getImpl().hasParentCompound());
 
         // There are two choice for how to delegate this method.
-        // 1) deduce the bond length and dihedral and call the other 
+        // 1) deduce the bond length and dihedral and call the other
         //    bondAtom() that takes those parameters
         // 2) deduce the compound name and call the bondCompound()
         //    that does not take geometry parameters.
-        // 
+        //
         // It is better to choose course 2), because it is less complex
         // (at the time of this writing)
 
@@ -232,36 +239,30 @@ public:
 
     // Add a subcompound attached by a bond to an existing atom
     // bondCompound("H1", MonovalentAtom(Element::Hydrogen()), "bond", "C/bond2", C_Hdistance );
-    CompoundRep& bondCompound(
-        const Compound::Name& name, 
-        const Compound& subcompound, 
-        const Compound::BondCenterPathName& parentBondName, 
-        mdunits::Length distance,
-        Angle dihedral = 0,
-        BondMobility::Mobility mobility = BondMobility::Default
-        );
+    CompoundRep& bondCompound(const Compound::Name& name,
+                              const Compound& subcompound,
+                              const Compound::BondCenterPathName& parentBondName,
+                              mdunits::Length distance,
+                              Angle dihedral = 0,
+                              BondMobility::Mobility mobility = BondMobility::Default);
 
     // Shorter version uses default bond length and dihedral angle
-    CompoundRep& bondCompound(
-        const Compound::Name& n, 
-        const Compound& c, 
-        const Compound::BondCenterPathName& parentBondName);
+    CompoundRep& bondCompound(const Compound::Name& n,
+                              const Compound& c,
+                              const Compound::BondCenterPathName& parentBondName);
     // sam added polymorphism
-  
-    CompoundRep& bondCompound(
-        const Compound::Name& n,
-        const Compound& c,
-        const Compound::BondCenterPathName& parentBondName,
-        BondMobility::Mobility mobility
-        );
+
+    CompoundRep& bondCompound(const Compound::Name& n,
+                              const Compound& c,
+                              const Compound::BondCenterPathName& parentBondName,
+                              BondMobility::Mobility mobility);
     // deprecate removeSubcompound for now -- I'm not using it
     // CompoundRep& removeSubcompound(const Compound::Name& name);
 
-    CompoundRep& setInboardBondCenter(
-        const Compound::BondCenterName& centerName, 
-        const Compound::AtomName& atomName, 
-        Angle zRotation,
-        Angle oldXRotation);
+    CompoundRep& setInboardBondCenter(const Compound::BondCenterName& centerName,
+                                      const Compound::AtomName& atomName,
+                                      Angle zRotation,
+                                      Angle oldXRotation);
 
     CompoundRep& setDefaultInboardBondLength(mdunits::Length d) {
         updInboardBondCenter().setDefaultBondLength(d);
@@ -274,59 +275,45 @@ public:
     }
 
 
-    CompoundRep& addFirstBondCenter(
-        const Compound::BondCenterName& centerName, 
-        const Compound::AtomName& atomName);
+    CompoundRep& addFirstBondCenter(const Compound::BondCenterName& centerName,
+                                    const Compound::AtomName& atomName);
 
-    CompoundRep& addSecondBondCenter(
-        const Compound::BondCenterName& centerName, 
-        const Compound::AtomName& atomName,
-        Angle bondAngle1
-        );
+    CompoundRep& addSecondBondCenter(const Compound::BondCenterName& centerName,
+                                     const Compound::AtomName& atomName,
+                                     Angle bondAngle1);
 
-    CompoundRep& addFirstTwoBondCenters(
-            const Compound::BondCenterName& centerName1,
-            const Compound::BondCenterName& centerName2,
-            const Compound::AtomName& atomName,
-            UnitVec3 dir1, UnitVec3 dir2
-    );
+    CompoundRep& addFirstTwoBondCenters(const Compound::BondCenterName& centerName1,
+                                        const Compound::BondCenterName& centerName2,
+                                        const Compound::AtomName& atomName,
+                                        UnitVec3 dir1,
+                                        UnitVec3 dir2);
 
-    CompoundRep& addPlanarBondCenter(
-        const Compound::BondCenterName& centerName, 
-        const Compound::AtomName& atomName,
-        Angle bondAngle1,
-        Angle bondAngle2);
+    CompoundRep& addPlanarBondCenter(const Compound::BondCenterName& centerName,
+                                     const Compound::AtomName& atomName,
+                                     Angle bondAngle1,
+                                     Angle bondAngle2);
 
-    CompoundRep& addRightHandedBondCenter(
-        const Compound::BondCenterName& centerName, 
-        const Compound::AtomName& atomName,
-        Angle bondAngle1,
-        Angle bondAngle2
-        );
+    CompoundRep& addRightHandedBondCenter(const Compound::BondCenterName& centerName,
+                                          const Compound::AtomName& atomName,
+                                          Angle bondAngle1,
+                                          Angle bondAngle2);
 
-    CompoundRep& addLeftHandedBondCenter(
-        const Compound::BondCenterName& centerName, 
-        const Compound::AtomName& atomName,
-        Angle bondAngle1,
-        Angle bondAngle2
-        );
+    CompoundRep& addLeftHandedBondCenter(const Compound::BondCenterName& centerName,
+                                         const Compound::AtomName& atomName,
+                                         Angle bondAngle1,
+                                         Angle bondAngle2);
 
 
-    CompoundRep& addBondCenterInfo(
-        const Compound::AtomIndex   atomId,
-        const CompoundAtom::BondCenterIndex atomCenterIndex);
+    CompoundRep& addBondCenterInfo(const Compound::AtomIndex atomId,
+                                   const CompoundAtom::BondCenterIndex atomCenterIndex);
 
-    CompoundRep& addRingClosingBond(
-        const Compound::BondCenterName& centerName1, 
-        const Compound::BondCenterName& centerName2 
-        );
-    CompoundRep& addRingClosingBond(
-        const Compound::BondCenterName& centerName1, 
-        const Compound::BondCenterName& centerName2,
-        mdunits::Length bondLength,
-        Angle dihedral,
-        BondMobility::Mobility mobility
-        );
+    CompoundRep& addRingClosingBond(const Compound::BondCenterName& centerName1,
+                                    const Compound::BondCenterName& centerName2);
+    CompoundRep& addRingClosingBond(const Compound::BondCenterName& centerName1,
+                                    const Compound::BondCenterName& centerName2,
+                                    mdunits::Length bondLength,
+                                    Angle dihedral,
+                                    BondMobility::Mobility mobility);
 
     int getNumAtoms() const;
 
@@ -350,24 +337,23 @@ public:
     }
 
     size_t getNumBondCenters() const;
-	size_t getNumBondCenters(Compound::AtomIndex atomIndex) const;
+    size_t getNumBondCenters(Compound::AtomIndex atomIndex) const;
 
     // const Compound::BondCenterName& getBondCenterName(Compound::BondCenterIndex bondCenterIndex) const;
 
     CompoundRep& nameAtom(const Compound::AtomName& newName, Compound::AtomIndex atomId);
     CompoundRep& nameAtom(const Compound::AtomName& newName, const Compound::AtomPathName& oldName);
 
-    CompoundRep& nameAtom(
-        const Compound::AtomName& newName, 
-        const Compound::AtomPathName& oldName, 
-        BiotypeIndex biotype);
+    CompoundRep&
+    nameAtom(const Compound::AtomName& newName, const Compound::AtomPathName& oldName, BiotypeIndex biotype);
 
     // setBiotype("C", Biotype::MethaneC);
     CompoundRep& setBiotypeIndex(const Compound::AtomName& atomName, BiotypeIndex biotype);
 
     // REX
-    CompoundRep& setAtomMobilizedBodyIndex(const Compound::AtomIndex& atomIndex, const MobilizedBodyIndex mbx);
-        
+    CompoundRep& setAtomMobilizedBodyIndex(const Compound::AtomIndex& atomIndex,
+                                           const MobilizedBodyIndex mbx);
+
     CompoundRep& nameBondCenter(Compound::BondCenterName newName, Compound::BondCenterPathName oldName);
 
     // Use atoms names as found in subcompound
@@ -375,47 +361,40 @@ public:
     CompoundRep& inheritBondCenterNames(const Compound::Name& scName);
 
     bool hasDihedral(const Compound::DihedralName& angleName) const {
-        return ( AtomName_To_dihedralAngles.find(angleName) != AtomName_To_dihedralAngles.end() );
+        return (AtomName_To_dihedralAngles.find(angleName) != AtomName_To_dihedralAngles.end());
     }
 
-    bool atomsAreBonded(const AtomInfo& atom1, const AtomInfo& atom2) const 
-    {
+    bool atomsAreBonded(const AtomInfo& atom1, const AtomInfo& atom2) const {
         std::pair<Compound::AtomIndex, Compound::AtomIndex> key(atom1.getIndex(), atom2.getIndex());
         return (AIxPair_To_BondIx.find(key) != AIxPair_To_BondIx.end());
     }
 
 
-    CompoundRep& defineDihedralAngle(
-        const Compound::DihedralName& angleName,
-        const Compound::AtomName& atom1,
-        const Compound::AtomName& atom2,
-        const Compound::AtomName& atom3,
-        const Compound::AtomName& atom4,
-        Angle nomenclatureOffset
-        ) 
-    {
-        assert( ! hasDihedral(angleName) );
-        assert( atomsAreBonded(getAtomInfo(atom1), getAtomInfo(atom2)) );
-        assert( atomsAreBonded(getAtomInfo(atom2), getAtomInfo(atom3)) );
-        assert( atomsAreBonded(getAtomInfo(atom3), getAtomInfo(atom4)) );
+    CompoundRep& defineDihedralAngle(const Compound::DihedralName& angleName,
+                                     const Compound::AtomName& atom1,
+                                     const Compound::AtomName& atom2,
+                                     const Compound::AtomName& atom3,
+                                     const Compound::AtomName& atom4,
+                                     Angle nomenclatureOffset) {
+        assert(!hasDihedral(angleName));
+        assert(atomsAreBonded(getAtomInfo(atom1), getAtomInfo(atom2)));
+        assert(atomsAreBonded(getAtomInfo(atom2), getAtomInfo(atom3)));
+        assert(atomsAreBonded(getAtomInfo(atom3), getAtomInfo(atom4)));
 
         const BondCenterInfo& bond1 = getBondCenterInfo(atom2, atom1);
         const BondCenterInfo& bond2 = getBondCenterInfo(atom3, atom4);
 
-        defineDihedralAngle( angleName, bond1, bond2, nomenclatureOffset );
+        defineDihedralAngle(angleName, bond1, bond2, nomenclatureOffset);
 
-        assert( hasDihedral(angleName) );
+        assert(hasDihedral(angleName));
 
         return *this;
     }
 
-    CompoundRep& defineDihedralAngle(
-        const Compound::DihedralName& angleName,
-        const Compound::BondCenterName& bondName1,
-        const Compound::BondCenterName& bondName2,
-        Angle nomenclatureOffset
-        ) 
-    {
+    CompoundRep& defineDihedralAngle(const Compound::DihedralName& angleName,
+                                     const Compound::BondCenterName& bondName1,
+                                     const Compound::BondCenterName& bondName2,
+                                     Angle nomenclatureOffset) {
         // assert( ! hasDihedral(angleName) );
 
         const BondCenterInfo& bond1 = getBondCenterInfo(bondName1);
@@ -423,78 +402,75 @@ public:
 
         defineDihedralAngle(angleName, bond1, bond2, nomenclatureOffset);
 
-        assert( hasDihedral(angleName) ); 
+        assert(hasDihedral(angleName));
 
         return *this;
     }
 
-    CompoundRep& defineDihedralAngle(
-        const Compound::DihedralName& angleName,
-        const BondCenterInfo& bond1,
-        const BondCenterInfo& bond2,
-        Angle nomenclatureOffset
-        )
-    {
+    CompoundRep& defineDihedralAngle(const Compound::DihedralName& angleName,
+                                     const BondCenterInfo& bond1,
+                                     const BondCenterInfo& bond2,
+                                     Angle nomenclatureOffset) {
         assert(AtomName_To_dihedralAngles.find(angleName) == AtomName_To_dihedralAngles.end());
-    
-        AtomName_To_dihedralAngles[angleName] = DihedralAngle(bond1.getIndex(), bond2.getIndex(), nomenclatureOffset);
+
+        AtomName_To_dihedralAngles[angleName] =
+            DihedralAngle(bond1.getIndex(), bond2.getIndex(), nomenclatureOffset);
 
         assert(AtomName_To_dihedralAngles.find(angleName) != AtomName_To_dihedralAngles.end());
 
         //// Define internal offset
-        //DihedralAngle& dihedral = dihedralAnglesByName.find(angleName)->second;
-        //const BondCenterInfo& bc21 = getBondCenterInfo(dihedral.getBondCenter1Id());
-        //const BondCenterInfo& bc34 = getBondCenterInfo(dihedral.getBondCenter2Id());
+        // DihedralAngle& dihedral = dihedralAnglesByName.find(angleName)->second;
+        // const BondCenterInfo& bc21 = getBondCenterInfo(dihedral.getBondCenter1Id());
+        // const BondCenterInfo& bc34 = getBondCenterInfo(dihedral.getBondCenter2Id());
 
         //// Find bond axis to project onto
-        //const AtomInfo& atom2 = getAtomInfo(bc21.getAtomIndex());
-        //const AtomInfo& atom3 = getAtomInfo(bc34.getAtomIndex());
-        //const BondCenterInfo& bondBondCenter = getBondCenterInfo(atom2, atom3);
+        // const AtomInfo& atom2 = getAtomInfo(bc21.getAtomIndex());
+        // const AtomInfo& atom3 = getAtomInfo(bc34.getAtomIndex());
+        // const BondCenterInfo& bondBondCenter = getBondCenterInfo(atom2, atom3);
 
-        //assert(bondBondCenter.isBonded());
-        //assert(bondBondCenter.getIndex() != bc21.getIndex());
-        //assert(bondBondCenter.getIndex() != bc34.getIndex());
-        //assert(bc21.getIndex() != bc34.getIndex());
+        // assert(bondBondCenter.isBonded());
+        // assert(bondBondCenter.getIndex() != bc21.getIndex());
+        // assert(bondBondCenter.getIndex() != bc34.getIndex());
+        // assert(bc21.getIndex() != bc34.getIndex());
 
-        //UnitVec3 xAxis(1,0,0);
+        // UnitVec3 xAxis(1,0,0);
 
         //// vector v1: from atom 1 to atom 2
-        //Transform C_X_A2 = calcDefaultAtomFrameInCompoundFrame(atom2.getIndex());
-        //Transform A2_X_BC21 = calcDefaultBondCenterFrameInAtomFrame(bc21);
-        //Transform C_X_BC21 = C_X_A2 * A2_X_BC21;
-        //UnitVec3 v1(C_X_BC21 * -xAxis); // negative x-axis because want 1->2, not 2->1 vector
+        // Transform C_X_A2 = calcDefaultAtomFrameInCompoundFrame(atom2.getIndex());
+        // Transform A2_X_BC21 = calcDefaultBondCenterFrameInAtomFrame(bc21);
+        // Transform C_X_BC21 = C_X_A2 * A2_X_BC21;
+        // UnitVec3 v1(C_X_BC21 * -xAxis); // negative x-axis because want 1->2, not 2->1 vector
 
         //// vector v2: from atom 2 to atom 3
-        //Transform A2_X_BCB = calcDefaultBondCenterFrameInAtomFrame(bondBondCenter);
-        //Transform C_X_BCB = C_X_A2 * A2_X_BCB;
-        //UnitVec3 v2(C_X_BCB * xAxis);
+        // Transform A2_X_BCB = calcDefaultBondCenterFrameInAtomFrame(bondBondCenter);
+        // Transform C_X_BCB = C_X_A2 * A2_X_BCB;
+        // UnitVec3 v2(C_X_BCB * xAxis);
 
         //// vector v3: from atom 3 to atom 4
-        //Transform C_X_A3 = calcDefaultAtomFrameInCompoundFrame(atom3.getIndex());
-        //Transform A3_X_BC34 = calcDefaultBondCenterFrameInAtomFrame(bc34);
-        //Transform C_X_BC34 = C_X_A3 * A3_X_BC34;
-        //UnitVec3 v3(C_X_BC34 * xAxis);
+        // Transform C_X_A3 = calcDefaultAtomFrameInCompoundFrame(atom3.getIndex());
+        // Transform A3_X_BC34 = calcDefaultBondCenterFrameInAtomFrame(bc34);
+        // Transform C_X_BC34 = C_X_A3 * A3_X_BC34;
+        // UnitVec3 v3(C_X_BC34 * xAxis);
 
-        //Angle nominalDihedralAngle = calcDihedralAngle(v1, v2, v3);
+        // Angle nominalDihedralAngle = calcDihedralAngle(v1, v2, v3);
 
-        //const Bond& bond = getBond(getBondInfo(bondBondCenter.getBondIndex()));
-        //Angle internalDihedralAngle = bond.getDefaultDihedralAngle();
+        // const Bond& bond = getBond(getBondInfo(bondBondCenter.getBondIndex()));
+        // Angle internalDihedralAngle = bond.getDefaultDihedralAngle();
 
         //// internal + offset = nominal
-        //Angle offset = nominalDihedralAngle - internalDihedralAngle;
-        //dihedral.setInternalOffset(offset);
+        // Angle offset = nominalDihedralAngle - internalDihedralAngle;
+        // dihedral.setInternalOffset(offset);
 
         return *this;
     }
 
-    Bond& updBondByDihedral(DihedralAngle& dihedral) 
-    {
+    Bond& updBondByDihedral(DihedralAngle& dihedral) {
         const BondCenterInfo& bc1 = getBondCenterInfo(dihedral.getBondCenter1Id());
         const BondCenterInfo& bc2 = getBondCenterInfo(dihedral.getBondCenter2Id());
 
         const AtomInfo& atom1 = getAtomInfo(bc1.getAtomIndex());
         const AtomInfo& atom2 = getAtomInfo(bc2.getAtomIndex());
-        assert( atomsAreBonded(atom1, atom2) );
+        assert(atomsAreBonded(atom1, atom2));
 
         BondInfo& bondInfo = updBondInfo(atom1, atom2);
         Bond& bond = updBond(bondInfo);
@@ -502,21 +478,19 @@ public:
         return bond;
     }
 
-    Bond& updBondByDihedralName(const String& bondName) 
-    {
-        assert( AtomName_To_dihedralAngles.find(bondName) != AtomName_To_dihedralAngles.end() );
+    Bond& updBondByDihedralName(const String& bondName) {
+        assert(AtomName_To_dihedralAngles.find(bondName) != AtomName_To_dihedralAngles.end());
         DihedralAngle& dihedral = AtomName_To_dihedralAngles.find(bondName)->second;
-        return  updBondByDihedral(dihedral);
+        return updBondByDihedral(dihedral);
     }
 
-    const Bond& getBondByDihedral(const DihedralAngle& dihedral) const 
-    {
+    const Bond& getBondByDihedral(const DihedralAngle& dihedral) const {
         const BondCenterInfo& bc1 = getBondCenterInfo(dihedral.getBondCenter1Id());
         const BondCenterInfo& bc2 = getBondCenterInfo(dihedral.getBondCenter2Id());
 
         const AtomInfo& atom1 = getAtomInfo(bc1.getAtomIndex());
         const AtomInfo& atom2 = getAtomInfo(bc2.getAtomIndex());
-        assert( atomsAreBonded(atom1, atom2) );
+        assert(atomsAreBonded(atom1, atom2));
 
         const BondInfo& bondInfo = getBondInfo(atom1, atom2);
         const Bond& bond = getBond(bondInfo);
@@ -525,7 +499,7 @@ public:
     }
 
     const Bond& getBondByDihedralName(const String& dihedralName) const {
-        assert( AtomName_To_dihedralAngles.find(dihedralName) != AtomName_To_dihedralAngles.end() );
+        assert(AtomName_To_dihedralAngles.find(dihedralName) != AtomName_To_dihedralAngles.end());
 
         const DihedralAngle& dihedral = AtomName_To_dihedralAngles.find(dihedralName)->second;
 
@@ -539,56 +513,52 @@ public:
      * Modifying bond-angles, on the other hand, can modify those dihedral angles that involve
      * BondCenters other than the first two BondCenters on each atom.
      */
-    CompoundRep& setDefaultDihedralAngle( 
-            Angle angle, 
-            Compound::AtomIndex atomIndex1, 
-            Compound::AtomIndex atomIndex2, 
-            Compound::AtomIndex atomIndex3, 
-            Compound::AtomIndex atomIndex4)
-    {
-        const BondCenterInfo& bondCenterInfo21 = getBondCenterInfo( getAtomInfo(atomIndex2), getAtomInfo(atomIndex1) );
-        const BondCenterInfo& bondCenterInfo34 = getBondCenterInfo( getAtomInfo(atomIndex3), getAtomInfo(atomIndex4) );
+    CompoundRep& setDefaultDihedralAngle(Angle angle,
+                                         Compound::AtomIndex atomIndex1,
+                                         Compound::AtomIndex atomIndex2,
+                                         Compound::AtomIndex atomIndex3,
+                                         Compound::AtomIndex atomIndex4) {
+        const BondCenterInfo& bondCenterInfo21 =
+            getBondCenterInfo(getAtomInfo(atomIndex2), getAtomInfo(atomIndex1));
+        const BondCenterInfo& bondCenterInfo34 =
+            getBondCenterInfo(getAtomInfo(atomIndex3), getAtomInfo(atomIndex4));
 
         // for debugging
-        //String atom1Name = getAtomName(atomIndex1);
-        //String atom2Name = getAtomName(atomIndex2);
-        //String atom3Name = getAtomName(atomIndex3);
-        //String atom4Name = getAtomName(atomIndex4);
-        //std::cout << atom1Name << "->" << atom2Name << "->" << atom3Name << "->" << atom4Name << std::endl;
-        //std::cout << "RECONSTRUCT STEP 1.0.1 " << offsetAngle4 << std::endl << std::flush;
+        // String atom1Name = getAtomName(atomIndex1);
+        // String atom2Name = getAtomName(atomIndex2);
+        // String atom3Name = getAtomName(atomIndex3);
+        // String atom4Name = getAtomName(atomIndex4);
+        // std::cout << atom1Name << "->" << atom2Name << "->" << atom3Name << "->" << atom4Name << std::endl;
+        // std::cout << "RECONSTRUCT STEP 1.0.1 " << offsetAngle4 << std::endl << std::flush;
 
-        return setDefaultDihedralAngle( angle, bondCenterInfo21.getIndex(), bondCenterInfo34.getIndex() );
+        return setDefaultDihedralAngle(angle, bondCenterInfo21.getIndex(), bondCenterInfo34.getIndex());
     }
 
 
-    CompoundRep& setDefaultDihedralAngle( 
-            Angle angle, 
-            Compound::AtomName atom1, 
-            Compound::AtomName atom2, 
-            Compound::AtomName atom3, 
-            Compound::AtomName atom4)
-    {
-    	return setDefaultDihedralAngle(angle, 
-    			getAtomInfo(atom1).getIndex(),
-    			getAtomInfo(atom2).getIndex(),
-    			getAtomInfo(atom3).getIndex(),
-    			getAtomInfo(atom4).getIndex() );
+    CompoundRep& setDefaultDihedralAngle(Angle angle,
+                                         Compound::AtomName atom1,
+                                         Compound::AtomName atom2,
+                                         Compound::AtomName atom3,
+                                         Compound::AtomName atom4) {
+        return setDefaultDihedralAngle(angle,
+                                       getAtomInfo(atom1).getIndex(),
+                                       getAtomInfo(atom2).getIndex(),
+                                       getAtomInfo(atom3).getIndex(),
+                                       getAtomInfo(atom4).getIndex());
     }
-    
-    /*! <!-- 
-    * determine difference, in radians, between dihedral defined by these bond centers (nominal),
-    * and dihedral defined by "canonical" bond centers (internal).
-    * nominal = internal + offset => offset = nominal - internal -->
-    */
-    Angle calcDefaultInternalDihedralOffsetAngle(
-            Compound::BondCenterIndex bondCenterIndex21, 
-            Compound::BondCenterIndex bondCenterIndex34) const
-    {
+
+    /*! <!--
+     * determine difference, in radians, between dihedral defined by these bond centers (nominal),
+     * and dihedral defined by "canonical" bond centers (internal).
+     * nominal = internal + offset => offset = nominal - internal -->
+     */
+    Angle calcDefaultInternalDihedralOffsetAngle(Compound::BondCenterIndex bondCenterIndex21,
+                                                 Compound::BondCenterIndex bondCenterIndex34) const {
         Compound::AtomIndex atomIndex2 = getBondCenterInfo(bondCenterIndex21).getAtomIndex();
         Compound::AtomIndex atomIndex3 = getBondCenterInfo(bondCenterIndex34).getAtomIndex();
         const AtomInfo& atomInfo2 = getAtomInfo(atomIndex2);
         const AtomInfo& atomInfo3 = getAtomInfo(atomIndex3);
-        assert( atomsAreBonded(atomInfo2, atomInfo3) ); // absolutely required
+        assert(atomsAreBonded(atomInfo2, atomInfo3)); // absolutely required
 
         // Identify the bond centers associated with the atom2-atom3 bond
         const BondCenterInfo& bondCenterInfo23 = getBondCenterInfo(atomInfo2, atomInfo3);
@@ -599,12 +569,12 @@ public:
         // 1) Identify canonical bond centers for internal dihedral angle
         // Usually bond-center number zero(0), unless zero participates in the atom2-atom3 bond
         CompoundAtom::BondCenterIndex canonicalCenterIndex2(0); // default to zero
-        if (bondCenterInfo23.getAtomBondCenterIndex() == 0){ // unless zero is used for 2->3 bond
+        if (bondCenterInfo23.getAtomBondCenterIndex() == 0) {   // unless zero is used for 2->3 bond
             canonicalCenterIndex2 = CompoundAtom::BondCenterIndex(1);
         }
 
         CompoundAtom::BondCenterIndex canonicalCenterIndex3(0); // default to zero
-        if (bondCenterInfo32.getAtomBondCenterIndex() == 0){ // unless zero is used for 2->3 bond
+        if (bondCenterInfo32.getAtomBondCenterIndex() == 0) {   // unless zero is used for 2->3 bond
             canonicalCenterIndex3 = CompoundAtom::BondCenterIndex(1);
         }
 
@@ -613,49 +583,52 @@ public:
         // down the atom3-atom2 axis.
         const BondCenterInfo& bondCenterInfo21 = getBondCenterInfo(bondCenterIndex21);
         Angle offsetAngle1;
-        if (canonicalCenterIndex2 == bondCenterInfo21.getAtomBondCenterIndex()){
+        if (canonicalCenterIndex2 == bondCenterInfo21.getAtomBondCenterIndex()) {
             offsetAngle1 = 0.0;
-        }else{
-
+        } else {
             // trick the bond-vector version of calcDihedralAngle into giving the offset angle at the atom
             const CompoundAtom& atom2 = getAtom(atomIndex2);
-            UnitVec3 dirAtom1    = -atom2.getBondCenterDirectionInAtomFrame(bondCenterInfo21.getAtomBondCenterIndex());
-            UnitVec3 dirBond     = atom2.getBondCenterDirectionInAtomFrame(bondCenterInfo23.getAtomBondCenterIndex());
+            UnitVec3 dirAtom1 =
+                -atom2.getBondCenterDirectionInAtomFrame(bondCenterInfo21.getAtomBondCenterIndex());
+            UnitVec3 dirBond =
+                atom2.getBondCenterDirectionInAtomFrame(bondCenterInfo23.getAtomBondCenterIndex());
             UnitVec3 dirRefAtom1 = atom2.getBondCenterDirectionInAtomFrame(canonicalCenterIndex2);
 
             // Sometimes bond direction is colinear with atom direction, if chirality is hosed
             double problemCheck = std::abs(dot(dirBond, dirAtom1));
-            if (problemCheck > 0.999)
+            if (problemCheck > 0.999) {
                 offsetAngle1 = 0.0;
-            else
+            } else {
                 offsetAngle1 = SimTK::calcDihedralAngle(dirRefAtom1, dirBond, dirAtom1);
+            }
         }
 
         // * offsetAngle4 is counter-clockwise angle from canonical bond center on atom3 to atom4, viewed
         // down the atom3-atom2 axis.
         const BondCenterInfo& bondCenterInfo34 = getBondCenterInfo(bondCenterIndex34);
-        Angle offsetAngle4 = std::numeric_limits<Angle>::max(); // TODO might use std::optionatl, should look into it
-        if (canonicalCenterIndex3 == bondCenterInfo34.getAtomBondCenterIndex()){
+        Angle offsetAngle4 =
+            std::numeric_limits<Angle>::max(); // TODO might use std::optionatl, should look into it
+        if (canonicalCenterIndex3 == bondCenterInfo34.getAtomBondCenterIndex()) {
             offsetAngle4 = 0.0;
-        }else{
-
+        } else {
             // trick the bond-vector version of calcDihedralAngle into giving the offset angle at the atom
             const CompoundAtom& atom3 = getAtom(atomIndex3);
-            UnitVec3 dirAtom4    = -atom3.getBondCenterDirectionInAtomFrame(bondCenterInfo34.getAtomBondCenterIndex());
-            UnitVec3 dirBond     = -atom3.getBondCenterDirectionInAtomFrame(bondCenterInfo32.getAtomBondCenterIndex());
+            UnitVec3 dirAtom4 =
+                -atom3.getBondCenterDirectionInAtomFrame(bondCenterInfo34.getAtomBondCenterIndex());
+            UnitVec3 dirBond =
+                -atom3.getBondCenterDirectionInAtomFrame(bondCenterInfo32.getAtomBondCenterIndex());
             UnitVec3 dirRefAtom4 = atom3.getBondCenterDirectionInAtomFrame(canonicalCenterIndex3);
 
             // Sometimes bond direction is colinear with atom direction, if chirality is hosed
             double problemCheck = std::abs(dot(dirBond, dirAtom4));
-            if (problemCheck > 0.999){
+            if (problemCheck > 0.999) {
                 offsetAngle1 = 0.0;
-            }else{
+            } else {
                 offsetAngle4 = SimTK::calcDihedralAngle(dirRefAtom4, dirBond, dirAtom4);
             }
-
         }
 
-        if(offsetAngle4 == std::numeric_limits<Angle>::max()) {
+        if (offsetAngle4 == std::numeric_limits<Angle>::max()) {
             // Should never get here, but compiler keeps warning.
             // Se above for a more elegant solution.
             assert(false);
@@ -668,15 +641,19 @@ public:
 
         Angle offsetAngle = offsetAngle4 - offsetAngle1;
 
-        if(offsetAngle4 != std::numeric_limits<Angle>::max()) {
-            while ( -SimTK::Pi >= offsetAngle ) offsetAngle += 2 * SimTK::Pi;
-            while ( SimTK::Pi < offsetAngle ) offsetAngle -= 2 * SimTK::Pi;
+        if (offsetAngle4 != std::numeric_limits<Angle>::max()) {
+            while (-SimTK::Pi >= offsetAngle) {
+                offsetAngle += 2 * SimTK::Pi;
+            }
+            while (SimTK::Pi < offsetAngle) {
+                offsetAngle -= 2 * SimTK::Pi;
+            }
         }
-        //std::cout << "RECONSTRUCT STEP 1.0.3 " << offsetAngle4 << std::endl << std::flush;
-        // debugging
-        //std::cout << "  total offset = " << offsetAngle * DuMM::Rad2Deg;
-        //std::cout << "; offset1 = " << offsetAngle1 * DuMM::Rad2Deg;
-        //std::cout << "; offset4 = " << offsetAngle4 * DuMM::Rad2Deg << std::endl;
+        // std::cout << "RECONSTRUCT STEP 1.0.3 " << offsetAngle4 << std::endl << std::flush;
+        //  debugging
+        // std::cout << "  total offset = " << offsetAngle * DuMM::Rad2Deg;
+        // std::cout << "; offset1 = " << offsetAngle1 * DuMM::Rad2Deg;
+        // std::cout << "; offset4 = " << offsetAngle4 * DuMM::Rad2Deg << std::endl;
 
         return offsetAngle;
     }
@@ -688,11 +665,9 @@ public:
      * Modifying bond-angles, on the other hand, can modify those dihedral angles that involve
      * BondCenters other than the first two BondCenters on each atom.
      */
-    CompoundRep& setDefaultDihedralAngle( 
-            Angle angle, 
-            Compound::BondCenterIndex bondCenterIndex21, 
-            Compound::BondCenterIndex bondCenterIndex34)
-    {
+    CompoundRep& setDefaultDihedralAngle(Angle angle,
+                                         Compound::BondCenterIndex bondCenterIndex21,
+                                         Compound::BondCenterIndex bondCenterIndex34) {
         Compound::AtomIndex atomIndex2 = getBondCenterInfo(bondCenterIndex21).getAtomIndex();
         Compound::AtomIndex atomIndex3 = getBondCenterInfo(bondCenterIndex34).getAtomIndex();
 
@@ -700,36 +675,42 @@ public:
         const AtomInfo& atomInfo3 = getAtomInfo(atomIndex3);
 
         // Sanity check topology
-        assert( atomsAreBonded(atomInfo2, atomInfo3) ); // absolutely required
+        assert(atomsAreBonded(atomInfo2, atomInfo3)); // absolutely required
 
         // Find central bond
         BondInfo& bondInfo23 = updBondInfo(atomInfo2, atomInfo3);
         Bond& bond23 = updBond(bondInfo23);
 
-        Angle internalDihedralOffsetAngle = calcDefaultInternalDihedralOffsetAngle(bondCenterIndex21, bondCenterIndex34);
+        Angle internalDihedralOffsetAngle =
+            calcDefaultInternalDihedralOffsetAngle(bondCenterIndex21, bondCenterIndex34);
 
         Angle internalDihedralAngle = angle - internalDihedralOffsetAngle;
 
-        if(internalDihedralOffsetAngle != std::numeric_limits<Angle>::max()) {
-            while ( -SimTK::Pi >= internalDihedralAngle ) internalDihedralAngle += 2 * SimTK::Pi;
-            while ( SimTK::Pi < internalDihedralAngle ) internalDihedralAngle -= 2 * SimTK::Pi;
-        }else{
+        if (internalDihedralOffsetAngle != std::numeric_limits<Angle>::max()) {
+            while (-SimTK::Pi >= internalDihedralAngle) {
+                internalDihedralAngle += 2 * SimTK::Pi;
+            }
+            while (SimTK::Pi < internalDihedralAngle) {
+                internalDihedralAngle -= 2 * SimTK::Pi;
+            }
+        } else {
             internalDihedralAngle = std::numeric_limits<Angle>::max();
         }
-        //std::cout << "RECONSTRUCT STEP 1.0.2 " << offsetAngle4 << std::endl << std::flush;
+        // std::cout << "RECONSTRUCT STEP 1.0.2 " << offsetAngle4 << std::endl << std::flush;
 
-        //std::cout << "old internal angle = " << bond23.getDefaultDihedralAngle() * DuMM::Rad2Deg << std::endl;
-        //std::cout << "new internal angle = " << internalDihedralAngle * DuMM::Rad2Deg << std::endl;
+        // std::cout << "old internal angle = " << bond23.getDefaultDihedralAngle() * DuMM::Rad2Deg <<
+        // std::endl; std::cout << "new internal angle = " << internalDihedralAngle * DuMM::Rad2Deg <<
+        // std::endl;
 
-		// debug - notice when angle changes
-		//Real diff = internalDihedralAngle - bond23.getDefaultDihedral();
-  //      while ( -SimTK::Pi >= diff ) diff += 2 * SimTK::Pi;
-  //      while ( SimTK::Pi < diff ) diff -= 2 * SimTK::Pi;
-		//diff = diff < 0 ? -diff : diff;
-		//if (diff > 0.005) 
-		//{
-		//	int x = 1;
-		//}
+        // debug - notice when angle changes
+        // Real diff = internalDihedralAngle - bond23.getDefaultDihedral();
+        //      while ( -SimTK::Pi >= diff ) diff += 2 * SimTK::Pi;
+        //      while ( SimTK::Pi < diff ) diff -= 2 * SimTK::Pi;
+        // diff = diff < 0 ? -diff : diff;
+        // if (diff > 0.005)
+        //{
+        //	int x = 1;
+        //}
 
         bond23.setDefaultDihedralAngle(internalDihedralAngle);
 
@@ -737,46 +718,42 @@ public:
     }
 
     // setDefaultDihedral changes no bond lengths or bond angles
-    CompoundRep& setDefaultDihedralAngle(const String& dihedralName, Angle finalNominalAngle) 
-    {
-        //Bond& bond = updBondByDihedralName(dihedralName);
+    CompoundRep& setDefaultDihedralAngle(const String& dihedralName, Angle finalNominalAngle) {
+        // Bond& bond = updBondByDihedralName(dihedralName);
         DihedralAngle& dihedral = AtomName_To_dihedralAngles.find(dihedralName)->second;
 
         // internal = nominal - offset
         Angle angle = finalNominalAngle - dihedral.getNomenclatureOffset();
 
         setDefaultDihedralAngle(angle, dihedral.getBondCenter1Id(), dihedral.getBondCenter2Id());
-        // Angle internalAngle = finalNominalAngle - dihedral.getInternalOffset() - dihedral.getNomenclatureOffset();
+        // Angle internalAngle = finalNominalAngle - dihedral.getInternalOffset() -
+        // dihedral.getNomenclatureOffset();
 
         // bond.setDefaultDihedralAngle(internalAngle);
 
         return *this;
     }
 
-// EU BEGIN
-    Angle bgetDefaultDihedralAngle(Compound::BondIndex bondIx) const 
-    {
+    // EU BEGIN
+    Angle bgetDefaultDihedralAngle(Compound::BondIndex bondIx) const {
         const BondInfo& bondInfo = getBondInfo(bondIx);
         const Bond& bond = getBond(bondInfo);
         Angle angle = -111111;
-        if (bond.isRingClosingBond()){ // ring closing bonds cannot be part of tree structure
-        return angle;
+        if (bond.isRingClosingBond()) { // ring closing bonds cannot be part of tree structure
+            return angle;
         }
-        if (bond.getMobility() == BondMobility::Free){
-        return angle;
-        }
-        else if (bond.getMobility() == BondMobility::Rigid){
-        return angle;
-        }
-        else if (bond.getMobility() == BondMobility::Torsion){
-        angle = bond.getDefaultDihedralAngle();
+        if (bond.getMobility() == BondMobility::Free) {
+            return angle;
+        } else if (bond.getMobility() == BondMobility::Rigid) {
+            return angle;
+        } else if (bond.getMobility() == BondMobility::Torsion) {
+            angle = bond.getDefaultDihedralAngle();
         }
         return angle;
     }
 
 
-    Angle bgetDefaultInboardDihedralAngle(Compound::AtomIndex atomIx) const 
-    {
+    Angle bgetDefaultInboardDihedralAngle(Compound::AtomIndex atomIx) const {
         // Get atom
         const CompoundAtom& atom = getAtom(atomIx);
 
@@ -784,119 +761,104 @@ public:
         CompoundAtom::BondCenterIndex inboardBondCenterIx = atom.getInboardBondCenterIndex();
         const BondCenterInfo& inboardBondCenterInfo = getBondCenterInfo(atomIx, inboardBondCenterIx);
         Compound::BondIndex inboardBondIndex = inboardBondCenterInfo.getBondIndex();
-        //const BondInfo& inboardBondInfo = getBondInfo((getBondCenterInfo(atomIx, (atom.getInboardBondCenterIndex()))).getBondIndex());
+        // const BondInfo& inboardBondInfo = getBondInfo((getBondCenterInfo(atomIx,
+        // (atom.getInboardBondCenterIndex()))).getBondIndex());
 
         // Get the inboard bond
-        //const BondInfo& inboardBondInfo = getBondInfo(inboardBondIndex);
-        //const Bond& inboardBond = getBond(inboardBondInfo);
+        // const BondInfo& inboardBondInfo = getBondInfo(inboardBondIndex);
+        // const Bond& inboardBond = getBond(inboardBondInfo);
         return bgetDefaultDihedralAngle(inboardBondIndex);
     }
 
-    const Transform& getFrameInMobilizedBodyFrame(Compound::AtomIndex atomIx) const
-    {
+    const Transform& getFrameInMobilizedBodyFrame(Compound::AtomIndex atomIx) const {
         const CompoundAtom& atom = getAtom(atomIx);
         return atom.getFrameInMobilizedBodyFrame();
     }
 
-    const Transform& bgetLocalTransform(Compound::AtomIndex atomIx) const
-    {
+    const Transform& bgetLocalTransform(Compound::AtomIndex atomIx) const {
         const CompoundAtom& atom = getAtom(atomIx);
         return atom.getDefaultFrameInCompoundFrame();
     }
 
 
     /*!
-    * <!-- Print Vec3 -->
-    */
-    void PrintTransform(SimTK::Transform T, int decimal_places,
-        std::string header = "", std::string rowPrefix = "")
-    {
+     * <!-- Print Vec3 -->
+     */
+    void PrintTransform(SimTK::Transform T,
+                        int decimal_places,
+                        std::string header = "",
+                        std::string rowPrefix = "") {
         std::cout << header << std::endl;
         const SimTK::Mat44 M = T.toMat44();
 
-        for(int i = 0; i < 4; i++){
+        for (int i = 0; i < 4; i++) {
             std::cout << rowPrefix;
-            for(int k = 0; k < 4; k++){
-                std::cout
-                    << std::setw(6 + decimal_places) << std::fixed
-                    << std::setprecision(decimal_places)			
-                    << M(i, k) << " ";
+            for (int k = 0; k < 4; k++) {
+                std::cout << std::setw(6 + decimal_places) << std::fixed << std::setprecision(decimal_places)
+                          << M(i, k) << " ";
             }
-            std::cout << std::endl;
+            std::cout << "\n";
         }
     }
 
     /*!
-    * <!-- Print Transform -->
-    */
-    void PrintVec3(SimTK::Vec3 vec, int decimal_places,
-        std::string header = "", std::string rowPrefix = "")
-    {
+     * <!-- Print Transform -->
+     */
+    void PrintVec3(SimTK::Vec3 vec, int decimal_places, std::string header = "", std::string rowPrefix = "") {
         std::cout << header << std::endl;
 
-        for(int i = 0; i < 3; i++){
-            std::cout << rowPrefix
-                << std::setw(6 + decimal_places) << std::fixed
-                << std::setprecision(decimal_places)			
-                << vec(i) << " ";
-            std::cout << std::endl;
+        for (int i = 0; i < 3; i++) {
+            std::cout << rowPrefix << std::setw(6 + decimal_places) << std::fixed
+                      << std::setprecision(decimal_places) << vec(i) << " ";
+            std::cout << "\n";
         }
-
     }
 
 
     /*!
-    * <!-- Print Compound geometry (which is the most detailed) -->
-    */
-    CompoundRep& PrintCompoundGeometry(const Compound::AtomTargetLocations& atomTargets){
-
+     * <!-- Print Compound geometry (which is the most detailed) -->
+     */
+    CompoundRep& PrintCompoundGeometry(const Compound::AtomTargetLocations& atomTargets) {
         // Iterate atoms
         if (atomRun.empty()) {
             atomRun = getBondedAtomRuns(1, atomTargets);
         }
 
         std::cout << "CompoundRep::PrintCompoundGeometry atomTargets\n";
-        for(const auto& atomRIx : atomRun) {
+        for (const auto& atomRIx : atomRun) {
             const Compound::AtomIndex atomIx = atomRIx[0];
-                
-                const SimTK::Vec3& loc = atomTargets[atomIx];
 
-                std::cout << " cAIx " << atomIx
-                    << " loc " << loc[0] <<" " << loc[1] <<" " << loc[2];
+            const SimTK::Vec3& loc = atomTargets[atomIx];
 
-                std::cout << std::endl;
+            std::cout << " cAIx " << atomIx << " loc " << loc[0] << " " << loc[1] << " " << loc[2];
 
+            std::cout << "\n";
         }
 
-        for(Compound::AtomIndex atomIx(0); atomIx < getNumAtoms(); atomIx++){    
+        for (Compound::AtomIndex atomIx(0); atomIx < getNumAtoms(); atomIx++) {
             CompoundAtom& atom = updAtom(atomIx);
             const AtomInfo& atomInfo = getAtomInfo(atomIx);
-           
+
             // Go through bond centers on atom.
             for (CompoundAtom::BondCenterIndex BCIx(0); BCIx < atom.getNumBonds(); ++BCIx) {
-                BondCenter &BC = atom.updBondCenter(CompoundAtom::BondCenterIndex(BCIx));
+                BondCenter& BC = atom.updBondCenter(CompoundAtom::BondCenterIndex(BCIx));
                 BondCenter& bondCenter = updBondCenter(Compound::BondCenterIndex(BCIx));
                 SimTK::UnitVec3 dir = atom.getBondCenterDirectionInAtomFrame(BCIx);
                 std::cout << "CompoundRep::PrintCompoundGeometry"
-                    << " cAIx " << atomIx
-                    << " BCIx " << BCIx
-                    << " dir " << dir[0] << " " << dir[1] << " " << dir[2]
-                    << " chirality " << BC.getChirality();
+                          << " cAIx " << atomIx << " BCIx " << BCIx << " dir " << dir[0] << " " << dir[1]
+                          << " " << dir[2] << " chirality " << BC.getChirality();
 
-                std::cout << std::endl;
-
+                std::cout << "\n";
             }
         }
 
         return *this;
-
     }
 
     /*!
     <!-- Set atom frame in mobod frame -->
     */
-    CompoundRep& bsetFrameInMobilizedBodyFrame(Compound::AtomIndex atomIx, Transform B_X_atom)
-    {
+    CompoundRep& bsetFrameInMobilizedBodyFrame(Compound::AtomIndex atomIx, Transform B_X_atom) {
         CompoundAtom& atom = updAtom(atomIx);
         atom.setFrameInMobilizedBodyFrame(B_X_atom);
         return *this;
@@ -905,65 +867,55 @@ public:
     /*!
     <!-- WIP Get the inboard atom index of a given atom implementation -->
     */
-    Compound::AtomIndex getInboardAtomIndex(Compound::AtomIndex atomIx) const
-    {
+    Compound::AtomIndex getInboardAtomIndex(Compound::AtomIndex atomIx) const {
         const CompoundAtom& atom = getAtom(atomIx);
-        const CompoundAtom::BondCenterIndex inboardBondCenterIx =
-            atom.getInboardBondCenterIndex();
-        const BondCenterInfo& inboardBondCenterInfo =
-            getBondCenterInfo(atomIx, inboardBondCenterIx);
-        const Compound::BondIndex inboardBondIndex =
-            inboardBondCenterInfo.getBondIndex();
+        const CompoundAtom::BondCenterIndex inboardBondCenterIx = atom.getInboardBondCenterIndex();
+        const BondCenterInfo& inboardBondCenterInfo = getBondCenterInfo(atomIx, inboardBondCenterIx);
+        const Compound::BondIndex inboardBondIndex = inboardBondCenterInfo.getBondIndex();
 
         // Get the inboard bond
         // const BondInfo& inboardBondInfo = getBondInfo(inboardBondIndex);
         // const Bond& inboardBond = getBond(inboardBondInfo);
         // const Compound::BondIndex inboardBondIx = inboardBondInfo.getIndex();
-        // const Compound::BondCenterIndex parentBCIx = 
+        // const Compound::BondCenterIndex parentBCIx =
         //     inboardBondInfo.getParentBondCenterIndex();
-        
+
         // Aparently 0 is parent and 1 is child
         int pbc = 0;
         const Compound::AtomIndex inboardAIx = getBondAtomIndex(inboardBondIndex, pbc);
         return inboardAIx;
-
     }
 
 
-// EU END
+    // EU END
 
-///* GMolModel Try other Mobilizers
-  mdunits::Length bgetDefaultInboardBondLength(Compound::AtomIndex atomIx) const 
-  {
-      // Get atom
-      const CompoundAtom& atom = getAtom(atomIx);
+    ///* GMolModel Try other Mobilizers
+    mdunits::Length bgetDefaultInboardBondLength(Compound::AtomIndex atomIx) const {
+        // Get atom
+        const CompoundAtom& atom = getAtom(atomIx);
 
-      // Get inboard bond index (in Compound not in Atom)
-      CompoundAtom::BondCenterIndex inboardBondCenterIx = atom.getInboardBondCenterIndex();
-      const BondCenterInfo& inboardBondCenterInfo = getBondCenterInfo(atomIx, inboardBondCenterIx);
-      Compound::BondIndex inboardBondIndex = inboardBondCenterInfo.getBondIndex();
+        // Get inboard bond index (in Compound not in Atom)
+        CompoundAtom::BondCenterIndex inboardBondCenterIx = atom.getInboardBondCenterIndex();
+        const BondCenterInfo& inboardBondCenterInfo = getBondCenterInfo(atomIx, inboardBondCenterIx);
+        Compound::BondIndex inboardBondIndex = inboardBondCenterInfo.getBondIndex();
 
-      // Get the inboard bond
-      const BondInfo& inboardBondInfo = getBondInfo(inboardBondIndex);
-      const Bond& inboardBond = getBond(inboardBondInfo);
-      return inboardBond.getDefaultBondLength();
+        // Get the inboard bond
+        const BondInfo& inboardBondInfo = getBondInfo(inboardBondIndex);
+        const Bond& inboardBond = getBond(inboardBondInfo);
+        return inboardBond.getDefaultBondLength();
+    }
+    // GMolmodel END */
 
-  }
-// GMolmodel END */
-
-    Angle calcDefaultDihedralAngle(const String& dihedralName) const 
-    {
-        assert( AtomName_To_dihedralAngles.find(dihedralName) != AtomName_To_dihedralAngles.end() );
+    Angle calcDefaultDihedralAngle(const String& dihedralName) const {
+        assert(AtomName_To_dihedralAngles.find(dihedralName) != AtomName_To_dihedralAngles.end());
 
         const DihedralAngle& dihedral = AtomName_To_dihedralAngles.find(dihedralName)->second;
 
         return calcDefaultDihedralAngle(dihedral);
     }
 
-    Angle calcDefaultDihedralAngle(            
-            Compound::BondCenterIndex bondCenterIndex21, 
-            Compound::BondCenterIndex bondCenterIndex34)
-    {
+    Angle calcDefaultDihedralAngle(Compound::BondCenterIndex bondCenterIndex21,
+                                   Compound::BondCenterIndex bondCenterIndex34) {
         Compound::AtomIndex atomIndex2 = getBondCenterInfo(bondCenterIndex21).getAtomIndex();
         Compound::AtomIndex atomIndex3 = getBondCenterInfo(bondCenterIndex34).getAtomIndex();
 
@@ -971,7 +923,7 @@ public:
         const AtomInfo& atomInfo3 = getAtomInfo(atomIndex3);
 
         // Sanity check topology
-        assert( atomsAreBonded(atomInfo2, atomInfo3) ); // absolutely required
+        assert(atomsAreBonded(atomInfo2, atomInfo3)); // absolutely required
 
         // Find central bond
         const BondInfo& bondInfo23 = getBondInfo(atomInfo2, atomInfo3);
@@ -979,57 +931,60 @@ public:
 
         Angle internalDihedralAngle = bond23.getDefaultDihedralAngle();
 
-        Angle nominalDihedralAngle = internalDihedralAngle + 
-            calcDefaultInternalDihedralOffsetAngle(bondCenterIndex21, bondCenterIndex34);
+        Angle nominalDihedralAngle =
+            internalDihedralAngle
+            + calcDefaultInternalDihedralOffsetAngle(bondCenterIndex21, bondCenterIndex34);
 
         return nominalDihedralAngle;
     }
 
-    Angle calcDefaultDihedralAngle( 
-            Compound::AtomIndex atomIndex1, 
-            Compound::AtomIndex atomIndex2, 
-            Compound::AtomIndex atomIndex3, 
-            Compound::AtomIndex atomIndex4)
-    {
+    Angle calcDefaultDihedralAngle(Compound::AtomIndex atomIndex1,
+                                   Compound::AtomIndex atomIndex2,
+                                   Compound::AtomIndex atomIndex3,
+                                   Compound::AtomIndex atomIndex4) {
         // This belongs to atom2
-        const BondCenterInfo& bondCenterInfo21 = getBondCenterInfo( getAtomInfo(atomIndex2), getAtomInfo(atomIndex1) );
+        const BondCenterInfo& bondCenterInfo21 =
+            getBondCenterInfo(getAtomInfo(atomIndex2), getAtomInfo(atomIndex1));
 
         // This belong to atom3
-        const BondCenterInfo& bondCenterInfo34 = getBondCenterInfo( getAtomInfo(atomIndex3), getAtomInfo(atomIndex4) );
+        const BondCenterInfo& bondCenterInfo34 =
+            getBondCenterInfo(getAtomInfo(atomIndex3), getAtomInfo(atomIndex4));
 
-        return calcDefaultDihedralAngle( bondCenterInfo21.getIndex(), bondCenterInfo34.getIndex() );
+        return calcDefaultDihedralAngle(bondCenterInfo21.getIndex(), bondCenterInfo34.getIndex());
     }
 
-    CompoundRep& setDihedralAngle(State& state, const String& dihedralName, Angle angleInRadians) 
-    {
+    CompoundRep& setDihedralAngle(State& state, const String& dihedralName, Angle angleInRadians) {
         assert(ownerSystem != NULL);
         Bond& bond = updBondByDihedralName(dihedralName);
         DihedralAngle& dihedral = AtomName_To_dihedralAngles.find(dihedralName)->second;
 
         // case1 : Pin dihedral
         if (bond.getPinJointId().isValid()) {
-            SimbodyMatterSubsystem &matter = ownerSystem->updMatterSubsystem();
-            if(bond.getMobility() == BondMobility::Torsion) {
-                MobilizedBody::Pin &body = (MobilizedBody::Pin &) matter.updMobilizedBody(bond.getPinJointId());
+            SimbodyMatterSubsystem& matter = ownerSystem->updMatterSubsystem();
+            if (bond.getMobility() == BondMobility::Torsion) {
+                MobilizedBody::Pin& body = (MobilizedBody::Pin&)matter.updMobilizedBody(bond.getPinJointId());
                 // TODO - create calcDihedralOffset(State&...) method and use it here, instead of default
                 Angle internalOffset = calcDefaultInternalDihedralOffsetAngle(dihedral.getBondCenter1Id(),
                                                                               dihedral.getBondCenter2Id());
                 // nominal = internal + offset
                 Angle internalAngle = angleInRadians - internalOffset - dihedral.getNomenclatureOffset();
                 body.setAngle(state, internalAngle);
-            }else if(bond.getMobility() == BondMobility::BallF) { // Gmol
-                MobilizedBody::Ball &ball = (MobilizedBody::Ball &) matter.updMobilizedBody(bond.getPinJointId());
+            } else if (bond.getMobility() == BondMobility::BallF) { // Gmol
+                MobilizedBody::Ball& ball =
+                    (MobilizedBody::Ball&)matter.updMobilizedBody(bond.getPinJointId());
                 // TODO - create calcDihedralOffset(State&...) method and use it here, instead of default
                 Angle internalOffset = calcDefaultInternalDihedralOffsetAngle(dihedral.getBondCenter1Id(),
                                                                               dihedral.getBondCenter2Id());
                 // nominal = internal + offset
                 Angle internalAngle = angleInRadians - internalOffset - dihedral.getNomenclatureOffset();
-                ball.setQ(state, SimTK::Rotation(internalAngle,
-                        CoordinateAxis::ZCoordinateAxis()).convertRotationToQuaternion().asVec4());
+                ball.setQ(state,
+                          SimTK::Rotation(internalAngle, CoordinateAxis::ZCoordinateAxis())
+                              .convertRotationToQuaternion()
+                              .asVec4());
             }
         }
 
-        else  // TODO
+        else // TODO
         {
             assert(false);
 
@@ -1039,19 +994,28 @@ public:
 
             Angle previousInternalDihedral = bond.getDihedralAngle(state, matter);
 
-            Angle previousNominalDihedral = calcDihedralAngle(state, dihedralName); // requires realizePosition
+            Angle previousNominalDihedral =
+                calcDihedralAngle(state, dihedralName); // requires realizePosition
             // Nominal = internal + offset
             Angle offsetAngle = previousNominalDihedral - previousInternalDihedral;
             Angle newInternalDihedral = angleInRadians - offsetAngle;
             // Restrict to range +-Pi
-            while (newInternalDihedral <= -Pi) newInternalDihedral += 2*Pi;
-            while (newInternalDihedral > Pi) newInternalDihedral -= 2*Pi;
+            while (newInternalDihedral <= -Pi) {
+                newInternalDihedral += 2 * Pi;
+            }
+            while (newInternalDihedral > Pi) {
+                newInternalDihedral -= 2 * Pi;
+            }
             bond.setDihedralAngle(state, matter, newInternalDihedral); // clears realizePosition
 
             Angle testAngle = calcDihedralAngle(state, dihedralName); // requires realizePosition
             Angle error = calcDihedralAngle(state, dihedralName) - testAngle;
-            while (error <= -Pi) error += 2*Pi;
-            while (error > Pi) error -= 2*Pi;
+            while (error <= -Pi) {
+                error += 2 * Pi;
+            }
+            while (error > Pi) {
+                error -= 2 * Pi;
+            }
             error *= error;
             assert(error < 1e-6);
         }
@@ -1068,30 +1032,25 @@ public:
         return *this;
     }
 
-    CompoundRep& setDefaultBondAngle(
-        Angle angle, 
-        const Compound::AtomName& atom1Name, 
-        const Compound::AtomName& atom2Name, 
-        const Compound::AtomName& atom3Name) 
-    {
-        const Compound::AtomIndex atom1Id   = getAtomInfo(atom1Name).getIndex();
-        const Compound::AtomIndex atom2Id   = getAtomInfo(atom2Name).getIndex();
-        const Compound::AtomIndex atom3Id   = getAtomInfo(atom3Name).getIndex();
-        
+    CompoundRep& setDefaultBondAngle(Angle angle,
+                                     const Compound::AtomName& atom1Name,
+                                     const Compound::AtomName& atom2Name,
+                                     const Compound::AtomName& atom3Name) {
+        const Compound::AtomIndex atom1Id = getAtomInfo(atom1Name).getIndex();
+        const Compound::AtomIndex atom2Id = getAtomInfo(atom2Name).getIndex();
+        const Compound::AtomIndex atom3Id = getAtomInfo(atom3Name).getIndex();
+
         return setDefaultBondAngle(angle, atom1Id, atom2Id, atom3Id);
     }
-    
+
     /*! <!-- Set angles to BC0 and BC1
      * Version that takes IDs, to reduce string lookups
-     * 
-    --> */    
-    CompoundRep& setDefaultBondAngle(
-        Angle angle, 
-        const Compound::AtomIndex cAIx_atom1, 
-        const Compound::AtomIndex cAIx_atom2, 
-        const Compound::AtomIndex cAIx_atom3) 
-    {
-
+     *
+    --> */
+    CompoundRep& setDefaultBondAngle(Angle angle,
+                                     const Compound::AtomIndex cAIx_atom1,
+                                     const Compound::AtomIndex cAIx_atom2,
+                                     const Compound::AtomIndex cAIx_atom3) {
         CompoundAtom& atom2 = updAtom(cAIx_atom2);
         const AtomInfo& atom2Info = getAtomInfo(cAIx_atom2);
 
@@ -1099,21 +1058,20 @@ public:
         // and establish which one is linked to atom1 and which to atom3
         CompoundAtom::BondCenterIndex atom2_to_atom1_BCIx;
         CompoundAtom::BondCenterIndex atom2_to_atom3_BCIx;
-        
+
         for (CompoundAtom::BondCenterIndex atom2_BCIx(0); atom2_BCIx < atom2.getNumBonds(); ++atom2_BCIx) {
             // Get BC info
-            const BondCenterInfo& atom2BondCenterInfo =
-                getBondCenterInfo(atom2Info.getIndex(), atom2_BCIx);
+            const BondCenterInfo& atom2BondCenterInfo = getBondCenterInfo(atom2Info.getIndex(), atom2_BCIx);
 
             if (atom2BondCenterInfo.isBonded()) {
-            
-                const BondCenterInfo& partnerBondCenterInfo = 
+                const BondCenterInfo& partnerBondCenterInfo =
                     getBondCenterInfo(atom2BondCenterInfo.getBondPartnerBondCenterIndex());
-            
-                if (partnerBondCenterInfo.getAtomIndex() == cAIx_atom1)
-                    {atom2_to_atom1_BCIx = atom2_BCIx;}
-                else if (partnerBondCenterInfo.getAtomIndex() == cAIx_atom3)
-                    {atom2_to_atom3_BCIx = atom2_BCIx;}
+
+                if (partnerBondCenterInfo.getAtomIndex() == cAIx_atom1) {
+                    atom2_to_atom1_BCIx = atom2_BCIx;
+                } else if (partnerBondCenterInfo.getAtomIndex() == cAIx_atom3) {
+                    atom2_to_atom3_BCIx = atom2_BCIx;
+                }
             }
         }
 
@@ -1131,17 +1089,15 @@ public:
             smallerId = atom2_to_atom1_BCIx;
         }
 
-        // The smallest BCIx dictates the bond angles inside BCs 
+        // The smallest BCIx dictates the bond angles inside BCs
         // one of the bond centers must be bond1 or bond2
         // assert(smallerId < 2);
 
         if (smallerId == 0) { // BC0 - atom2 - (BC1, BC2, BC3)
             atom2.updBondCenter(largerId).setDefaultBond1Angle(angle);
-        }
-        else if (smallerId == 1) { // BC1 - atom2 - (BC2, BC3)
+        } else if (smallerId == 1) { // BC1 - atom2 - (BC2, BC3)
             atom2.updBondCenter(largerId).setDefaultBond2Angle(angle);
-        }
-        else {
+        } else {
             // std::cout << "[WARNING]: setDefaultBondAngle " << atom1Id <<" "
             //     << atom2Id <<" " << atom3Id <<" "
             //     << "smallerId " << smallerId <<" "
@@ -1153,20 +1109,21 @@ public:
         return *this;
     }
 
-    CompoundRep& setDefaultBondLength(mdunits::Length length, const Compound::AtomName& atom1Name, const Compound::AtomName& atom2Name) 
-    {
-        const CompoundAtom&             atom2       = getAtom(atom2Name);
-        const AtomInfo&         atom2Info   = getAtomInfo(atom2Name);
-        const Compound::AtomIndex  atom1Id     = getAtomInfo(atom1Name).getIndex();
+    CompoundRep& setDefaultBondLength(mdunits::Length length,
+                                      const Compound::AtomName& atom1Name,
+                                      const Compound::AtomName& atom2Name) {
+        const CompoundAtom& atom2 = getAtom(atom2Name);
+        const AtomInfo& atom2Info = getAtomInfo(atom2Name);
+        const Compound::AtomIndex atom1Id = getAtomInfo(atom1Name).getIndex();
 
         // go through bond centers on atom2
         CompoundAtom::BondCenterIndex center1Id;
         for (CompoundAtom::BondCenterIndex b(0); b < atom2.getNumBonds(); ++b) {
             const BondCenterInfo& bondCenterInfo = getBondCenterInfo(atom2Info.getIndex(), b);
             if (getBondCenter(bondCenterInfo).isBonded()) {
-                const BondCenterInfo& partnerBondCenterInfo = getBondCenterInfo(bondCenterInfo.getBondPartnerBondCenterIndex());
-                if (partnerBondCenterInfo.getAtomIndex() == atom1Id) 
-                {
+                const BondCenterInfo& partnerBondCenterInfo =
+                    getBondCenterInfo(bondCenterInfo.getBondPartnerBondCenterIndex());
+                if (partnerBondCenterInfo.getAtomIndex() == atom1Id) {
                     center1Id = b;
 
                     // set length from atom1 direction
@@ -1189,9 +1146,7 @@ public:
     * <!-- Helper for calcDefaultAtomFramesInCompoundFrame. It sets a NaN flag for
     Top to inboard bond center transforms passed. -->
     */
-    void invalidateAtomFrameCache(
-        std::vector<Transform>& atomFrameCache,
-        int numAtoms) const;
+    void invalidateAtomFrameCache(std::vector<Transform>& atomFrameCache, int numAtoms) const;
 
     /*!
      * <!-- Calculate Top to inboard bond center transform for all atoms.
@@ -1200,15 +1155,14 @@ public:
     // More efficient getting of all atoms at once
     // Compound::AtomTargetLocations calcDefaultAtomLocationsInCompoundFrame1() const;
     void calcDefaultAtomFramesInCompoundFrame(std::vector<Transform>& atomFrameCache) const;
-    
+
     // Compute atom location in local compound frame
     Transform calcDefaultAtomFrameInCompoundFrame(const Compound::AtomName& name) const;
     Transform calcDefaultAtomFrameInGroundFrame(const Compound::AtomName& name) const;
     Vec3 calcDefaultAtomLocationInCompoundFrame(const Compound::AtomName& name) const;
     Vec3 calcDefaultAtomLocationInGroundFrame(const Compound::AtomName& name) const;
 
-    MobilizedBodyIndex getAtomMobilizedBodyIndex(Compound::AtomIndex atomId) const 
-    {
+    MobilizedBodyIndex getAtomMobilizedBodyIndex(Compound::AtomIndex atomId) const {
         const CompoundAtom& atom = getAtom(atomId);
         return atom.getMobilizedBodyIndex();
     }
@@ -1222,7 +1176,7 @@ public:
         Vec3 loc = atom.getLocationInMobilizedBodyFrame();
         const SimbodyMatterSubsystem& matter = ownerSystem->getMatterSubsystem();
         const MobilizedBody& body = matter.getMobilizedBody(getAtomMobilizedBodyIndex(atomId));
-        return body.getBodyTransform(state)*loc;
+        return body.getBodyTransform(state) * loc;
     }
     Vec3 calcAtomVelocityInGroundFrame(const State& state, Compound::AtomIndex atomId) const {
         ownerSystem->realize(state, Stage::Velocity);
@@ -1241,51 +1195,63 @@ public:
         return body.findStationAccelerationInGround(state, loc);
     }
 
-    
+
     Transform calcDefaultBondCenterFrameInCompoundFrame(const BondCenterInfo& info) const;
 
     Transform calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex atomId) const;
 
     /*! <!-- for O(n) version of all atom Frame computation
-    * Version with caching for O(n) performance -->
-    */ 
-    const Transform& calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex atomId, std::vector<Transform>& atomFrameCache) const;
+     * Version with caching for O(n) performance -->
+     */
+    const Transform& calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex atomId,
+                                                         std::vector<Transform>& atomFrameCache) const;
 
     Transform calcDefaultAtomFrameInGroundFrame(Compound::AtomIndex atomId) const;
 
 
-    /*! <!-- get list of all runs of consecutive bonded atoms of run-length n from the atoms mentions in an AtomTargetLocations structure 
-    * for example, to get a list of all bonded pairs, set run-length to 2.-->
-    */ 
-    std::vector<AtomIndexVector> getBondedAtomRuns(int atomRunCount, const Compound::AtomTargetLocations& atomTargets) const 
-    {
-        std::vector<AtomIndexVector>  answer;
+    /*! <!-- get list of all runs of consecutive bonded atoms of run-length n from the atoms mentions in an
+     * AtomTargetLocations structure for example, to get a list of all bonded pairs, set run-length to 2.-->
+     */
+    std::vector<AtomIndexVector> getBondedAtomRuns(int atomRunCount,
+                                                   const Compound::AtomTargetLocations& atomTargets) const {
+        std::vector<AtomIndexVector> answer;
         std::map<Compound::AtomIndex, AtomIndexVector> bondMap;
 
         // 1) Hash bonding data
-        for (Compound::BondIndex bondCnt(0); bondCnt < getNumBonds(); ++bondCnt) 
-        {
+        for (Compound::BondIndex bondCnt(0); bondCnt < getNumBonds(); ++bondCnt) {
             const BondInfo& bondInfo = getBondInfo(bondCnt);
 
             // ignore bonds without known atom positions at both ends
             // i.e. keep the previous default bond lengths for those
-            Compound::AtomIndex atomIndex1 = getBondCenterInfo(bondInfo.getParentBondCenterIndex()).getAtomIndex();
-            Compound::AtomIndex atomIndex2 = getBondCenterInfo(bondInfo.getChildBondCenterIndex()).getAtomIndex();
+            Compound::AtomIndex atomIndex1 =
+                getBondCenterInfo(bondInfo.getParentBondCenterIndex()).getAtomIndex();
+            Compound::AtomIndex atomIndex2 =
+                getBondCenterInfo(bondInfo.getChildBondCenterIndex()).getAtomIndex();
 
             if (atomIndex1 > atomTargets.size()) {
-                throw std::out_of_range("CompoundRep::getBondedAtomRuns(): atomIndex1 out of range of atomTargets: " + std::to_string(atomIndex1) + " > " + std::to_string(atomTargets.size()));
+                throw std::out_of_range(
+                    "CompoundRep::getBondedAtomRuns(): atomIndex1 out of range of atomTargets: "
+                    + std::to_string(atomIndex1) + " > " + std::to_string(atomTargets.size()));
             }
             if (atomIndex2 > atomTargets.size()) {
-                throw std::out_of_range("CompoundRep::getBondedAtomRuns(): atomIndex2 out of range of atomTargets: " + std::to_string(atomIndex2) + " > " + std::to_string(atomTargets.size()));
+                throw std::out_of_range(
+                    "CompoundRep::getBondedAtomRuns(): atomIndex2 out of range of atomTargets: "
+                    + std::to_string(atomIndex2) + " > " + std::to_string(atomTargets.size()));
             }
             if (atomIndex1 == atomIndex2) {
-                throw std::logic_error("CompoundRep::getBondedAtomRuns(): atomIndex1 and atomIndex2 are the same: " + std::to_string(atomIndex1));
+                throw std::logic_error(
+                    "CompoundRep::getBondedAtomRuns(): atomIndex1 and atomIndex2 are the same: "
+                    + std::to_string(atomIndex1));
             }
 
-            if (bondMap.find(atomIndex1) == bondMap.end()) bondMap[atomIndex1] = AtomIndexVector();
+            if (bondMap.find(atomIndex1) == bondMap.end()) {
+                bondMap[atomIndex1] = AtomIndexVector();
+            }
             bondMap[atomIndex1].push_back(atomIndex2);
 
-            if (bondMap.find(atomIndex2) == bondMap.end()) bondMap[atomIndex2] = AtomIndexVector();
+            if (bondMap.find(atomIndex2) == bondMap.end()) {
+                bondMap[atomIndex2] = AtomIndexVector();
+            }
             bondMap[atomIndex2].push_back(atomIndex1);
 
             // Update n==2 version of answer
@@ -1300,25 +1266,25 @@ public:
         }
 
         // 2) Create bonded atom run lists
-        for (int n = 3; n <= atomRunCount; ++n)
-        {
-            std::vector< AtomIndexVector >  newAnswer;
-            std::vector< AtomIndexVector >::const_iterator oldRunIt;
-            for (oldRunIt = answer.begin(); oldRunIt != answer.end(); ++oldRunIt)
-            {
+        for (int n = 3; n <= atomRunCount; ++n) {
+            std::vector<AtomIndexVector> newAnswer;
+            std::vector<AtomIndexVector>::const_iterator oldRunIt;
+            for (oldRunIt = answer.begin(); oldRunIt != answer.end(); ++oldRunIt) {
                 // remember which atoms are already in this run
                 std::set<Compound::AtomIndex> oldAtoms;
                 AtomIndexVector::const_iterator oldAtomIt;
-                for (oldAtomIt = oldRunIt->begin(); oldAtomIt != oldRunIt->end(); ++oldAtomIt)
+                for (oldAtomIt = oldRunIt->begin(); oldAtomIt != oldRunIt->end(); ++oldAtomIt) {
                     oldAtoms.insert(*oldAtomIt);
+                }
 
                 // look for new atoms bonded to end of old run
                 Compound::AtomIndex oldTailIndex = oldRunIt->back(); // final atom of shorter run
                 const AtomIndexVector& newTailCandidates = bondMap[oldTailIndex];
                 AtomIndexVector::const_iterator newTailI;
-                for (newTailI = newTailCandidates.begin(); newTailI != newTailCandidates.end(); ++newTailI)
-                {
-                    if (oldAtoms.find(*newTailI) != oldAtoms.end()) continue; // ignore all atoms already in this run
+                for (newTailI = newTailCandidates.begin(); newTailI != newTailCandidates.end(); ++newTailI) {
+                    if (oldAtoms.find(*newTailI) != oldAtoms.end()) {
+                        continue; // ignore all atoms already in this run
+                    }
 
                     // first place a copy of the old run in the new set
                     newAnswer.push_back(*oldRunIt);
@@ -1337,23 +1303,21 @@ public:
 
     /*! <!-- From a vector of pairs (vector of two AtomIndexes) - atomPartners_cAIxs
      * build a map - atomPartners_Map - from an index to a set of partners.
-     * similar to bSpecificAtom.neighborsIndex built by InternalCoordinates class --> */ 
+     * similar to bSpecificAtom.neighborsIndex built by InternalCoordinates class --> */
     std::map<Compound::AtomIndex, std::set<Compound::AtomIndex>>
-    buildAtomNeighbors_Map(const Compound::AtomTargetLocations& atomTargets){
-
+    buildAtomNeighbors_Map(const Compound::AtomTargetLocations& atomTargets) {
         // Get list of consecutive bonded atoms from the atoms mentioned in an AtomTargetLocations
         std::vector<AtomIndexVector> atomPairs_cAIxs = getBondedAtomRuns(2, atomTargets);
 
         // Allocate map
         std::map<Compound::AtomIndex, std::set<Compound::AtomIndex>> atomNeighbors_Map;
-        for (Compound::AtomIndex atomIndex(0); atomIndex < atomTargets.size(); ++atomIndex){
+        for (Compound::AtomIndex atomIndex(0); atomIndex < atomTargets.size(); ++atomIndex) {
             atomNeighbors_Map[atomIndex] = std::set<Compound::AtomIndex>();
         }
 
         // Insert bonds in map
-        std::vector< AtomIndexVector >::const_iterator atomPairIt;
-        for (atomPairIt = atomPairs_cAIxs.begin(); atomPairIt != atomPairs_cAIxs.end(); ++atomPairIt)
-        {
+        std::vector<AtomIndexVector>::const_iterator atomPairIt;
+        for (atomPairIt = atomPairs_cAIxs.begin(); atomPairIt != atomPairs_cAIxs.end(); ++atomPairIt) {
             Compound::AtomIndex atomIndex1 = (*atomPairIt)[0];
             Compound::AtomIndex atomIndex2 = (*atomPairIt)[1];
             atomNeighbors_Map[atomIndex1].insert(atomIndex2);
@@ -1363,22 +1327,21 @@ public:
         return atomNeighbors_Map;
     }
 
-    bool shouldBreakPlanarity(
-        const std::vector<std::pair<UnitVec3, UnitVec3>>& bondVectors,
-        const std::vector<Compound::BondCenterIndex>& bcIdxs,
-        const UnitVec3& targetPlaneNormal,
-        Angle threshold)
-    {
+    bool shouldBreakPlanarity(const std::vector<std::pair<UnitVec3, UnitVec3>>& bondVectors,
+                              const std::vector<Compound::BondCenterIndex>& bcIdxs,
+                              const UnitVec3& targetPlaneNormal,
+                              Angle threshold) {
         for (int i = 0; i < (int)bondVectors.size(); ++i) {
-
             const BondCenter& bc = getBondCenter(bcIdxs[i]);
-            if (bc.getChirality() != BondCenter::Planar)
+            if (bc.getChirality() != BondCenter::Planar) {
                 continue;
+            }
 
             const Real dev = signedPlaneDeviation(bondVectors[i].second, targetPlaneNormal);
 
-            if (exceedsPlanarityThreshold(dev, threshold))
+            if (exceedsPlanarityThreshold(dev, threshold)) {
                 return true;
+            }
         }
         return false;
     }
@@ -1388,8 +1351,12 @@ public:
         std::vector<size_t> offsets;
         std::vector<Compound::AtomIndex> neighbors;
 
-        size_t size() const { return activeAtoms.size(); }
-        bool empty() const { return activeAtoms.empty(); }
+        size_t size() const {
+            return activeAtoms.size();
+        }
+        bool empty() const {
+            return activeAtoms.empty();
+        }
 
         // This is the object returned by the iterator
         struct Entry {
@@ -1402,25 +1369,35 @@ public:
             const FilteredAdjacencyList& parent;
             size_t index;
 
-            bool operator!=(const Iterator& other) const { return index != other.index; }
-            void operator++() { ++index; }
+            bool operator!=(const Iterator& other) const {
+                return index != other.index;
+            }
+            void operator++() {
+                ++index;
+            }
             Entry operator*() const {
                 size_t start = parent.offsets[index];
                 size_t count = parent.offsets[index + 1] - start;
-                return { parent.activeAtoms[index], { &parent.neighbors[start], count } };
+                return {parent.activeAtoms[index], {&parent.neighbors[start], count}};
             }
         };
 
-        Iterator begin() const { return { *this, 0 }; }
-        Iterator end() const { return { *this, activeAtoms.size() }; }
+        Iterator begin() const {
+            return {*this, 0};
+        }
+        Iterator end() const {
+            return {*this, activeAtoms.size()};
+        }
     } atomNeighbors;
 
-    FilteredAdjacencyList buildFilteredNeighbors(const Compound::AtomTargetLocations& atomTargets, int threshold, size_t numAtoms) const {
+    FilteredAdjacencyList buildFilteredNeighbors(const Compound::AtomTargetLocations& atomTargets,
+                                                 int threshold,
+                                                 size_t numAtoms) const {
         const std::vector<AtomIndexVector> atomPairs = getBondedAtomRuns(2, atomTargets);
         std::vector<int> degrees(numAtoms, 0);
-        
+
         // 1. Count degrees - UNIQUE BONDS ONLY
-        // We use a simple u < v check to ensure we don't double-count 
+        // We use a simple u < v check to ensure we don't double-count
         // if getBondedAtomRuns returns both (0,1) and (1,0)
         for (const auto& pair : atomPairs) {
             Compound::AtomIndex u = pair[0];
@@ -1473,9 +1450,10 @@ public:
     std::vector<std::pair<UnitVec3, UnitVec3>> bondVectors;
     std::vector<Compound::BondCenterIndex> compoundBCIxes;
     std::vector<int> atomBCIndices;
-    
-    CompoundRep& matchDefaultAtomChirality_REFACTOR(const Compound::AtomTargetLocations& atomTargets, Angle breakPlanarityThreshold, bool flipAll)
-    {
+
+    CompoundRep& matchDefaultAtomChirality_REFACTOR(const Compound::AtomTargetLocations& atomTargets,
+                                                    Angle breakPlanarityThreshold,
+                                                    bool flipAll) {
         if (atomNeighbors.empty()) {
             atomNeighbors = buildFilteredNeighbors(atomTargets, 3, getNumAtoms());
         }
@@ -1496,14 +1474,14 @@ public:
             compoundBCIxes.clear();
             atomBCIndices.clear();
 
-            for (const auto neighborAtomIndex: neighbors) {
+            for (const auto neighborAtomIndex : neighbors) {
                 const SimTK::AtomInfo& neighborAtomInfo = getAtomInfo(neighborAtomIndex);
                 const BondCenterInfo& neighborBCInfo = getBondCenterInfo(atomInfo, neighborAtomInfo);
 
                 const auto bcIx_inAtom = neighborBCInfo.getAtomBondCenterIndex();
                 const Transform neighborBCFrame = atom.calcDefaultBondCenterFrameInAtomFrame(bcIx_inAtom);
 
-                const UnitVec3 sourceDirection(neighborBCFrame * UnitVec3(1,0,0));
+                const UnitVec3 sourceDirection(neighborBCFrame * UnitVec3(1, 0, 0));
                 const Vec3& neighborAtomLocation = atomTargets[neighborAtomIndex];
                 const UnitVec3 targetDirection(neighborAtomLocation - targetAtomLocation);
 
@@ -1515,8 +1493,8 @@ public:
             // Resolve reference indices
             const ReferenceIndices ref = resolveReferenceIndices(atomBCIndices);
             const int zeroBondCenterIndex = ref.zero;
-            const int oneBondCenterIndex  = ref.one;
-            const int twoBondCenterIndex  = ref.two;
+            const int oneBondCenterIndex = ref.one;
+            const int twoBondCenterIndex = ref.two;
 
             // Chirality + planarity
             const UnitVec3& s1 = bondVectors[zeroBondCenterIndex].first;
@@ -1538,18 +1516,23 @@ public:
             assert(t3.norm() > 0);
 
             assert(targetPlaneNormal.norm() > 0);
-            
-            if (shouldBreakPlanarity(bondVectors, compoundBCIxes, targetPlaneNormal, breakPlanarityThreshold)) {
+
+            if (shouldBreakPlanarity(bondVectors,
+                                     compoundBCIxes,
+                                     targetPlaneNormal,
+                                     breakPlanarityThreshold)) {
                 for (int i = 0; i < (int)bondVectors.size(); ++i) {
                     BondCenter& bc = updBondCenter(compoundBCIxes[i]);
 
-                    if (bc.getChirality() != BondCenter::Planar)
+                    if (bc.getChirality() != BondCenter::Planar) {
                         continue;
+                    }
 
                     const BondCenterInfo& info = getBondCenterInfo(compoundBCIxes[i]);
                     const int bcIx = info.getAtomBondCenterIndex();
-                    if (bcIx == 0 || bcIx == 1)
+                    if (bcIx == 0 || bcIx == 1) {
                         continue;
+                    }
 
                     const Real dev = signedPlaneDeviation(bondVectors[i].second, targetPlaneNormal);
                     bc.setChirality(chiralityFromPlaneDeviation(dev));
@@ -1557,7 +1540,7 @@ public:
             }
 
             if (flipAll) {
-                if (isChiralityMismatch(s1,s2,s3,t1,t2,t3)) {
+                if (isChiralityMismatch(s1, s2, s3, t1, t2, t3)) {
                     // std::cerr << "[WARNING]: Using unexpected chirality about atom ";
                     // std::cerr << getAtomName(atomIndex) << std::endl;
 
@@ -1568,16 +1551,21 @@ public:
                 }
             } else {
                 for (int i = 0; i < (int)bondVectors.size(); ++i) {
-                    if (i == zeroBondCenterIndex || i == oneBondCenterIndex)
+                    if (i == zeroBondCenterIndex || i == oneBondCenterIndex) {
                         continue;
+                    }
 
-                    bool mismatch = isBondChiralityMismatch(s1, s2, bondVectors[i].first, t1, t2, bondVectors[i].second);
+                    bool mismatch =
+                        isBondChiralityMismatch(s1, s2, bondVectors[i].first, t1, t2, bondVectors[i].second);
 
                     if (mismatch) {
                         const BondCenterInfo& info = getBondCenterInfo(compoundBCIxes[i]);
-                        const Compound::AtomIndex partnerAtomIndex = getBondCenterInfo(info.getBondPartnerBondCenterIndex()).getAtomIndex();
+                        const Compound::AtomIndex partnerAtomIndex =
+                            getBondCenterInfo(info.getBondPartnerBondCenterIndex()).getAtomIndex();
 
-                        // std::cerr << "WARNING: Flipping chirality of bond from atom " << getAtomName(atomIndex) << " to atom " << getAtomName(partnerAtomIndex) << std::endl;
+                        // std::cerr << "WARNING: Flipping chirality of bond from atom " <<
+                        // getAtomName(atomIndex) << " to atom " << getAtomName(partnerAtomIndex) <<
+                        // std::endl;
 
                         BondCenter& bc = updBondCenter(info);
                         bc.setChirality(flippedChirality(bc.getChirality()));
@@ -1597,11 +1585,9 @@ public:
      * signs, then switch chirality
      *  -->
      */
-    CompoundRep& matchDefaultAtomChirality(
-        const Compound::AtomTargetLocations& atomTargets,
-        Angle breakPlanarityThreshold,
-        bool flipAll=true)
-    {
+    CompoundRep& matchDefaultAtomChirality(const Compound::AtomTargetLocations& atomTargets,
+                                           Angle breakPlanarityThreshold,
+                                           bool flipAll = true) {
         // // Build a map from an AtomIndex to a set of bonded AtomIndexes
         // if (atomNeighbors_Map.empty()) {
         //     atomNeighbors_Map = buildAtomNeighbors_Map(atomTargets);
@@ -1609,7 +1595,8 @@ public:
 
         // // Main loop over atoms: Check the chirality of each atom
         // Compound::AtomTargetLocations::const_iterator atomTargetLocIt;
-        // for (atomTargetLocIt = atomTargets.begin(); atomTargetLocIt != atomTargets.end(); ++atomTargetLocIt){
+        // for (atomTargetLocIt = atomTargets.begin(); atomTargetLocIt != atomTargets.end();
+        // ++atomTargetLocIt){
 
         //     // Get atom (cAIx and CompoundAtom) and it's neighbors (atomNeighborsIxs)
         //     Compound::AtomIndex atomIndex = atomTargetLocIt->first;
@@ -1634,23 +1621,26 @@ public:
         //     std::vector< Compound::BondCenterIndex > compoundBCIxes;
         //     std::set<Compound::AtomIndex>::const_iterator neighborIt;
 
-        //     for (neighborIt = atomNeighborsIxs.begin(); neighborIt != atomNeighborsIxs.end(); ++neighborIt) {
+        //     for (neighborIt = atomNeighborsIxs.begin(); neighborIt != atomNeighborsIxs.end(); ++neighborIt)
+        //     {
 
         //         // Get source bond direction
-        //         Compound::AtomIndex neighborAtomIndex = atomTargets.find(*neighborIt)->first;                   // get neighbor cAIx
-        //         const SimTK::AtomInfo& neighborAtomInfo = getAtomInfo(neighborAtomIndex);                       // get atomInfo
-        //         const BondCenterInfo& neighborBCInfo = getBondCenterInfo(atomInfo, neighborAtomInfo);           // get BCInfo
-        //         CompoundAtom::BondCenterIndex neighborBCIx_inAtom = neighborBCInfo.getAtomBondCenterIndex();    // get BCIx in atom !
-        //         Transform neighborBCFrame = atom.calcDefaultBondCenterFrameInAtomFrame(neighborBCIx_inAtom);    // get BCFrame
-        //         UnitVec3 sourceDirection(neighborBCFrame * UnitVec3(1, 0, 0));
+        //         Compound::AtomIndex neighborAtomIndex = atomTargets.find(*neighborIt)->first; // get
+        //         neighbor cAIx const SimTK::AtomInfo& neighborAtomInfo = getAtomInfo(neighborAtomIndex); //
+        //         get atomInfo const BondCenterInfo& neighborBCInfo = getBondCenterInfo(atomInfo,
+        //         neighborAtomInfo);           // get BCInfo CompoundAtom::BondCenterIndex
+        //         neighborBCIx_inAtom = neighborBCInfo.getAtomBondCenterIndex();    // get BCIx in atom !
+        //         Transform neighborBCFrame =
+        //         atom.calcDefaultBondCenterFrameInAtomFrame(neighborBCIx_inAtom);    // get BCFrame UnitVec3
+        //         sourceDirection(neighborBCFrame * UnitVec3(1, 0, 0));
 
         //         // Get target bond direction
         //         Vec3 neighborAtomLocation = atomTargets.find(*neighborIt)->second;
         //         UnitVec3 targetDirection(neighborAtomLocation - targetAtomLocation);
 
         //         // Store Compound bond center index
-        //         Compound::BondCenterIndex neighborBCIx_inCompound = neighborBCInfo.getIndex();                  //  get BCIx in Compound
-        //         compoundBCIxes.push_back( neighborBCIx_inCompound );
+        //         Compound::BondCenterIndex neighborBCIx_inCompound = neighborBCInfo.getIndex(); //  get BCIx
+        //         in Compound compoundBCIxes.push_back( neighborBCIx_inCompound );
 
         //         // Store source and target bond directions (Horea)
         //         bondVectors.push_back(std::pair<UnitVec3, UnitVec3>(sourceDirection, targetDirection));
@@ -1674,7 +1664,8 @@ public:
 
         //         // Get bond center index
         //         const BondCenterInfo& bondCenterInfo = getBondCenterInfo(compoundBCIxes[bondCnt]);
-        //         const CompoundAtom::BondCenterIndex neighborBCIx_inAtom = bondCenterInfo.getAtomBondCenterIndex();
+        //         const CompoundAtom::BondCenterIndex neighborBCIx_inAtom =
+        //         bondCenterInfo.getAtomBondCenterIndex();
 
         //         if (neighborBCIx_inAtom == 0) {
 
@@ -1688,7 +1679,7 @@ public:
         //             }
 
         //             zeroBondCenterIndex = bondCnt;
-                
+
         //         }else if (neighborBCIx_inAtom == 1){
 
         //             // (zero OR one) = one
@@ -1708,9 +1699,10 @@ public:
         //     #ifdef DEBUG_MOLMODEL
         //         std::cout << "bondVectorIx";
         //         for (int bondCnt = 0; bondCnt < (int) bondVectors.size(); ++bondCnt){
-        //             std::cout <<" "<< getBondCenterInfo(bondCenterIndexes[bondCnt]).getAtomBondCenterIndex();
+        //             std::cout <<" "<<
+        //             getBondCenterInfo(bondCenterIndexes[bondCnt]).getAtomBondCenterIndex();
         //         }
-        //         std::cout << std::endl;
+        //         std::cout << "\n";
         //         std::cout << "zeroOneTwo"
         //             <<" "<< zeroBondCenterIndex <<" "<< oneBondCenterIndex <<" "<< twoBondCenterIndex
         //             << std::endl;
@@ -1739,9 +1731,9 @@ public:
         //     UnitVec3 targetPlaneNormal(cross(t1, t2));
         //     UnitVec3 sourcePlaneNormal(cross(s1, s2));
 
-        //     // If any Planar groups of the target structure is farther than <tolerance> from planar break them all
-        //     bool doBreakPlanes = false;
-        //     for (int bondCnt = 0; bondCnt < (int) bondVectors.size(); ++bondCnt) {
+        //     // If any Planar groups of the target structure is farther than <tolerance> from planar break
+        //     them all bool doBreakPlanes = false; for (int bondCnt = 0; bondCnt < (int) bondVectors.size();
+        //     ++bondCnt) {
 
         //         const BondCenter& bondCenter = getBondCenter(compoundBCIxes[bondCnt]);
 
@@ -1765,7 +1757,7 @@ public:
         //             BondCenter& bondCenter = updBondCenter(compoundBCIxes[bondCnt]);
 
         //             // Can't break planarity if it's not planar to begin with
-        //             if (bondCenter.getChirality() != BondCenter::Planar) 
+        //             if (bondCenter.getChirality() != BondCenter::Planar)
         //                 {continue;}
 
         //             // Don't try to break planarity of first and second bond centers
@@ -1776,15 +1768,15 @@ public:
 
         //             // OK, if we got this far, we must break planarity
         //             #ifdef DEBUG_MOLMODEL
-        //                 std::cerr <<__FILE__<<":"<<__LINE__<< " WARNING: matching out-of-plane atoms about atom ";
-        //                 std::cerr << getAtomName(atomIndex);
-        //                 std::cerr << ". Note that here we are using residue INDEX, not residue NUMBER. Residue indices start at 0.";
-        //                 std::cerr << std::endl;
+        //                 std::cerr <<__FILE__<<":"<<__LINE__<< " WARNING: matching out-of-plane atoms about
+        //                 atom "; std::cerr << getAtomName(atomIndex); std::cerr << ". Note that here we are
+        //                 using residue INDEX, not residue NUMBER. Residue indices start at 0."; std::cerr <<
+        //                 std::endl;
         //             #endif
 
         //             Angle sinePlaneDeviation = dot(bondVectors[bondCnt].second, targetPlaneNormal);
 
-        //             if (sinePlaneDeviation < 0){ 
+        //             if (sinePlaneDeviation < 0){
         //                 bondCenter.setChirality(BondCenter::LeftHanded);
         //             }
         //             else{
@@ -1828,7 +1820,7 @@ public:
         //     }
         //     else { // flip on a bondcenter by bondcenter basis
         //         // Flip chirality on a BondCenter by BondCenter basis
-        //         for (int bondCnt = 0; bondCnt < (int) bondVectors.size(); ++bondCnt) 
+        //         for (int bondCnt = 0; bondCnt < (int) bondVectors.size(); ++bondCnt)
         //         {
         //             // First two bond centers cannot be chiral
         //             if (bondCnt == zeroBondCenterIndex) continue;
@@ -1845,7 +1837,7 @@ public:
         //                 const BondCenterInfo& bondCenterInfo = getBondCenterInfo(compoundBCIxes[bondCnt]);
 
         //                 #ifdef DEBUG_MOLMODEL
-        //                     Compound::AtomIndex partnerAtomIndex = 
+        //                     Compound::AtomIndex partnerAtomIndex =
         //                         getBondCenterInfo(bondCenterInfo.getBondPartnerBondCenterIndex())
         //                         .getAtomIndex();
         //                     std::cerr << "WARNING: Flipping chirality of bond from atom ";
@@ -1854,7 +1846,7 @@ public:
         //                     std::cerr << getAtomName(partnerAtomIndex);
         //                     std::cerr << std::endl;
         //                 #endif
-                        
+
         //                 BondCenter& bondCenter = updBondCenter(bondCenterInfo);
         //                 switch(bondCenter.getChirality()) {
         //                     case BondCenter::RightHanded:
@@ -1869,33 +1861,35 @@ public:
         //             }
         //         }
         //     }
-            
+
         // } // every atom
 
         return *this;
     }
 
-    template<typename T>
+    template <typename T>
     void apply_permutation(std::vector<T>& vec, const std::vector<size_t>& perm) {
         std::vector<T> tmp(vec.size());
-        for (size_t i = 0; i < perm.size(); ++i)
+        for (size_t i = 0; i < perm.size(); ++i) {
             tmp[i] = vec[perm[i]];
+        }
         vec = std::move(tmp);
     }
 
     /*!
-    * <!-- Set bond length in vector<BondInfo> allBonds -->
-    */
-    CompoundRep& matchDefaultBondLengths(const Compound::AtomTargetLocations& atomTargets) 
-    {
+     * <!-- Set bond length in vector<BondInfo> allBonds -->
+     */
+    CompoundRep& matchDefaultBondLengths(const Compound::AtomTargetLocations& atomTargets) {
         if (soaBonds.atom1.empty()) {
             const auto atomPairs = getBondedAtomRuns(2, atomTargets);
-            
+
             for (const auto& pair : atomPairs) {
                 const auto a1 = pair[0];
                 const auto a2 = pair[1];
 
-                if (a2 > a1) continue;
+                if (a2 > a1) {
+                    continue;
+                }
 
                 soaBonds.atom1.push_back(a1);
                 soaBonds.atom2.push_back(a2);
@@ -1918,8 +1912,9 @@ public:
             apply_permutation(soaBonds.bondIndex, perm);
 
             std::sort(perm.begin(), perm.end(), [&](size_t a, size_t b) {
-                if (soaBonds.atom1[a] != soaBonds.atom1[b])
+                if (soaBonds.atom1[a] != soaBonds.atom1[b]) {
                     return soaBonds.atom1[a] < soaBonds.atom1[b];
+                }
                 return soaBonds.atom2[a] < soaBonds.atom2[b];
             });
         }
@@ -1942,20 +1937,21 @@ public:
     }
 
     /*!
-    * <!-- atom2.updBondCenter(largerId).setDefaultBond1Angle(angle)
-    * of the middle atom BC -->
-    */
-    CompoundRep& matchDefaultBondAngles(const Compound::AtomTargetLocations& atomTargets) 
-    {
+     * <!-- atom2.updBondCenter(largerId).setDefaultBond1Angle(angle)
+     * of the middle atom BC -->
+     */
+    CompoundRep& matchDefaultBondAngles(const Compound::AtomTargetLocations& atomTargets) {
         if (soaAngles.atom1.empty()) {
             const auto atomTriples = getBondedAtomRuns(3, atomTargets);
-            
+
             for (const auto& triple : atomTriples) {
                 const auto a1 = triple[0];
                 const auto a2 = triple[1];
                 const auto a3 = triple[2];
 
-                if (a3 < a1) continue;
+                if (a3 < a1) {
+                    continue;
+                }
 
                 soaAngles.atom1.push_back(a1);
                 soaAngles.atom2.push_back(a2);
@@ -1969,21 +1965,22 @@ public:
                 // and establish which one is linked to atom1 and which to atom3
                 CompoundAtom::BondCenterIndex atom2_to_atom1_BCIx;
                 CompoundAtom::BondCenterIndex atom2_to_atom3_BCIx;
-                
-                for (CompoundAtom::BondCenterIndex atom2_BCIx(0); atom2_BCIx < atom2.getNumBonds(); ++atom2_BCIx) {
+
+                for (CompoundAtom::BondCenterIndex atom2_BCIx(0); atom2_BCIx < atom2.getNumBonds();
+                     ++atom2_BCIx) {
                     // Get BC info
                     const BondCenterInfo& atom2BondCenterInfo =
                         getBondCenterInfo(atom2Info.getIndex(), atom2_BCIx);
 
                     if (atom2BondCenterInfo.isBonded()) {
-                    
-                        const BondCenterInfo& partnerBondCenterInfo = 
+                        const BondCenterInfo& partnerBondCenterInfo =
                             getBondCenterInfo(atom2BondCenterInfo.getBondPartnerBondCenterIndex());
-                    
-                        if (partnerBondCenterInfo.getAtomIndex() == a1)
-                            {atom2_to_atom1_BCIx = atom2_BCIx;}
-                        else if (partnerBondCenterInfo.getAtomIndex() == a3)
-                            {atom2_to_atom3_BCIx = atom2_BCIx;}
+
+                        if (partnerBondCenterInfo.getAtomIndex() == a1) {
+                            atom2_to_atom1_BCIx = atom2_BCIx;
+                        } else if (partnerBondCenterInfo.getAtomIndex() == a3) {
+                            atom2_to_atom3_BCIx = atom2_BCIx;
+                        }
                     }
                 }
 
@@ -2010,10 +2007,12 @@ public:
             std::iota(perm.begin(), perm.end(), 0);
 
             std::sort(perm.begin(), perm.end(), [&](size_t a, size_t b) {
-                if (soaAngles.atom2[a] != soaAngles.atom2[b])
+                if (soaAngles.atom2[a] != soaAngles.atom2[b]) {
                     return soaAngles.atom2[a] < soaAngles.atom2[b];
-                if (soaAngles.atom1[a] != soaAngles.atom1[b])
+                }
+                if (soaAngles.atom1[a] != soaAngles.atom1[b]) {
                     return soaAngles.atom1[a] < soaAngles.atom1[b];
+                }
                 return soaAngles.atom3[a] < soaAngles.atom3[b];
             });
 
@@ -2038,23 +2037,28 @@ public:
             Real dotProduct = dot(v1, v2);
             assert(dotProduct < 1.1);
             assert(dotProduct > -1.1);
-            if (dotProduct > 1.0) dotProduct = 1.0;
-            if (dotProduct < -1.0) dotProduct = -1.0;
+            if (dotProduct > 1.0) {
+                dotProduct = 1.0;
+            }
+            if (dotProduct < -1.0) {
+                dotProduct = -1.0;
+            }
             const Real angle = std::acos(dotProduct);
-            // const Real angle = SimTK::calcAngle(atomTargets[atomIndex1], atomTargets[atomIndex2], atomTargets[atomIndex3]);
+            // const Real angle = SimTK::calcAngle(atomTargets[atomIndex1], atomTargets[atomIndex2],
+            // atomTargets[atomIndex3]);
 
-            // The smallest BCIx dictates the bond angles inside BCs one of the bond centers must be bond1 or bond2
-            // assert(smallerId < 2);
+            // The smallest BCIx dictates the bond angles inside BCs one of the bond centers must be bond1 or
+            // bond2 assert(smallerId < 2);
 
             CompoundAtom& atom2 = updAtom(atomIndex2);
             if (smallerId == 0) { // BC0 - atom2 - (BC1, BC2, BC3)
                 atom2.updBondCenter(largerId).setDefaultBond1Angle(angle);
-            }
-            else if (smallerId == 1) { // BC1 - atom2 - (BC2, BC3)
+            } else if (smallerId == 1) { // BC1 - atom2 - (BC2, BC3)
                 atom2.updBondCenter(largerId).setDefaultBond2Angle(angle);
             } else {
                 ///////////// TODO
-                // throw std::runtime_error("Error: CompoundRep::matchDefaultBondAngles() only supports setting angles for BCs 0, 1, and 2");
+                // throw std::runtime_error("Error: CompoundRep::matchDefaultBondAngles() only supports
+                // setting angles for BCs 0, 1, and 2");
             }
         }
 
@@ -2062,74 +2066,70 @@ public:
     }
 
     /*!
-    * <!-- Continuation of the matchDefaultBondAngles: sets the direction of
-    * the BCs >= 1 -->
-    */
-    CompoundRep& matchDefaultDirections(const Compound::AtomTargetLocations& atomTargets){
-        
+     * <!-- Continuation of the matchDefaultBondAngles: sets the direction of
+     * the BCs >= 1 -->
+     */
+    CompoundRep& matchDefaultDirections(const Compound::AtomTargetLocations& atomTargets) {
         if (atomRun.empty()) {
             atomRun = getBondedAtomRuns(1, atomTargets);
         }
-        
-        for(const auto& atomRIx : atomRun) {
 
+        for (const auto& atomRIx : atomRun) {
             const Compound::AtomIndex atomIx = atomRIx[0];
             CompoundAtom& atom = updAtom(atomIx);
             const AtomInfo& atomInfo = getAtomInfo(atomIx);
 
             const Compound::AtomIndex neighborAtomIx = atomRIx[1];
-            const BondCenterInfo& bondCenterInfo = getBondCenterInfo(
-                    getAtomInfo(atomIx),
-                    getAtomInfo(neighborAtomIx) );
-            CompoundAtom::BondCenterIndex atomBondCenterIndex =
-                bondCenterInfo.getAtomBondCenterIndex();
+            const BondCenterInfo& bondCenterInfo =
+                getBondCenterInfo(getAtomInfo(atomIx), getAtomInfo(neighborAtomIx));
+            CompoundAtom::BondCenterIndex atomBondCenterIndex = bondCenterInfo.getAtomBondCenterIndex();
 
-            CompoundAtom::BondCenterIndex  BCIx = atomBondCenterIndex;
+            CompoundAtom::BondCenterIndex BCIx = atomBondCenterIndex;
 
             // Go through bond centers on atom. Order counts.
-            //for (CompoundAtom::BondCenterIndex BCIx(0); BCIx < atom.getNumBonds(); ++BCIx) { // RESTORE
+            // for (CompoundAtom::BondCenterIndex BCIx(0); BCIx < atom.getNumBonds(); ++BCIx) { // RESTORE
 
-                BondCenter &BC0 = atom.updBondCenter(CompoundAtom::BondCenterIndex(0));
+            BondCenter& BC0 = atom.updBondCenter(CompoundAtom::BondCenterIndex(0));
 
-                if(BCIx == 0) {
-                    continue;
+            if (BCIx == 0) {
+                continue;
 
-                }else if(BCIx == 1){ // Rotate with theta in the initial plane
-                    BondCenter &BC1 = atom.updBondCenter(BCIx);
-                    const UnitVec3& BC0_dir = BC0.updDirection();
-                    const UnitVec3& BC1_dir = BC1.updDirection();
+            } else if (BCIx == 1) { // Rotate with theta in the initial plane
+                BondCenter& BC1 = atom.updBondCenter(BCIx);
+                const UnitVec3& BC0_dir = BC0.updDirection();
+                const UnitVec3& BC1_dir = BC1.updDirection();
 
-                    // const UnitVec3 rotAxis(BC1_dir % BC0_dir); // RESTORE
-                    const UnitVec3 rotAxis(0, 0, -1);
+                // const UnitVec3 rotAxis(BC1_dir % BC0_dir); // RESTORE
+                const UnitVec3 rotAxis(0, 0, -1);
 
-                    const Angle rotAngle = BC1.getDefaultBond1Angle();
-                    const Rotation rotMat = Rotation(rotAngle, rotAxis);
-                    const UnitVec3 newDir = rotMat * BC0.getDirection();
+                const Angle rotAngle = BC1.getDefaultBond1Angle();
+                const Rotation rotMat = Rotation(rotAngle, rotAxis);
+                const UnitVec3 newDir = rotMat * BC0.getDirection();
 
-                    // std::cout << "CompoundRep::matchDefaultDirections cAIx " << atomIx << " BCIx " << BCIx
-                    //     << " BC0_dir " << BC0_dir
-                    //     << " BC1_dir " << BC1_dir
-                    //     << " rotAxis " << rotAxis
-                    //     << " rotAngle " << rotAngle
-                    //     <<" newDir " << newDir
-                    //     << std::endl;
+                // std::cout << "CompoundRep::matchDefaultDirections cAIx " << atomIx << " BCIx " << BCIx
+                //     << " BC0_dir " << BC0_dir
+                //     << " BC1_dir " << BC1_dir
+                //     << " rotAxis " << rotAxis
+                //     << " rotAngle " << rotAngle
+                //     <<" newDir " << newDir
+                //     << std::endl;
 
-                    BC1.setDirection(newDir);
+                BC1.setDirection(newDir);
 
-                }else if(BCIx > 1) { // Use Paul's method
-                    BondCenter &BC_gt1 = atom.updBondCenter(BCIx);
-                    const UnitVec3 a1 = atom.getBondCenterDirectionInAtomFrame(CompoundAtom::BondCenterIndex(0));
-                    const UnitVec3 a2 = atom.getBondCenterDirectionInAtomFrame(CompoundAtom::BondCenterIndex(1));
-                    const Angle theta1 = BC_gt1.getDefaultBond1Angle();
-                    const Angle theta2 = BC_gt1.getDefaultBond2Angle();
-                    const BondCenter::Chirality chirality = BC_gt1.getChirality();
+            } else if (BCIx > 1) { // Use Paul's method
+                BondCenter& BC_gt1 = atom.updBondCenter(BCIx);
+                const UnitVec3 a1 = atom.getBondCenterDirectionInAtomFrame(CompoundAtom::BondCenterIndex(0));
+                const UnitVec3 a2 = atom.getBondCenterDirectionInAtomFrame(CompoundAtom::BondCenterIndex(1));
+                const Angle theta1 = BC_gt1.getDefaultBond1Angle();
+                const Angle theta2 = BC_gt1.getDefaultBond2Angle();
+                const BondCenter::Chirality chirality = BC_gt1.getChirality();
 
-                    // std::cout << "CompoundRep::matchDefaultDirections: bc a1 theta1 a2 theta2 chir dir"
-                    //     <<" " << BCIx <<" "<< a1 <<" "<< theta1 <<" "<< a2 <<" "<< theta2 <<" "<< chirality
-                    //     <<" "<< BondCenter::getBondDirection(a1, theta1, a2, theta2, chirality) << std::endl;
+                // std::cout << "CompoundRep::matchDefaultDirections: bc a1 theta1 a2 theta2 chir dir"
+                //     <<" " << BCIx <<" "<< a1 <<" "<< theta1 <<" "<< a2 <<" "<< theta2 <<" "<< chirality
+                //     <<" "<< BondCenter::getBondDirection(a1, theta1, a2, theta2, chirality) << std::endl;
 
-                    BC_gt1.setDirection(BondCenter::getBondDirection(a1, theta1, a2, theta2, chirality));
-                }
+                BC_gt1.setDirection(BondCenter::getBondDirection(a1, theta1, a2, theta2, chirality));
+            }
             //} // every bond center RESTORE
         }
 
@@ -2137,59 +2137,74 @@ public:
     }
 
     /*!
-    * <!-- Helper method for matchDefaultDihedralAngles -->
-    */
-    bool isPlanarBond(
-            Compound::AtomIndex atomIndex2,
-            Compound::AtomIndex atomIndex3) 
-    {
+     * <!-- Helper method for matchDefaultDihedralAngles -->
+     */
+    bool isPlanarBond(Compound::AtomIndex atomIndex2, Compound::AtomIndex atomIndex3) {
         const CompoundAtom& atom2 = getAtom(atomIndex2);
         const CompoundAtom& atom3 = getAtom(atomIndex3);
 
         // Three criteria for whether bond is planar
 
         // 1) both central atoms have three bonds
-        if (atom2.getNumBondCenters() != 3) return false;
-        if (atom3.getNumBondCenters() != 3) return false;
+        if (atom2.getNumBondCenters() != 3) {
+            return false;
+        }
+        if (atom3.getNumBondCenters() != 3) {
+            return false;
+        }
 
         // 2) third bond center on each of those atoms is planar
-        if (atom2.getBondCenter(CompoundAtom::BondCenterIndex(2)).getChirality() != BondCenter::Planar)
+        if (atom2.getBondCenter(CompoundAtom::BondCenterIndex(2)).getChirality() != BondCenter::Planar) {
             return false;
-        if (atom3.getBondCenter(CompoundAtom::BondCenterIndex(2)).getChirality() != BondCenter::Planar)
+        }
+        if (atom3.getBondCenter(CompoundAtom::BondCenterIndex(2)).getChirality() != BondCenter::Planar) {
             return false;
+        }
 
         // 3) initial dihedral angle is near 0 or 180 degrees
-        const BondCenter& bondCenter23 = 
+        const BondCenter& bondCenter23 =
             getBondCenter(getBondCenterInfo(getAtomInfo(atomIndex2), getAtomInfo(atomIndex3)).getIndex());
         Angle initialAngle = bondCenter23.getDefaultDihedralAngle();
         // normalize to be near zero
-        while (initialAngle < -90.0 * Deg2Rad) initialAngle += 180.0 * Deg2Rad;
-        while (initialAngle > 90.0 * Deg2Rad) initialAngle -= 180.0 * Deg2Rad;
-        if (std::abs(initialAngle) > 0.001) return false;
+        while (initialAngle < -90.0 * Deg2Rad) {
+            initialAngle += 180.0 * Deg2Rad;
+        }
+        while (initialAngle > 90.0 * Deg2Rad) {
+            initialAngle -= 180.0 * Deg2Rad;
+        }
+        if (std::abs(initialAngle) > 0.001) {
+            return false;
+        }
 
         // If we got this far, it must be planar
         return true;
     }
 
     /*!
-    * <!--  -->
-    */
-    CompoundRep& matchDefaultDihedralAngles(const Compound::AtomTargetLocations& atomTargets, Compound::PlanarBondMatchingPolicy policy) 
-    {
+     * <!--  -->
+     */
+    CompoundRep& matchDefaultDihedralAngles(const Compound::AtomTargetLocations& atomTargets,
+                                            Compound::PlanarBondMatchingPolicy policy) {
         if (soaDihedrals.atom1.empty()) {
             const auto atomQuads = getBondedAtomRuns(4, atomTargets);
-            
+
             for (const auto& quad : atomQuads) {
                 const auto atomIndex1 = quad[0];
                 const auto atomIndex2 = quad[1];
                 const auto atomIndex3 = quad[2];
                 const auto atomIndex4 = quad[3];
 
-                if (atomIndex4 < atomIndex1) continue;
+                if (atomIndex4 < atomIndex1) {
+                    continue;
+                }
 
                 // Don't set dihedrals involving ring-closing bonds, as these can damage "real" dihedrals
-                if (getBond(atomIndex2, atomIndex1).isRingClosingBond()) continue;
-                if (getBond(atomIndex3, atomIndex4).isRingClosingBond()) continue;
+                if (getBond(atomIndex2, atomIndex1).isRingClosingBond()) {
+                    continue;
+                }
+                if (getBond(atomIndex3, atomIndex4).isRingClosingBond()) {
+                    continue;
+                }
 
                 soaDihedrals.atom1.push_back(atomIndex1);
                 soaDihedrals.atom2.push_back(atomIndex2);
@@ -2197,33 +2212,45 @@ public:
                 soaDihedrals.atom4.push_back(atomIndex4);
 
                 // Bond center index between atom2 and atom1
-                const BondCenterInfo& bondCenterInfo21 = getBondCenterInfo(getAtomInfo(atomIndex2), getAtomInfo(atomIndex1));
+                const BondCenterInfo& bondCenterInfo21 =
+                    getBondCenterInfo(getAtomInfo(atomIndex2), getAtomInfo(atomIndex1));
                 if (bondCenterInfo21.getAtomIndex() != atomIndex2) {
-                    throw std::runtime_error("Error: CompoundRep::matchDefaultDihedralAngles() expected bond center index " + std::to_string(bondCenterInfo21.getIndex()) + " to be on atom2");
+                    throw std::runtime_error(
+                        "Error: CompoundRep::matchDefaultDihedralAngles() expected bond center index "
+                        + std::to_string(bondCenterInfo21.getIndex()) + " to be on atom2");
                 } else {
                     soaDihedrals.bondCenterIndex21.push_back(bondCenterInfo21.getIndex());
                 }
 
                 // Bond center index between atom2 and atom3
-                const BondCenterInfo& bondCenterInfo23 = getBondCenterInfo(getAtomInfo(atomIndex2), getAtomInfo(atomIndex3));
+                const BondCenterInfo& bondCenterInfo23 =
+                    getBondCenterInfo(getAtomInfo(atomIndex2), getAtomInfo(atomIndex3));
                 if (bondCenterInfo23.getAtomIndex() != atomIndex2) {
-                    throw std::runtime_error("Error: CompoundRep::matchDefaultDihedralAngles() expected bond center index " + std::to_string(bondCenterInfo23.getIndex()) + " to be on atom2");
+                    throw std::runtime_error(
+                        "Error: CompoundRep::matchDefaultDihedralAngles() expected bond center index "
+                        + std::to_string(bondCenterInfo23.getIndex()) + " to be on atom2");
                 } else {
                     soaDihedrals.bondCenterIndex23.push_back(bondCenterInfo23.getIndex());
                 }
 
                 // Bond center index between atom3 and atom2
-                const BondCenterInfo& bondCenterInfo32 = getBondCenterInfo(getAtomInfo(atomIndex3), getAtomInfo(atomIndex2));
+                const BondCenterInfo& bondCenterInfo32 =
+                    getBondCenterInfo(getAtomInfo(atomIndex3), getAtomInfo(atomIndex2));
                 if (bondCenterInfo32.getAtomIndex() != atomIndex3) {
-                    throw std::runtime_error("Error: CompoundRep::matchDefaultDihedralAngles() expected bond center index " + std::to_string(bondCenterInfo32.getIndex()) + " to be on atom3");
+                    throw std::runtime_error(
+                        "Error: CompoundRep::matchDefaultDihedralAngles() expected bond center index "
+                        + std::to_string(bondCenterInfo32.getIndex()) + " to be on atom3");
                 } else {
                     soaDihedrals.bondCenterIndex32.push_back(bondCenterInfo32.getIndex());
                 }
 
                 // Bond center index between atom3 and atom4
-                const BondCenterInfo& bondCenterInfo34 = getBondCenterInfo(getAtomInfo(atomIndex3), getAtomInfo(atomIndex4));
+                const BondCenterInfo& bondCenterInfo34 =
+                    getBondCenterInfo(getAtomInfo(atomIndex3), getAtomInfo(atomIndex4));
                 if (bondCenterInfo34.getAtomIndex() != atomIndex3) {
-                    throw std::runtime_error("Error: CompoundRep::matchDefaultDihedralAngles() expected bond center index " + std::to_string(bondCenterInfo34.getIndex()) + " to be on atom3");
+                    throw std::runtime_error(
+                        "Error: CompoundRep::matchDefaultDihedralAngles() expected bond center index "
+                        + std::to_string(bondCenterInfo34.getIndex()) + " to be on atom3");
                 } else {
                     soaDihedrals.bondCenterIndex34.push_back(bondCenterInfo34.getIndex());
                 }
@@ -2247,12 +2274,17 @@ public:
                 auto jb = std::min(soaDihedrals.atom2[b], soaDihedrals.atom3[b]);
                 auto kb = std::max(soaDihedrals.atom2[b], soaDihedrals.atom3[b]);
 
-                if (ja != jb) return ja < jb;
-                if (ka != kb) return ka < kb;
+                if (ja != jb) {
+                    return ja < jb;
+                }
+                if (ka != kb) {
+                    return ka < kb;
+                }
 
                 // Optional secondary keys (improves locality further)
-                if (soaDihedrals.atom1[a] != soaDihedrals.atom1[b])
+                if (soaDihedrals.atom1[a] != soaDihedrals.atom1[b]) {
                     return soaDihedrals.atom1[a] < soaDihedrals.atom1[b];
+                }
                 return soaDihedrals.atom4[a] < soaDihedrals.atom4[b];
             });
 
@@ -2279,28 +2311,28 @@ public:
             const auto bondCenterIndex34 = soaDihedrals.bondCenterIndex34[i];
 
             // Compute dihedral angle
-            Angle angle = SimTK::calcDihedralAngle(
-                atomTargets[atomIndex1],
-                atomTargets[atomIndex2],
-                atomTargets[atomIndex3],
-                atomTargets[atomIndex4]
-            );
+            Angle angle = SimTK::calcDihedralAngle(atomTargets[atomIndex1],
+                                                   atomTargets[atomIndex2],
+                                                   atomTargets[atomIndex3],
+                                                   atomTargets[atomIndex4]);
 
             // Don't set torsion for planar bonds, except maybe to Flip them
             if (policy == Compound::KeepPlanarBonds) {
-                throw std::runtime_error("Error: CompoundRep::matchDefaultDihedralAngles() with policy KeepPlanarBonds is not implemented yet");
+                throw std::runtime_error("Error: CompoundRep::matchDefaultDihedralAngles() with policy "
+                                         "KeepPlanarBonds is not implemented yet");
 
                 // if (isPlanarBond(atomIndex2, atomIndex3))
                 //     continue;
             }
 
             if (policy == Compound::FlipPlanarBonds) {
-                throw std::runtime_error("Error: CompoundRep::matchDefaultDihedralAngles() with policy FlipPlanarBonds is not implemented yet");
+                throw std::runtime_error("Error: CompoundRep::matchDefaultDihedralAngles() with policy "
+                                         "FlipPlanarBonds is not implemented yet");
 
                 // if (isPlanarBond(atomIndex2, atomIndex3) ) {
                 //     // TODO - decide whether to flip the dihedral angle 180 degrees
-                //     Angle initialAngle = calcDefaultDihedralAngle(atomIndex1, atomIndex2, atomIndex3, atomIndex4);
-                //     Angle diffAngle = angle - initialAngle;
+                //     Angle initialAngle = calcDefaultDihedralAngle(atomIndex1, atomIndex2, atomIndex3,
+                //     atomIndex4); Angle diffAngle = angle - initialAngle;
 
                 //     // normalize to range (-180 degrees, 180 degrees)
                 //     while ( -SimTK::Pi >= diffAngle ) diffAngle += 2 * SimTK::Pi;
@@ -2308,7 +2340,7 @@ public:
 
                 //     // Either flip the dihedral 180 degrees...
                 //     if (std::abs(diffAngle) > 0.5 * SimTK::Pi)
-                //         angle = initialAngle + SimTK::Pi;          
+                //         angle = initialAngle + SimTK::Pi;
                 //     else // ... or do nothing.
                 //         continue;
                 // }
@@ -2318,17 +2350,17 @@ public:
             const BondCenterInfo& bondCenterInfo23 = getBondCenterInfo(bondCenterIndex23);
             const BondCenterInfo& bondCenterInfo32 = getBondCenterInfo(bondCenterIndex32);
             const BondCenterInfo& bondCenterInfo34 = getBondCenterInfo(bondCenterIndex34);
-            
+
             // Identify the bond centers associated with the atom2-atom3 bond
             // 1) Identify canonical bond centers for internal dihedral angle
             // Usually bond-center number zero(0), unless zero participates in the atom2-atom3 bond
             CompoundAtom::BondCenterIndex canonicalCenterIndex2(0); // default to zero
-            if (bondCenterInfo23.getAtomBondCenterIndex() == 0){ // unless zero is used for 2->3 bond
+            if (bondCenterInfo23.getAtomBondCenterIndex() == 0) {   // unless zero is used for 2->3 bond
                 canonicalCenterIndex2 = CompoundAtom::BondCenterIndex(1);
             }
 
             CompoundAtom::BondCenterIndex canonicalCenterIndex3(0); // default to zero
-            if (bondCenterInfo32.getAtomBondCenterIndex() == 0){ // unless zero is used for 2->3 bond
+            if (bondCenterInfo32.getAtomBondCenterIndex() == 0) {   // unless zero is used for 2->3 bond
                 canonicalCenterIndex3 = CompoundAtom::BondCenterIndex(1);
             }
 
@@ -2337,13 +2369,15 @@ public:
             // * offsetAngle1 is counter-clockwise angle from canonical bond center on atom2 to atom1, viewed
             // down the atom3-atom2 axis.
             Angle offsetAngle1;
-            if (canonicalCenterIndex2 == bondCenterInfo21.getAtomBondCenterIndex()){
+            if (canonicalCenterIndex2 == bondCenterInfo21.getAtomBondCenterIndex()) {
                 offsetAngle1 = 0.0;
-            }else{
+            } else {
                 // Trick the bond-vector version of calcDihedralAngle into giving the offset angle at the atom
                 const CompoundAtom& atom2 = getAtom(atomIndex2);
-                const UnitVec3 dirAtom1 = -atom2.getBondCenterDirectionInAtomFrame(bondCenterInfo21.getAtomBondCenterIndex());
-                const UnitVec3 dirBond = atom2.getBondCenterDirectionInAtomFrame(bondCenterInfo23.getAtomBondCenterIndex());
+                const UnitVec3 dirAtom1 =
+                    -atom2.getBondCenterDirectionInAtomFrame(bondCenterInfo21.getAtomBondCenterIndex());
+                const UnitVec3 dirBond =
+                    atom2.getBondCenterDirectionInAtomFrame(bondCenterInfo23.getAtomBondCenterIndex());
                 const UnitVec3 dirRefAtom1 = atom2.getBondCenterDirectionInAtomFrame(canonicalCenterIndex2);
 
                 // Sometimes bond direction is colinear with atom direction, if chirality is hosed
@@ -2357,14 +2391,17 @@ public:
 
             // * offsetAngle4 is counter-clockwise angle from canonical bond center on atom3 to atom4, viewed
             // down the atom3-atom2 axis.
-            Angle offsetAngle4 = std::numeric_limits<Angle>::max(); // TODO might use std::optionatl, should look into it
+            Angle offsetAngle4 =
+                std::numeric_limits<Angle>::max(); // TODO might use std::optionatl, should look into it
             if (canonicalCenterIndex3 == bondCenterInfo34.getAtomBondCenterIndex()) {
                 offsetAngle4 = 0.0;
             } else {
                 // Trick the bond-vector version of calcDihedralAngle into giving the offset angle at the atom
                 const CompoundAtom& atom3 = getAtom(atomIndex3);
-                const UnitVec3 dirAtom4 = -atom3.getBondCenterDirectionInAtomFrame(bondCenterInfo34.getAtomBondCenterIndex());
-                const UnitVec3 dirBond = -atom3.getBondCenterDirectionInAtomFrame(bondCenterInfo32.getAtomBondCenterIndex());
+                const UnitVec3 dirAtom4 =
+                    -atom3.getBondCenterDirectionInAtomFrame(bondCenterInfo34.getAtomBondCenterIndex());
+                const UnitVec3 dirBond =
+                    -atom3.getBondCenterDirectionInAtomFrame(bondCenterInfo32.getAtomBondCenterIndex());
                 const UnitVec3 dirRefAtom4 = atom3.getBondCenterDirectionInAtomFrame(canonicalCenterIndex3);
 
                 // Sometimes bond direction is colinear with atom direction, if chirality is hosed
@@ -2376,7 +2413,7 @@ public:
                 }
             }
 
-            if(offsetAngle4 == std::numeric_limits<Angle>::max()) {
+            if (offsetAngle4 == std::numeric_limits<Angle>::max()) {
                 // Should never get here, but compiler keeps warning.
                 // Se above for a more elegant solution.
                 assert(false);
@@ -2388,19 +2425,27 @@ public:
             // Angle internalDihedralAngle = angle + offsetAngle1 - offsetAngle4;
 
             Angle internalDihedralOffsetAngle = offsetAngle4 - offsetAngle1;
-            if(offsetAngle4 != std::numeric_limits<Angle>::max()) {
-                while ( -SimTK::Pi >= internalDihedralOffsetAngle ) internalDihedralOffsetAngle += 2 * SimTK::Pi;
-                while ( SimTK::Pi < internalDihedralOffsetAngle ) internalDihedralOffsetAngle -= 2 * SimTK::Pi;
+            if (offsetAngle4 != std::numeric_limits<Angle>::max()) {
+                while (-SimTK::Pi >= internalDihedralOffsetAngle) {
+                    internalDihedralOffsetAngle += 2 * SimTK::Pi;
+                }
+                while (SimTK::Pi < internalDihedralOffsetAngle) {
+                    internalDihedralOffsetAngle -= 2 * SimTK::Pi;
+                }
             }
 
 
-
-            // const Angle internalDihedralOffsetAngle = calcDefaultInternalDihedralOffsetAngle(bondCenterIndex21, bondCenterIndex34);
+            // const Angle internalDihedralOffsetAngle =
+            // calcDefaultInternalDihedralOffsetAngle(bondCenterIndex21, bondCenterIndex34);
             Angle internalDihedralAngle = angle - internalDihedralOffsetAngle;
 
             if (internalDihedralOffsetAngle != std::numeric_limits<Angle>::max()) {
-                while (-SimTK::Pi >= internalDihedralAngle) internalDihedralAngle += 2 * SimTK::Pi;
-                while (SimTK::Pi < internalDihedralAngle) internalDihedralAngle -= 2 * SimTK::Pi;
+                while (-SimTK::Pi >= internalDihedralAngle) {
+                    internalDihedralAngle += 2 * SimTK::Pi;
+                }
+                while (SimTK::Pi < internalDihedralAngle) {
+                    internalDihedralAngle -= 2 * SimTK::Pi;
+                }
             } else {
                 internalDihedralAngle = std::numeric_limits<Angle>::max();
             }
@@ -2416,46 +2461,44 @@ public:
     /*!
      * <!--  -->
      */
-    CompoundRep& matchDefaultTopLevelTransform(const Compound::AtomTargetLocations& atomTargets) 
-    {
+    CompoundRep& matchDefaultTopLevelTransform(const Compound::AtomTargetLocations& atomTargets) {
         Kabsch78::VectorSet vecPairs;
         vecPairs.reserve(atomTargets.size());
-        
+
         // Calculate default atom frames in compound frame
         std::vector<Transform> atomSourceFrames(getNumAtoms());
         for (const auto& atom : allAtoms) {
             const auto atomIndex = atom.getIndex();
             atomSourceFrames[atomIndex] = calcDefaultAtomFrameInCompoundFrame(atomIndex);
-            assert (!isNaN(atomSourceFrames[atomIndex].p()[0]));
+            assert(!isNaN(atomSourceFrames[atomIndex].p()[0]));
         }
 
         const Real weight = 1.0;
-        
-        for (Compound::AtomIndex atomIndex(0); atomIndex < atomTargets.size(); ++atomIndex) 
-        {
+
+        for (Compound::AtomIndex atomIndex(0); atomIndex < atomTargets.size(); ++atomIndex) {
             const Vec3 source = getTopLevelTransform() * atomSourceFrames[atomIndex].T();
             const Vec3& target = atomTargets[atomIndex];
-           
-            vecPairs.push_back(Vec3Pair(source, target, weight));
 
+            vecPairs.push_back(Vec3Pair(source, target, weight));
         }
 
         const auto result = Kabsch78::superpose(vecPairs);
         const auto& adjustment = result.transform;
 
-        setTopLevelTransform( adjustment * getTopLevelTransform() );
+        setTopLevelTransform(adjustment * getTopLevelTransform());
 
         // setTopLevelTransform( getTopLevelTransform() );
 
         // // STUDY localTransform
         // Compound::AtomTargetLocations::const_iterator tI;
-        // for (tI = atomTargets.begin(); tI != atomTargets.end(); ++tI) 
+        // for (tI = atomTargets.begin(); tI != atomTargets.end(); ++tI)
         // {
         //     Compound::AtomIndex cAIx = tI->first;
         //     const SimTK::AtomInfo & atomInfo = getAtomInfo(cAIx);
         //     const SimTK::CompoundAtom & atom = getAtom(atomInfo);
 
-        //     std::cout << "STUDY CompoundRep::matchDefaultTopLevelTransform cAIx T " << cAIx <<" \n "<< atom.getLocalTransform() << std::endl;
+        //     std::cout << "STUDY CompoundRep::matchDefaultTopLevelTransform cAIx T " << cAIx <<" \n "<<
+        //     atom.getLocalTransform() << std::endl;
         // }
 
         return *this;
@@ -2466,38 +2509,32 @@ public:
         return atomInfo.getNames();
     }
 
-    //std::ostream& writeDefaultAtomPdb(
-    //    const Compound::AtomName& name, 
-    //    std::ostream& os, 
-    //    int& nextSerialNumber,
-    //    const Transform& transform
-    //    ) const;
+    // std::ostream& writeDefaultAtomPdb(
+    //     const Compound::AtomName& name,
+    //     std::ostream& os,
+    //     int& nextSerialNumber,
+    //     const Transform& transform
+    //     ) const;
 
-    std::ostream& writePdb(
-        const State& state, 
-        std::ostream& os, 
-        const Transform& transform) const;
+    std::ostream& writePdb(const State& state, std::ostream& os, const Transform& transform) const;
 
-    std::ostream& writePdb(
-        const State& state, 
-        std::ostream& os, 
-        int& nextSerialNumber,
-        const Transform& transform) const;
+    std::ostream&
+    writePdb(const State& state, std::ostream& os, int& nextSerialNumber, const Transform& transform) const;
 
-    //std::ostream& writeAtomPdb(
-    //    const State& state, 
-    //    const Compound::AtomName&   name, 
-    //    std::ostream& os, 
-    //    int& nextSerialNumber, 
-    //    const Transform& transform) const;
+    // std::ostream& writeAtomPdb(
+    //     const State& state,
+    //     const Compound::AtomName&   name,
+    //     std::ostream& os,
+    //     int& nextSerialNumber,
+    //     const Transform& transform) const;
 
-    //std::ostream& writeAtomPdb(
-    //    const Compound::AtomName&   name, 
-    //    std::ostream&               os, 
-    //    int&                        nextSerialNumber,
-    //    const Vec3&                 location
-    //    ) const;
-// protected:
+    // std::ostream& writeAtomPdb(
+    //     const Compound::AtomName&   name,
+    //     std::ostream&               os,
+    //     int&                        nextSerialNumber,
+    //     const Vec3&                 location
+    //     ) const;
+    // protected:
 
     bool hasInboardBondCenter() const;
 
@@ -2511,14 +2548,14 @@ public:
     CompoundRep& setInboardBondCenter(const Compound::BondCenterName& n);
     CompoundRep& setInboardBondCenter(Compound::BondCenterIndex id);
 
-    Compound::BondCenterIndex addLocalCompound(
-        const Compound::Name& scName, 
-        const Compound& subcompound,
-        const Transform& location = Transform());
+    Compound::BondCenterIndex addLocalCompound(const Compound::Name& scName,
+                                               const Compound& subcompound,
+                                               const Transform& location = Transform());
 
     // Copy atoms etc.
     // Returns new bond center index of absorbed inboard bond center
-    Compound::BondCenterIndex absorbSubcompound(const Compound::Name& scName, const Compound& subcompound, bool isBase);
+    Compound::BondCenterIndex
+    absorbSubcompound(const Compound::Name& scName, const Compound& subcompound, bool isBase);
 
     const BondInfo& getBondInfo(Compound::BondIndex bi) const {
         return allBonds[bi];
@@ -2544,59 +2581,61 @@ public:
         return allBonds[compoundBondIndex];
     }
 
-	const Bond& getBond(Compound::AtomIndex atom1, Compound::AtomIndex atom2) {
-		return getBond( getBondInfo(getAtomInfo(atom1), getAtomInfo(atom2)) );
-	}
+    const Bond& getBond(Compound::AtomIndex atom1, Compound::AtomIndex atom2) {
+        return getBond(getBondInfo(getAtomInfo(atom1), getAtomInfo(atom2)));
+    }
 
     const Bond& getBond(const BondInfo& bondInfo) const {
         return bondInfo.getBond();
-        //if ( bondInfo.isLocalBond() || bondInfo.isRingClosingBond() );
-        //else {
-        //    assert(false);
-        //}
-        //    assert(bondInfo.isSubcompoundBond());
-        //    Compound::Index subcompoundId = bondInfo.getSubcompoundId();
-        //    // const CompoundRep& scRep = bondInfo.getSubcompound().getImpl();
-        //    const CompoundRep& scRep = getSubcompound(subcompoundId).getImpl();
-        //    return scRep.getBond(scRep.getBondInfo(bondInfo.getSubcompoundBondIndex()));
-        //}
+        // if ( bondInfo.isLocalBond() || bondInfo.isRingClosingBond() );
+        // else {
+        //     assert(false);
+        // }
+        //     assert(bondInfo.isSubcompoundBond());
+        //     Compound::Index subcompoundId = bondInfo.getSubcompoundId();
+        //     // const CompoundRep& scRep = bondInfo.getSubcompound().getImpl();
+        //     const CompoundRep& scRep = getSubcompound(subcompoundId).getImpl();
+        //     return scRep.getBond(scRep.getBondInfo(bondInfo.getSubcompoundBondIndex()));
+        // }
     }
     Bond& updBond(BondInfo& bondInfo) {
         return bondInfo.updBond();
-        //if ( bondInfo.isLocalBond() || bondInfo.isRingClosingBond() );
-        //else {
-        //    assert(false);
-        //}
-        //    assert(bondInfo.isSubcompoundBond());
-        //    CompoundRep& scRep = updSubcompound(bondInfo.getSubcompoundId()).updImpl();
-        //    // CompoundRep& scRep = bondInfo.updSubcompound().updImpl();
-        //    return scRep.updBond(scRep.updBondInfo(bondInfo.getSubcompoundBondIndex()));
-        //}
+        // if ( bondInfo.isLocalBond() || bondInfo.isRingClosingBond() );
+        // else {
+        //     assert(false);
+        // }
+        //     assert(bondInfo.isSubcompoundBond());
+        //     CompoundRep& scRep = updSubcompound(bondInfo.getSubcompoundId()).updImpl();
+        //     // CompoundRep& scRep = bondInfo.updSubcompound().updImpl();
+        //     return scRep.updBond(scRep.updBondInfo(bondInfo.getSubcompoundBondIndex()));
+        // }
     }
 
     Transform calcDefaultBondCenterFrameInAtomFrame(const BondCenterInfo& info) const;
     const Transform calcDefaultBondCenterFrameInCompoundFrame(const Compound::BondCenterName name) const;
 
     /*!
-    * <!-- Cache method used in O(n) all atom Frame computation --> 
-    */
-    const Transform calcDefaultBondCenterFrameInCompoundFrame(
-        const BondCenterInfo& info,
-        std::vector<Transform>& atomFrameCache) const;
+     * <!-- Cache method used in O(n) all atom Frame computation -->
+     */
+    const Transform calcDefaultBondCenterFrameInCompoundFrame(const BondCenterInfo& info,
+                                                              std::vector<Transform>& atomFrameCache) const;
 
     Compound::BondCenterIndex getBondCenterIndex(const Compound::BondCenterName& name) const;
 
     // return the bond center on atom1 that is attached to atom2
-    const BondCenterInfo& getBondCenterInfo(const Compound::AtomName& atom1, const Compound::AtomName& atom2) const;
+    const BondCenterInfo& getBondCenterInfo(const Compound::AtomName& atom1,
+                                            const Compound::AtomName& atom2) const;
     BondCenterInfo& updBondCenterInfo(const Compound::AtomName& atom1, const Compound::AtomName& atom2);
     const BondCenterInfo& getBondCenterInfo(const AtomInfo& atom1, const AtomInfo& atom2) const;
-    BondCenterInfo& updBondCenterInfo(const AtomInfo& atom1, const AtomInfo& atom2) ;
+    BondCenterInfo& updBondCenterInfo(const AtomInfo& atom1, const AtomInfo& atom2);
     BondCenterInfo& updBondCenterInfo(const Compound::BondCenterName&);
     const BondCenterInfo& getBondCenterInfo(const Compound::BondCenterName&) const;
     BondCenterInfo& updBondCenterInfo(Compound::BondCenterIndex);
     const BondCenterInfo& getBondCenterInfo(Compound::BondCenterIndex) const;
-    BondCenterInfo& updBondCenterInfo(Compound::AtomIndex atomId, CompoundAtom::BondCenterIndex atomBondCenterIndex);
-    const BondCenterInfo& getBondCenterInfo(Compound::AtomIndex atomId, CompoundAtom::BondCenterIndex atomBondCenterIndex) const;
+    BondCenterInfo& updBondCenterInfo(Compound::AtomIndex atomId,
+                                      CompoundAtom::BondCenterIndex atomBondCenterIndex);
+    const BondCenterInfo& getBondCenterInfo(Compound::AtomIndex atomId,
+                                            CompoundAtom::BondCenterIndex atomBondCenterIndex) const;
     BondCenterInfo& updBondCenterInfo(BondCenterInfo::AtomKey key);
     const BondCenterInfo& getBondCenterInfo(BondCenterInfo::AtomKey key) const;
 
@@ -2635,23 +2674,22 @@ public:
         assert(0 <= id);
         return allAtoms[id];
     }
-    //AtomInfo& updAtomInfo(Compound::Index subcompoundId, Compound::AtomIndex subAtomIndex) {
-    //    const CompoundRep&      scRep           = getSubcompound(subcompoundId).getImpl();
-    //    const AtomInfo&         scAtomInfo      = scRep.getAtomInfo(subAtomIndex);
-    //    const Compound::AtomIndex  parentAtomIndex    = scAtomInfo.getParentCompoundAtomIndex();
-    //    return updAtomInfo(parentAtomIndex);
-    //}
-    //const AtomInfo& getAtomInfo(Compound::Index subcompoundId, Compound::AtomIndex subAtomIndex) const {
-    //    const CompoundRep&      scRep           = getSubcompound(subcompoundId).getImpl();
-    //    const AtomInfo&         scAtomInfo      = scRep.getAtomInfo(subAtomIndex);
-    //    const Compound::AtomIndex  parentAtomIndex    = scAtomInfo.getParentCompoundAtomIndex();
-    //    return getAtomInfo(parentAtomIndex);
-    //}
+    // AtomInfo& updAtomInfo(Compound::Index subcompoundId, Compound::AtomIndex subAtomIndex) {
+    //     const CompoundRep&      scRep           = getSubcompound(subcompoundId).getImpl();
+    //     const AtomInfo&         scAtomInfo      = scRep.getAtomInfo(subAtomIndex);
+    //     const Compound::AtomIndex  parentAtomIndex    = scAtomInfo.getParentCompoundAtomIndex();
+    //     return updAtomInfo(parentAtomIndex);
+    // }
+    // const AtomInfo& getAtomInfo(Compound::Index subcompoundId, Compound::AtomIndex subAtomIndex) const {
+    //     const CompoundRep&      scRep           = getSubcompound(subcompoundId).getImpl();
+    //     const AtomInfo&         scAtomInfo      = scRep.getAtomInfo(subAtomIndex);
+    //     const Compound::AtomIndex  parentAtomIndex    = scAtomInfo.getParentCompoundAtomIndex();
+    //     return getAtomInfo(parentAtomIndex);
+    // }
 
     // desk_mass_related
 
-    const SimTK::mdunits::Mass getAtomMass(Compound::AtomIndex id) const
-    {
+    const SimTK::mdunits::Mass getAtomMass(Compound::AtomIndex id) const {
         return getAtom(id).getMass();
     }
 
@@ -2663,13 +2701,17 @@ public:
         updAtom(id).updateMass(mass);
     }
 
-    // _end_ desk_mass_related 
+    // _end_ desk_mass_related
 
     bool hasAtom(const Compound::AtomName& name) const;
 
     bool hasAtom(Compound::AtomIndex atomId) const {
-        if (atomId < 0) return false;
-        if (atomId >= (Compound::AtomIndex) allAtoms.size()) return false;
+        if (atomId < 0) {
+            return false;
+        }
+        if (atomId >= (Compound::AtomIndex)allAtoms.size()) {
+            return false;
+        }
 
         return true;
     }
@@ -2693,41 +2735,45 @@ public:
         return info.getAtom();
     }
 
-    Compound::BondIndex getNumBonds() const {return Compound::BondIndex(allBonds.size());}
+    Compound::BondIndex getNumBonds() const {
+        return Compound::BondIndex(allBonds.size());
+    }
     Compound::AtomIndex getBondAtomIndex(Compound::BondIndex bid, int which) const;
 
-    //const CompoundInfo& getSubcompoundInfo(const Compound::Name& name) const 
+    // const CompoundInfo& getSubcompoundInfo(const Compound::Name& name) const
     //{
-    //    assert( hasSubcompound(name) );
+    //     assert( hasSubcompound(name) );
 
     //    // TODO - parse "X/Y" indirect subcompound identifiers
     //    Compound::Index subcompoundId;
 
     //    // First check for simple subcompound name without any "/" separators
-    //    if (CompoundPathName::isValidSubcompoundName(name)) 
+    //    if (CompoundPathName::isValidSubcompoundName(name))
     //    {
     //        subcompoundId = subcompoundIdsByName.find(name)->second;
     //    }
     //    else // parse "X/Y" path type subcompound names
     //    {
     //        std::vector<String> tokens;
-    //        if (CompoundPathName::isValidSubcompoundPathName(name, &tokens)) 
+    //        if (CompoundPathName::isValidSubcompoundPathName(name, &tokens))
     //        {
     //            String subcompoundName = tokens[0];
-    //            if (! hasSubcompound(subcompoundName)) 
+    //            if (! hasSubcompound(subcompoundName))
     //            {
-    //                assert(false); // TODO - raise exception - hasSubcompound() check should have caught this
+    //                assert(false); // TODO - raise exception - hasSubcompound() check should have caught
+    //                this
     //            }
 
     //            Compound::Index topSubcompoundId = getSubcompoundInfo(subcompoundName).getIndex();
 
     //            const CompoundRep& scRep = getSubcompound(subcompoundName).getImpl();
-    //            Compound::Index childSubcompoundId = scRep.getSubcompoundInfo(CompoundPathName::shiftLeftPathName(name)).getIndex();
+    //            Compound::Index childSubcompoundId =
+    //            scRep.getSubcompoundInfo(CompoundPathName::shiftLeftPathName(name)).getIndex();
 
     //            // TODO find CompoundInfo that matches topSubcompoundId and childSubcompoundId
     //            // TODO this is not efficient, checking every subcompound
     //            std::vector<CompoundInfo>::const_iterator scI;
-    //            for (scI = allSubcompounds.begin(); scI != allSubcompounds.end(); ++scI) 
+    //            for (scI = allSubcompounds.begin(); scI != allSubcompounds.end(); ++scI)
     //            {
     //                if (scI->isLocal()) continue;
     //                if (scI->isBonded()) continue;
@@ -2750,106 +2796,106 @@ public:
 
     //    return getSubcompoundInfo(subcompoundId);
     //}
-    //CompoundInfo& updSubcompoundInfo(const Compound::Name& name) {
+    // CompoundInfo& updSubcompoundInfo(const Compound::Name& name) {
     //    assert( hasSubcompound(name) );
 
     //    const Compound::Index id = subcompoundIdsByName.find(name)->second;
     //    return updSubcompoundInfo(id);
     //}
-    //const CompoundInfo& getSubcompoundInfo(Compound::Index id) const {
+    // const CompoundInfo& getSubcompoundInfo(Compound::Index id) const {
     //    assert (0 <= id);
     //    assert ((Compound::Index)allSubcompounds.size() > id);
 
     //    return allSubcompounds[id];
     //}
-    //CompoundInfo& updSubcompoundInfo(Compound::Index id) {
+    // CompoundInfo& updSubcompoundInfo(Compound::Index id) {
     //    assert (0 <= id);
     //    assert ((Compound::Index)allSubcompounds.size() > id);
 
     //    return allSubcompounds[id];
     //}
 
-    //Compound& updSubcompound(const Compound::Name& name) {
-    //    CompoundInfo& info = updSubcompoundInfo(name);
-    //    return updSubcompound(info);
-    //}
-    //const Compound& getSubcompound(const Compound::Name& name) const {
-    //    const CompoundInfo& info = getSubcompoundInfo(name);
-    //    return getSubcompound(info);
-    //}
-    //Compound& updSubcompound(Compound::Index id) {
-    //    CompoundInfo& info = updSubcompoundInfo(id);
-    //    return updSubcompound(info);
-    //}
-    //const Compound& getSubcompound(Compound::Index id) const {
-    //    const CompoundInfo& info = getSubcompoundInfo(id);
-    //    return getSubcompound(info);
-    //}
+    // Compound& updSubcompound(const Compound::Name& name) {
+    //     CompoundInfo& info = updSubcompoundInfo(name);
+    //     return updSubcompound(info);
+    // }
+    // const Compound& getSubcompound(const Compound::Name& name) const {
+    //     const CompoundInfo& info = getSubcompoundInfo(name);
+    //     return getSubcompound(info);
+    // }
+    // Compound& updSubcompound(Compound::Index id) {
+    //     CompoundInfo& info = updSubcompoundInfo(id);
+    //     return updSubcompound(info);
+    // }
+    // const Compound& getSubcompound(Compound::Index id) const {
+    //     const CompoundInfo& info = getSubcompoundInfo(id);
+    //     return getSubcompound(info);
+    // }
 
-    //const Compound& getSubcompound(const CompoundInfo& info) const {
-    //    if (info.isLocal()) {
-    //        return info.getCompound();
-    //    }
-    //    else if (info.isBonded()) {
-    //        return info.getCompound();
-    //    }
-    //    else { // subcompound of subcompound
-    //        const CompoundRep& sc1 = getSubcompound(info.getIntermediateSubcompoundId()).getImpl();
-    //        return sc1.getSubcompound(info.getIntermediateSubcompoundSubcompoundId());
-    //    }
-    //}
+    // const Compound& getSubcompound(const CompoundInfo& info) const {
+    //     if (info.isLocal()) {
+    //         return info.getCompound();
+    //     }
+    //     else if (info.isBonded()) {
+    //         return info.getCompound();
+    //     }
+    //     else { // subcompound of subcompound
+    //         const CompoundRep& sc1 = getSubcompound(info.getIntermediateSubcompoundId()).getImpl();
+    //         return sc1.getSubcompound(info.getIntermediateSubcompoundSubcompoundId());
+    //     }
+    // }
 
-    //Compound& updSubcompound(CompoundInfo& info) {
-    //    if (info.isLocal()) {
-    //        return info.updCompound();
-    //    }
-    //    else if (info.isBonded()) {
-    //        return info.updCompound();
-    //    }
-    //    else { // subcompound of subcompound
-    //        CompoundRep& sc1 = updSubcompound(info.getIntermediateSubcompoundId()).updImpl();
-    //        return sc1.updSubcompound(info.getIntermediateSubcompoundSubcompoundId());
-    //    }
-    //}
+    // Compound& updSubcompound(CompoundInfo& info) {
+    //     if (info.isLocal()) {
+    //         return info.updCompound();
+    //     }
+    //     else if (info.isBonded()) {
+    //         return info.updCompound();
+    //     }
+    //     else { // subcompound of subcompound
+    //         CompoundRep& sc1 = updSubcompound(info.getIntermediateSubcompoundId()).updImpl();
+    //         return sc1.updSubcompound(info.getIntermediateSubcompoundSubcompoundId());
+    //     }
+    // }
 
 
     //// const Compound& getSubcompound(int) const;
     //// Compound& getSubcompound(int);
 
-    //CompoundRep& nameSubcompound(Compound::Name newName, Compound::Name olderName) 
+    // CompoundRep& nameSubcompound(Compound::Name newName, Compound::Name olderName)
     //{
-    //    assert(hasSubcompound(olderName));
-    //    assert(!hasSubcompound(newName));
-    //    Compound::Index subcompoundId = getSubcompoundInfo(olderName).getIndex();
-    //    nameSubcompound(newName, subcompoundId);
-    //    assert(hasSubcompound(newName));
-    //    return *this;
-    //}
+    //     assert(hasSubcompound(olderName));
+    //     assert(!hasSubcompound(newName));
+    //     Compound::Index subcompoundId = getSubcompoundInfo(olderName).getIndex();
+    //     nameSubcompound(newName, subcompoundId);
+    //     assert(hasSubcompound(newName));
+    //     return *this;
+    // }
 
-    //CompoundRep& nameSubcompound(Compound::Name newName, Compound::Index subcompoundId) 
+    // CompoundRep& nameSubcompound(Compound::Name newName, Compound::Index subcompoundId)
     //{
-    //    assert(hasSubcompound(subcompoundId));
-    //    assert(! hasSubcompound(newName));
-    //    subcompoundIdsByName[newName] = subcompoundId;
-    //    assert(hasSubcompound(newName));
-    //    return *this;
-    //}
+    //     assert(hasSubcompound(subcompoundId));
+    //     assert(! hasSubcompound(newName));
+    //     subcompoundIdsByName[newName] = subcompoundId;
+    //     assert(hasSubcompound(newName));
+    //     return *this;
+    // }
 
 
-    //bool hasSubcompound(const Compound::Name& name) const 
+    // bool hasSubcompound(const Compound::Name& name) const
     //{
-    //    // First check for simple subcompound name without any "/" separators
-    //    if (CompoundPathName::isValidSubcompoundName(name)) {
-    //        return subcompoundIdsByName.find(name) != subcompoundIdsByName.end();
-    //    }
-    //    else // parse "X/Y" path type subcompound names
-    //    {
-    //        std::vector<String> tokens;
-    //        if (CompoundPathName::isValidSubcompoundPathName(name, &tokens)) 
-    //        {
-    //            String subcompoundName = tokens[0];
-    //            if (! hasSubcompound(subcompoundName)) 
-    //                return false;
+    //     // First check for simple subcompound name without any "/" separators
+    //     if (CompoundPathName::isValidSubcompoundName(name)) {
+    //         return subcompoundIdsByName.find(name) != subcompoundIdsByName.end();
+    //     }
+    //     else // parse "X/Y" path type subcompound names
+    //     {
+    //         std::vector<String> tokens;
+    //         if (CompoundPathName::isValidSubcompoundPathName(name, &tokens))
+    //         {
+    //             String subcompoundName = tokens[0];
+    //             if (! hasSubcompound(subcompoundName))
+    //                 return false;
 
     //            const CompoundRep& scRep = getSubcompound(subcompoundName).getImpl();
     //            return scRep.hasSubcompound(CompoundPathName::shiftLeftPathName(name));
@@ -2861,14 +2907,13 @@ public:
     //}
 
 
-    //bool hasSubcompound(const Compound::Index cId) const {
-    //    if (cId < 0) return false;
-    //    if (cId >= (Compound::Index)allSubcompounds.size()) return false;
-    //    return true;
-    //}
+    // bool hasSubcompound(const Compound::Index cId) const {
+    //     if (cId < 0) return false;
+    //     if (cId >= (Compound::Index)allSubcompounds.size()) return false;
+    //     return true;
+    // }
 
-    static mdunits::Length getConsensusBondLength(const BondCenter& c1, const BondCenter& c2) 
-    {
+    static mdunits::Length getConsensusBondLength(const BondCenter& c1, const BondCenter& c2) {
         mdunits::Length d1 = c1.getDefaultBondLength();
         mdunits::Length d2 = c2.getDefaultBondLength();
 
@@ -2881,18 +2926,24 @@ public:
         // 4) both have distance defined and disagree -> raise error
 
         // No information available to determine bond length
-        if (isNaN(d1) && isNaN(d2)) assert(false); // case 1
+        if (isNaN(d1) && isNaN(d2)) {
+            assert(false); // case 1
+        }
 
-        else if (isNaN(d1)) answer = d2; // case 2a
-        else if (isNaN(d2)) answer = d1; // case 2b
-        else if (d1 == d2) answer = d1; // case 3
-        else assert(false); // case 4
+        else if (isNaN(d1)) {
+            answer = d2; // case 2a
+        } else if (isNaN(d2)) {
+            answer = d1; // case 2b
+        } else if (d1 == d2) {
+            answer = d1; // case 3
+        } else {
+            assert(false); // case 4
+        }
 
         return answer;
     }
 
-    static Angle getConsensusDihedralAngle(const BondCenter& c1, const BondCenter& c2) 
-    {
+    static Angle getConsensusDihedralAngle(const BondCenter& c1, const BondCenter& c2) {
         Angle a1 = c1.getDefaultDihedralAngle();
         Angle a2 = c2.getDefaultDihedralAngle();
 
@@ -2900,49 +2951,55 @@ public:
 
         // The same rules for dihedral angle as for bond length,
         // except that if both are NaN, default to 180 degrees
-        if (isNaN(a1) && isNaN(a2)) answer = 180*Deg2Rad; // case 1
-        else if (isNaN(a1)) answer = a2; // case 2a
-        else if (isNaN(a2)) answer = a1; // case 2b
-        else if (a1 == a2) answer = a1; // case 3
-        else assert(false); // case 4
+        if (isNaN(a1) && isNaN(a2)) {
+            answer = 180 * Deg2Rad; // case 1
+        } else if (isNaN(a1)) {
+            answer = a2; // case 2a
+        } else if (isNaN(a2)) {
+            answer = a1; // case 2b
+        } else if (a1 == a2) {
+            answer = a1; // case 3
+        } else {
+            assert(false); // case 4
+        }
 
         return answer;
     }
 
-    //Compound::BondIndex bondBondCenters(
-    //    Compound::BondCenterIndex outboardId, 
-    //    Compound::BondCenterIndex inboardId
-    //    ) 
+    // Compound::BondIndex bondBondCenters(
+    //     Compound::BondCenterIndex outboardId,
+    //     Compound::BondCenterIndex inboardId
+    //     )
     //{
-    //    mdunits::Length bondLength = getConsensusBondLength   (getBondCenter(outboardId), getBondCenter(inboardId));
-    //    Angle    dihedral   = getConsensusDihedralAngle(getBondCenter(outboardId), getBondCenter(inboardId));
+    //     mdunits::Length bondLength = getConsensusBondLength   (getBondCenter(outboardId),
+    //     getBondCenter(inboardId)); Angle    dihedral   =
+    //     getConsensusDihedralAngle(getBondCenter(outboardId), getBondCenter(inboardId));
 
     //    return bondBondCenters(outboardId, inboardId, bondLength, dihedral);
     //}
 
     // TODO When a new bond is created, always call indexNewBond() to establish cross references
-    //Compound::BondIndex bondBondCenters(
-    //    Compound::BondCenterIndex outboardId, 
+    // Compound::BondIndex bondBondCenters(
+    //    Compound::BondCenterIndex outboardId,
     //    Compound::BondCenterIndex inboardId,
     //    mdunits::Length               distance,
     //    Angle                  dihedral
-    //    ) 
+    //    )
 
-    void indexNewBond(const BondInfo& newBondInfo)
-    {
+    void indexNewBond(const BondInfo& newBondInfo) {
         const Compound::BondCenterIndex outboardId = newBondInfo.getChildBondCenterIndex();
         const Compound::BondCenterIndex inboardId = newBondInfo.getParentBondCenterIndex();
         const Compound::BondIndex bondIndex = newBondInfo.getIndex();
 
-        BondCenter&     outboardBondCenter      = updBondCenter(outboardId);
-        BondCenter&     inboardBondCenter       = updBondCenter(inboardId);
-        BondCenterInfo& outboardBondCenterInfo  = updBondCenterInfo(outboardId);
-        BondCenterInfo& inboardBondCenterInfo   = updBondCenterInfo(inboardId);
+        BondCenter& outboardBondCenter = updBondCenter(outboardId);
+        BondCenter& inboardBondCenter = updBondCenter(inboardId);
+        BondCenterInfo& outboardBondCenterInfo = updBondCenterInfo(outboardId);
+        BondCenterInfo& inboardBondCenterInfo = updBondCenterInfo(inboardId);
 
-        assert(! outboardBondCenter.isBonded() );
-        assert(! inboardBondCenter.isBonded() );
-        assert(! outboardBondCenterInfo.isBonded() );
-        assert(! inboardBondCenterInfo.isBonded() );
+        assert(!outboardBondCenter.isBonded());
+        assert(!inboardBondCenter.isBonded());
+        assert(!outboardBondCenterInfo.isBonded());
+        assert(!inboardBondCenterInfo.isBonded());
 
         // Add a new BondInfo to this compound.
         // const Compound::BondIndex bondIndex = Compound::BondIndex(allBonds.size());
@@ -2953,8 +3010,8 @@ public:
         // Mark the two newly-connected BondCenterInfos so they know they're connected.
         outboardBondCenterInfo.setBondPartnerBondCenterIndex(inboardBondCenterInfo.getIndex());
         inboardBondCenterInfo.setBondPartnerBondCenterIndex(outboardBondCenterInfo.getIndex());
-        outboardBondCenterInfo.setBondIndex( bondIndex );
-        inboardBondCenterInfo.setBondIndex( bondIndex );
+        outboardBondCenterInfo.setBondIndex(bondIndex);
+        inboardBondCenterInfo.setBondIndex(bondIndex);
 
         // Reach down to the Atoms and mark the physical bonds as in use, although they
         // don't know to whom they are connected.
@@ -2963,23 +3020,24 @@ public:
 
         // Build a map so that we can find the connecting BondCenterInfo given the
         // AtomInfo indexes in either order.
-        std::pair<Compound::AtomIndex, Compound::AtomIndex> 
-            key1(outboardBondCenterInfo.getAtomIndex(), inboardBondCenterInfo.getAtomIndex());
-        std::pair<Compound::AtomIndex, Compound::AtomIndex> 
-            key2(inboardBondCenterInfo.getAtomIndex(), outboardBondCenterInfo.getAtomIndex());
+        std::pair<Compound::AtomIndex, Compound::AtomIndex> key1(outboardBondCenterInfo.getAtomIndex(),
+                                                                 inboardBondCenterInfo.getAtomIndex());
+        std::pair<Compound::AtomIndex, Compound::AtomIndex> key2(inboardBondCenterInfo.getAtomIndex(),
+                                                                 outboardBondCenterInfo.getAtomIndex());
         AIxPair_To_BondIx[key1] = bondIndex;
         AIxPair_To_BondIx[key2] = bondIndex;
 
-        assert( outboardBondCenter.isBonded() );
-        assert( inboardBondCenter.isBonded() );
-        assert( outboardBondCenterInfo.isBonded() );
-        assert( inboardBondCenterInfo.isBonded() );
+        assert(outboardBondCenter.isBonded());
+        assert(inboardBondCenter.isBonded());
+        assert(outboardBondCenterInfo.isBonded());
+        assert(inboardBondCenterInfo.isBonded());
 
         // return bondIndex;
     }
 
-    CompoundRep& setBondMobility(BondMobility::Mobility mobility, const Compound::AtomName& atom1, const Compound::AtomName& atom2) 
-    {
+    CompoundRep& setBondMobility(BondMobility::Mobility mobility,
+                                 const Compound::AtomName& atom1,
+                                 const Compound::AtomName& atom2) {
         AtomInfo& atomInfo1 = updAtomInfo(atom1);
         AtomInfo& atomInfo2 = updAtomInfo(atom2);
         BondInfo& bondInfo = updBondInfo(atomInfo1, atomInfo2);
@@ -2987,18 +3045,17 @@ public:
 
         bond.setMobility(mobility);
         // bond.setRotatable(isRotatable);
-        
+
         return *this;
     }
 
-    CompoundRep& setBondMobility(BondMobility::Mobility mobility, const Compound::BondIndex bondIndex) 
-    {
+    CompoundRep& setBondMobility(BondMobility::Mobility mobility, const Compound::BondIndex bondIndex) {
         BondInfo& bondInfo = updBondInfo(bondIndex);
         Bond& bond = updBond(bondInfo);
 
         bond.setMobility(mobility);
         // bond.setRotatable(isRotatable);
-        
+
         return *this;
     }
 
@@ -3019,8 +3076,8 @@ public:
     // Bond& getBond(int id);
     // bool hasBond(const String& name) const;
 
-     
-    std::ostream& dumpCompoundRepToStream(std::ostream& o, int level=0) const;
+
+    std::ostream& dumpCompoundRepToStream(std::ostream& o, int level = 0) const;
 
     // bool hasParentCompound() const {return haveParentCompound;}
 
@@ -3037,16 +3094,14 @@ public:
         return topLevelTransform;
     }
 
-protected:
-
+    protected:
     // offset + internal = nominal; offset + Bond = Dihedral
-    Angle calcDefaultDihedralAngle(const DihedralAngle& dihedral) const
-    {
+    Angle calcDefaultDihedralAngle(const DihedralAngle& dihedral) const {
         const BondCenterInfo& bc1 = getBondCenterInfo(dihedral.getBondCenter1Id());
         const BondCenterInfo& bc2 = getBondCenterInfo(dihedral.getBondCenter2Id());
         const AtomInfo& atom1 = getAtomInfo(bc1.getAtomIndex());
         const AtomInfo& atom2 = getAtomInfo(bc2.getAtomIndex());
-        assert( atomsAreBonded(atom1, atom2) );
+        assert(atomsAreBonded(atom1, atom2));
         const BondInfo& bondInfo = getBondInfo(atom1, atom2);
         const Bond& bond = getBond(bondInfo);
 
@@ -3060,22 +3115,20 @@ protected:
     }
 
 
-    Angle calcDihedralAngle(const State& state, const String& dihedralName) const
-    {
-        assert( AtomName_To_dihedralAngles.find(dihedralName) != AtomName_To_dihedralAngles.end() );
+    Angle calcDihedralAngle(const State& state, const String& dihedralName) const {
+        assert(AtomName_To_dihedralAngles.find(dihedralName) != AtomName_To_dihedralAngles.end());
 
         const DihedralAngle& dihedral = AtomName_To_dihedralAngles.find(dihedralName)->second;
 
         return calcDihedralAngle(state, dihedral);
     }
 
-    Transform calcAtomFrameInGroundFrame(const State& state, Compound::AtomIndex atomId) const
-    {
+    Transform calcAtomFrameInGroundFrame(const State& state, Compound::AtomIndex atomId) const {
         const CompoundAtom& atom = getAtom(atomId);
 
         // Frame of parent body
-        //DuMM::AtomIndex dummAtomIndex = atom.getDuMMAtomIndex();
-        //const DuMMForceFieldSubsystem& dumm = ownerSystem->getMolecularMechanicsForceSubsystem();
+        // DuMM::AtomIndex dummAtomIndex = atom.getDuMMAtomIndex();
+        // const DuMMForceFieldSubsystem& dumm = ownerSystem->getMolecularMechanicsForceSubsystem();
 
         MobilizedBodyIndex bodyId = atom.getMobilizedBodyIndex();
 
@@ -3088,35 +3141,32 @@ protected:
 
         return G_X_B * B_X_A;
     }
-    
-    Angle calcDihedralAngle(const State& state, const DihedralAngle& dihedral) const
-    {
+
+    Angle calcDihedralAngle(const State& state, const DihedralAngle& dihedral) const {
         const Bond& bond = getBondByDihedral(dihedral);
         MobilizedBodyIndex bodyId = bond.getPinJointId();
-        if (bodyId.isValid())
-        {
+        if (bodyId.isValid()) {
             assert(ownerSystem != NULL);
             const SimbodyMatterSubsystem& matter = ownerSystem->getMatterSubsystem();
 
             Angle internalAngle = 0;
-            if(bond.getMobility() == BondMobility::Torsion) {
-                const MobilizedBody::Pin &body = (const MobilizedBody::Pin &) matter.getMobilizedBody(bodyId);
+            if (bond.getMobility() == BondMobility::Torsion) {
+                const MobilizedBody::Pin& body = (const MobilizedBody::Pin&)matter.getMobilizedBody(bodyId);
                 internalAngle = body.getAngle(state);
-            }else if(bond.getMobility() == BondMobility::BallF){// Gmol
-                const MobilizedBody::Ball &ball = (const MobilizedBody::Ball &) matter.getMobilizedBody(bodyId);
+            } else if (bond.getMobility() == BondMobility::BallF) { // Gmol
+                const MobilizedBody::Ball& ball = (const MobilizedBody::Ball&)matter.getMobilizedBody(bodyId);
                 // Return psi Euler angle and ignore phi and theta
                 Vec4 q = SimTK::Quaternion(ball.getQ(state));
                 double psi;
                 // Deal with singularity
-                if( (std::abs((q[1] * q[2]) + (q[3] * q[0])) - 0.5) < 0.01 ){
+                if ((std::abs((q[1] * q[2]) + (q[3] * q[0])) - 0.5) < 0.01) {
                     psi = 0.0;
-                }else {
+                } else {
                     double q0q3 = q[0] * q[3];
                     double q1q2 = q[1] * q[2];
                     double q2sq = q[2] * q[2];
                     double q3sq = q[3] * q[3];
-                    psi = atan2(2 * (q0q3 + q1q2),
-                                1 - 2 * (q2sq + q3sq));
+                    psi = atan2(2 * (q0q3 + q1q2), 1 - 2 * (q2sq + q3sq));
                     internalAngle = psi;
                 }
             } else {
@@ -3126,14 +3176,13 @@ protected:
 
             // TODO - use simtime offset, not default
 
-            Angle internalOffset = calcDefaultInternalDihedralOffsetAngle(dihedral.getBondCenter1Id(), dihedral.getBondCenter2Id());
+            Angle internalOffset = calcDefaultInternalDihedralOffsetAngle(dihedral.getBondCenter1Id(),
+                                                                          dihedral.getBondCenter2Id());
 
             Angle nominalAngle = internalAngle + internalOffset + dihedral.getNomenclatureOffset();
 
             return nominalAngle;
-        }
-        else
-        {
+        } else {
             assert(false); // TODO
 
             assert(ownerSystem != NULL);
@@ -3155,27 +3204,27 @@ protected:
             std::cout << "\t";
             const SimbodyMatterSubsystem& matter = ownerSystem->getMatterSubsystem();
 
-            if(bond.getMobility() == BondMobility::Torsion) {
-                const MobilizedBody::Pin &body = (const MobilizedBody::Pin &) matter.getMobilizedBody(bodyId);
+            if (bond.getMobility() == BondMobility::Torsion) {
+                const MobilizedBody::Pin& body = (const MobilizedBody::Pin&)matter.getMobilizedBody(bodyId);
                 std::cout << "angle = " << body.getAngle(state) * DuMM::Rad2Deg << " degrees";
-                std::cout << std::endl;
-            }else if(bond.getMobility() == BondMobility::BallF) { // Gmol
-                const MobilizedBody::Ball &body = (const MobilizedBody::Ball &) matter.getMobilizedBody(bodyId);
+                std::cout << "\n";
+            } else if (bond.getMobility() == BondMobility::BallF) { // Gmol
+                const MobilizedBody::Ball& body = (const MobilizedBody::Ball&)matter.getMobilizedBody(bodyId);
                 std::cout << "angle = ";
 
                 // Gregory G. Slabaugh description
                 SimTK::Rotation R;
                 R.setRotationFromQuaternion(Quaternion(body.getQ(state)));
                 Angle theta1 = -1.0 * std::asin(R[2][0]);
-                //Angle theta2 = SimTK::Pi - theta1;
+                // Angle theta2 = SimTK::Pi - theta1;
                 double cosTheta1 = std::cos(theta1);
-                //double cosTheta2 = std::cos(theta2);
-                Angle psi1 =  std::atan2(R[2][1] / cosTheta1, R[2][2] / cosTheta1);
-                //Angle psi2 =  std::atan2(R[2][1] / cosTheta2, R[2][2] / cosTheta2);
+                // double cosTheta2 = std::cos(theta2);
+                Angle psi1 = std::atan2(R[2][1] / cosTheta1, R[2][2] / cosTheta1);
+                // Angle psi2 =  std::atan2(R[2][1] / cosTheta2, R[2][2] / cosTheta2);
 
                 std::cout << psi1 * DuMM::Rad2Deg;
                 std::cout << " degrees";
-                std::cout << std::endl;
+                std::cout << "\n";
             }
 
             assert(bondBondCenter.isBonded());
@@ -3183,7 +3232,7 @@ protected:
             assert(bondBondCenter.getIndex() != bc34.getIndex());
             assert(bc21.getIndex() != bc34.getIndex());
 
-            UnitVec3 xAxis(1,0,0);
+            UnitVec3 xAxis(1, 0, 0);
 
             // vector v1: from atom 1 to atom 2
             Transform G_X_A2 = calcDefaultAtomFrameInCompoundFrame(atom2.getIndex());
@@ -3202,7 +3251,8 @@ protected:
             Transform G_X_BC34 = G_X_A3 * A3_X_BC34;
             UnitVec3 v3(G_X_BC34 * xAxis);
 
-            Angle nominalDihedralAngle = SimTK::calcDihedralAngle(v1, v2, v3) + dihedral.getNomenclatureOffset();
+            Angle nominalDihedralAngle =
+                SimTK::calcDihedralAngle(v1, v2, v3) + dihedral.getNomenclatureOffset();
 
             return nominalDihedralAngle;
         }
@@ -3214,19 +3264,20 @@ protected:
     std::set<Compound::Name> synonyms;
 
     // AtomInfo references
-    std::vector<AtomInfo>                          allAtoms;    // [Compound::AtomIndex]
+    std::vector<AtomInfo> allAtoms; // [Compound::AtomIndex]
     // std::vector<CompoundAtom>                              localAtoms;  // [Compound::LocalAtomIndex]
     std::map<Compound::AtomName, Compound::AtomIndex> atomName_To_atomId;
 
     // bool haveParentCompound;
 
-private:
+    private:
     friend class Compound;
     friend class Bond;
 
     // ownerSystem is being used in two ways:
-    // 1) ownerSystem plus ixWithinOwnerSystem represent handle for compounds directly owned by a CompoundSystem
-    // 2) ownerSystem with invalid ixWithinOwnerSystem represents a handle to the system for subcompounds of
+    // 1) ownerSystem plus ixWithinOwnerSystem represent handle for compounds directly owned by a
+    // CompoundSystem 2) ownerSystem with invalid ixWithinOwnerSystem represents a handle to the system for
+    // subcompounds of
     //    a compound that is in turn directly owned by a CompoundSystem
     MultibodySystem* ownerSystem;
     // CompoundSystem* ownerSystem;
@@ -3238,46 +3289,44 @@ private:
     Compound::Name name; // set on construction; means whatever you like
 
     // BondCenters
-    std::vector<BondCenterInfo>              allBondCenters; // [Compound::BondCenterIndex]
+    std::vector<BondCenterInfo> allBondCenters; // [Compound::BondCenterIndex]
     std::map<String, Compound::BondCenterIndex> BCName_To_BCIx;
-    BondCenterInfo::AtomKeyMap               bondCenterIndicesByAtomKey;
+    BondCenterInfo::AtomKeyMap bondCenterIndicesByAtomKey;
 
     // BondInfos
     // bonds do not contain subcompounds
     std::vector<BondInfo> allBonds; // [Compound::BondIndex]
-    std::map< std::pair<Compound::AtomIndex, Compound::AtomIndex>, Compound::BondIndex > 
-                          AIxPair_To_BondIx;
+    std::map<std::pair<Compound::AtomIndex, Compound::AtomIndex>, Compound::BondIndex> AIxPair_To_BondIx;
 
     // Dihedral Angles
     std::map<String, DihedralAngle> AtomName_To_dihedralAngles;
 
-    int    pdbResidueNumber;
+    int pdbResidueNumber;
     String pdbResidueName;
-    String   pdbChainId;
-    
+    String pdbChainId;
+
     class MemberForDebuggingCopyCtor {
-    public:
-        MemberForDebuggingCopyCtor() {}
+        public:
+        MemberForDebuggingCopyCtor() {
+        }
         MemberForDebuggingCopyCtor(const MemberForDebuggingCopyCtor&) {
             // Put a breakpoint here to notice when CompoundRep copyCtor is called
-            //int x = 5;
+            // int x = 5;
         }
     };
     // MemberForDebuggingCopyCtor testMember;
 };
 
 
-BiotypeIndex SimTK_MOLMODEL_EXPORT getBiotypeIndex(
-                        const Compound::Name& resName, 
-                        const Compound::AtomName& atomName, 
-                        Ordinality::Residue ordinality = Ordinality::Any);
+BiotypeIndex SimTK_MOLMODEL_EXPORT getBiotypeIndex(const Compound::Name& resName,
+                                                   const Compound::AtomName& atomName,
+                                                   Ordinality::Residue ordinality = Ordinality::Any);
 
 // Return a biotype index matching any of the residue/atom names supplied
 // Returns invalid index if not found
-BiotypeIndex SimTK_MOLMODEL_EXPORT getBiotypeIndex(
-                        const std::set<Compound::Name>& resNames, 
-                        const std::set<Compound::AtomName>& atomNames, 
-                        Ordinality::Residue ordinality = Ordinality::Any);
+BiotypeIndex SimTK_MOLMODEL_EXPORT getBiotypeIndex(const std::set<Compound::Name>& resNames,
+                                                   const std::set<Compound::AtomName>& atomNames,
+                                                   Ordinality::Residue ordinality = Ordinality::Any);
 
 } // namespace SimTK
 

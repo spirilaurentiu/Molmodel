@@ -40,7 +40,7 @@
 
 #include "vmdsock.h"
 
-int vmdsock_init(void) {
+int vmdsock_init() {
 #if defined(_MSC_VER)
   int rc = 0;
   static int initialized=0;
@@ -59,7 +59,7 @@ int vmdsock_init(void) {
 }
 
 
-void * vmdsock_create(void) {
+void * vmdsock_create() {
   vmdsocket * s;
 
   s = (vmdsocket *) malloc(sizeof(vmdsocket));

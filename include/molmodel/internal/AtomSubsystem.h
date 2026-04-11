@@ -176,10 +176,13 @@ public:
 
 // Iterates over pairs of atoms not in the same body
 // Intended to use neighbor list if enough atoms and cutoff is supplied
-class AtomSubsystem::PairIterator 
-        : public std::iterator<std::forward_iterator_tag, std::pair<AtomSubsystem::AtomIndex, AtomSubsystem::AtomIndex> >
-{
+class AtomSubsystem::PairIterator {
 public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type        = std::pair<AtomSubsystem::AtomIndex, AtomSubsystem::AtomIndex>;
+    using difference_type   = std::ptrdiff_t;
+    using pointer           = value_type*;
+    using reference         = value_type&;
     using Pair = std::pair<AtomIndex, AtomIndex>;
 
 private:

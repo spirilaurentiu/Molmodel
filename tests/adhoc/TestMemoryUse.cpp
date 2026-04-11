@@ -1,28 +1,34 @@
-#include "Molmodel.h"
 #include <iostream>
 
-#if defined (__linux__)
-# include <sys/sysinfo.h>
-#include <unistd.h>
+#include "Molmodel.h"
+
+
+#if defined(__linux__)
+#    include <unistd.h>
+
+#    include <sys/sysinfo.h>
+
 
 #elif defined(__APPLE__)
-# include <mach/task.h>
-# include <mach/mach_init.h>
-//it should work on macosx too - it's not tested but int getpagesize(void); needs it
-#include <unistd.h>
+#    include <mach/mach_init.h>
+#    include <mach/task.h>
+
+// it should work on macosx too - it's not tested but int getpagesize(); needs it
+#    include <unistd.h>
 #elif defined(_WINDOWS)
-# include <windows.h>
-# include "psapi.h"
+#    include <windows.h>
+
+#    include "psapi.h"
+
 
 #else
-# include <sys/resource.h>
+#    include <sys/resource.h>
 #endif
 
 /// The amount of memory currently being used by this process, in bytes.
 /// By default, returns the full virtual arena, but if resident=true,
 /// it will report just the resident set in RAM (if supported on that OS).
-size_t memory_used (bool resident=false)
-{
+size_t memory_used(bool resident = false) {
 #if defined(__linux__)
     // Ugh, getrusage doesn't work well on Linux.  Try grabbing info
     // directly from the /proc pseudo-filesystem.  Reading from
@@ -31,12 +37,12 @@ size_t memory_used (bool resident=false)
     // shared pages, text/code, data/stack, library, dirty pages.  The
     // mem sizes should all be multiplied by the page size.
     size_t size = 0;
-    FILE *file = fopen("/proc/self/statm", "r");
+    FILE* file = fopen("/proc/self/statm", "r");
     if (file) {
         unsigned long vm = 0;
-        [[maybe_unused]] auto n = fscanf (file, "%lu", &vm);  // Just need the first num: vm size
-        fclose (file);
-       size = (size_t)vm * getpagesize();
+        [[maybe_unused]] auto n = fscanf(file, "%lu", &vm); // Just need the first num: vm size
+        fclose(file);
+        size = (size_t)vm * getpagesize();
     }
     return size;
 
@@ -52,13 +58,15 @@ size_t memory_used (bool resident=false)
 #elif defined(_WINDOWS)
     // According to MSDN...
     PROCESS_MEMORY_COUNTERS count;
-    if (GetProcessMemoryInfo (GetCurrentProcess(), &count, sizeof (count)))
+    if (GetProcessMemoryInfo(GetCurrentProcess(), &count, sizeof(count))) {
         return count.PagefileUsage;
-    else return 0;
+    } else {
+        return 0;
+    }
 
 #else
     // No idea what platform this is
-    return 0;   // Punt
+    return 0; // Punt
 #endif
 }
 
@@ -68,24 +76,25 @@ size_t memory_used (bool resident=false)
 using namespace SimTK;
 using namespace std;
 
-void testRnaResources(int sequenceLength)
-{
-    time_t initialTime; time(&initialTime);
+void testRnaResources(int sequenceLength) {
+    time_t initialTime;
+    time(&initialTime);
     size_t initialMemFootprint = memory_used();
 
     char resBuf[100];
     RNA rna("", false);
     for (int b = 0; b < sequenceLength; ++b) {
         // itoa(b+1, resBuf, 10);
-        sprintf(resBuf, "%d", b+1);
+        sprintf(resBuf, "%d", b + 1);
         rna.appendResidue(resBuf, RibonucleotideResidue::Adenylate().withPhosphodiester());
     }
 
-    time_t compoundTime; time(&compoundTime);
+    time_t compoundTime;
+    time(&compoundTime);
     size_t compoundMemFootprint = memory_used();
 
     CompoundSystem system;
-    SimbodyMatterSubsystem  matter(system);
+    SimbodyMatterSubsystem matter(system);
     GeneralForceSubsystem forces(system);
     DuMMForceFieldSubsystem dumm(system);
     dumm.loadAmber99Parameters();
@@ -94,9 +103,11 @@ void testRnaResources(int sequenceLength)
     rna.assignBiotypes();
     system.adoptCompound(rna);
 
-    time_t preModelTime; time(&preModelTime);
+    time_t preModelTime;
+    time(&preModelTime);
     system.modelCompounds();
-    time_t postModelTime; time(&postModelTime);
+    time_t postModelTime;
+    time(&postModelTime);
 
     State state = system.realizeTopology();
     system.realize(state, Stage::Position);
@@ -105,19 +116,19 @@ void testRnaResources(int sequenceLength)
     timeStepper.initialize(state);
     timeStepper.stepTo(0.020);
 
-    time_t simTime; time(&simTime);
+    time_t simTime;
+    time(&simTime);
     size_t systemMemFootprint = memory_used();
 
-    printf("Compound: %.2f Mb/%d bases", (compoundMemFootprint - initialMemFootprint)/1e6, sequenceLength);
-    printf("\tSystem: %.2f Mb/%d bases\n", (systemMemFootprint - compoundMemFootprint)/1e6, sequenceLength);
+    printf("Compound: %.2f Mb/%d bases", (compoundMemFootprint - initialMemFootprint) / 1e6, sequenceLength);
+    printf("\tSystem: %.2f Mb/%d bases\n", (systemMemFootprint - compoundMemFootprint) / 1e6, sequenceLength);
 
     printf("Compound: %.2f s/%d bases", difftime(preModelTime, initialTime), sequenceLength);
     printf("\tModel: %.2f s/%d bases", difftime(postModelTime, preModelTime), sequenceLength);
     printf("\tSimulation: %.2f s/%d bases /0.020 ps\n", difftime(simTime, postModelTime), sequenceLength);
 }
 
-void testMemoryUse() 
-{
+void testMemoryUse() {
     // testRnaResources(1);
     testRnaResources(10);
     // testRnaResources(100);
@@ -159,14 +170,11 @@ int main() {
         testMemoryUse();
         cout << "PASSED" << endl;
         return 0;
-    }
-    catch (const std::exception& e)
-    {
+    } catch (const std::exception& e) {
         printf("EXCEPTION THROWN: %s\n", e.what());
         return 1;
-    }
-    catch (...)
-    {
+    } catch (...) {
         printf("UNKNOWN EXCEPTION THROWN\n");
-    }    return 1; 
+    }
+    return 1;
 }
