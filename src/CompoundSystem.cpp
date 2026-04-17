@@ -2,8 +2,6 @@
 
 #include <set>
 
-#include "molmodel/internal/RiboseMobilizer.h"
-
 #include "CompoundRep.h"
 #include "SimTKmath.h"
 
@@ -15,15 +13,16 @@ namespace SimTK {
 /*! <!-- Model all Compounds.
  * --> */
 void SimTK::CompoundSystem::modelCompounds(String mobilizedBodyType) {
-    std::cout << "CompoundSystem::modelCompounds" << std::endl;
+    std::cout << "CompoundSystem::modelCompounds\n";
+
+#if BUILD_GEOMETRY
     // Turn off default decorations, since we'll make our own decorations.
     updMatterSubsystem().setShowDefaultGeometry(false);
+#endif
+
     for (CompoundSystem::CompoundIndex c(0); c < getNumCompounds(); ++c) {
-        // Get Compound
         Compound& compound = updCompound(c);
-
         std::vector<Transform> atomFrameCache(compound.getNAtoms());
-
         modelOneCompound(c, atomFrameCache, mobilizedBodyType);
     }
 }
@@ -70,7 +69,7 @@ class RigidUnit {
         std::cout << "\n";
     }
 
-    const void PrintTransforms() const {
+    void PrintTransforms() const {
         std::cout << "unit frameInTopCompoundFrame ";
         // std::cout << frameInTopCompoundFrame;
         SimTK::Test::PrintTransform(frameInTopCompoundFrame, 6, "frameInTopCompoundFrame", "X_TopUnit");
@@ -469,8 +468,10 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
         cout << "modelOneCompound" << endl;
     }
 
+#if BUILD_GEOMETRY
     // Turn off default decorations, since we'll make our own decorations.
     updMatterSubsystem().setShowDefaultGeometry(false);
+#endif
 
     // Get Compound
     Compound& compound = updCompound(compoundId);
@@ -1064,65 +1065,66 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
             }
 
 
-            if (false) { // STUDY
+            // if (false) { // STUDY
 
-                SimTK::Angle rigidUnitInboardDihedral = unitInboardBond.getDefaultDihedral();
+            //     SimTK::Angle rigidUnitInboardDihedral = unitInboardBond.getDefaultDihedral();
 
-                CompoundRep compoundRep = compound.updImpl();
-                const AtomInfo& originAtomInfo = compoundRep.getAtomInfo(originAtomId);
-                const AtomInfo& parentAtomInfo = compoundRep.getAtomInfo(parentAtomId);
-                const BondInfo& chemBondInfo = compoundRep.getBondInfo(originAtomInfo, parentAtomInfo);
+            //     CompoundRep compoundRep = compound.updImpl();
+            //     const AtomInfo& originAtomInfo = compoundRep.getAtomInfo(originAtomId);
+            //     const AtomInfo& parentAtomInfo = compoundRep.getAtomInfo(parentAtomId);
+            //     const BondInfo& chemBondInfo = compoundRep.getBondInfo(originAtomInfo, parentAtomInfo);
 
-                const Transform& T_X_Mr = unit.frameInTopCompoundFrame;
-                const Transform& T_X_Fr = parentUnit.frameInTopCompoundFrame;
+            //     const Transform& T_X_Mr = unit.frameInTopCompoundFrame;
+            //     const Transform& T_X_Fr = parentUnit.frameInTopCompoundFrame;
 
-                // Axis switching Rotations
-                Transform XAxis_To_ZAxis = Rotation(-90 * Deg2Rad, YAxis);
-                Transform YAxis_To_ZAxis = Rotation(-90 * Deg2Rad, XAxis);
-                Transform XAxis_To_YAxis = Rotation(-90 * Deg2Rad, ZAxis);
-                Transform ZAxis_To_XAxis = ~XAxis_To_ZAxis;
+            //     // Axis switching Rotations
+            //     Transform XAxis_To_ZAxis = Rotation(-90 * Deg2Rad, YAxis);
+            //     Transform YAxis_To_ZAxis = Rotation(-90 * Deg2Rad, XAxis);
+            //     Transform XAxis_To_YAxis = Rotation(-90 * Deg2Rad, ZAxis);
+            //     Transform ZAxis_To_XAxis = ~XAxis_To_ZAxis;
 
-                // Get parent BC to child BC transforms:
-                //     1) rotate about x-axis by dihedral angle
-                //     2) translate along x-axis by bond length
-                //     3) rotate 180 degrees about y-axis to face the parent bond center
-                Transform X_parentBC_childBC =
-                    chemBondInfo.getBond().getDefaultBondCenterFrameInOtherBondCenterFrame();
-                Transform X_childBC_parentBC = ~X_parentBC_childBC;
+            //     // Get parent BC to child BC transforms:
+            //     //     1) rotate about x-axis by dihedral angle
+            //     //     2) translate along x-axis by bond length
+            //     //     3) rotate 180 degrees about y-axis to face the parent bond center
+            //     Transform X_parentBC_childBC =
+            //         chemBondInfo.getBond().getDefaultBondCenterFrameInOtherBondCenterFrame();
+            //     Transform X_childBC_parentBC = ~X_parentBC_childBC;
 
-                // -------------- Old mobod transforms:
-                //    - X_PF is parent rigid unit inboard_BC to child rigid unit
-                //       inboard_BC without the default dihedral and with the X axis switched to Z axis
-                //     - X_MB switches the Z axis back to X axis
-                Transform oldX_PF = Fr_X_M0 * XAxis_To_ZAxis;
-                Transform oldX_BM = XAxis_To_ZAxis;
-                Transform oldX_MB = ~oldX_BM; // ZAxis_To_XAxis
-                Transform oldX_FM = Rotation(rigidUnitInboardDihedral, ZAxis);
+            //     // -------------- Old mobod transforms:
+            //     //    - X_PF is parent rigid unit inboard_BC to child rigid unit
+            //     //       inboard_BC without the default dihedral and with the X axis switched to Z axis
+            //     //     - X_MB switches the Z axis back to X axis
+            //     Transform oldX_PF = Fr_X_M0 * XAxis_To_ZAxis;
+            //     Transform oldX_BM = XAxis_To_ZAxis;
+            //     Transform oldX_MB = ~oldX_BM; // ZAxis_To_XAxis
+            //     Transform oldX_FM = Rotation(rigidUnitInboardDihedral, ZAxis);
 
-                Transform oldX_PB = (oldX_PF * oldX_FM * oldX_MB);
+            //     Transform oldX_PB = (oldX_PF * oldX_FM * oldX_MB);
 
-                Transform recalc_oldX_PB =
-                    (~T_X_Fr) * T_X_Mr * Transform(Rotation(rigidUnitInboardDihedral, XAxis)) * XAxis_To_ZAxis
-                    * Transform(Rotation(rigidUnitInboardDihedral, ZAxis)) * ZAxis_To_XAxis;
-                Transform checkT = Transform(Rotation(rigidUnitInboardDihedral, XAxis)) * XAxis_To_ZAxis
-                                   * Transform(Rotation(rigidUnitInboardDihedral, ZAxis)) * ZAxis_To_XAxis;
+            //     Transform recalc_oldX_PB =
+            //         (~T_X_Fr) * T_X_Mr * Transform(Rotation(rigidUnitInboardDihedral, XAxis)) *
+            //         XAxis_To_ZAxis
+            //         * Transform(Rotation(rigidUnitInboardDihedral, ZAxis)) * ZAxis_To_XAxis;
+            //     Transform checkT = Transform(Rotation(rigidUnitInboardDihedral, XAxis)) * XAxis_To_ZAxis
+            //                        * Transform(Rotation(rigidUnitInboardDihedral, ZAxis)) * ZAxis_To_XAxis;
 
-                // std::cout << "STUDY rigidUnitInboardDihedral " << rigidUnitInboardDihedral << std::endl;
-                //  SimTK::Test::PrintTransform(XAxis_To_ZAxis * oldX_FM * oldX_MB, 3, "STUDY xz_ZPhi_zx",
-                //  "STUDY xz_ZPhi_zx"); SimTK::Test::PrintTransform(oldX_FM, 3, "STUDY oldX_FM", "STUDY
-                //  oldX_FM"); SimTK::Test::PrintTransform(oldX_PB, 3, "STUDY_oldX_PB", "STUDY_oldX_PB");
-                //  SimTK::Test::PrintTransform(recalc_oldX_PB, 3, "STUDY_recalc_oldX_PB",
-                //  "STUDY_recalc_oldX_PB");
-                SimTK::Test::PrintTransform(checkT, 3, "STUDY_checkT", "STUDY_checkT");
+            //     // std::cout << "STUDY rigidUnitInboardDihedral " << rigidUnitInboardDihedral << std::endl;
+            //     //  SimTK::Test::PrintTransform(XAxis_To_ZAxis * oldX_FM * oldX_MB, 3, "STUDY xz_ZPhi_zx",
+            //     //  "STUDY xz_ZPhi_zx"); SimTK::Test::PrintTransform(oldX_FM, 3, "STUDY oldX_FM", "STUDY
+            //     //  oldX_FM"); SimTK::Test::PrintTransform(oldX_PB, 3, "STUDY_oldX_PB", "STUDY_oldX_PB");
+            //     //  SimTK::Test::PrintTransform(recalc_oldX_PB, 3, "STUDY_recalc_oldX_PB",
+            //     //  "STUDY_recalc_oldX_PB");
+            //     SimTK::Test::PrintTransform(checkT, 3, "STUDY_checkT", "STUDY_checkT");
 
-                // -------------- New mobod transforms:
-                //    - X_PF is parent rigid unit inboard_BC to the outboard
-                //       atom's BC (parent BC) with the X axis switched to Z axis
-                //    - X_MB is the inboard bond parent BC to child BC transform
-                //      with the Z axis switched to X
-                Transform PFBM_1 = X_childBC_parentBC * XAxis_To_ZAxis;
-                Transform PFBM_0 = oldX_PB * PFBM_1;
-            }
+            //     // -------------- New mobod transforms:
+            //     //    - X_PF is parent rigid unit inboard_BC to the outboard
+            //     //       atom's BC (parent BC) with the X axis switched to Z axis
+            //     //    - X_MB is the inboard bond parent BC to child BC transform
+            //     //      with the Z axis switched to X
+            //     Transform PFBM_1 = X_childBC_parentBC * XAxis_To_ZAxis;
+            //     Transform PFBM_0 = oldX_PB * PFBM_1;
+            // }
 
             // CMB -- temporarily comment out Pin mobilizer while we test
             // function based mobilizer for ribose pseudorotation
@@ -1287,48 +1289,8 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
     //     unit.PrintTransforms();
     // }
 
-
     if (showDebugMessages) {
-        cout << "Step 9 create decorations" << endl;
-    }
-    // 9) Create nice visualization geometry
-    //   /*
-    if (hasDecorationSubsystem()) {
-        // DecorationSubsystem&     artwork = updDecorationSubsystem();
-        DecorativeLine crossBodyBond;
-        crossBodyBond.setColor(Orange).setLineThickness(5);
-        DecorativeLine sameBodyBond;
-        sameBodyBond.setColor(Gray).setLineThickness(3);
-
-        for (DuMM::BondIndex i(0); i < dumm.getNumBonds(); ++i) {
-            const DuMM::AtomIndex a1 = dumm.getBondAtom(i, 0), a2 = dumm.getBondAtom(i, 1);
-            const MobilizedBodyIndex b1 = dumm.getAtomBody(a1), b2 = dumm.getAtomBody(a2);
-            if (b1 == b2) {
-                // artwork.addBodyFixedDecoration(b1, Transform(),
-                //                                DecorativeLine(dumm.getAtomStationOnBody(a1),
-                //                                               dumm.getAtomStationOnBody(a2))
-                //                                        .setColor(Gray).setLineThickness(3));
-                /*                artwork.addRubberBandLine(b1, dumm.getAtomStationOnBody(a1),
-                                                          b2, dumm.getAtomStationOnBody(a2), sameBodyBond);*/
-            } else {
-                /*                artwork.addRubberBandLine(b1, dumm.getAtomStationOnBody(a1),
-                                                          b2, dumm.getAtomStationOnBody(a2), crossBodyBond);*/
-            }
-        }
-
-        /*        for (DuMM::AtomIndex anum(0); anum < dumm.getNumAtoms(); ++anum) {
-                    Real shrink = 0.25 , opacity = dumm.getAtomElement(anum)==1?0.5:1;
-                    Real r = dumm.getAtomRadius(anum);
-                    if (r<.001) r=0.1; //nm
-                    //opacity=0.5;//XXX
-                    artwork.addBodyFixedDecoration(dumm.getAtomBody(anum), dumm.getAtomStationOnBody(anum),
-                        DecorativeSphere(shrink*r)
-                            .setColor(dumm.getAtomDefaultColor(anum)).setOpacity(opacity).setResolution(3));
-                }*/
-    }
-
-    if (showDebugMessages) {
-        cout << "Finished modelOneCompound" << endl;
+        cout << "Finished modelOneCompound\n";
     }
 }
 

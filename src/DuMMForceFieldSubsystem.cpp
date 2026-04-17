@@ -43,7 +43,6 @@
 
 #include "DuMMForceFieldSubsystemRep.h"
 #include "OpenMM.hpp"
-#include "TinkerAmber99.h"
 #include "units.h"
 
 
@@ -2737,42 +2736,6 @@ int DuMMForceFieldSubsystem::getAtomElement(DuMM::AtomIndex atomIndex) const {
                               (int)atomIndex);
 
     return mm.getAtomElementNum(atomIndex);
-}
-
-// Last vestige of Element class that was internal to DuMMForceFieldSubsystem.
-// I don't want to add a "color" field to the external Element class.
-// Properly, there should be an ElementColorer class or something.
-Vec3 DuMMForceFieldSubsystem::getElementDefaultColor(int atomicNumber) const {
-    switch (atomicNumber) {
-        case 1: // hydrogen
-            return Green;
-        case 7: // nitrogen
-            return Blue;
-        case 8: // oxygen
-            return Red;
-        case 15: // phosphorus
-            return Magenta;
-        case 16: // sulfur
-            return Yellow;
-        case 79: // gold
-            return Yellow;
-        default:
-            return Gray;
-    }
-}
-
-Vec3 DuMMForceFieldSubsystem::getAtomDefaultColor(DuMM::AtomIndex atomIndex) const {
-    static const char* MethodName = "getAtomDefaultColor";
-    const DuMMForceFieldSubsystemRep& mm = getRep();
-
-    // Make sure we've seen this atom before.
-    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtom(atomIndex),
-                              mm.ApiClassName,
-                              MethodName,
-                              "atom %d is not valid",
-                              (int)atomIndex);
-
-    return getElementDefaultColor(mm.getAtomElementNum(atomIndex));
 }
 
 // Returned radius is in nm.

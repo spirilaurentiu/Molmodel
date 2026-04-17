@@ -394,16 +394,6 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
     /// An exception will be thrown if this atom is not fixed to the cluster.
     Vec3 getAtomStationInCluster(DuMM::AtomIndex atomIx, DuMM::ClusterIndex clusterIx) const;
 
-    /// For display purposes, return the RGB value of a suggested color for an
-    /// element given by atomic number. For example, if the atomicNumber is 8
-    /// (Oxygen) the suggested color will be Red (1,0,0).
-    Vec3 getElementDefaultColor(int atomicNumber) const;
-    /// For display purposes, return the RGB value of a suggested color with
-    /// which to display a particular atom.
-    Vec3 getAtomDefaultColor(DuMM::AtomIndex atomIx) const;
-
-    /**@}**/
-
     /** @name               Define clusters and bodies
     Methods in this group control the grouping of atoms into rigid clusters and
     the placement of such clusters onto the rigid bodies of the underlying
