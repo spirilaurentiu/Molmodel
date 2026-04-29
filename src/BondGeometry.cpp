@@ -50,9 +50,11 @@ Angle calcAngle(const Vec3& p1, const Vec3& p2, const Vec3& p3) {
     // 4. Calculate cosine using 1 sqrt and 1 div
     // cos(theta) = (v21 . v23) / sqrt(|v21|^2 * |v23|^2)
     double denomSq = d21_21 * d23_23;
-    
+
     // Guard against division by zero for overlapping atoms
-    if (denomSq < 1e-18) return 0.0; 
+    if (denomSq < 1e-18) {
+        return 0.0;
+    }
 
     double cosAngle = d21_23 / std::sqrt(denomSq);
 
@@ -72,7 +74,7 @@ Angle calcAngle(const Vec3& p1, const Vec3& p2, const Vec3& p3) {
                 \
                 4
 
-    calcDihedralAngle returns a dihedral angle in radians, 
+    calcDihedralAngle returns a dihedral angle in radians,
     in the range (-Pi, Pi]
     given three unit vectors
     pointing in the direction of the 1->2 axis, the 2->3 axis, and the 3->4 axis, respectively.
@@ -100,13 +102,18 @@ Angle calcDihedralAngle(const UnitVec3& b12, const UnitVec3& b23, const UnitVec3
     double cosAngle = avx_dot3(vn1, vn2);
 
     // Clamp for acos
-    if (cosAngle > 1.0) cosAngle = 1.0;
-    else if (cosAngle < -1.0) cosAngle = -1.0;
+    if (cosAngle > 1.0) {
+        cosAngle = 1.0;
+    } else if (cosAngle < -1.0) {
+        cosAngle = -1.0;
+    }
 
     double angle = std::acos(cosAngle);
 
     // Sign bit logic: dot(n1, b34)
-    if (avx_dot3(vn1, v34) < 0) angle = -angle;
+    if (avx_dot3(vn1, v34) < 0) {
+        angle = -angle;
+    }
 
     return angle;
 }
@@ -135,14 +142,18 @@ Angle calcDihedralAngle(const Vec3& p1, const Vec3& p2, const Vec3& p3, const Ve
     double cosAngle = dot_n1n2 / std::sqrt(dot_n1n1 * dot_n2n2);
 
     // 4. Cleanup and Sign
-    if (cosAngle > 1.0) cosAngle = 1.0;
-    else if (cosAngle < -1.0) cosAngle = -1.0;
-    
+    if (cosAngle > 1.0) {
+        cosAngle = 1.0;
+    } else if (cosAngle < -1.0) {
+        cosAngle = -1.0;
+    }
+
     double angle = std::acos(cosAngle);
-    if (avx_dot3(vn1, b34) < 0) angle = -angle;
+    if (avx_dot3(vn1, b34) < 0) {
+        angle = -angle;
+    }
 
     return angle;
 }
 
 } // namespace SimTK
-
