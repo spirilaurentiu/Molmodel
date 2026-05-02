@@ -1668,7 +1668,13 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
     // Needed in Gmolmodel
     const Vector_<Vec3>& getIncludedAtomPositionsInG(const State& s) const;
 
-    bool integrateTrajectoryWithOpenMM(const State& state, int steps, SimTK::Real timeStepInPicoseconds);
+    void evaluateEnergiesFromState(const State& state,
+                                   SimTK::Real& newPotentialEnergy,
+                                   SimTK::Real& newKineticEnergy) const;
+
+    [[nodiscard]] auto integrateTrajectoryWithOpenMM(const State& state,
+                                                     int steps,
+                                                     SimTK::Real timeStepInPicoseconds) const -> bool;
 
     /** How many times has the forcefield been evaluated? **/
     long long getForceEvaluationCount() const;

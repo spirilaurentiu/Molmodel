@@ -2345,20 +2345,26 @@ void DuMMForceFieldSubsystem::setTracing(bool shouldTrace) {
     updRep().tracing = shouldTrace;
 }
 
-bool DuMMForceFieldSubsystem::integrateTrajectoryWithOpenMM(const State& state,
+void DuMMForceFieldSubsystem::evaluateEnergiesFromState(const State& state,
+                                                        SimTK::Real& newPotentialEnergy,
+                                                        SimTK::Real& newKineticEnergy) const {
+    OPENMM::get().updatePositionsCache(getRep().getNonBondedMappings(), getIncludedAtomPositionsInG(state));
+    OPENMM::get().evaluateEnergiesFromPositionCache(newPotentialEnergy, newKineticEnergy);
+}
+
+auto DuMMForceFieldSubsystem::integrateTrajectoryWithOpenMM(const State& state,
                                                             int steps,
-                                                            SimTK::Real timeStepInPicoseconds) {
-    return OPENMM::get().integrateTrajectory(getIncludedAtomPositionsInG(state),
-                                             steps,
-                                             timeStepInPicoseconds);
+                                                            SimTK::Real timeStepInPicoseconds) const -> bool {
+    OPENMM::get().updatePositionsCache(getRep().getNonBondedMappings(), getIncludedAtomPositionsInG(state));
+    return OPENMM::get().integrateTrajectory(steps, timeStepInPicoseconds);
 }
 
 // Needed in Gmolmodel
-const Vector_<Vec3>& DuMMForceFieldSubsystem::getIncludedAtomPositionsInG(const State& s) const {
+auto DuMMForceFieldSubsystem::getIncludedAtomPositionsInG(const State& s) const -> const Vector_<Vec3>& {
     return getRep().getIncludedAtomPositionsInG(s);
 }
 
-DuMM::ClusterIndex DuMMForceFieldSubsystem::createCluster(const char* groupName) {
+auto DuMMForceFieldSubsystem::createCluster(const char* groupName) -> DuMM::ClusterIndex {
     invalidateSubsystemTopologyCache();
     // Currently there is no error checking to do. We don't insist on unique group names.
     return updRep().addCluster(Cluster(groupName));

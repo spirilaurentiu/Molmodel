@@ -1741,6 +1741,10 @@ class SimTK::DuMMForceFieldSubsystemRep : public ForceSubsystem::Guts {
     ~DuMMForceFieldSubsystemRep() {
     }
 
+    [[nodiscard]] auto getNonBondedMappings() const -> const std::vector<NonBondedMapping>& {
+        return nonBondedMappings;
+    }
+
     // common checks when defining improper and proper torsions
     void defineAnyTorsion(DuMM::AtomClassIndex class1,
                           DuMM::AtomClassIndex class2,
