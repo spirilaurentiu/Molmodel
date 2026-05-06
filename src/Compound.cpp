@@ -2039,47 +2039,48 @@ Compound& Compound::setDefaultDihedralAngle(Angle angle,
 }
 
 // EU BEGIN
-Angle Compound::bgetDefaultDihedralAngle(Compound::BondIndex bondIx) const {
+auto Compound::bgetDefaultDihedralAngle(Compound::BondIndex bondIx) const -> Angle {
     return getImpl().bgetDefaultDihedralAngle(bondIx);
 }
 
-Angle Compound::bgetDefaultInboardDihedralAngle(Compound::AtomIndex atomIx) const {
-    return getImpl().bgetDefaultInboardDihedralAngle(atomIx);
+auto Compound::bgetDefaultInboardDihedralAngle(Compound::AtomIndex cAIx) const -> Angle {
+    return getImpl().bgetDefaultInboardDihedralAngle(cAIx);
 }
 
-Transform Compound::calcAtomFrameInGroundFrame(const State& state, Compound::AtomIndex atomId) const {
-    return getImpl().calcAtomFrameInGroundFrame(state, atomId);
+auto Compound::calcAtomFrameInGroundFrame(const State& state, Compound::AtomIndex cAIx) const -> Transform {
+    return getImpl().calcAtomFrameInGroundFrame(state, cAIx);
 }
 
 ///* GMolModel Try other Mobilizers
-mdunits::Length Compound::bgetDefaultInboardBondLength(Compound::AtomIndex atomIx) const {
-    return getImpl().bgetDefaultInboardBondLength(atomIx);
+mdunits::Length Compound::bgetDefaultInboardBondLength(Compound::AtomIndex cAIx) const {
+    return getImpl().bgetDefaultInboardBondLength(cAIx);
 }
 // GMolModel END */
 
-const Transform& Compound::getFrameInMobilizedBodyFrame(Compound::AtomIndex atomIx) const {
-    return getImpl().getFrameInMobilizedBodyFrame(atomIx);
+auto Compound::getFrameInMobilizedBodyFrame(Compound::AtomIndex cAIx) const -> const Transform& {
+    return getImpl().getFrameInMobilizedBodyFrame(cAIx);
 }
 
-const Transform& Compound::bgetLocalTransform(Compound::AtomIndex atomIx) const {
-    return getImpl().bgetLocalTransform(atomIx);
+auto Compound::bgetLocalTransform(Compound::AtomIndex cAIx) const -> const Transform& {
+    return getImpl().bgetLocalTransform(cAIx);
 }
 
-Compound& Compound::bsetFrameInMobilizedBodyFrame(Compound::AtomIndex atomIx, Transform B_X_atom) {
-    updImpl().bsetFrameInMobilizedBodyFrame(atomIx, B_X_atom);
+auto Compound::bsetFrameInMobilizedBodyFrame(Compound::AtomIndex cAIx, const Transform& B_X_atom)
+    -> Compound& {
+    updImpl().bsetFrameInMobilizedBodyFrame(cAIx, B_X_atom);
     return *this;
 }
 
 /*!
 <!-- Get the inboard atom of a given atom -->
 */
-Compound::AtomIndex Compound::getInboardAtomIndex(Compound::AtomIndex aIx) const {
+auto Compound::getInboardAtomIndex(Compound::AtomIndex aIx) const -> Compound::AtomIndex {
     return getImpl().getInboardAtomIndex(aIx);
 }
 
 // EU END
 
-Angle Compound::calcDefaultDihedralAngle(const String& bondName) const {
+auto Compound::calcDefaultDihedralAngle(const String& bondName) const -> Angle {
     return getImpl().calcDefaultDihedralAngle(bondName);
 }
 

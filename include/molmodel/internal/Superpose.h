@@ -38,40 +38,52 @@
 #ifndef MOLMODEL_SUPERPOSE_H_
 #define MOLMODEL_SUPERPOSE_H_
 
-#include "SimTKmath.h"
 #include <vector>
+
+#include "SimTKmath.h"
+
 
 namespace SimTK {
 
 /// Matched pair of 3D vectors to be used in least-squares superposition
-class Vec3Pair 
-{
-public:
+class Vec3Pair {
+    public:
     Vec3Pair(const Vec3& s, const Vec3& t, Real w = 1.0)
-        : source(s), target(t), weight(w) {}
+        : source(s)
+        , target(t)
+        , weight(w) {
+    }
 
-    const Vec3& getSource() const {return source;}
-    const Vec3& getTarget() const {return target;}
-    Real getWeight() const {return weight;}
+    const Vec3& getSource() const {
+        return source;
+    }
+    const Vec3& getTarget() const {
+        return target;
+    }
+    Real getWeight() const {
+        return weight;
+    }
 
-private:
+    private:
     Vec3 source;
     Vec3 target;
     Real weight;
 };
 
 class TransformAndResidual {
-public:
+    public:
     TransformAndResidual(const Transform& t, Real r)
-        : transform(t), residual(r) {}
+        : transform(t)
+        , residual(r) {
+    }
 
     Transform transform;
     Real residual;
 };
 
-class SimTK_MOLMODEL_EXPORT Kabsch78 {
-public:
-    typedef std::vector<Vec3Pair> VectorSet ;
+class Kabsch78 {
+    public:
+    using VectorSet = std::vector<Vec3Pair>;
 
     /**
      * Compute the transformation that orients the first (source) set of vectors
@@ -81,8 +93,7 @@ public:
      * \return Transform that, when applied to source vectors, minimizes weighted
      * least-squares residual with respect to the target vectors.
      */
-    static TransformAndResidual superpose(const VectorSet& vectors) 
-    {
+    static auto superpose(const VectorSet& vectors) -> TransformAndResidual {
         // a) Remove any translation between the two given
         // vector sets x(n) and y(n), and determine
         // E0 = 1/2 SUM[ w(n)*(x(n)^2 + y(n)^2) ]
@@ -93,8 +104,7 @@ public:
         Vec3 sourceCentroid(0.0, 0.0, 0.0);
         Vec3 targetCentroid(0.0, 0.0, 0.0);
         VectorSet::const_iterator vI;
-        for (vI = vectors.begin(); vI != vectors.end(); ++vI)
-        {
+        for (vI = vectors.begin(); vI != vectors.end(); ++vI) {
             totalMass += vI->getWeight();
             sourceCentroid += vI->getWeight() * vI->getSource();
             targetCentroid += vI->getWeight() * vI->getTarget();
@@ -105,16 +115,17 @@ public:
         }
 
         // Form R matrix from Kabsch paper
-        Mat<3,3> R(0.0);
+        Mat<3, 3> R(0.0);
         Real E0 = 0.0; // Initial residual, see Kabsch
-        for (vI = vectors.begin(); vI != vectors.end(); ++vI)
-        {
+        for (vI = vectors.begin(); vI != vectors.end(); ++vI) {
             Vec3 x = vI->getSource() - sourceCentroid;
             Vec3 y = vI->getTarget() - targetCentroid;
-            E0 += 0.5 * vI->getWeight() * ( dot(x, x) + dot(y, y) );
-            for (int i = 0; i < 3; ++i)
-                for (int j = 0; j < 3; ++j)
-                      R[i][j] += vI->getWeight() * y[i] * x[j];
+            E0 += 0.5 * vI->getWeight() * (dot(x, x) + dot(y, y));
+            for (int i = 0; i < 3; ++i) {
+                for (int j = 0; j < 3; ++j) {
+                    R[i][j] += vI->getWeight() * y[i] * x[j];
+                }
+            }
         }
 
         // b) Form ~RR, determine eigenvalues mu(k) and the
@@ -123,33 +134,34 @@ public:
         // Set
         //    a3 == a1 cross a2
         // to be sure to have a right handed system
-        Vector_<std::complex<double> > mu0; // eigenvalues, complex, unsorted
-        Matrix_<std::complex<double> > a0; // eigenvectors, complex, unsorted
-        Eigen eigen( Matrix( R.transpose() * R ) );
+        Vector_<std::complex<double>> mu0; // eigenvalues, complex, unsorted
+        Matrix_<std::complex<double>> a0;  // eigenvectors, complex, unsorted
+        Eigen eigen(Matrix(R.transpose() * R));
         eigen.getAllEigenValuesAndVectors(mu0, a0);
 
         // use only real component of results
-        Vec3 a1[3]; // eigenvectors, real, unsorted
+        Vec3 a1[3];  // eigenvectors, real, unsorted
         Real mu1[3]; // eigenvalues, real, unsorted
         for (int i = 0; i < 3; ++i) {
             mu1[i] = mu0[i].real();
-            for (int j = 0; j < 3; ++j) 
+            for (int j = 0; j < 3; ++j) {
                 // Note swapping of indices: It appears that the columns of a0 are eigenvectors
                 a1[j][i] = a0[i][j].real();
+            }
         }
 
         // sort indices of eigenvalues, from largest eigenvalue to smallest
         int indMax(0);
         int indMin(0);
         for (int i = 0; i < 3; ++i) {
-            if ( mu1[i] > mu1[indMax] ) {
+            if (mu1[i] > mu1[indMax]) {
                 indMax = i;
             }
-            if ( mu1[i] <= mu1[indMin] ) {
+            if (mu1[i] <= mu1[indMin]) {
                 indMin = i;
             }
         }
-        assert (indMin != indMax);
+        assert(indMin != indMax);
         int indMid = 3 - indMax - indMin; // too clever...
         assert(indMid >= 0);
         assert(indMid <= 2);
@@ -158,14 +170,14 @@ public:
         int indSort[3] = {indMax, indMid, indMin};
 
         Real mu[3]; // eigenvalues, sorted
-        Vec3 a[3]; // eigenvectors, sorted
+        Vec3 a[3];  // eigenvectors, sorted
         for (int i = 0; i < 3; ++i) {
             mu[i] = mu1[indSort[i]];
             a[i] = Vec3(UnitVec3(a1[indSort[i]]));
         }
 
         a[2] = cross(a[0], a[1]); // force right handed system
-        
+
         // c) Determine Ra(k) (k = 1,2,3), normalize the first
         // two vectors to obtain b1, b2, and set b3 == b1 cross b2.
         // This will also take care of the case mu2 > mu3 = 0.
@@ -175,37 +187,44 @@ public:
         b[1] = Vec3(UnitVec3(R * a[1]));
         b[2] = cross(b[0], b[1]);
 
-        if ( dot(b[2], R * a[2]) < 0 )
+        if (dot(b[2], R * a[2]) < 0) {
             sigma[2] = -1.0;
+        }
 
         // d) Form U according to eq. 7:
         // u(ij) = SUM(k)[ b(ki)a(kj) ]
         // where b(k) = R*a(k)/(sigma(k)sqrt(mu(k)))
-        Mat<3,3> U(0.0);   // initialize 2-d array
-        for (int i = 0; i < 3; ++i)
-            for (int j = 0; j < 3; ++j)
-                for (int k = 0; k < 3; ++k)
+        Mat<3, 3> U(0.0); // initialize 2-d array
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 3; ++j) {
+                for (int k = 0; k < 3; ++k) {
                     U[i][j] += b[k][i] * a[k][j];
-        
+                }
+            }
+        }
+
         // Compute residual error
-        Real residualError = E0 - sigma[0] * std::sqrt(mu[0]) - sigma[1] * std::sqrt(mu[1]) - sigma[2] * std::sqrt(std::abs(mu[2]));
+        const auto residualError = E0 - (sigma[0] * std::sqrt(mu[0])) - (sigma[1] * std::sqrt(mu[1]))
+                                   - (sigma[2] * std::sqrt(std::abs(mu[2])));
         // E = 1/2 SUM(over n)[w(n)*(Ux(n) - y(n))^2]
         // variance would be sqrt( 1/SUM(w(n)) * SUM(w(n)*(Ux(n) - y(n))^2) )
         Real variance = 0.0;
-        if (totalMass > 0)
+        if (totalMass > 0) {
             variance = std::sqrt(2 * residualError / totalMass);
+        }
 
         Rotation rotation(U);
 
         // No rotation for single point overlay
-        if (vectors.size() < 2)
+        if (vectors.size() < 2) {
             rotation = Rotation();
+        }
 
         Transform transform1(-sourceCentroid);
         Transform transform2(rotation);
         Transform transform3(targetCentroid);
 
-        return TransformAndResidual(transform3 * transform2 * transform1, variance);
+        return {transform3 * transform2 * transform1, variance};
     }
 };
 

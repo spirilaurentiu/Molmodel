@@ -1013,7 +1013,8 @@ class CompoundAtom {
     const Transform& getFrameInMobilizedBodyFrame() const {
         return frameInMobilizedBodyFrame;
     }
-    CompoundAtom& setFrameInMobilizedBodyFrame(Transform loc) {
+
+    auto setFrameInMobilizedBodyFrame(const Transform& loc) -> CompoundAtom& {
         frameInMobilizedBodyFrame = loc;
         return *this;
     }

@@ -52,254 +52,15 @@
 
 #include "molmodel/internal/DuMMForceFieldSubsystem.h"
 #include "molmodel/internal/Element.h"
+#include "molmodel/internal/Index.hpp"
 #include "molmodel/internal/MolecularMechanicsSystem.h"
 #include "molmodel/internal/common.h"
 #include "simbody/internal/ForceSubsystemGuts.h"
 
 #include "SimTKsimbody.h"
 
+
 using namespace SimTK;
-
-// Define unique index types that are only used internally.
-
-// This is the index type for the subset of mobilized bodies that have been
-// mentioned at all to this instance of DuMMForceField. These will not
-// necessarily all be used in force calculations since there may be bodies
-// that don't have any included atoms attached to them.
-SimTK_DEFINE_UNIQUE_INDEX_TYPE(DuMMBodyIndex);
-
-// This is the index type for the subset of mobilized bodies that is actually
-// involved in force calculations because they have "included atoms" attached.
-SimTK_DEFINE_UNIQUE_INDEX_TYPE(DuMMIncludedBodyIndex);
-
-// This is the index type for the subset of atoms that are "atom 1" for any
-// bond for which we are going to compute a bond force at run time.
-SimTK_DEFINE_UNIQUE_INDEX_TYPE(DuMMBondStarterIndex);
-
-#ifndef TRACE_OPENMM
-#    define TRACE_OPENMM(msg) \
-        std::cout << "TRACE_OPENMM:" << __FILE__ << ":" << __LINE__ << " " << msg << std::endl << std::flush;
-#endif
-
-//-----------------------------------------------------------------------------
-//                                INDEX PAIR
-//-----------------------------------------------------------------------------
-template <class T>
-class IndexPair {
-    public:
-    IndexPair() {
-    }
-    IndexPair(T i1, T i2, bool canon = false) {
-        ixs[0] = i1;
-        ixs[1] = i2;
-        if (canon) {
-            canonicalize();
-        }
-    }
-    const T& operator[](int i) const {
-        assert(0 <= i && i < 2);
-        return ixs[i];
-    }
-    T& operator[](int i) {
-        assert(0 <= i && i < 2);
-        return ixs[i];
-    }
-    bool isValid() const {
-        return ixs[0].isValid() && ixs[1].isValid();
-    }
-    void invalidate() {
-        ixs[0].invalidate();
-        ixs[1].invalidate();
-    }
-    // canonical is low,high
-    void canonicalize() {
-        if (ixs[0] > ixs[1]) {
-            std::swap(ixs[0], ixs[1]);
-        }
-    }
-
-    private:
-    T ixs[2];
-};
-
-template <class T>
-static inline std::ostream& operator<<(std::ostream& o, const IndexPair<T>& ix) {
-    o << "(" << (int)ix[0] << "," << (int)ix[1] << ")";
-    return o;
-}
-
-template <class T>
-static inline bool operator<(const IndexPair<T>& i1, const IndexPair<T>& i2) {
-    assert(i1.isValid() && i2.isValid());
-    if (i1[0] < i2[0]) {
-        return true;
-    }
-    if (i1[0] > i2[0]) {
-        return false;
-    }
-    return i1[1] < i2[1];
-}
-
-typedef IndexPair<DuMM::AtomIndex> AtomIndexPair;
-typedef IndexPair<DuMM::IncludedAtomIndex> IncludedAtomIndexPair;
-typedef IndexPair<DuMM::AtomClassIndex> AtomClassIndexPair;
-typedef IndexPair<MobilizedBodyIndex> MobodIndexPair;
-
-
-//-----------------------------------------------------------------------------
-//                               INDEX TRIPLE
-//-----------------------------------------------------------------------------
-template <class T>
-class IndexTriple {
-    public:
-    IndexTriple() {
-    }
-    IndexTriple(T i1, T i2, T i3, bool canon = false) {
-        ixs[0] = i1;
-        ixs[1] = i2;
-        ixs[2] = i3;
-        if (canon) {
-            canonicalize();
-        }
-    }
-    const T& operator[](int i) const {
-        assert(0 <= i && i < 3);
-        return ixs[i];
-    }
-    T& operator[](int i) {
-        assert(0 <= i && i < 3);
-        return ixs[i];
-    }
-    bool isValid() const {
-        return ixs[0].isValid() && ixs[1].isValid() && ixs[2].isValid();
-    }
-    void invalidate() {
-        ixs[0].invalidate();
-        ixs[1].invalidate();
-        ixs[2].invalidate();
-    }
-    // canonical has 1st number <= last number; middle stays put
-    void canonicalize() {
-        if (ixs[0] > ixs[2]) {
-            std::swap(ixs[0], ixs[2]);
-        }
-    }
-
-    private:
-    T ixs[3];
-};
-
-template <class T>
-static inline std::ostream& operator<<(std::ostream& o, const IndexTriple<T>& ix) {
-    o << "(" << (int)ix[0] << "," << (int)ix[1] << "," << (int)ix[2] << ")";
-    return o;
-}
-
-template <class T>
-static inline bool operator<(const IndexTriple<T>& i1, const IndexTriple<T>& i2) {
-    assert(i1.isValid() && i2.isValid());
-    if (i1[0] < i2[0]) {
-        return true;
-    }
-    if (i1[0] > i2[0]) {
-        return false;
-    }
-    if (i1[1] < i2[1]) {
-        return true;
-    }
-    if (i1[1] > i2[1]) {
-        return false;
-    }
-    return i1[2] < i2[2];
-}
-
-typedef IndexTriple<DuMM::AtomIndex> AtomIndexTriple;
-typedef IndexTriple<DuMM::IncludedAtomIndex> IncludedAtomIndexTriple;
-typedef IndexTriple<DuMM::AtomClassIndex> AtomClassIndexTriple;
-
-
-//-----------------------------------------------------------------------------
-//                              INDEX QUAD
-//-----------------------------------------------------------------------------
-template <class T>
-class IndexQuad {
-    public:
-    IndexQuad() {
-    }
-    IndexQuad(T i1, T i2, T i3, T i4, bool canon = false) {
-        ixs[0] = i1;
-        ixs[1] = i2;
-        ixs[2] = i3;
-        ixs[3] = i4;
-        if (canon) {
-            canonicalize();
-        }
-    }
-    const T& operator[](int i) const {
-        assert(0 <= i && i < 4);
-        return ixs[i];
-    }
-    T& operator[](int i) {
-        assert(0 <= i && i < 4);
-        return ixs[i];
-    }
-    bool isValid() const {
-        return ixs[0].isValid() && ixs[1].isValid() && ixs[2].isValid() && ixs[3].isValid();
-    }
-    void invalidate() {
-        ixs[0].invalidate();
-        ixs[1].invalidate();
-        ixs[2].invalidate();
-        ixs[3].invalidate();
-    }
-
-    // canonical has 1st number <= last number; middle two must swap
-    // if the outside ones do
-    void canonicalize() {
-        // Index quad has additional case where 1 == 4 and 2 differs from 3
-        if ((ixs[0] > ixs[3]) || ((ixs[0] == ixs[3]) && (ixs[1] > ixs[2]))) {
-            std::swap(ixs[0], ixs[3]);
-            std::swap(ixs[1], ixs[2]);
-        }
-    }
-
-    private:
-    T ixs[4];
-};
-
-template <class T>
-static inline std::ostream& operator<<(std::ostream& o, const IndexQuad<T>& ix) {
-    o << "(" << (int)ix[0] << "," << (int)ix[1] << "," << (int)ix[2] << "," << (int)ix[3] << ")";
-    return o;
-}
-
-template <class T>
-static inline bool operator<(const IndexQuad<T>& i1, const IndexQuad<T>& i2) {
-    assert(i1.isValid() && i2.isValid());
-    if (i1[0] < i2[0]) {
-        return true;
-    }
-    if (i1[0] > i2[0]) {
-        return false;
-    }
-    if (i1[1] < i2[1]) {
-        return true;
-    }
-    if (i1[1] > i2[1]) {
-        return false;
-    }
-    if (i1[2] < i2[2]) {
-        return true;
-    }
-    if (i1[2] > i2[2]) {
-        return false;
-    }
-    return i1[3] < i2[3];
-}
-
-typedef IndexQuad<DuMM::AtomIndex> AtomIndexQuad;
-typedef IndexQuad<DuMM::IncludedAtomIndex> IncludedAtomIndexQuad;
-typedef IndexQuad<DuMM::AtomClassIndex> AtomClassIndexQuad;
 
 
 //-----------------------------------------------------------------------------
@@ -851,50 +612,28 @@ class AtomPlacement {
     AtomPlacement()
         : atomIndex(-1) {
     }
-    AtomPlacement(DuMM::AtomIndex a, const Vec3& s)
-        : station(s)
-        , atomIndex(a) {
+    AtomPlacement(DuMM::AtomIndex dAIx, const Vec3& station)
+        : station(station)
+        , atomIndex(dAIx) {
         assert(isValid());
     }
-    bool isValid() const {
+    [[nodiscard]] auto isValid() const -> bool {
         return atomIndex.isValid();
     }
 
     Vec3 station; // in nm
     DuMM::AtomIndex atomIndex;
-    // EU BEGIN
-    void setStation(const Vec3& newStation) const {
-        const_cast<Vec3&>(station) = newStation;
-    }
-    // EU END
-};
-// EU BEGIN change qualifiers (const)
-//-----------------------------------------------------------------------------
-//                             ATOM PLACEMENT
-//-----------------------------------------------------------------------------
-/*
-class AtomPlacement {
-public:
-    AtomPlacement() : atomIndex(-1) { }
-    AtomPlacement(DuMM::AtomIndex a, Vec3 s){
-        atomIndex = a;
-        station[0] = s[0]; station[1] = s[1]; station[2] = s[2];
-        assert(isValid());
-    }
-    bool isValid() const {return atomIndex.isValid();}
-    void setStation(Vec3 new_station) {station = new_station;}
 
-    Vec3                station;   // in nm
-    DuMM::AtomIndex     atomIndex;
+    void setStation(const Vec3& newStation) {
+        station = newStation;
+    }
 };
-*/
-// EU END
 
-inline bool operator<(const AtomPlacement& a1, const AtomPlacement& a2) {
-    return a1.atomIndex < a2.atomIndex;
+inline auto operator<(const AtomPlacement& ap1, const AtomPlacement& ap2) -> bool {
+    return ap1.atomIndex < ap2.atomIndex;
 }
-inline bool operator==(const AtomPlacement& a1, const AtomPlacement& a2) {
-    return a1.atomIndex == a2.atomIndex;
+inline auto operator==(const AtomPlacement& ap1, const AtomPlacement& ap2) -> bool {
+    return ap1.atomIndex == ap2.atomIndex;
 }
 
 
@@ -906,31 +645,28 @@ class ClusterPlacement {
     ClusterPlacement()
         : clusterIndex(-1) {
     }
-    ClusterPlacement(DuMM::ClusterIndex c, const Transform& t)
-        : placement(t)
-        , clusterIndex(c) {
+    ClusterPlacement(DuMM::ClusterIndex clusterIx, const Transform& transform)
+        : placement(transform)
+        , clusterIndex(clusterIx) {
         assert(isValid());
     }
-    bool isValid() const {
+    [[nodiscard]] auto isValid() const -> bool {
         return clusterIndex.isValid();
     }
 
     Transform placement; // translation in nm
     DuMM::ClusterIndex clusterIndex;
 };
-inline bool operator<(const ClusterPlacement& r1, const ClusterPlacement& r2) {
-    return r1.clusterIndex < r2.clusterIndex;
+inline auto operator<(const ClusterPlacement& rhs, const ClusterPlacement& lhs) -> bool {
+    return rhs.clusterIndex < lhs.clusterIndex;
 }
-inline bool operator==(const ClusterPlacement& r1, const ClusterPlacement& r2) {
-    return r1.clusterIndex == r2.clusterIndex;
+inline auto operator==(const ClusterPlacement& rhs, const ClusterPlacement& lhs) -> bool {
+    return rhs.clusterIndex == lhs.clusterIndex;
 }
 
-typedef Array_<AtomPlacement> AtomPlacementArray;
-typedef std::set<AtomPlacement> AtomPlacementSet;
-typedef std::set<ClusterPlacement> ClusterPlacementSet;
-
-// Max length is 65535; that's plenty for bonded lists!
-typedef Array_<DuMM::AtomIndex, unsigned short> ShortAtomArray;
+using AtomPlacementArray = std::vector<AtomPlacement>;
+using ClusterPlacementArray = std::vector<ClusterPlacement>;
+using ShortAtomArray = std::vector<DuMM::AtomIndex>;
 
 
 //-----------------------------------------------------------------------------
@@ -1285,53 +1021,65 @@ class GeometricProperties {
 //
 class Cluster {
     public:
-    Cluster() {
-    }
-    Cluster(const char* nm)
-        : name(nm) {
+    Cluster() = default;
+    Cluster(const char* name)
+        : name(name) {
         // not valid yet -- still need index assigned
     }
 
-    bool isValid() const {
+    [[nodiscard]] auto isValid() const -> bool {
         return clusterIndex.isValid();
     }
-    bool isAttachedToBody() const {
+    [[nodiscard]] auto isAttachedToBody() const -> bool {
         return mobodIx.isValid();
     }
-    bool isTopLevelCluster() const {
+    [[nodiscard]] auto isTopLevelCluster() const -> bool {
         return parentClusters.empty();
     }
-
-    MobilizedBodyIndex getMobodIndex() const {
+    [[nodiscard]] auto getMobodIndex() const -> MobilizedBodyIndex {
         assert(isAttachedToBody());
         return mobodIx;
     }
 
-    const AtomPlacementSet& getDirectlyContainedAtoms() const {
+    [[nodiscard]] auto getDirectlyContainedAtoms() const -> const AtomPlacementArray& {
         return directAtomPlacements;
     }
-    const AtomPlacementSet& getAllContainedAtoms() const {
+    [[nodiscard]] auto updDirectlyContainedAtoms() -> AtomPlacementArray& {
+        return directAtomPlacements;
+    }
+
+    [[nodiscard]] auto getAllContainedAtoms() const -> const AtomPlacementArray& {
         return allAtomPlacements;
     }
-    AtomPlacementSet& updAllContainedAtoms() {
+    [[nodiscard]] auto updAllContainedAtoms() -> AtomPlacementArray& {
         return allAtomPlacements;
     }
 
-    const ClusterPlacementSet& getDirectlyContainedClusters() const {
+    [[nodiscard]] auto getDirectlyContainedClusters() const -> const ClusterPlacementArray& {
         return directClusterPlacements;
     }
-    const ClusterPlacementSet& getAllContainedClusters() const {
+    [[nodiscard]] auto updDirectlyContainedClusters() -> ClusterPlacementArray& {
+        return directClusterPlacements;
+    }
+
+    [[nodiscard]] auto getAllContainedClusters() const -> const ClusterPlacementArray& {
         return allClusterPlacements;
     }
-    ClusterPlacementSet& updAllContainedClusters() {
+    [[nodiscard]] auto updAllContainedClusters() -> ClusterPlacementArray& {
         return allClusterPlacements;
     }
 
-    bool containsAtom(DuMM::AtomIndex atomIndex) const {
-        return allAtomPlacements.find(AtomPlacement(atomIndex, Vec3(0))) != allAtomPlacements.end();
+    [[nodiscard]] auto containsAtom(DuMM::AtomIndex atomIndex) const -> bool {
+        return std::find(allAtomPlacements.begin(),
+                         allAtomPlacements.end(),
+                         AtomPlacement(atomIndex, Vec3(0)))
+               != allAtomPlacements.end();
     }
-    bool containsCluster(DuMM::ClusterIndex clusterIndex) const {
-        return allClusterPlacements.find(ClusterPlacement(clusterIndex, Transform()))
+
+    [[nodiscard]] auto containsCluster(DuMM::ClusterIndex clusterIndex) const -> bool {
+        return std::find(allClusterPlacements.begin(),
+                         allClusterPlacements.end(),
+                         ClusterPlacement(clusterIndex, Transform()))
                != allClusterPlacements.end();
     }
 
@@ -1341,19 +1089,19 @@ class Cluster {
     //       ancestor branches.
     // If we find an atom common to both clusters we'll return it to permit
     // nice error messages, otherwise we return false and -1 for the atomIndex.
-    bool overlapsWithCluster(const Cluster& test, DuMM::AtomIndex& anAtomIndexInBothClusters) const {
+    auto overlapsWithCluster(const Cluster& test, DuMM::AtomIndex& anAtomIndexInBothClusters) const -> bool {
         assert(isTopLevelCluster());
 
-        const AtomPlacementSet& testAtoms = test.getAllContainedAtoms();
-        // const AtomPlacementSet& myAtoms   = getAllContainedAtoms();
+        const AtomPlacementArray& testAtoms = test.getAllContainedAtoms();
+        // const AtomPlacementArray& myAtoms   = getAllContainedAtoms();
 
-        AtomPlacementSet::const_iterator ap = testAtoms.begin();
-        while (ap != testAtoms.end()) {
-            if (containsAtom(ap->atomIndex)) {
-                anAtomIndexInBothClusters = ap->atomIndex;
+        auto atomPlacement = testAtoms.begin();
+        while (atomPlacement != testAtoms.end()) {
+            if (containsAtom(atomPlacement->atomIndex)) {
+                anAtomIndexInBothClusters = atomPlacement->atomIndex;
                 return true;
             }
-            ++ap;
+            ++atomPlacement;
         }
         anAtomIndexInBothClusters = DuMM::InvalidAtomIndex;
         return false;
@@ -1362,9 +1110,9 @@ class Cluster {
     // Return true if this cluster contains (directly or indirectly) any atom which has already
     // been attached to a body. If so return one of the attached atoms and its body, which can
     // be helpful in error messages.
-    bool containsAnyAtomsAttachedToABody(DuMM::AtomIndex& atomIndex,
+    auto containsAnyAtomsAttachedToABody(DuMM::AtomIndex& atomIndex,
                                          MobilizedBodyIndex& bodyIx,
-                                         const DuMMForceFieldSubsystemRep& mm) const;
+                                         const DuMMForceFieldSubsystemRep& mm) const -> bool;
 
     // Translation is in nm.
     void attachToBody(MobilizedBodyIndex bnum, const Transform& X_BR, DuMMForceFieldSubsystemRep& mm);
@@ -1406,7 +1154,8 @@ class Cluster {
     // Calculate the composite mass properties for this cluster, transformed
     // into the indicated frame. Translation part of the Transform is in nm,
     // returned mass proprties are in daltons and nm.
-    MassProperties calcMassProperties(const Transform& tr, const DuMMForceFieldSubsystemRep& mm) const;
+    [[nodiscard]] auto calcMassProperties(const Transform& tr, const DuMMForceFieldSubsystemRep& mm) const
+        -> MassProperties;
 
 
     // Recursively calculate composite properties for this group and all the
@@ -1417,7 +1166,7 @@ class Cluster {
     void realizeTopologicalCache(DuMMForceFieldSubsystemRep& mm) {
     }
 
-    void dumpX(const Transform& X) const {
+    static void dumpX(const Transform& X) {
         if (X == Transform()) {
             std::cout << "Identity\n";
         } else {
@@ -1428,33 +1177,33 @@ class Cluster {
     void dump() const {
         printf("    clusterIndex=%d(%s)\n", (int)clusterIndex, name.c_str());
         printf("      direct atom placements (nm): ");
-        AtomPlacementSet::const_iterator ap = directAtomPlacements.begin();
+        auto ap = directAtomPlacements.begin();
         while (ap != directAtomPlacements.end()) {
             std::cout << " " << ap->atomIndex << ":" << ap->station;
             ++ap;
         }
         printf("\n      all atom placements (nm): ");
-        AtomPlacementSet::const_iterator aap = allAtomPlacements.begin();
+        auto aap = allAtomPlacements.begin();
         while (aap != allAtomPlacements.end()) {
             std::cout << " " << aap->atomIndex << ":" << aap->station;
             ++aap;
         }
         printf("\n      direct cluster placements (nm):\n");
-        ClusterPlacementSet::const_iterator cp = directClusterPlacements.begin();
+        auto cp = directClusterPlacements.begin();
         while (cp != directClusterPlacements.end()) {
             std::cout << "      " << cp->clusterIndex << ":";
             dumpX(cp->placement);
             ++cp;
         }
         printf("\n      all cluster placements (nm):\n");
-        ClusterPlacementSet::const_iterator acp = allClusterPlacements.begin();
+        auto acp = allClusterPlacements.begin();
         while (acp != allClusterPlacements.end()) {
             std::cout << "      " << acp->clusterIndex << ":";
             dumpX(acp->placement);
             ++acp;
         }
         printf("\n      parent cluster placements (nm):\n");
-        ClusterPlacementSet::const_iterator pp = parentClusters.begin();
+        auto pp = parentClusters.begin();
         while (pp != parentClusters.end()) {
             std::cout << "      " << pp->clusterIndex << ":";
             dumpX(pp->placement);
@@ -1478,18 +1227,13 @@ class Cluster {
     private:
     // translation is in nm
     void noteNewChildCluster(DuMM::ClusterIndex childClusterIndex, const Transform& X_PC) {
-        std::pair<ClusterPlacementSet::iterator, bool> ret;
-        ret = directClusterPlacements.insert(ClusterPlacement(childClusterIndex, X_PC));
-        assert(ret.second); // must not have been there already
-
-        ret = allClusterPlacements.insert(ClusterPlacement(childClusterIndex, X_PC));
-        assert(ret.second); // must not have been there already
+        directClusterPlacements.emplace_back(childClusterIndex, X_PC);
+        allClusterPlacements.emplace_back(childClusterIndex, X_PC);
     }
 
     // translation is in nm
     void noteNewParentCluster(DuMM::ClusterIndex parentClusterIndex, const Transform& X_PC) {
-        [[maybe_unused]] auto ret = parentClusters.insert(ClusterPlacement(parentClusterIndex, X_PC));
-        assert(ret.second); // must not have been there already
+        parentClusters.emplace_back(parentClusterIndex, X_PC);
     }
 
     public:
@@ -1499,23 +1243,23 @@ class Cluster {
     std::string name;
 
     // These are the *directly* attached atoms and clusters.
-    AtomPlacementSet directAtomPlacements;
-    ClusterPlacementSet directClusterPlacements;
+    AtomPlacementArray directAtomPlacements;
+    ClusterPlacementArray directClusterPlacements;
 
     // These sets are kept up to date as we add atoms and clusters.
     // 'allAtomPlacements' contains *all* the atoms in this cluster
     // or its descendents, transformed into this cluster's frame.
     // 'allClusterPlacements' contains *all* the clusters in this
     // cluster or its subclusters, transformed into this cluster's frame.
-    AtomPlacementSet allAtomPlacements;
-    ClusterPlacementSet allClusterPlacements;
+    AtomPlacementArray allAtomPlacements;
+    ClusterPlacementArray allClusterPlacements;
 
     // This is a list of all the immediate parents of this cluster, if any.
     // This is updated whenever this cluster is placed in another one. The
     // body is *not* considered a parent cluster; it is handled separately
     // below. Note that whenever an atom or cluster is added to this cluster,
     // the atom or atoms involved [SHOULD BE: TODO] added to each ancestor.
-    ClusterPlacementSet parentClusters;
+    ClusterPlacementArray parentClusters;
 
     // After this cluster or a containing cluster has been attached to a
     // body, we can fill these in.
@@ -1717,7 +1461,6 @@ class SimTK::DuMMForceFieldSubsystemRep : public ForceSubsystem::Guts {
         , forceEvaluationCount(0)
         , nextUnusedAtomClassIndex(0)
         , nextUnusedChargedAtomTypeIndex(0) {
-        vdwMixingRule = DuMMForceFieldSubsystem::WaldmanHagler;
         vdwGlobalScaleFactor = coulombGlobalScaleFactor = 1;
         bondStretchGlobalScaleFactor = bondBendGlobalScaleFactor = bondTorsionGlobalScaleFactor =
             amberImproperTorsionGlobalScaleFactor = 1;
@@ -1941,51 +1684,51 @@ class SimTK::DuMMForceFieldSubsystemRep : public ForceSubsystem::Guts {
         atomClasses[atomClass.atomClassIx] = atomClass;
     }
 
-
-    // Radii and returned diameter are given in nm, energies in kJ/mol.
-    void applyMixingRule(Real ri, Real rj, Real ei, Real ej, Real& dmin, Real& emin) const;
-
-    DuMM::ClusterIndex addCluster(const Cluster& c) {
+    auto addCluster(const Cluster& cluster) -> DuMM::ClusterIndex {
         invalidateSubsystemTopologyCache();
 
         const DuMM::ClusterIndex clusterIndex = (DuMM::ClusterIndex)clusters.size();
-        clusters.push_back(c);
+        clusters.push_back(cluster);
         clusters[clusterIndex].clusterIndex = clusterIndex;
         return clusterIndex;
     }
-    Cluster& updCluster(DuMM::ClusterIndex clusterIndex) {
+    auto updCluster(DuMM::ClusterIndex clusterIndex) -> Cluster& {
         assert(isValidCluster(clusterIndex));
 
         invalidateSubsystemTopologyCache();
         return clusters[clusterIndex];
     }
-    const Cluster& getCluster(DuMM::ClusterIndex clusterIndex) const {
+    auto getCluster(DuMM::ClusterIndex clusterIndex) const -> const Cluster& {
         assert(isValidCluster(clusterIndex));
         return clusters[clusterIndex];
     }
-    DuMMBody& updDuMMBody(DuMMBodyIndex bodyIx) {
+    auto getNumClusters() const -> std::size_t {
+        return clusters.size();
+    }
+
+    auto updDuMMBody(DuMMBodyIndex bodyIx) -> DuMMBody& {
         assert(isValidDuMMBody(bodyIx));
         invalidateSubsystemTopologyCache();
         return duMMSubsetOfBodies[bodyIx];
     }
-    const DuMMBody& getDuMMBody(DuMMBodyIndex duMMBodyIx) const {
+    auto getDuMMBody(DuMMBodyIndex duMMBodyIx) const -> const DuMMBody& {
         assert(isValidDuMMBody(duMMBodyIx));
         return duMMSubsetOfBodies[duMMBodyIx];
     }
 
-    int getNumBonds() const {
+    auto getNumBonds() const -> int {
         return (int)bonds.size();
     }
 
     // DuMM atoms (all atoms in the molecule)
-    int getNumAtoms() const {
+    auto getNumAtoms() const -> int {
         return (int)atoms.size();
     }
-    const DuMMAtom& getAtom(DuMM::AtomIndex atomIndex) const {
+    auto getAtom(DuMM::AtomIndex atomIndex) const -> const DuMMAtom& {
         assert(isValidAtom(atomIndex));
         return atoms[atomIndex];
     }
-    DuMMAtom& updAtom(DuMM::AtomIndex atomIndex) {
+    auto updAtom(DuMM::AtomIndex atomIndex) -> DuMMAtom& {
         assert(isValidAtom(atomIndex));
         return atoms[atomIndex];
     }
@@ -2474,11 +2217,6 @@ class SimTK::DuMMForceFieldSubsystemRep : public ForceSubsystem::Guts {
     std::map<AtomClassIndexTriple, BondBend> bondBendAll;
     std::map<AtomClassIndexQuad, BondTorsion> bondTorsionAll;
     std::map<AtomClassIndexQuad, BondTorsion> amberImproperTorsionAll;
-
-
-    // Which rule to use for combining van der Waals radii and energy well
-    // depth for dissimilar atom classes.
-    DuMMForceFieldSubsystem::VdwMixingRule vdwMixingRule;
 
     // Scale factors for nonbonded forces when applied to
     // atoms which are near in the graph formed by the bonds.

@@ -33,17 +33,18 @@
  * -------------------------------------------------------------------------- */
 
 
-#include "SimTKsimbody.h"
-
-#include "molmodel/internal/BondCenter.hpp"
-
-#include "molmodel/internal/common.h"
-#include "DuMMForceFieldSubsystem.h"
-#include "molmodel/internal/Superpose.h"
-#include "molmodel/internal/units.h"
+#include <iosfwd> // declare ostream without all the definitions
 #include <map>
 
-#include <iosfwd> // declare ostream without all the definitions
+#include "molmodel/internal/BondCenter.hpp"
+#include "molmodel/internal/Superpose.h"
+#include "molmodel/internal/common.h"
+#include "molmodel/internal/units.h"
+
+#include "DuMMForceFieldSubsystem.h"
+#include "SimTKsimbody.h"
+#include "Transform.h"
+
 
 namespace SimTK {
 
@@ -57,73 +58,89 @@ class CompoundRep;
  * \brief Namespace for description of allowed bond motions.
  */
 namespace BondMobility {
-    /**
-     * \brief Which motions are allowed for a particular covalent bond.
-     * An enum applied to each covalent bond in a Compound.
-     * Used to specify the degrees of freedom of that
-     * bond during subsequent construction of a multibody model in simbody.
-     */
-    enum Mobility {
-        Free = 1, ///< Unrestricted bond, permitting changes in stretch, bend, and torsion modes
-        Torsion = 2, ///< Bond has fixed length and angles, but permits rotation about the bond axis
-        Rigid = 3, ///< Bond links both atoms to the same rigid unit
-        BallF = 4, ///< Three rotational dofs. It allows  angle flexibility besides torsion.
-        BallM = 5, ///< Three rotational dofs. It allows  angle flexibility besides torsion.
-        Cylinder = 6, ///< Torsion plus translation along the bond
-        Translation = 7, ///< Three translational mobilities (Cartesian). // NEWMOB
-        FreeLine = 8, ///< Three translational mobilities (Cartesian). // NEWMOB
-        LineOrientationF = 9, ///< Two rotational mobilities // NEWMOB
-        LineOrientationM = 10, ///< Two rotational mobilities // NEWMOB
-        UniversalM = 11, ///< Cap de bara
-        Spherical = 12, ///< BAT coordinates
-        AnglePin = 13, ///< Rotation perpendicular to bond and bond-1 plane
-        BendStretch = 14, ///< Translation along bond and rotation perpendicular to bond
-        Slider = 15, ///< Translation along bond
-        OrthoSpherical = 16 ///< BAT coordinates
-    };
-    static Mobility Default = Torsion;
+/**
+ * \brief Which motions are allowed for a particular covalent bond.
+ * An enum applied to each covalent bond in a Compound.
+ * Used to specify the degrees of freedom of that
+ * bond during subsequent construction of a multibody model in simbody.
+ */
+enum Mobility {
+    Free = 1,              ///< Unrestricted bond, permitting changes in stretch, bend, and torsion modes
+    Torsion = 2,           ///< Bond has fixed length and angles, but permits rotation about the bond axis
+    Rigid = 3,             ///< Bond links both atoms to the same rigid unit
+    BallF = 4,             ///< Three rotational dofs. It allows  angle flexibility besides torsion.
+    BallM = 5,             ///< Three rotational dofs. It allows  angle flexibility besides torsion.
+    Cylinder = 6,          ///< Torsion plus translation along the bond
+    Translation = 7,       ///< Three translational mobilities (Cartesian). // NEWMOB
+    FreeLine = 8,          ///< Three translational mobilities (Cartesian). // NEWMOB
+    LineOrientationF = 9,  ///< Two rotational mobilities // NEWMOB
+    LineOrientationM = 10, ///< Two rotational mobilities // NEWMOB
+    UniversalM = 11,       ///< Cap de bara
+    Spherical = 12,        ///< BAT coordinates
+    AnglePin = 13,         ///< Rotation perpendicular to bond and bond-1 plane
+    BendStretch = 14,      ///< Translation along bond and rotation perpendicular to bond
+    Slider = 15,           ///< Translation along bond
+    OrthoSpherical = 16    ///< BAT coordinates
+};
+static Mobility Default = Torsion;
 
-    /**
-     * Converts a Mobility enum value to its string representation.
-     * Returns "Unknown" if the value is not recognized.
-     */
-    inline const char* getBondMobilityName(Mobility m) {
-        switch (m) {
-            case Mobility::Free:             return "Free";
-            case Mobility::Torsion:          return "Torsion";
-            case Mobility::Rigid:            return "Rigid";
-            case Mobility::BallF:            return "BallF";
-            case Mobility::BallM:            return "BallM";
-            case Mobility::Cylinder:         return "Cylinder";
-            case Mobility::Translation:      return "Translation";
-            case Mobility::FreeLine:         return "FreeLine";
-            case Mobility::LineOrientationF: return "LineOrientationF";
-            case Mobility::LineOrientationM: return "LineOrientationM";
-            case Mobility::UniversalM:       return "UniversalM";
-            case Mobility::Spherical:        return "Spherical";
-            case Mobility::AnglePin:         return "AnglePin";
-            case Mobility::BendStretch:      return "BendStretch";
-            case Mobility::Slider:           return "Slider";
-            case Mobility::OrthoSpherical:   return "OrthoSpherical";
-            default:                         return "Unknown";
-        }
+/**
+ * Converts a Mobility enum value to its string representation.
+ * Returns "Unknown" if the value is not recognized.
+ */
+inline const char* getBondMobilityName(Mobility m) {
+    switch (m) {
+        case Mobility::Free:
+            return "Free";
+        case Mobility::Torsion:
+            return "Torsion";
+        case Mobility::Rigid:
+            return "Rigid";
+        case Mobility::BallF:
+            return "BallF";
+        case Mobility::BallM:
+            return "BallM";
+        case Mobility::Cylinder:
+            return "Cylinder";
+        case Mobility::Translation:
+            return "Translation";
+        case Mobility::FreeLine:
+            return "FreeLine";
+        case Mobility::LineOrientationF:
+            return "LineOrientationF";
+        case Mobility::LineOrientationM:
+            return "LineOrientationM";
+        case Mobility::UniversalM:
+            return "UniversalM";
+        case Mobility::Spherical:
+            return "Spherical";
+        case Mobility::AnglePin:
+            return "AnglePin";
+        case Mobility::BendStretch:
+            return "BendStretch";
+        case Mobility::Slider:
+            return "Slider";
+        case Mobility::OrthoSpherical:
+            return "OrthoSpherical";
+        default:
+            return "Unknown";
     }
 }
+} // namespace BondMobility
 
 /**
  * \brief The base class for atoms, molecules, and chemical groups.
  * The Compound class is the base for all molecular entities in the SimTK
  * Molmodel API.
  */
-class SimTK_MOLMODEL_EXPORT Compound : public PIMPLHandle<Compound,CompoundRep> {
-public:
-
+class SimTK_MOLMODEL_EXPORT Compound : public PIMPLHandle<Compound, CompoundRep> {
+    public:
     enum MatchStratagem {
-        Match_Exact, //< Try to match input atom positions precisely
-        Match_Idealized, //< Try to match atom positions with idealized geometry
+        Match_Exact,       //< Try to match input atom positions precisely
+        Match_Idealized,   //< Try to match atom positions with idealized geometry
         Match_TopologyOnly //< Don't match atom positions, only topology
     };
-    
+
     /// \name Data types that identify subcomponents of molecular compounds
     /// @{
 
@@ -150,7 +167,7 @@ public:
 
     /**
      * \brief Type for name of a particular bond center within a Compound or atom.
-     * Compound::BondCenterName is not intrinsic to the bond center itself, but rather the 
+     * Compound::BondCenterName is not intrinsic to the bond center itself, but rather the
      * relationship between a bond center and a particular atom or Compound.
      * BondCenterNames are local to a particular compound.  In contrast, BondCenterPathNames
      * may be qualified by subcompound indirection.  e.g. "bond1" is a valid BondCenterName
@@ -161,14 +178,14 @@ public:
 
     /**
      * \brief Type for name of a particular named dihedral angle within a Compound.
-     * Compound::DihedralName is not intrinsic to the dihedral angle itself, but rather the 
+     * Compound::DihedralName is not intrinsic to the dihedral angle itself, but rather the
      * relationship between a dihedral angle and a particular Compound.
      */
     typedef String DihedralName;
 
     /**
-     * \brief Type for name of a particular bond center within a Compound, possibly including subcompound indirection.
-     * Compound::BondCenterPathName is not intrinsic to the bond center itself, but rather the 
+     * \brief Type for name of a particular bond center within a Compound, possibly including subcompound
+     * indirection. Compound::BondCenterPathName is not intrinsic to the bond center itself, but rather the
      * relationship between a bond center and a particular Compound.
      * BondCenterPathNames may be qualified by subcompound indirection, in contrast to BondCenterNames.
      * e.g. "bond1" is a valid BondCenterName
@@ -196,28 +213,28 @@ public:
      * instrinsic to the atom, but represents the relationship between an atom
      * and precisely one of its parent compounds.
      */
-    SimTK_DEFINE_UNIQUE_LOCAL_INDEX_TYPE(Compound,AtomIndex);
+    SimTK_DEFINE_UNIQUE_LOCAL_INDEX_TYPE(Compound, AtomIndex);
 
     /**
      * Compound::LocalAtomIndex type is an integer index into atoms directly attached to a Compound,
-     * that is to say that the atom does not belong to any subcompounds of the Compound.  This index 
+     * that is to say that the atom does not belong to any subcompounds of the Compound.  This index
      * type should ordinarily not be used by clients of the Molmodel API
      */
-    SimTK_DEFINE_UNIQUE_LOCAL_INDEX_TYPE(Compound,LocalAtomIndex);
+    SimTK_DEFINE_UNIQUE_LOCAL_INDEX_TYPE(Compound, LocalAtomIndex);
 
     /**
      * Compound::BondCenterIndex type is an integer index into BondCenters of a Compound.  It is NOT
      * instrinsic to the BondCenter, but represents the relationship between a BondCenter
      * and precisely one of its parent compounds.
      */
-    SimTK_DEFINE_UNIQUE_LOCAL_INDEX_TYPE(Compound,BondCenterIndex);
+    SimTK_DEFINE_UNIQUE_LOCAL_INDEX_TYPE(Compound, BondCenterIndex);
 
     /**
      * Compound::BondIndex type is an integer index into Bonds of a Compound.  It is NOT
      * instrinsic to the Bond, but represents the relationship between a Bond
      * and precisely one of its parent compounds.
      */
-    SimTK_DEFINE_UNIQUE_LOCAL_INDEX_TYPE(Compound,BondIndex);
+    SimTK_DEFINE_UNIQUE_LOCAL_INDEX_TYPE(Compound, BondIndex);
 
     /// Type for set of target atom locations to be used for structure matching
     typedef std::vector<Vec3> AtomTargetLocations;
@@ -235,7 +252,7 @@ public:
      * Create an empty compound object representing a simulatable molecular structure.
      */
     Compound();
-    
+
     void updBondLength(Compound::BondIndex compoundBondIndex, mdunits::Length newLengthInNm);
 
     /**
@@ -245,7 +262,7 @@ public:
      * e.g. "ethane", not "ethane number 3"
      */
     explicit Compound(const Name& name ///< name of the compound type, not the compound instance
-        );
+    );
 
     // TODO check if it is correct and does not result in undefined behaviour.
     virtual ~Compound() = default;
@@ -257,7 +274,7 @@ public:
     size_t getNumBondCenters() const;
 
     /// \return total number of BondCenters in a  particular atom of a Compound
-	size_t getNumBondCenters(Compound::AtomIndex atomIndex) const;
+    size_t getNumBondCenters(Compound::AtomIndex atomIndex) const;
 
     /// \return total number of Bonds in a Compound, including its subcompounds
     size_t getNumBonds() const;
@@ -267,11 +284,12 @@ public:
 
     /// \return true if Compound contains an atom by that name (relative to this Compound)
     bool hasAtom(const AtomPathName& name ///< name of the atom relative to this compound.
-        ) const;
+    ) const;
 
     /// \return true if Compound contains a BondCenter (half-bond) by that name (relative to this Compound)
-    bool hasBondCenter(const BondCenterPathName& bondCenter ///< name of the BondCenter relative to this compound.
-        ) const;
+    bool
+    hasBondCenter(const BondCenterPathName& bondCenter ///< name of the BondCenter relative to this compound.
+    ) const;
 
     /// \return true if Compound contains a subcompound by that name (relative to this Compound)
     // bool hasSubcompound(const Name& name ///< name of the subcompound relative to this compound.
@@ -280,101 +298,100 @@ public:
     /// \return integer index of one of the two atoms involved in a particular covalent bond
     Compound::AtomIndex getBondAtomIndex(
         Compound::BondIndex bondIndex, ///< integer index of a bond in this Compound
-        int which                      ///< zero(0) for parent-side (rootward) atom of bond, one(1) for child-side (leafward) atom
-        ) const;
+        int which ///< zero(0) for parent-side (rootward) atom of bond, one(1) for child-side (leafward) atom
+    ) const;
 
 
-    /** 
+    /**
      * \brief Add the first atom unconnected to anything else (yet).
      * \return a reference to this compound object
      */
-    Compound& setBaseAtom(
-        const Compound::AtomName& name,   ///< name of the new atom being created
-        const Element& element,           ///< chemical element of the new atom being created
-        const Transform& location = Vec3(0)  ///< default location of the new atom being created in orthogonal nanometers.  Defaults to (0,0,0)
-        );
-    /** 
+    Compound&
+    setBaseAtom(const Compound::AtomName& name,     ///< name of the new atom being created
+                const Element& element,             ///< chemical element of the new atom being created
+                const Transform& location = Vec3(0) ///< default location of the new atom being created in
+                                                    ///< orthogonal nanometers.  Defaults to (0,0,0)
+    );
+    /**
      * \brief Add the first atom unconnected to anything else (yet).
      * \return a reference to this compound object
      */
-    Compound& setBaseAtom(
-        const Compound::AtomName& name,   ///< name of the new atom being created
-        const Biotype& biotype,           ///< Biotype of the new atom being created
-        const Transform& location = Vec3(0)    ///< default location of the new atom being created in orthogonal nanometers.  Defaults to (0,0,0)
-        );  
+    Compound&
+    setBaseAtom(const Compound::AtomName& name,     ///< name of the new atom being created
+                const Biotype& biotype,             ///< Biotype of the new atom being created
+                const Transform& location = Vec3(0) ///< default location of the new atom being created in
+                                                    ///< orthogonal nanometers.  Defaults to (0,0,0)
+    );
 
-    /** 
-     * \brief  Add a first subcompound containing exactly one atom, so the Compound::AtomName can be reused for the Compound::Name.
-     * This atom is not connected to anything else (yet).
+    /**
+     * \brief  Add a first subcompound containing exactly one atom, so the Compound::AtomName can be reused
+     * for the Compound::Name. This atom is not connected to anything else (yet).
      * \return a reference to this compound object
      */
     Compound& setBaseAtom(
         const Compound::SingleAtom& c, ///< single-atom Compound to add as first subcompound of this Compound
         const Transform& = Transform() ///< default location and orientation of the new atom being created
-        ); 
+    );
 
-    /** 
+    /**
      *  \brief Add a first subcompound without attaching it to anything.
      * \return a reference to this compound object
      */
     Compound& setBaseCompound(
-        const Compound::Name& n,         ///< name for new subcompound, from viewpoint of parent 
-        const Compound& c,               ///< new subcompound to be copied and attached to parent Compound
-        const Transform& location = Transform()///< default location of the new atom being created in orthogonal nanometers.  Defaults to (0,0,0)
-        );
+        const Compound::Name& n, ///< name for new subcompound, from viewpoint of parent
+        const Compound& c,       ///< new subcompound to be copied and attached to parent Compound
+        const Transform& location = Transform() ///< default location of the new atom being created in
+                                                ///< orthogonal nanometers.  Defaults to (0,0,0)
+    );
 
-    /** 
-     *  \brief Add a subcompound containing exactly one atom, so the Compound::AtomName can be reused for the Compound::Name.
-     *  This atom is connected to existing material.
+    /**
+     *  \brief Add a subcompound containing exactly one atom, so the Compound::AtomName can be reused for the
+     * Compound::Name. This atom is connected to existing material.
      * \return a reference to this compound object
      */
     Compound& bondAtom(
-        const Compound::SingleAtom& c, ///< the new subcompound to attach to this compound (a copy of the subcompound will be attached) 
-        const BondCenterPathName& parentBondName, ///< name of the bond center on the parent Compound to which the new subcompound will be attached
-        mdunits::Length distance, ///< default bond length in nanometers of new bond connecting new subcompound to parent Compound
-        Angle dihedral = 0, ///< default dihedral angle about new bond, with respect to the first bond center on each atom
+        const Compound::SingleAtom& c, ///< the new subcompound to attach to this compound (a copy of the
+                                       ///< subcompound will be attached)
+        const BondCenterPathName& parentBondName, ///< name of the bond center on the parent Compound to which
+                                                  ///< the new subcompound will be attached
+        mdunits::Length distance, ///< default bond length in nanometers of new bond connecting new
+                                  ///< subcompound to parent Compound
+        Angle dihedral =
+            0, ///< default dihedral angle about new bond, with respect to the first bond center on each atom
         BondMobility::Mobility = BondMobility::Default ///< allowed motion in new bond
-        );
+    );
 
-    /** 
+    /**
      *  \brief Bond atom using default bond length and dihedral angle.
-     *  Bond length and dihedral angle must have already been predefined in the 
+     *  Bond length and dihedral angle must have already been predefined in the
      *  parent *or* the child BondCenter, but not both
      * \return a reference to this compound object
      */
-    Compound& bondAtom(
-        const Compound::SingleAtom& c, ///< the new subcompound to attach to this compound (a copy of the subcompound will be attached) 
-        const BondCenterPathName& parentBondName ///< name of the bond center on the parent Compound to which the new subcompound will be attached
-        );
+    Compound&
+    bondAtom(const Compound::SingleAtom& c, ///< the new subcompound to attach to this compound (a copy of the
+                                            ///< subcompound will be attached)
+             const BondCenterPathName& parentBondName ///< name of the bond center on the parent Compound to
+                                                      ///< which the new subcompound will be attached
+    );
 
-    /** 
+    /**
      *  \brief Add a subcompound attached by its inboard bond to an existing bond center
      * \return a reference to this compound object
      */
     Compound& bondCompound(
         const Compound::Name& n, ///< name for the new subcompound from the viewpoint of the parent Compound
-        const Compound& c, ///< the new subcompound to attach to this compound (a copy of the subcompound will be attached)
-        const BondCenterPathName& parentBondName, ///< name of the bond center on the parent Compound to which the new subcompound will be attached
-        mdunits::Length distance, ///< default bond length in nanometers of new bond connecting new subcompound to parent Compound
-        Angle dihedral = 180*Deg2Rad, ///< default dihedral angle about new bond, with respect to the first other bond center on each atom
+        const Compound& c, ///< the new subcompound to attach to this compound (a copy of the subcompound will
+                           ///< be attached)
+        const BondCenterPathName& parentBondName, ///< name of the bond center on the parent Compound to which
+                                                  ///< the new subcompound will be attached
+        mdunits::Length distance,       ///< default bond length in nanometers of new bond connecting new
+                                        ///< subcompound to parent Compound
+        Angle dihedral = 180 * Deg2Rad, ///< default dihedral angle about new bond, with respect to the first
+                                        ///< other bond center on each atom
         BondMobility::Mobility mobility = BondMobility::Default ///< allowed motion in new bond
-        );
+    );
 
-    /** 
-     *  \brief Add a subcompound attached by its inboard bond to an existing bond center
-     *  Shorter version uses default bond length and dihedral angle,
-     *  which must have been predefined in the parent *or* the child BondCenter,
-     *  but not both.
-     * 
-     * \return a reference to this compound object
-     */
-    Compound& bondCompound(
-        const Compound::Name& n, ///< name for the new subcompound from the viewpoint of the parent Compound
-        const Compound& c,  ///< the new subcompound to attach to this compound (a copy of the subcompound will be attached)
-        const BondCenterPathName& parentBondName ///< name of the bond center on the parent Compound to which the new subcompound will be attached
-        );
-
-    /** 
+    /**
      *  \brief Add a subcompound attached by its inboard bond to an existing bond center
      *  Shorter version uses default bond length and dihedral angle,
      *  which must have been predefined in the parent *or* the child BondCenter,
@@ -384,20 +401,40 @@ public:
      */
     Compound& bondCompound(
         const Compound::Name& n, ///< name for the new subcompound from the viewpoint of the parent Compound
-        const Compound& c, ///< the new subcompound to attach to this compound (a copy of the subcompound will be attached)
-        const BondCenterPathName& parentBondName,  ///< name of the bond center on the parent Compound to which the new subcompound will be attached
-        BondMobility::Mobility mobility ///< type of motion permitted in the bond connecting parent to new subcompound
-        );
+        const Compound& c, ///< the new subcompound to attach to this compound (a copy of the subcompound will
+                           ///< be attached)
+        const BondCenterPathName& parentBondName ///< name of the bond center on the parent Compound to which
+                                                 ///< the new subcompound will be attached
+    );
 
-    /** 
+    /**
+     *  \brief Add a subcompound attached by its inboard bond to an existing bond center
+     *  Shorter version uses default bond length and dihedral angle,
+     *  which must have been predefined in the parent *or* the child BondCenter,
+     *  but not both.
+     *
+     * \return a reference to this compound object
+     */
+    Compound& bondCompound(
+        const Compound::Name& n, ///< name for the new subcompound from the viewpoint of the parent Compound
+        const Compound& c, ///< the new subcompound to attach to this compound (a copy of the subcompound will
+                           ///< be attached)
+        const BondCenterPathName& parentBondName, ///< name of the bond center on the parent Compound to which
+                                                  ///< the new subcompound will be attached
+        BondMobility::Mobility
+            mobility ///< type of motion permitted in the bond connecting parent to new subcompound
+    );
+
+    /**
      *  \brief setInboardBondCenter assigns special status to a bond center.
      *  There can be at most one inboard bond center in a Compound.
      *  Only an inboard bond center can be used to bond to a parent compound
      * \return a reference to this compound object
      */
-    Compound& setInboardBondCenter(
-        const Compound::BondCenterName& centerName ///< name of existing BondCenter to use as inboard BondCenter
-        );
+    Compound&
+    setInboardBondCenter(const Compound::BondCenterName&
+                             centerName ///< name of existing BondCenter to use as inboard BondCenter
+    );
 
     /** \brief Make so that this compound can no longer be a child to the geometry of another compound
      *  Raises an error if the inboard bond center is already bonded.
@@ -411,9 +448,10 @@ public:
      * \return a reference to this compound object
      */
     Compound& addFirstBondCenter(
-        const Compound::BondCenterName& centerName, ///< name for the new BondCenter, must be unique within the Compound
+        const Compound::BondCenterName&
+            centerName, ///< name for the new BondCenter, must be unique within the Compound
         const Compound::AtomPathName& atomName ///< name of the Atom to attach the bond center to
-        );
+    );
 
     /**
      * Place a second bond center on an atom, placed a particular
@@ -422,10 +460,11 @@ public:
      * \return a reference to this compound object
      */
     Compound& addSecondBondCenter(
-        const Compound::BondCenterName& centerName, ///< name for the new BondCenter, must be unique within the Compound
+        const Compound::BondCenterName&
+            centerName, ///< name for the new BondCenter, must be unique within the Compound
         const Compound::AtomName& atomName, ///< name of the Atom to attach the bond center to
         Angle bondAngle1 ///< default bond bend angle relating the first two bond centers of the atom
-        );
+    );
 
     /** Assign first two bond centers on a particular atom with arbitrary directions // NEWMOB
      *  \return a reference to this Compound object
@@ -433,10 +472,11 @@ public:
      * \return a reference to this compound object
      */
     Compound& addFirstTwoBondCenters(
-            const Compound::BondCenterName& centerName1,  const Compound::BondCenterName& centerName2,
-            const Compound::AtomPathName& atomName, ///< name of the Atom to attach the bond center to
-            UnitVec3 dir1, UnitVec3 dir2
-    );
+        const Compound::BondCenterName& centerName1,
+        const Compound::BondCenterName& centerName2,
+        const Compound::AtomPathName& atomName, ///< name of the Atom to attach the bond center to
+        UnitVec3 dir1,
+        UnitVec3 dir2);
     /**
      * Places a third or later bond center on an atom, in the same
      * plane as the first two bond centers.
@@ -448,11 +488,13 @@ public:
      * \return a reference to this compound object
      */
     Compound& addPlanarBondCenter(
-        const Compound::BondCenterName& centerName, ///< name for the new BondCenter, must be unique within the Compound
+        const Compound::BondCenterName&
+            centerName, ///< name for the new BondCenter, must be unique within the Compound
         const Compound::AtomName& atomName, ///< name of the Atom to attach the bond center to
         Angle bondAngle1, ///< default bond bend angle relating the first bond center to the new bond center
-        Angle bondAngle2 ///< APPROXIMATE default bond bend angle relating the second bond center to the new bond center
-        );
+        Angle bondAngle2  ///< APPROXIMATE default bond bend angle relating the second bond center to the new
+                          ///< bond center
+    );
 
     /**
      * Place a third or later bond center on an atom, defined
@@ -464,11 +506,12 @@ public:
      * \return a reference to this compound object
      */
     Compound& addRightHandedBondCenter(
-        const Compound::BondCenterName& centerName, ///< name for the new BondCenter, must be unique within the Compound
+        const Compound::BondCenterName&
+            centerName, ///< name for the new BondCenter, must be unique within the Compound
         const Compound::AtomName& atomName, ///< name of the Atom to attach the bond center to
         Angle bondAngle1, ///< default bond bend angle relating the first bond center to the new bond center
-        Angle bondAngle2 ///< default bond bend angle relating the second bond center to the new bond center
-        );
+        Angle bondAngle2  ///< default bond bend angle relating the second bond center to the new bond center
+    );
 
     /**
      * Place a third or later bond center on an atom, defined
@@ -480,11 +523,12 @@ public:
      * \return a reference to this compound object
      */
     Compound& addLeftHandedBondCenter(
-        const Compound::BondCenterName& centerName, ///< name for the new BondCenter, must be unique within the Compound
+        const Compound::BondCenterName&
+            centerName, ///< name for the new BondCenter, must be unique within the Compound
         const Compound::AtomName& atomName, ///< name of the Atom to attach the bond center to
         Angle bondAngle1, ///< default bond bend angle relating the first bond center to the new bond center
-        Angle bondAngle2 ///< default bond bend angle relating the second bond center to the new bond center
-        );
+        Angle bondAngle2  ///< default bond bend angle relating the second bond center to the new bond center
+    );
 
     /**
      * Adds a covalent bond that is not part of the main
@@ -498,12 +542,17 @@ public:
      * \return a reference to this compound object
      */
     Compound& addRingClosingBond(
-        const Compound::BondCenterPathName& centerName1, ///< name of the first existing bond center in the new bond
-        const Compound::BondCenterPathName& centerName2, ///< name of the other existing bond center in the new bond
-        mdunits::Length bondLength, ///< default bond length in nanometers of the new bond (might have no effect)
-        Angle dihedral = 180*Deg2Rad, ///< default dihedral angle about new bond, with respect to the first other bond center on each atom
-        BondMobility::Mobility mobility = BondMobility::Default ///< type of motion permitted in the bond connecting parent to new subcompound
-        );
+        const Compound::BondCenterPathName&
+            centerName1, ///< name of the first existing bond center in the new bond
+        const Compound::BondCenterPathName&
+            centerName2, ///< name of the other existing bond center in the new bond
+        mdunits::Length
+            bondLength, ///< default bond length in nanometers of the new bond (might have no effect)
+        Angle dihedral = 180 * Deg2Rad, ///< default dihedral angle about new bond, with respect to the first
+                                        ///< other bond center on each atom
+        BondMobility::Mobility mobility = BondMobility::Default ///< type of motion permitted in the bond
+                                                                ///< connecting parent to new subcompound
+    );
 
     /**
      * Adds a covalent bond that is not part of the main
@@ -516,26 +565,27 @@ public:
      *
      * \return a reference to this compound object
      */
-    Compound& addRingClosingBond(
-        const Compound::BondCenterPathName& centerName1, ///< name of the first existing bond center in the new bond
-        const Compound::BondCenterPathName& centerName2 ///< name of the other existing bond center in the new bond
-        );
+    Compound& addRingClosingBond(const Compound::BondCenterPathName&
+                                     centerName1, ///< name of the first existing bond center in the new bond
+                                 const Compound::BondCenterPathName&
+                                     centerName2 ///< name of the other existing bond center in the new bond
+    );
 
     /// \return read-only reference to a subcompound of this Compound
-    //const Compound& getSubcompound(Compound::Index ///< integer index of subcompound
-    //    ) const;
+    // const Compound& getSubcompound(Compound::Index ///< integer index of subcompound
+    //     ) const;
 
     /// \return mutable reference to a subcompound of this Compound
-    //Compound& updSubcompound(Compound::Index ///< integer index of subcompound
-    //    );
+    // Compound& updSubcompound(Compound::Index ///< integer index of subcompound
+    //     );
 
     /// \return read-only reference to a subcompound of this Compound
     const Compound& getSubcompound(const Compound::Name& subcompoundName ///< name of subcompound
-        ) const;
+    ) const;
 
     /// \return mutable reference to a subcompound of this Compound
     Compound& updSubcompound(const Compound::Name& subcompoundName ///< name of subcompound
-        );
+    );
 
     /// @}
     // end topology methods
@@ -544,32 +594,36 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     /// \name Molecular geometry methods
     /// @{
-    
+
     // EU
-    Transform calcAtomFrameInGroundFrame(const State& state, Compound::AtomIndex atomId) const;
+    [[nodiscard]] auto calcAtomFrameInGroundFrame(const State& state, Compound::AtomIndex cAIx) const
+        -> Transform;
 
     /**
      * Compute atom location in local Compound frame
-     * 
+     *
      * \return default (initial) location of atom in orthogonal nanometers with respect to Ground frame
      */
-    Vec3 calcDefaultAtomLocationInGroundFrame(const AtomPathName& atomName ///< name of the atom from viewpoint of Compound
-        ) const;
+    Vec3 calcDefaultAtomLocationInGroundFrame(
+        const AtomPathName& atomName ///< name of the atom from viewpoint of Compound
+    ) const;
 
-    Vec3 calcDefaultAtomLocationInCompoundFrame(const AtomPathName& atomName ///< name of the atom from viewpoint of Compound
-        ) const;
+    Vec3 calcDefaultAtomLocationInCompoundFrame(
+        const AtomPathName& atomName ///< name of the atom from viewpoint of Compound
+    ) const;
 
-    /** 
-     *  \brief Sets default (initial) bond length of current or future Bond using this Compound's inboard BondCenter
+    /**
+     *  \brief Sets default (initial) bond length of current or future Bond using this Compound's inboard
+     * BondCenter
      *
      *  Default inboard bond length and dihedral should only be set
-     *  when the future bonding partners of this compound are 
+     *  when the future bonding partners of this compound are
      *  restricted to a particular atom type
-     * 
+     *
      * \return a reference to this compound object
      */
     Compound& setDefaultInboardBondLength(mdunits::Length ///< bond length in nanometers
-        );
+    );
 
     /**
      * \brief Stores a default (initial) dihedral angle in the inboard BondCenter of this Compound.
@@ -580,33 +634,31 @@ public:
      * \return a reference to this compound object
      */
     Compound& setDefaultInboardDihedralAngle(Angle ///< dihedral angle in radians
-        );
+    );
 
-    /** 
+    /**
      *  \brief Sets a default(initial) bond angle defined by three atoms
      *
      *  \warning setDefaultBondAngle only works if one of the two bond centers is bond center 1 or 2
      *  \todo - remove this restriction
-     * 
+     *
      * \return a reference to this compound object
      */
-    Compound& setDefaultBondAngle(
-        Angle angle, ///< new default bond angle in radians
-        const AtomPathName& atom1, ///< name of first atom defining bond angle
-        const AtomPathName& atom2, ///< name of middle atom defining bond angle
-        const AtomPathName& atom3 ///< name of third atom defining bond angle
-        );
+    Compound& setDefaultBondAngle(Angle angle,               ///< new default bond angle in radians
+                                  const AtomPathName& atom1, ///< name of first atom defining bond angle
+                                  const AtomPathName& atom2, ///< name of middle atom defining bond angle
+                                  const AtomPathName& atom3  ///< name of third atom defining bond angle
+    );
 
     /**
      * \brief Sets a default (inital) bond length defined by two atoms
      *
      * \return a reference to this compound object
      */
-    Compound& setDefaultBondLength(
-        mdunits::Length length, ///< default bond length in nanometers
-        const AtomPathName& atom1, ///< name of first atom in bond
-        const AtomPathName& atom2 ///< name of second atom in bond
-        );
+    Compound& setDefaultBondLength(mdunits::Length length,    ///< default bond length in nanometers
+                                   const AtomPathName& atom1, ///< name of first atom in bond
+                                   const AtomPathName& atom2  ///< name of second atom in bond
+    );
 
     /**
      * \brief Sets a default (initial) dihedral angle of a previously named dihedral
@@ -615,52 +667,50 @@ public:
      */
     Compound& setDefaultDihedralAngle(
         const DihedralName& dihedralName, ///< name of predefined dihedral angle with respect to this Compound
-        Angle angleInRadians ///< new dihedral angle in radians
-        );
+        Angle angleInRadians              ///< new dihedral angle in radians
+    );
 
-    Compound& setDefaultDihedralAngle(
-    			Angle angle, 
-    			Compound::AtomIndex atom1,
-    			Compound::AtomIndex atom2,
-    			Compound::AtomIndex atom3,
-    			Compound::AtomIndex atom4
-    			);
-    
-    Compound& setDefaultDihedralAngle(
-    			Angle angle, 
-    			const Compound::AtomName& atom1,
-    			const Compound::AtomName& atom2,
-    			const Compound::AtomName& atom3,
-    			const Compound::AtomName& atom4
-    			);
-   
-   // EU BEGIN
-   Angle bgetDefaultDihedralAngle(Compound::BondIndex bondIx) const;
-   Angle bgetDefaultInboardDihedralAngle(Compound::AtomIndex atomIx) const;
-   ///* GMolModel Try other Mobilizers
-   mdunits::Length bgetDefaultInboardBondLength(Compound::AtomIndex atomIx) const;
-   // GMolModel END */
-   const Transform& getFrameInMobilizedBodyFrame(Compound::AtomIndex atomIx) const;
-   const Transform& bgetLocalTransform(Compound::AtomIndex atomIx) const;
-   Compound& bsetFrameInMobilizedBodyFrame(Compound::AtomIndex atomIx, Transform);
+    Compound& setDefaultDihedralAngle(Angle angle,
+                                      Compound::AtomIndex atom1,
+                                      Compound::AtomIndex atom2,
+                                      Compound::AtomIndex atom3,
+                                      Compound::AtomIndex atom4);
 
-   /**
-	* @brief Get the inboard atom of a given atom
-	* @param Given AtomIndex
-	* @return Inboard AtomIndex
-   */
+    Compound& setDefaultDihedralAngle(Angle angle,
+                                      const Compound::AtomName& atom1,
+                                      const Compound::AtomName& atom2,
+                                      const Compound::AtomName& atom3,
+                                      const Compound::AtomName& atom4);
+
+    // EU BEGIN
+    [[nodiscard]] auto bgetDefaultDihedralAngle(Compound::BondIndex bondIx) const -> Angle;
+    [[nodiscard]] auto bgetDefaultInboardDihedralAngle(Compound::AtomIndex cAIx) const -> Angle;
+
+    ///* GMolModel Try other Mobilizers
+    [[nodiscard]] auto bgetDefaultInboardBondLength(Compound::AtomIndex cAIx) const -> mdunits::Length;
+
+    // GMolModel END */
+    [[nodiscard]] auto getFrameInMobilizedBodyFrame(Compound::AtomIndex cAIx) const -> const Transform&;
+    [[nodiscard]] auto bgetLocalTransform(Compound::AtomIndex cAIx) const -> const Transform&;
+    auto bsetFrameInMobilizedBodyFrame(Compound::AtomIndex cAIx, const Transform& B_X_atom) -> Compound&;
+
+    /**
+     * @brief Get the inboard atom of a given atom
+     * @param Given AtomIndex
+     * @return Inboard AtomIndex
+     */
     Compound::AtomIndex getInboardAtomIndex(Compound::AtomIndex aIx) const;
 
-   // EU END
- 
-   /**
+    // EU END
+
+    /**
      * \brief Computes default (initial) dihedral angle of a previously named dihedral
      *
      * \return dihedral angle in radians with respect to first other bond centers of bonded atoms
      */
     Angle calcDefaultDihedralAngle(
         const DihedralName& dihedralName ///< name of predefined dihedral angle with respect to this Compound
-        ) const;
+    ) const;
 
     /**
      *  \brief Sets dynamic dihedral angle of a previously named dihedral
@@ -670,10 +720,10 @@ public:
      *  \return a reference to this compound object
      */
     Compound& setDihedralAngle(
-        State& state, ///< simbody State object representing the current configuration
+        State& state,                     ///< simbody State object representing the current configuration
         const DihedralName& dihedralName, ///< name of predefined dihedral angle with respect to this Compound
-        Angle ///< dihedral angle in radians
-        );
+        Angle                             ///< dihedral angle in radians
+    );
 
     /**
      * \brief Computes dynamic dihedral angle of a previously named dihedral
@@ -681,49 +731,50 @@ public:
      * \return dihedral angle in radians with respect to first other bond centers of bonded atoms
      */
     Angle calcDihedralAngle(
-        const State& state, ///< simbody State object representing the current configuration
+        const State& state,              ///< simbody State object representing the current configuration
         const DihedralName& dihedralName ///< name of predefined dihedral angle with respect to this Compound
-        ) const;
+    ) const;
 
     /// \return location and orientation of Atom with respect to this Compound
-    Transform calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex ///< integer index of Atom with respect to this Compound
-        ) const;
+    Transform calcDefaultAtomFrameInCompoundFrame(
+        Compound::AtomIndex ///< integer index of Atom with respect to this Compound
+    ) const;
 
     /**
      * \return location in orthogonal nanometers
      */
     Vec3 calcAtomLocationInGroundFrame(
-        const State& state, ///< simbody State representing current configuration
+        const State& state,        ///< simbody State representing current configuration
         Compound::AtomIndex atomId ///< integer index of Atom with respect to this Compound
-        ) const;
+    ) const;
 
     Vec3 calcAtomLocationInCompoundFrame(
-        const State& state, ///< simbody State representing current configuration
+        const State& state,        ///< simbody State representing current configuration
         Compound::AtomIndex atomId ///< integer index of Atom with respect to this Compound
-        ) const;
+    ) const;
 
     /**
      * \return vector velocity in nanometers per picosecond
      */
     Vec3 calcAtomVelocityInGroundFrame(
-        const State& state, ///< simbody State representing current configuration
-        Compound::AtomIndex atomId  ///< integer index of Atom with respect to this Compound
-        ) const;
+        const State& state,        ///< simbody State representing current configuration
+        Compound::AtomIndex atomId ///< integer index of Atom with respect to this Compound
+    ) const;
 
     /**
      * \return vector acceleration in nanometers per picosecond squared
      */
     Vec3 calcAtomAccelerationInGroundFrame(
-        const State& state, ///< simbody State representing current configuration
-        Compound::AtomIndex atomId   ///< integer index of Atom with respect to this Compound
-        ) const;
+        const State& state,        ///< simbody State representing current configuration
+        Compound::AtomIndex atomId ///< integer index of Atom with respect to this Compound
+    ) const;
 
     /**
      * \return default (initial) location and orientation of a subcompound with respect to this Compound
      */
     Transform getSubcompoundFrameInParentFrame(
         const Compound::Name& subcompoundName ///< name of subcompound with respect to this Compound
-        ) const;
+    ) const;
 
 
     /**
@@ -732,7 +783,8 @@ public:
      * @param atom2
      * @return
      */
-    Transform getDefaultBondCenterFrameInOtherBondCenterFrame(Compound::AtomIndex atom1, Compound::AtomIndex atom2) const;
+    Transform getDefaultBondCenterFrameInOtherBondCenterFrame(Compound::AtomIndex atom1,
+                                                              Compound::AtomIndex atom2) const;
 
     /**
      * \brief Compute the default bond center frame in the atom frame
@@ -743,16 +795,17 @@ public:
      * \param atom2 ///< second atom index
      * \return Transform representing the bond center frame in the first atom's frame
      */
-    Transform calcDefaultBondCenterFrameInParentAtomFrame(Compound::AtomIndex parentAtom1, Compound::AtomIndex childAtom2) const;
-    Transform calcDefaultBondCenterFrameInChildAtomFrame(Compound::AtomIndex parentAtom1, Compound::AtomIndex childAtom2) const;
+    Transform calcDefaultBondCenterFrameInParentAtomFrame(Compound::AtomIndex parentAtom1,
+                                                          Compound::AtomIndex childAtom2) const;
+    Transform calcDefaultBondCenterFrameInChildAtomFrame(Compound::AtomIndex parentAtom1,
+                                                         Compound::AtomIndex childAtom2) const;
 
-	/** \brief Get list of all runs of consecutive bonded atoms of run-length n 
-	 * from the atoms mentions in an AtomTargetLocations structure
-	 * for example, to get a list of all bonded pairs, set run-length to 2.
-    */
-	std::vector< std::vector<Compound::AtomIndex> > getBondedAtomRuns(
-	int atomRunCount,
-	const AtomTargetLocations& atomTargets) const;
+    /** \brief Get list of all runs of consecutive bonded atoms of run-length n
+     * from the atoms mentions in an AtomTargetLocations structure
+     * for example, to get a list of all bonded pairs, set run-length to 2.
+     */
+    std::vector<std::vector<Compound::AtomIndex>>
+    getBondedAtomRuns(int atomRunCount, const AtomTargetLocations& atomTargets) const;
 
     /**
      * \brief Print detailed compound geometry
@@ -761,17 +814,17 @@ public:
     Compound& PrintCompoundGeometry(const Compound::AtomTargetLocations& atomTargets);
 
     /** \brief Adjust stereochemistry about chiral atoms to match that seen in a set of atomic locations
-     * Choose a small value of planarityTolerance parameter to break the planarity of out-of-plane atoms from the target set
+     * Choose a small value of planarityTolerance parameter to break the planarity of out-of-plane atoms from
+     * the target set
      * \param atomTargets ///< another set of atom locations to match chirality of
-     * \param planarityTolerance ///< break planarity of BondCenters more than this angle out of plane (radians)
+     * \param planarityTolerance ///< break planarity of BondCenters more than this angle out of plane
+     * (radians)
      * \param flipAll ///< whether to invert each mismatched BondCenter, or all at once
      * \return c
      */
-    Compound& matchDefaultAtomChirality(
-            const AtomTargetLocations& atomTargets, 
-            Angle planarityTolerance = 90.0 * Deg2Rad, 
-            bool flipAll = true 
-            );
+    Compound& matchDefaultAtomChirality(const AtomTargetLocations& atomTargets,
+                                        Angle planarityTolerance = 90.0 * Deg2Rad,
+                                        bool flipAll = true);
 
     /** \brief __no_desc__
      * \param __no_param__ //
@@ -791,16 +844,21 @@ public:
      */
     Compound& matchDefaultDirections(const AtomTargetLocations& atomTargets); // NEWMOB
 
-    enum PlanarBondMatchingPolicy {KeepPlanarBonds, DistortPlanarBonds, FlipPlanarBonds};
+    enum PlanarBondMatchingPolicy {
+        KeepPlanarBonds,
+        DistortPlanarBonds,
+        FlipPlanarBonds
+    };
 
     /** \brief __no_desc__
      * \param __no_param__ //
      * \return a reference to this compound
      */
     Compound& matchDefaultDihedralAngles(
-        const AtomTargetLocations& atomTargets,///< set of atom locations to match dihedrals of
-        PlanarBondMatchingPolicy policy = FlipPlanarBonds ///< whether to keep ideal torsions on bonds between planar atoms
-        );
+        const AtomTargetLocations& atomTargets, ///< set of atom locations to match dihedrals of
+        PlanarBondMatchingPolicy policy =
+            FlipPlanarBonds ///< whether to keep ideal torsions on bonds between planar atoms
+    );
 
     /** \brief __no_desc__
      * \param __no_param__ //
@@ -812,38 +870,33 @@ public:
     * <!-- Helper for calcDefaultAtomFramesInCompoundFrame. It sets a NaN flag for
     Top to inboard bond center transforms passed. -->
     */
-    Compound& invalidateAtomFrameCache(
-        std::vector<Transform>& atomFrameCache,
-        int numAtoms);
+    Compound& invalidateAtomFrameCache(std::vector<Transform>& atomFrameCache, int numAtoms);
 
     /*!
-    * <!-- Calculate Top to inboard bond center transform for all atoms.
-    * invalidateAtomFrameCache(atomFrameCache) must be called before this -->
-    */
-    Compound& calcDefaultAtomFramesInCompoundFrame(
-        std::vector<Transform>& atomFrameCache);
-    
+     * <!-- Calculate Top to inboard bond center transform for all atoms.
+     * invalidateAtomFrameCache(atomFrameCache) must be called before this -->
+     */
+    Compound& calcDefaultAtomFramesInCompoundFrame(std::vector<Transform>& atomFrameCache);
+
     /**
      * \brief Write the default (initial) configuration in Protein Data Bank (PDB) format.
      *
      * Starting with the first atom's serial number as one(1).
      */
     std::ostream& writeDefaultPdb(
-        std::ostream& os, ///< output stream to write PDB coordinates to
-        const Transform& transform = Transform()  ///< optional change to location and orientation of molecule
-        ) const;
+        std::ostream& os,                        ///< output stream to write PDB coordinates to
+        const Transform& transform = Transform() ///< optional change to location and orientation of molecule
+    ) const;
 
-   /**
-    * /brief This polymorphism takes a char* file name rather than ostream, to save the user a couple of lines of code.
-    *
-    */
+    /**
+     * /brief This polymorphism takes a char* file name rather than ostream, to save the user a couple of
+     * lines of code.
+     *
+     */
 
-    void writeDefaultPdb(
-        const char* outFileName, 
-        const Transform& transform
-        ) const;
+    void writeDefaultPdb(const char* outFileName, const Transform& transform) const;
 
-    /** 
+    /**
      * \brief Write the default (initial) configuration in Protein Data Bank (PDB) format.
      *
      * integer nextAtomSerialNumber reference is incremented within writeDefaultPdb method, so that subsequent
@@ -851,12 +904,13 @@ public:
      * atoms where the previous call left off.
      */
     std::ostream& writeDefaultPdb(
-        std::ostream& os, ///< output stream to write PDB coordinates to
-        int& nextAtomSerialNumber, ///< mutable integer reference containing the next desired atom serial number
+        std::ostream& os,          ///< output stream to write PDB coordinates to
+        int& nextAtomSerialNumber, ///< mutable integer reference containing the next desired atom serial
+                                   ///< number
         const Transform& transform = Transform() ///< optional change to location and orientation of molecule
-        ) const;
+    ) const;
 
-    /// @} 
+    /// @}
     // end configuration section
 
 
@@ -873,7 +927,7 @@ public:
      * \return a reference to this compound object
      */
     Compound& setCompoundName(const Name& ///< new name for Compound type
-        );
+    );
 
 
     /// \return name of Compound type
@@ -888,57 +942,60 @@ public:
      * \return a reference to this compound object
      */
     Compound& addCompoundSynonym(const Name& ///< new synonym for Compound type
-        );
+    );
 
     /**
      * Returns the most recently assigned name, if any, given to
-     * an atom in this compound.  
+     * an atom in this compound.
      */
-    const AtomPathName getAtomName(Compound::AtomIndex ///< integer index for Atom with respect to this Compound.
+    const AtomPathName
+        getAtomName(Compound::AtomIndex ///< integer index for Atom with respect to this Compound.
         ) const;
 
     /// \return chemical element of atom
-    const Element& getAtomElement(Compound::AtomIndex ///< integer index for Atom with respect to this Compound.
+    const Element&
+        getAtomElement(Compound::AtomIndex ///< integer index for Atom with respect to this Compound.
         ) const;
 
-    const Element& getAtomElement(const Compound::AtomName& ///< name for Atom in the context of this Compound.
-        ) const;
+    const Element&
+    getAtomElement(const Compound::AtomName& ///< name for Atom in the context of this Compound.
+    ) const;
 
     /**
      * \return  reference to this compound object
      */
-    Compound& nameAtom(
-        const Compound::AtomName& newName, ///< new name for this atom; name is local to this Compound
-        const AtomPathName& oldName ///< previous name; can be a subcompound-qualified Atom name
-        );
+    Compound&
+    nameAtom(const Compound::AtomName& newName, ///< new name for this atom; name is local to this Compound
+             const AtomPathName& oldName        ///< previous name; can be a subcompound-qualified Atom name
+    );
 
     /**
      * \return a reference to this compound object
      */
-    Compound& nameAtom(
-        const Compound::AtomName& newName,  ///< new name for this atom; name is local to this Compound
-        const AtomPathName& oldName,  ///< previous name; can be a subcompound-qualified Atom name
-        BiotypeIndex biotype ///< new Biotype for the atom, with respect to this Compound
-        );
+    Compound&
+    nameAtom(const Compound::AtomName& newName, ///< new name for this atom; name is local to this Compound
+             const AtomPathName& oldName,       ///< previous name; can be a subcompound-qualified Atom name
+             BiotypeIndex biotype               ///< new Biotype for the atom, with respect to this Compound
+    );
 
     /**
      * \brief Define a named dihedral angle using four atoms
      *
-     * The offset parameter is used in cases where the dihedral angle definition differs from 
+     * The offset parameter is used in cases where the dihedral angle definition differs from
      * the IUPAC definition of dihedral angles using four atoms.
-     * For example the definition of protein phi and psi angles is 180 degrees offset from the 
+     * For example the definition of protein phi and psi angles is 180 degrees offset from the
      * standard four-atom dihedral angle definition.
-     * 
+     *
      * \return a reference to this compound object
      */
     Compound& defineDihedralAngle(
         const Compound::DihedralName& angleName, ///< unique name for new dihedral angle definition
-        const Compound::AtomPathName& atom1, ///< first atom name
-        const Compound::AtomPathName& atom2, ///< second atom name
-        const Compound::AtomPathName& atom3, ///< third atom name
-        const Compound::AtomPathName& atom4, ///< fourth atom name
-        Angle offset = 0*Deg2Rad ///< nomenclature offset
-        );
+        const Compound::AtomPathName& atom1,     ///< first atom name
+        const Compound::AtomPathName& atom2,     ///< second atom name
+        const Compound::AtomPathName& atom3,     ///< third atom name
+        const Compound::AtomPathName& atom4,     ///< fourth atom name
+        Angle offset = 0 * Deg2Rad               ///< nomenclature offset
+    );
 
     /**
      * \brief Define a named dihedral in terms of two bond centers.
@@ -947,19 +1004,19 @@ public:
      * been placed yet.  The bond centers must be from two atoms that are bonded (atoms 2 and 3 of 4)
      * But are NOT the bond centers that connect the two middle atoms.
      *
-     * The offset parameter is used in cases where the dihedral angle definition differs from 
+     * The offset parameter is used in cases where the dihedral angle definition differs from
      * the IUPAC definition of dihedral angles using four atoms.
-     * For example the definition of protein phi and psi angles is 180 degrees offset from the 
+     * For example the definition of protein phi and psi angles is 180 degrees offset from the
      * standard four-atom dihedral angle definition.
-     * 
+     *
      * \return a reference to this compound object
      */
     Compound& defineDihedralAngle(
-        const Compound::DihedralName& angleName, ///< unique name for new dihedral angle definition
+        const Compound::DihedralName& angleName,   ///< unique name for new dihedral angle definition
         const Compound::BondCenterPathName& bond1, ///< first bond center, connecting atom 2 to atom 1
         const Compound::BondCenterPathName& bond2, ///< second bond center, connecting atom 3 to atom 4
-        Angle offset = 0*Deg2Rad ///< nomenclature offset
-        );
+        Angle offset = 0 * Deg2Rad                 ///< nomenclature offset
+    );
 
     /**
      * \brief Set value to populate "residue number" field for PDB file output
@@ -986,8 +1043,9 @@ public:
      *
      * \return a reference to this compound object
      */
-    Compound& setPdbChainId(String chainId ///< Protein Data Bank "chain Id" for this Compound.  Note that internally, multi-character chain IDs are supported.
-        );
+    Compound& setPdbChainId(String chainId ///< Protein Data Bank "chain Id" for this Compound.  Note that
+                                           ///< internally, multi-character chain IDs are supported.
+    );
 
     /// \return character that would populate "chain id" field for PDB file output for this Compound
     String getPdbChainId() const;
@@ -997,10 +1055,10 @@ public:
      *
      * \return a reference to this compound object
      */
-    Compound& nameBondCenter(
-        const Compound::BondCenterName& newName, ///< new local name for bond center
-        const BondCenterPathName& oldName ///< previous name, can be a subcompound-qualified name
-        );
+    Compound&
+    nameBondCenter(const Compound::BondCenterName& newName, ///< new local name for bond center
+                   const BondCenterPathName& oldName ///< previous name, can be a subcompound-qualified name
+    );
 
     /**
      * \brief Convenience method to locally import all of the atom names that a particular subcompound uses.
@@ -1008,21 +1066,24 @@ public:
      * \return a reference to this compound object
      */
     Compound& inheritAtomNames(const Compound::Name& ///< name of subcompound with having desired atom names
-        );
-    
+    );
+
     Compound& inheritCompoundSynonyms(const Compound& otherCompound);
-    
+
     /**
-     * \brief Convenience method to locally import all of the BondCenter names that a particular subcompound uses.
+     * \brief Convenience method to locally import all of the BondCenter names that a particular subcompound
+     * uses.
      *
      * \return a reference to this compound object
      */
-    Compound& inheritBondCenterNames(const Compound::Name& ///< name of subcompound with having desired BondCenter names
-        );
+    Compound&
+    inheritBondCenterNames(const Compound::Name& ///< name of subcompound with having desired BondCenter names
+    );
 
     /// \return integer index of named atom, with repect to this Compound
-    Compound::AtomIndex getAtomIndex(const Compound::AtomPathName& ///< atom name with respect to this Compound
-        ) const;
+    Compound::AtomIndex
+    getAtomIndex(const Compound::AtomPathName& ///< atom name with respect to this Compound
+    ) const;
 
     /// @}
     // end nomenclature methods
@@ -1031,45 +1092,46 @@ public:
     /// \name Compound simulation methods
     /// @{
 
-    /** 
+    /**
      * \brief Add this Compound, including all of its subcompounds, to a CompoundSystem, for simulation etc.
      *
      * This Compound will become a top-level object with the CompoundSystem.
      */
-    //void setCompoundSystem(CompoundSystem& system, ///< The CompoundSystem that will take ownership of this Compound.
-    //                       Compound::Index);       ///< The index within the new owner CompoundSystem that this Compound will have.
+    // void setCompoundSystem(CompoundSystem& system, ///< The CompoundSystem that will take ownership of this
+    // Compound.
+    //                        Compound::Index);       ///< The index within the new owner CompoundSystem that
+    //                        this Compound will have.
 
     void setMultibodySystem(MultibodySystem& system);
 
-    /** 
+    /**
      *  Override the default rotatability of a bond
-     * 
+     *
+     * \return a reference to this compound object
+     */
+    Compound& setBondMobility(BondMobility::Mobility mobility, ///< the new allowed motion of the bond
+                              const AtomPathName& atom1, ///< the name of the first atom defining the Bond
+                              const AtomPathName& atom2  ///< the name of the second atom defining the Bond
+    );
+
+    /**
+     *  Override the default rotatability of a bond
+     *
      * \return a reference to this compound object
      */
     Compound& setBondMobility(
         BondMobility::Mobility mobility, ///< the new allowed motion of the bond
-        const AtomPathName& atom1, ///< the name of the first atom defining the Bond
-        const AtomPathName& atom2 ///< the name of the second atom defining the Bond
-        );
-
-    /** 
-     *  Override the default rotatability of a bond
-     * 
-     * \return a reference to this compound object
-     */
-    Compound& setBondMobility(
-        BondMobility::Mobility mobility,  ///< the new allowed motion of the bond
-        Compound::BondIndex bondIndex ///< the integer index of the Bond in the context of this Compound
-        );
+        Compound::BondIndex bondIndex    ///< the integer index of the Bond in the context of this Compound
+    );
 
     /**
      * \brief Set BondMobility for every bond in the Compound.
-     * 
      *
-     * \return A reference to this Compound  
      *
-     */	
-    Compound  & setCompoundBondMobility(BondMobility::Mobility mobility);
+     * \return A reference to this Compound
+     *
+     */
+    Compound& setCompoundBondMobility(BondMobility::Mobility mobility);
 
     /**
      * \brief get the simbody MobilizedBody to which a particular atom is attached
@@ -1078,47 +1140,48 @@ public:
      *
      * \return the integer index of the MobilizedBody in the CompoundSystem
      */
-    MobilizedBodyIndex getAtomMobilizedBodyIndex(Compound::AtomIndex ///< integer index of the Atom in this Compound context.
+    MobilizedBodyIndex
+        getAtomMobilizedBodyIndex(Compound::AtomIndex ///< integer index of the Atom in this Compound context.
         ) const;
 
     /**
      * REX
      */
-    Compound & setAtomMobilizedBodyIndex(const Compound::AtomIndex, const MobilizedBodyIndex);
+    Compound& setAtomMobilizedBodyIndex(const Compound::AtomIndex, const MobilizedBodyIndex);
 
     /**
-     * \brief get the location of an Atom in the frame of the simbody MobilizedBody to which the Atom is attached
+     * \brief get the location of an Atom in the frame of the simbody MobilizedBody to which the Atom is
+     * attached
      *
      * Requires that this Compound has already been modeled in a CompoundSystem
      *
      * \return location in orthogonal nanometers with respect to the rigid body to which the atom is attached
      */
-    Vec3 getAtomLocationInMobilizedBodyFrame(Compound::AtomIndex ///< integer index of the Atom in this Compound context.
-        ) const;
+    Vec3 getAtomLocationInMobilizedBodyFrame(
+        Compound::AtomIndex ///< integer index of the Atom in this Compound context.
+    ) const;
 
     /** \brief define the Biotype for an Atom in this Compound
-     *  \param __fill__ 
+     *  \param __fill__
      *  \return a reference to this compound object
      */
     Compound& setBiotypeIndex(
         const Compound::AtomPathName& atomName, ///< name of the atom in the context of this Compound
         BiotypeIndex biotype ///< integer index of an existing Biotype known to the Biotype class
-        );
-    
+    );
+
     /** \brief define the Biotype for an Atom in this Compound
-     *  \param __fill__ 
+     *  \param __fill__
      *  \return a reference to this compound object
-     */    
-    Compound& setAtomBiotype(
-        const Compound::AtomPathName& atomName,
-        const String& biotypeResidueName,
-        const String& biotypeAtomName,
-        SimTK::Ordinality::Residue ordinality = SimTK::Ordinality::Any
-    ) {
+     */
+    Compound& setAtomBiotype(const Compound::AtomPathName& atomName,
+                             const String& biotypeResidueName,
+                             const String& biotypeAtomName,
+                             SimTK::Ordinality::Residue ordinality = SimTK::Ordinality::Any) {
         // Check if this atom exists in this Compound
         if (!hasAtom(atomName)) {
-            const std::string errorMsg = "setAtomBiotype: The atom '" + std::string(atomName) + 
-                                "' does not exist in this Compound.";
+            const std::string errorMsg =
+                "setAtomBiotype: The atom '" + std::string(atomName) + "' does not exist in this Compound.";
             SimTK_ASSERT_ALWAYS(false, errorMsg.c_str());
         }
 
@@ -1128,29 +1191,30 @@ public:
 
         // 3. Define Biotype if it does not already exist
         if (!Biotype::exists(biotypeResidueName, biotypeAtomName, ordinality)) {
-            Biotype::defineBiotype(
-                element,
-                valence, 
-                biotypeResidueName, 
-                biotypeAtomName, 
-                ordinality);
+            Biotype::defineBiotype(element, valence, biotypeResidueName, biotypeAtomName, ordinality);
         }
 
         const Biotype& biotype = Biotype::get(biotypeResidueName, biotypeAtomName, ordinality);
-        
+
         // Check Element Compatibility
         if (biotype.getElement() != element) {
-            std::string errorMsg = "Mismatched Element: Biotype '" + std::string(biotypeAtomName) + 
-                "' is defined for element " + biotype.getElement().getName().c_str() + " (atomic number: " + std::to_string(biotype.getElement().getAtomicNumber()) + ", mass: " + std::to_string(biotype.getElement().getMass()) +
-                "), but atom '" + std::string(atomName) + "' is element " + element.getName().c_str() + "( " + std::to_string(element.getAtomicNumber()) + ", mass: " + std::to_string(element.getMass()) + ").";
+            std::string errorMsg =
+                "Mismatched Element: Biotype '" + std::string(biotypeAtomName) + "' is defined for element "
+                + biotype.getElement().getName().c_str()
+                + " (atomic number: " + std::to_string(biotype.getElement().getAtomicNumber())
+                + ", mass: " + std::to_string(biotype.getElement().getMass()) + "), but atom '"
+                + std::string(atomName) + "' is element " + element.getName().c_str() + "( "
+                + std::to_string(element.getAtomicNumber()) + ", mass: " + std::to_string(element.getMass())
+                + ").";
             SimTK_ASSERT_ALWAYS(biotype.getElement() == element, errorMsg.c_str());
         }
 
         // Check Valence/Bond Center Compatibility
         if (biotype.getValence() != valence) {
-            std::string errorMsg = "Mismatched Valence: Biotype '" + std::string(biotypeAtomName) + 
-                "' expects " + std::to_string(biotype.getValence()) + " bond centers, but atom '" + 
-                std::string(atomName) + "' has " + std::to_string(valence) + ".";
+            std::string errorMsg = "Mismatched Valence: Biotype '" + std::string(biotypeAtomName)
+                                   + "' expects " + std::to_string(biotype.getValence())
+                                   + " bond centers, but atom '" + std::string(atomName) + "' has "
+                                   + std::to_string(valence) + ".";
             SimTK_ASSERT_ALWAYS(biotype.getValence() == valence, errorMsg.c_str());
         }
 
@@ -1161,11 +1225,11 @@ public:
     }
 
     /** \brief __fill__
-     *  \param __fill__ 
+     *  \param __fill__
      *  \return the biotype assigned to an Atom in this Compound
-     */   
+     */
     BiotypeIndex getAtomBiotypeIndex(Compound::AtomIndex ///< integer index of an Atom in this Compound
-        ) const;
+    ) const;
 
     // RUNTIME INTERFACE
 
@@ -1188,53 +1252,59 @@ public:
     const Transform& getTopLevelTransform() const;
 
     /** \brief __fill__
-     *  \param __fill__ 
+     *  \param __fill__
      *  \return the biotype assigned to an Atom in this Compound
-     */ 
+     */
     const SimTK::mdunits::Mass getAtomMass(Compound::AtomIndex id) const;
 
     /** \brief __fill__
-     *  \param __fill__ 
+     *  \param __fill__
      *  \return the biotype assigned to an Atom in this Compound
-     */ 
-    void setAtomMass(Compound::AtomIndex id, const SimTK::mdunits::Mass& mass) ;
+     */
+    void setAtomMass(Compound::AtomIndex id, const SimTK::mdunits::Mass& mass);
 
     /** \brief __fill__
-     *  \param __fill__ 
+     *  \param __fill__
      *  \return the biotype assigned to an Atom in this Compound
-     */ 
-    void updAtomMass(Compound::AtomIndex id, const SimTK::mdunits::Mass& mass) ;
+     */
+    void updAtomMass(Compound::AtomIndex id, const SimTK::mdunits::Mass& mass);
 
 
-protected:
-
+    protected:
     /**
      * \brief Stores relationship between a Compound Atom and an Atom defined in a DuMMForcefieldSubsystem
      */
-    void setDuMMAtomIndex(
-        Compound::AtomIndex, ///< integer index of an existing Atom in this Compound
-        DuMM::AtomIndex ///< integer index of an Atom in a DuMMForceFieldSubsystem
-        );
+    void setDuMMAtomIndex(Compound::AtomIndex, ///< integer index of an existing Atom in this Compound
+                          DuMM::AtomIndex      ///< integer index of an Atom in a DuMMForceFieldSubsystem
+    );
 
     explicit Compound(CompoundRep* ip);
     friend class CompoundSystem;
 
-private:
+    private:
     // OBSOLETE: use getNumAtoms()
-    int getNAtoms() const {return getNumAtoms();}
+    int getNAtoms() const {
+        return getNumAtoms();
+    }
     // OBSOLETE: use getNumBondCenters()
-    size_t getNBondCenters() const {return getNumBondCenters();}
+    size_t getNBondCenters() const {
+        return getNumBondCenters();
+    }
     // OBSOLETE: use getNumBondCenters()
-    size_t getNBondCenters(Compound::AtomIndex atomIndex) const {return getNumBondCenters(atomIndex);}
+    size_t getNBondCenters(Compound::AtomIndex atomIndex) const {
+        return getNumBondCenters(atomIndex);
+    }
     // OBSOLETE: use getNumBonds()
-    size_t getNBonds() const {return getNumBonds();}
+    size_t getNBonds() const {
+        return getNumBonds();
+    }
 };
 
 
 /**
  * \brief Dump debugging information about compound structure to a stream.
  *
- *  This method does NOT produce PDB files or anything like it.  It is used for 
+ *  This method does NOT produce PDB files or anything like it.  It is used for
  *  debugging the internal structure of instances of the Compound class and is thus
  *  not intended for typical API client use.
  */
@@ -1243,20 +1313,18 @@ SimTK_MOLMODEL_EXPORT std::ostream& operator<<(std::ostream& o, const Compound& 
 /**
  * Base class for single-atom Compound building blocks
  *
- * There is not an explicit Atom class in the public Molmodel API.  The 
+ * There is not an explicit Atom class in the public Molmodel API.  The
  * Compound::SingleAtom class is intended to provide single atom Compounds
- * that can be linked together during the construction of Molecules.  Many 
+ * that can be linked together during the construction of Molecules.  Many
  * of the predefined Molecule types in the Molmodel API
  * use SingleAtoms in their construction.
  */
-class  Compound::SingleAtom : public Compound {
-public:
-    SingleAtom(
-        const Compound::AtomName& atomName, ///< name for new atom
-        const Element& element ///< chemical element of new atom
-        ) 
-    {
-        setBaseAtom( atomName, element );
+class Compound::SingleAtom : public Compound {
+    public:
+    SingleAtom(const Compound::AtomName& atomName, ///< name for new atom
+               const Element& element              ///< chemical element of new atom
+    ) {
+        setBaseAtom(atomName, element);
 
         setCompoundName("SingleAtom"); // should be overridden by derived class constructors
     }
@@ -1277,15 +1345,13 @@ public:
  * Greek-Latin mongrel words are also sometimes used: monovalent, divalent,
  * trivalent, tetravalent, pentavalent, hexavalent, heptavalent, octavalent.
  */
-class  UnivalentAtom : public Compound::SingleAtom {
-public:
-    UnivalentAtom(
-        const Compound::AtomName& atomName, ///< name for new atom
-        const Element& element ///< chemical element for new atom
-        ) 
-        : Compound::SingleAtom(atomName, element)
-    {
-        addFirstBondCenter( "bond", atomName);
+class UnivalentAtom : public Compound::SingleAtom {
+    public:
+    UnivalentAtom(const Compound::AtomName& atomName, ///< name for new atom
+                  const Element& element              ///< chemical element for new atom
+                  )
+        : Compound::SingleAtom(atomName, element) {
+        addFirstBondCenter("bond", atomName);
         setInboardBondCenter("bond");
 
         setCompoundName("UnivalentAtom"); // should be overridden by derived class constructors
@@ -1298,19 +1364,18 @@ public:
  *
  *  Bond centers are named "bond1" and "bond2"
  */
-class  BivalentAtom : public Compound::SingleAtom {
-public:
-    BivalentAtom(
-        const Compound::AtomName& atomName,  ///< name for new atom
-        const Element& element,  ///< chemical element for new atom
-        Angle angle = 180*Deg2Rad ///< default (initial) bond angle between new atom's two BondCenters
-        ) 
-        : Compound::SingleAtom(atomName, element)
-    {        
+class BivalentAtom : public Compound::SingleAtom {
+    public:
+    BivalentAtom(const Compound::AtomName& atomName, ///< name for new atom
+                 const Element& element,             ///< chemical element for new atom
+                 Angle angle = 180
+                               * Deg2Rad ///< default (initial) bond angle between new atom's two BondCenters
+                 )
+        : Compound::SingleAtom(atomName, element) {
         // BondCenter1 dihedral will be relative to BondCenter2
-        addFirstBondCenter( "bond1", atomName);
+        addFirstBondCenter("bond1", atomName);
         // conversely, bond center 2 dihedral is relative to bond center 1
-        addSecondBondCenter( "bond2", atomName, angle);
+        addSecondBondCenter("bond2", atomName, angle);
         setInboardBondCenter("bond1"); // without loss of generality
 
         setCompoundName("BivalentAtom"); // should be overridden by derived class constructors
@@ -1324,21 +1389,19 @@ public:
  *  Initial default configuration is planar.
  *  Bond centers are named "bond1", "bond2", and "bond3"
  */
-class  TrivalentAtom : public Compound::SingleAtom {
-public:
-    TrivalentAtom(
-        const Compound::AtomName& atomName,   ///< name for new atom
-        const Element& element,   ///< chemical element for new atom
-        Angle angle1 = 120*Deg2Rad, ///< angle between first and second BondCenters
-        Angle angle2 = 120*Deg2Rad ///< angle between first and third BondCenters
-        ) 
-        : Compound::SingleAtom(atomName, element)
-    {
+class TrivalentAtom : public Compound::SingleAtom {
+    public:
+    TrivalentAtom(const Compound::AtomName& atomName, ///< name for new atom
+                  const Element& element,             ///< chemical element for new atom
+                  Angle angle1 = 120 * Deg2Rad,       ///< angle between first and second BondCenters
+                  Angle angle2 = 120 * Deg2Rad        ///< angle between first and third BondCenters
+                  )
+        : Compound::SingleAtom(atomName, element) {
         // BondCenter1 dihedral will be relative to BondCenter2
-        addFirstBondCenter( "bond1", atomName );
+        addFirstBondCenter("bond1", atomName);
         // bond centers 2 and 3 dihedrals relative to bond center 1
-        addSecondBondCenter( "bond2", atomName,  angle1);
-        addPlanarBondCenter( "bond3", atomName, angle2, 360*Deg2Rad - angle1 - angle2);
+        addSecondBondCenter("bond2", atomName, angle1);
+        addPlanarBondCenter("bond3", atomName, angle2, 360 * Deg2Rad - angle1 - angle2);
 
         // Choice of inboard bond may differ from bond priority - user may change this
         setInboardBondCenter("bond1");
@@ -1352,23 +1415,21 @@ public:
  *
  *  Bond centers are named "bond1", "bond2", "bond3", and "bond4"
  */
-class  QuadrivalentAtom : public Compound::SingleAtom {
-public:
-    QuadrivalentAtom(
-        const Compound::AtomName& atomName, ///< name for new atom
-        const Element& element ///< chemical element for new atom
-        ) 
-        : Compound::SingleAtom(atomName, element)
-    {
+class QuadrivalentAtom : public Compound::SingleAtom {
+    public:
+    QuadrivalentAtom(const Compound::AtomName& atomName, ///< name for new atom
+                     const Element& element              ///< chemical element for new atom
+                     )
+        : Compound::SingleAtom(atomName, element) {
         static const Angle TetrahedralAngle = 109.47 * Deg2Rad;
 
         // BondCenter1 dihedral will be relative to BondCenter2
         // Using Rotation() constructor that takes x axis and approximate y axis
-        addFirstBondCenter( "bond1", atomName );
+        addFirstBondCenter("bond1", atomName);
         // bond centers 2, 3, and 4 dihedrals will be relative to bond1
-        addSecondBondCenter( "bond2", atomName, TetrahedralAngle );
-        addLeftHandedBondCenter( "bond3", atomName, TetrahedralAngle, TetrahedralAngle );
-        addRightHandedBondCenter( "bond4", atomName, TetrahedralAngle, TetrahedralAngle );
+        addSecondBondCenter("bond2", atomName, TetrahedralAngle);
+        addLeftHandedBondCenter("bond3", atomName, TetrahedralAngle, TetrahedralAngle);
+        addRightHandedBondCenter("bond4", atomName, TetrahedralAngle, TetrahedralAngle);
 
         // Choice of inboard bond may differ from bond priority - user may change this
         setInboardBondCenter("bond1");
@@ -1380,48 +1441,59 @@ public:
 
         setCompoundName("QuadrivalentAtom"); // should be overridden by derived class constructors
     }
-        
+
     QuadrivalentAtom(
         const Compound::AtomName& atomName, ///< name for new atom
-        const Element& element, ///< chemical element for new atom
-        Angle bond12Angle, ///< bond angle in radians between bond center 1 and bond center 2
-        Angle bond13Angle, ///< bond angle in radians between bond center 1 and bond center 3
-        Angle bond14Angle, ///< bond angle in radians between bond center 1 and bond center 4
+        const Element& element,             ///< chemical element for new atom
+        Angle bond12Angle,                  ///< bond angle in radians between bond center 1 and bond center 2
+        Angle bond13Angle,                  ///< bond angle in radians between bond center 1 and bond center 3
+        Angle bond14Angle,                  ///< bond angle in radians between bond center 1 and bond center 4
         Angle dihedral3, ///< dihedral angle of bond center 3, relative to dihedral of bond center 2
-        Angle dihedral4 ///< dihedral angle of bond center 4, relative to dihedral of bond center 2
-        ) 
-        : Compound::SingleAtom(atomName, element)
-    {
+        Angle dihedral4  ///< dihedral angle of bond center 4, relative to dihedral of bond center 2
+        )
+        : Compound::SingleAtom(atomName, element) {
         // BondCenter1 dihedral will be relative to BondCenter2
         // Using Rotation() constructor that takes x axis and approximate y axis
-        addFirstBondCenter( "bond1", atomName );
+        addFirstBondCenter("bond1", atomName);
         // bond centers 2, 3, and 4 dihedrals will be relative to bond1
-        addSecondBondCenter( "bond2", atomName, bond12Angle );
-        
+        addSecondBondCenter("bond2", atomName, bond12Angle);
+
         // Compute bond23Angle and bond24Angle
-        SimTK::Vec3 v1(0,0,1);
-        SimTK::Vec3 v2 = SimTK::Rotation(bond12Angle, ZAxis) * SimTK::Vec3(0,0,1);
-        SimTK::Vec3 v3 = SimTK::Rotation(dihedral3, YAxis) * SimTK::Rotation(bond12Angle, ZAxis) * SimTK::Vec3(0,0,1);
-        SimTK::Vec3 v4 = SimTK::Rotation(dihedral4, YAxis) * SimTK::Rotation(bond12Angle, ZAxis) * SimTK::Vec3(0,0,1);
-        
+        SimTK::Vec3 v1(0, 0, 1);
+        SimTK::Vec3 v2 = SimTK::Rotation(bond12Angle, ZAxis) * SimTK::Vec3(0, 0, 1);
+        SimTK::Vec3 v3 =
+            SimTK::Rotation(dihedral3, YAxis) * SimTK::Rotation(bond12Angle, ZAxis) * SimTK::Vec3(0, 0, 1);
+        SimTK::Vec3 v4 =
+            SimTK::Rotation(dihedral4, YAxis) * SimTK::Rotation(bond12Angle, ZAxis) * SimTK::Vec3(0, 0, 1);
+
         Angle bond23Angle = std::acos(SimTK::dot(v2, v3));
         Angle bond24Angle = std::acos(SimTK::dot(v2, v4));
-        
+
         // restrict angle range to (-Pi,Pi)
-        while (dihedral3 >   Pi) dihedral3 -= 2.0*Pi;
-        while (dihedral3 <= -Pi) dihedral3 += 2.0*Pi;
-        while (dihedral4 >   Pi) dihedral4 -= 2.0*Pi;
-        while (dihedral4 <= -Pi) dihedral4 += 2.0*Pi;
-        
-        if (dihedral3 > 0)
-        	addLeftHandedBondCenter( "bond3", atomName, bond13Angle, bond23Angle );
-        else
-        	addRightHandedBondCenter( "bond3", atomName, bond13Angle, bond23Angle );
-        
-        if (dihedral4 > 0)
-        	addLeftHandedBondCenter( "bond4", atomName, bond14Angle, bond24Angle );
-        else 
-        	addRightHandedBondCenter( "bond4", atomName, bond14Angle, bond24Angle );
+        while (dihedral3 > Pi) {
+            dihedral3 -= 2.0 * Pi;
+        }
+        while (dihedral3 <= -Pi) {
+            dihedral3 += 2.0 * Pi;
+        }
+        while (dihedral4 > Pi) {
+            dihedral4 -= 2.0 * Pi;
+        }
+        while (dihedral4 <= -Pi) {
+            dihedral4 += 2.0 * Pi;
+        }
+
+        if (dihedral3 > 0) {
+            addLeftHandedBondCenter("bond3", atomName, bond13Angle, bond23Angle);
+        } else {
+            addRightHandedBondCenter("bond3", atomName, bond13Angle, bond23Angle);
+        }
+
+        if (dihedral4 > 0) {
+            addLeftHandedBondCenter("bond4", atomName, bond14Angle, bond24Angle);
+        } else {
+            addRightHandedBondCenter("bond4", atomName, bond14Angle, bond24Angle);
+        }
 
         // Choice of inboard bond may differ from bond priority - user may change this
         setInboardBondCenter("bond1");
@@ -1442,7 +1514,7 @@ public:
 // class  AliphaticHydrogen : public UnivalentAtom {
 // public:
 //     explicit AliphaticHydrogen(const AtomName& atomName = "H" ///< name for new atom, defaults to "H"
-//         ) 
+//         )
 //         : UnivalentAtom(atomName, Element::Hydrogen())
 //     {
 //         setDefaultInboardBondLength(0.1112); // for bonding to aliphatic carbon
@@ -1460,8 +1532,8 @@ public:
 // class  AliphaticCarbon : public QuadrivalentAtom {
 // public:
 //     explicit AliphaticCarbon(const AtomName& atomName = "C" ///< name for new atom, defaults to "C"
-//         ) 
-//         : QuadrivalentAtom(atomName, Element::Carbon()) 
+//         )
+//         : QuadrivalentAtom(atomName, Element::Carbon())
 //     {
 //         // In case this bonds to another aliphatic carbon
 //         setDefaultInboardBondLength(0.15620); // for bonding to another aliphatic carbon
@@ -1552,11 +1624,11 @@ public:
 // public:
 //     PrimaryAmineGroup() {
 //         static const mdunits::Length H_Ndistance = 0.1010; // nanometers
-//         static const mdunits::Length N_Cdistance = 0.1471; // in nanometers, for bonding to aliphatic carbon
-//         setBaseAtom( QuadrivalentAtom("N", Element::Nitrogen()) );
-//         bondAtom( UnivalentAtom("H1", Element::Hydrogen()), "N/bond2", H_Ndistance);
-//         bondAtom( UnivalentAtom("H2", Element::Hydrogen()), "N/bond3", H_Ndistance);
-//         bondAtom( UnivalentAtom("H3", Element::Hydrogen()), "N/bond4", H_Ndistance);
+//         static const mdunits::Length N_Cdistance = 0.1471; // in nanometers, for bonding to aliphatic
+//         carbon setBaseAtom( QuadrivalentAtom("N", Element::Nitrogen()) ); bondAtom( UnivalentAtom("H1",
+//         Element::Hydrogen()), "N/bond2", H_Ndistance); bondAtom( UnivalentAtom("H2", Element::Hydrogen()),
+//         "N/bond3", H_Ndistance); bondAtom( UnivalentAtom("H3", Element::Hydrogen()), "N/bond4",
+//         H_Ndistance);
 
 //         setDefaultInboardBondLength(N_Cdistance); // for bonding to aliphatic carbon
 //     }
@@ -1594,28 +1666,31 @@ public:
  * (though that may not be obvious in the automatically
  * generated API documentation).
  */
-class  SimTK_MOLMODEL_EXPORT Molecule : public Compound {
-public:
+class SimTK_MOLMODEL_EXPORT Molecule : public Compound {
+    public:
     Molecule();
     SimTK_INSERT_DERIVED_HANDLE_DECLARATIONS(Molecule, CompoundRep, Compound);
-protected:
+
+    protected:
     explicit Molecule(CompoundRep* rep);
 };
 
 inline Real tripleProduct(const UnitVec3& a, const UnitVec3& b, const UnitVec3& c) {
-    return dot(cross(a,b), c);
+    return dot(cross(a, b), c);
 }
 
 inline UnitVec3 planeNormal(const UnitVec3& a, const UnitVec3& b) {
-    return UnitVec3(cross(a,b));
+    return UnitVec3(cross(a, b));
 }
 
-inline bool isChiralityMismatch(
-    const UnitVec3& s1, const UnitVec3& s2, const UnitVec3& s3,
-    const UnitVec3& t1, const UnitVec3& t2, const UnitVec3& t3)
-{
-    const Real sourceChirality = tripleProduct(s1,s2,s3);
-    const Real targetChirality = tripleProduct(t1,t2,t3);
+inline bool isChiralityMismatch(const UnitVec3& s1,
+                                const UnitVec3& s2,
+                                const UnitVec3& s3,
+                                const UnitVec3& t1,
+                                const UnitVec3& t2,
+                                const UnitVec3& t3) {
+    const Real sourceChirality = tripleProduct(s1, s2, s3);
+    const Real targetChirality = tripleProduct(t1, t2, t3);
     return sourceChirality * targetChirality < 0;
 }
 
@@ -1640,13 +1715,18 @@ inline ReferenceIndices resolveReferenceIndices(const std::vector<int>& atomBond
         int bcIx = atomBondCenterIndices[i];
 
         if (bcIx == 0) {
-            if (one == i) one = zero;
-            else if (two == i) two = zero;
+            if (one == i) {
+                one = zero;
+            } else if (two == i) {
+                two = zero;
+            }
             zero = i;
-        }
-        else if (bcIx == 1) {
-            if (zero == i) zero = one;
-            else if (two == i) two = one;
+        } else if (bcIx == 1) {
+            if (zero == i) {
+                zero = one;
+            } else if (two == i) {
+                two = one;
+            }
             one = i;
         }
     }
@@ -1654,7 +1734,12 @@ inline ReferenceIndices resolveReferenceIndices(const std::vector<int>& atomBond
     return {zero, one, two};
 }
 
-inline bool isBondChiralityMismatch(const UnitVec3& s1, const UnitVec3& s2, const UnitVec3& si, const UnitVec3& t1, const UnitVec3& t2, const UnitVec3& ti) {
+inline bool isBondChiralityMismatch(const UnitVec3& s1,
+                                    const UnitVec3& s2,
+                                    const UnitVec3& si,
+                                    const UnitVec3& t1,
+                                    const UnitVec3& t2,
+                                    const UnitVec3& ti) {
     const Real sc = tripleProduct(s1, s2, si);
     const Real tc = tripleProduct(t1, t2, ti);
     return sc * tc < 0;

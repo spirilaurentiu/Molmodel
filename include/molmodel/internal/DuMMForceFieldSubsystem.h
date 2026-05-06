@@ -1,5 +1,4 @@
-#ifndef SimTK_MOLMODEL_DUMM_FORCE_FIELD_SUBSYSTEM_H_
-#define SimTK_MOLMODEL_DUMM_FORCE_FIELD_SUBSYSTEM_H_
+#pragma once
 
 /* -------------------------------------------------------------------------- *
  *                             SimTK Molmoldel(tm)                            *
@@ -58,16 +57,19 @@ class MolecularMechanicsSystem;
 This namespace is used for symbols which are useful in conjunction with
 Molmodel's DuMMForceFieldSubsystem. **/
 namespace DuMM {
+
 /** @class SimTK::DuMM::AtomIndex
 This is the unique integer index that DuMM assigns to atoms as they are
 added via addAtom(). **/
 SimTK_DEFINE_UNIQUE_INDEX_TYPE(AtomIndex);
+
 /** @class SimTK::DuMM::IncludedAtomIndex
 This is the unique integer index that DuMM assigns to atoms that are to be
 included in force calculations.\ These represent a subset of all the
 atoms and you can map from an IncludedAtomIndex to the corresponding
 AtomIndex. These are assigned during realizeTopology(). **/
 SimTK_DEFINE_UNIQUE_INDEX_TYPE(IncludedAtomIndex);
+
 /** @class SimTK::DuMM::NonbondAtomIndex
 This is the unique integer index that DuMM assigns to included atoms that
 are involved in nonbonded force calculations (Coulomb, van der Waals,
@@ -75,20 +77,24 @@ and/or GBSA).\ These represent a subset of all the included atoms and you can
 map from a NonbondAtomIndex to the corresponding IncludedAtomIndex.
 These are assigned during realizeTopology(). **/
 SimTK_DEFINE_UNIQUE_INDEX_TYPE(NonbondAtomIndex);
+
 /** @class SimTK::DuMM::BondIndex
 This is the unique integer index that DuMM assigns to bonds as they are
 added via addBond(). **/
 SimTK_DEFINE_UNIQUE_INDEX_TYPE(BondIndex);
+
 /** @class SimTK::DuMM::ClusterIndex
 This is the unique integer index that DuMM assigns to clusters as they are
 created via createCluster(). **/
 SimTK_DEFINE_UNIQUE_INDEX_TYPE(ClusterIndex);
+
 /** @class SimTK::DuMM::AtomClassIndex
 This is a unique integer associated with each "atom class", assigned by the
 user when the atom class is first introduced via defineAtomClass(). This is
 really an \e id rather than an \e index since these need not be consecutively
 assigned. Typically these are defined by the force field being used. **/
 SimTK_DEFINE_UNIQUE_INDEX_TYPE(AtomClassIndex);
+
 /** @class SimTK::DuMM::ChargedAtomTypeIndex
 This is a unique integer associated with each "charged atom type", assigned by
 the user when the charged atom type is first introduced via
@@ -96,7 +102,6 @@ defineChargedAtomType(). This is really an \e id rather than an \e index since
 these need not be consecutively assigned. Typically these are defined by the
 force field being used. **/
 SimTK_DEFINE_UNIQUE_INDEX_TYPE(ChargedAtomTypeIndex);
-
 
 /** @defgroup MMCustomTerms User defined molecular mechanics force terms
  *  @ingroup MolecularMechanics
@@ -181,8 +186,8 @@ class CustomBondStretch {
     public:
     virtual ~CustomBondStretch() {
     }
-    virtual Real calcEnergy(Real distance) const = 0;
-    virtual Real calcForce(Real distance) const = 0;
+    [[nodiscard]] virtual auto calcEnergy(Real distance) const -> Real = 0;
+    [[nodiscard]] virtual auto calcForce(Real distance) const -> Real = 0;
 };
 
 /**
@@ -196,8 +201,8 @@ class CustomBondBend {
     public:
     virtual ~CustomBondBend() {
     }
-    virtual Real calcEnergy(Real bendAngle) const = 0;
-    virtual Real calcTorque(Real bendAngle) const = 0;
+    [[nodiscard]] virtual auto calcEnergy(Real bendAngle) const -> Real = 0;
+    [[nodiscard]] virtual auto calcTorque(Real bendAngle) const -> Real = 0;
 };
 
 /**
@@ -255,8 +260,8 @@ class CustomBondTorsion {
     public:
     virtual ~CustomBondTorsion() {
     }
-    virtual Real calcEnergy(Real dihedralAngle) const = 0;
-    virtual Real calcTorque(Real dihedralAngle) const = 0;
+    [[nodiscard]] virtual auto calcEnergy(Real dihedralAngle) const -> Real = 0;
+    [[nodiscard]] virtual auto calcTorque(Real dihedralAngle) const -> Real = 0;
 };
 //@}
 
@@ -283,15 +288,17 @@ class CustomBondTorsion {
  * the value our conversion constant is expecting -- be careful!
  */
 //@{
-static const Real Ang2Nm = (Real)0.1L;                    ///< angstroms to nanometers
-static const Real Nm2Ang = (Real)10.L;                    ///< nanometers to angstroms
-static const Real Deg2Rad = (Real)SimTK_DEGREE_TO_RADIAN; ///< degrees to radians
-static const Real Rad2Deg = (Real)SimTK_RADIAN_TO_DEGREE; ///< radians to degrees
-static const Real KJ2Kcal = (Real)SimTK_KJOULE_TO_KCAL;   ///< kilojoules to kilocalories
-static const Real Kcal2KJ = (Real)SimTK_KCAL_TO_KJOULE;   ///< kilocalories to kilojoules
+static constexpr Real Ang2Nm = (Real)0.1L;                    ///< angstroms to nanometers
+static constexpr Real Nm2Ang = (Real)10.L;                    ///< nanometers to angstroms
+static constexpr Real Deg2Rad = (Real)SimTK_DEGREE_TO_RADIAN; ///< degrees to radians
+static constexpr Real Rad2Deg = (Real)SimTK_RADIAN_TO_DEGREE; ///< radians to degrees
+static constexpr Real KJ2Kcal = (Real)SimTK_KJOULE_TO_KCAL;   ///< kilojoules to kilocalories
+static constexpr Real Kcal2KJ = (Real)SimTK_KCAL_TO_KJOULE;   ///< kilocalories to kilojoules
+
 /// half-Sigma to van der Waals radius; caution -- see discussion in module description.
 static const Real Sigma2Radius = (Real)std::pow(2.L, 1.L / 6.L);
 /// van der Waals radius to half-Sigma; caution -- see discussion in module description.
+
 static const Real Radius2Sigma = (Real)std::pow(2.L, -1.L / 6.L);
 //@}
 
@@ -313,18 +320,8 @@ than kJ, and we also allow angles to be supplied in degrees. However,
 these are immediately converted to the MD units described above. **/
 class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
     public:
-    /** These are the van der Waals mixing rules supported by DuMM. **/
-    enum VdwMixingRule {
-        WaldmanHagler = 1,    ///< Our default, Waldman & Hagler, J.Comp.Chem. 14(9) 1993
-        HalgrenHHG = 2,       ///< MMFF, AMOEBA
-        Jorgensen = 3,        ///< OPLS
-        LorentzBerthelot = 4, ///< AMBER, CHARMM
-        Kong = 5              ///< Kong, J.Chem.Phys. 59(5) 1973
-    };
-
     DuMMForceFieldSubsystem();
     explicit DuMMForceFieldSubsystem(MolecularMechanicsSystem&);
-
 
     /** @name               Define particular molecules
     Methods in this group are used to define the atoms and bonds in the particular
@@ -334,65 +331,73 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
     /// Add a new atom to the model. The AtomIndex number is returned; you don't
     /// get to pick your own. Use the AtomIndex to identify this particular
     /// atom subsequently.
-    DuMM::AtomIndex addAtom(DuMM::ChargedAtomTypeIndex chargedAtomTypeIx);
+    auto addAtom(DuMM::ChargedAtomTypeIndex chargedAtomTypeIx) -> DuMM::AtomIndex;
 
     /// Declare that there is a covalent bond between two atoms. Note that
     /// these are AtomIndex numbers, not AtomClasses or ChargedAtomTypes.
-    DuMM::BondIndex addBond(DuMM::AtomIndex atom1Ix, DuMM::AtomIndex atom2Ix);
+    auto addBond(DuMM::AtomIndex atom1Ix, DuMM::AtomIndex atom2Ix) -> DuMM::BondIndex;
 
     /// For a given 1-2 bond, return the atoms which are connected by that bond.
     /// You select one atom at a time by setting parameter \p which to 0 or 1.
     /// 0 will return the lower-numbered AtomIndex, regardless of the order
     /// in which the atoms were specified to addBond().
-    DuMM::AtomIndex getBondAtom(DuMM::BondIndex bond, int which) const;
+    [[nodiscard]] auto getBondAtom(DuMM::BondIndex bond, int which) const -> DuMM::AtomIndex;
 
     /// How many atoms are currently in the model?
-    int getNumAtoms() const;
+    [[nodiscard]] auto getNumAtoms() const -> int;
+
     /// How many 1-2 bonds are currently in the model?
-    int getNumBonds() const;
+    [[nodiscard]] auto getNumBonds() const -> int;
 
     /// Obtain the mass in Daltons (g/mol) of the atom indicated by the given
     /// AtomIndex.
-    Real getAtomMass(DuMM::AtomIndex atomIx) const;
+    [[nodiscard]] auto getAtomMass(DuMM::AtomIndex dAIx) const -> Real;
+
     /// Obtain the element (by atomic number) of the atom indicated by the
     /// given AtomIndex.
-    int getAtomElement(DuMM::AtomIndex atomIx) const;
+
+    [[nodiscard]] auto getAtomElement(DuMM::AtomIndex dAIx) const -> int;
     /// Obtain the van der Waals radius of the atom indicated by the given
     /// AtomIndex.
-    Real getAtomRadius(DuMM::AtomIndex atomIx) const;
+
+    [[nodiscard]] auto getAtomRadius(DuMM::AtomIndex dAIx) const -> Real;
+
     /// Obtain the Simbody MobilizedBodyIndex of the rigid body on which a
     /// particular atom has been fixed. An exception will be thrown if this
     /// atom is not fixed to any body.
-    MobilizedBodyIndex getAtomBody(DuMM::AtomIndex atomIx) const;
+    [[nodiscard]] auto getAtomBody(DuMM::AtomIndex dAIx) const -> MobilizedBodyIndex;
+
     /// Obtain the station at which a particular atom is fixed on its body.
     /// An exception will be thrown if this atom is not fixed to any body.
-    Vec3 getAtomStationOnBody(DuMM::AtomIndex atomIx) const;
+    [[nodiscard]] auto getAtomStationOnBody(DuMM::AtomIndex dAIx) const -> const Vec3&;
 
-    // EU BEGIN
+    void updateClustersCacheList(DuMM::AtomIndex dAIx, MobilizedBodyIndex inMbx);
+
     /// Set the station at which a particular atom is fixed on its body.
     /// An exception will be thrown if this atom is not fixed to any body.
-    void bsetAtomStationOnBody(DuMM::AtomIndex atomIx, Vec3 new_station_B);
+    void bsetAtomStationOnBody(DuMM::AtomIndex dAIx, const Vec3& newStationB);
 
     // For CalcFullPotential Eliza
-    void bsetAllAtomStationOnBody(DuMM::AtomIndex atomIx, Vec3 new_station_B);
+    void bsetAllAtomStationOnBody(DuMM::AtomIndex dAIx, const Vec3& newStationB);
 
-    /// Set AtomPlacement station coressponding to DuMMAtom atomIx
-    void bsetAtomPlacementStation(DuMM::AtomIndex atomIx, MobilizedBodyIndex inputMbx, Vec3 new_station);
+    /// Set AtomPlacement station corresponding to DuMMAtom atomIx
+    void bsetAtomPlacementStation(DuMM::AtomIndex dAIx, MobilizedBodyIndex inMbx, const Vec3& newStation);
 
     // Stations computed every time
-    Vec3& updIncludedAtomStation(DuMM::AtomIndex atomIx);
+    auto updIncludedAtomStation(DuMM::AtomIndex dAIx) -> Vec3&;
 
     // For CalcFullPotential Eliza
-    Vec3& updAllAtomStation(DuMM::AtomIndex atomIx);
+    auto updAllAtomStation(DuMM::AtomIndex dAIx) -> Vec3&;
 
     // Get clusterIndex of a specified mobod
-    DuMM::ClusterIndex bgetMobodClusterIndex(MobilizedBodyIndex inputMbx) const;
+    [[nodiscard]] auto bgetMobodClusterIndex(MobilizedBodyIndex mbx) const -> DuMM::ClusterIndex;
     // EU END
 
     /// Obtain the station at which a particular atom is fixed within a
     /// particular Cluster (an atom can be in more than one Cluster).
     /// An exception will be thrown if this atom is not fixed to the cluster.
-    Vec3 getAtomStationInCluster(DuMM::AtomIndex atomIx, DuMM::ClusterIndex clusterIx) const;
+    [[nodiscard]] auto getAtomStationInCluster(DuMM::AtomIndex dAIx, DuMM::ClusterIndex clusterIx) const
+        -> const Vec3&;
 
     /** @name               Define clusters and bodies
     Methods in this group control the grouping of atoms into rigid clusters and
@@ -408,62 +413,51 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
     returned; you don't get to pick your own. The name is just for display; you
     must use the index to reference the Cluster. Every Cluster has its own
     reference frame C. **/
-    DuMM::ClusterIndex createCluster(const char* clusterName);
+    auto createCluster(const char* clusterName) -> DuMM::ClusterIndex;
 
     /** Place an existing atom at a particular station in the local frame of a
     Cluster. It is fine for an atom to be in more than one Cluster as long as only
     one of them ends up attached to a body. **/
-    // EU COMMENT BEGIN
-    void placeAtomInCluster(DuMM::AtomIndex atomIx, DuMM::ClusterIndex clusterIx, const Vec3& station);
-    // EU BEGIN
-    // void placeAtomInCluster(DuMM::AtomIndex atomIx, DuMM::ClusterIndex clusterIx,
-    //                        Vec3 station);
-    // EU END
+    void placeAtomInCluster(DuMM::AtomIndex dAIx, DuMM::ClusterIndex clusterIx, const Vec3& station);
 
     /** Place a Cluster (the child) in another Cluster (the parent). The child's
     local frame C is placed at a given Transform with respect to the parent's frame
     P. All the atoms in the child Cluster maintain their relative positioning. **/
     void placeClusterInCluster(DuMM::ClusterIndex childClusterIndex,
                                DuMM::ClusterIndex parentClusterIndex,
-                               const Transform& X_PC);
+                               const Transform& placementInNm);
 
     /** Calculate the composite mass properties of a Cluster, either in its own
     reference frame C or in reference frame B with the Cluster placed relative to
     B using the indicated Transform X_BC. **/
-    MassProperties calcClusterMassProperties(DuMM::ClusterIndex clusterIx,
-                                             const Transform& X_BC = Transform()) const;
+    [[nodiscard]] auto calcClusterMassProperties(DuMM::ClusterIndex clusterIx,
+                                                 const Transform& X_BC = Transform()) const -> MassProperties;
 
     /** Place a Cluster's local frame C at a particular location and orientation
     with respect to a MobilizedBody's frame B. All the atoms within the Cluster
     will become fixed to the body while maintaining the same relative positions as
     they had in the Cluster. **/
-    void attachClusterToBody(DuMM::ClusterIndex clusterIx,
-                             MobilizedBodyIndex body,
-                             const Transform& X_BC = Transform());
+    void attachClusterToBody(DuMM::ClusterIndex clusterIndex,
+                             MobilizedBodyIndex mobodIx,
+                             const Transform& placementInNm = Transform());
 
     /** Place an individual atom at a particular station on a body without an
     intervening cluster. **/
-    // EU COMMENT BEGIN
     void attachAtomToBody(DuMM::AtomIndex atomIx, MobilizedBodyIndex body, const Vec3& station = Vec3(0));
-    // EU BEGIN
-    // void attachAtomToBody(DuMM::AtomIndex atomIx, MobilizedBodyIndex body,
-    //                      Vec3 station = Vec3(0));
-    // EU END
 
     /** Find the MobilizedBody on which a Cluster has been fixed in place. **/
-    MobilizedBodyIndex getClusterBody(DuMM::ClusterIndex clusterIx) const;
+    [[nodiscard]] auto getClusterBody(DuMM::ClusterIndex clusterIx) const -> MobilizedBodyIndex;
 
     /** Find where on its body a Cluster has been placed by returning the
     transform X_BC giving the orientation and position of Cluster frame C in body
     frame B. **/
-    Transform getClusterPlacementOnBody(DuMM::ClusterIndex clusterIx) const;
+    [[nodiscard]] auto getClusterPlacementOnBody(DuMM::ClusterIndex clusterIx) const -> const Transform&;
 
     /** Find where on parent cluster P a child cluster C has been placed, by
     returning the transform X_PC. **/
-    Transform getClusterPlacementInCluster(DuMM::ClusterIndex childClusterIndex,
-                                           DuMM::ClusterIndex parentClusterIndex) const;
-    /**@}**/
-
+    [[nodiscard]] auto getClusterPlacementInCluster(DuMM::ClusterIndex childClusterIndex,
+                                                    DuMM::ClusterIndex parentClusterIndex) const
+        -> const Transform&;
 
     /** @name       Atom/bond exclusion methods (advanced users only!)
     Methods in this group give you fine control over which atoms in the defined
@@ -510,7 +504,7 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
     there.\ This does not include bonded terms that involve this atom; you have to
     request that explicitly with includeAllInterbodyBondsForOneAtom().
     @see includeAllNonbondAtomsForOneBody() **/
-    void includeNonbondAtom(DuMM::AtomIndex atom);
+    void includeNonbondAtom(DuMM::AtomIndex dAIx);
 
     /** Add to the included nonbond atom list all the atoms that are fixed to the
     given body. This produces the same result as if includeNonbondAtom() were called
@@ -522,7 +516,7 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
     this atom, and (b) involve a body other than the one to which this atom
     is fixed.\ This does not include the atom in nonbonded force calculations;
     you have to request that explicitly with includeNonbondAtom(). **/
-    void includeAllInterbodyBondsForOneAtom(DuMM::AtomIndex atom);
+    void includeAllInterbodyBondsForOneAtom(DuMM::AtomIndex dAIx);
 
     /** Given two atoms that may appear together in some bonded force term,
     include all the bonded terms that involve both of them. Note that even if
@@ -555,10 +549,11 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
     0 to getNumIncludedAtoms()-1 after realizeTopology() has been called. Use
     DuMM::IncludedAtomIndex to refer to included atoms by their sequential
     index numbers. **/
-    int getNumIncludedAtoms() const;
+    [[nodiscard]] auto getNumIncludedAtoms() const -> int;
+
     /** Given a DuMM::IncludedAtomIndex, return the corresponding
     DuMM::AtomIndex.\ You must already have called realizeTopology(). **/
-    DuMM::AtomIndex getAtomIndexOfIncludedAtom(DuMM::IncludedAtomIndex incAtomIx) const;
+    [[nodiscard]] auto getAtomIndexOfIncludedAtom(DuMM::IncludedAtomIndex incAtomIx) const -> DuMM::AtomIndex;
 
     /** A subset of the included atoms are used in nonbond calculations.\ These
     are numbered from 0 to getNumNonbondAtoms()-1 after realizeTopology() has been
@@ -566,26 +561,24 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
     included nonbond atoms by their sequential index numbers. Note that some or
     all of these nonbond atoms may also be involved in bonded force
     calculations. **/
-    int getNumNonbondAtoms() const;
+    [[nodiscard]] auto getNumNonbondAtoms() const -> int;
+
     /** Given a DuMM::NonbondAtomIndex, return the corresponding
     DuMM::IncludedAtomIndex.\ You must already have called realizeTopology().
     See getAtomIndexOfNonbondAtom() if you want its DuMM::AtomIndex instead. **/
-    DuMM::IncludedAtomIndex getIncludedAtomIndexOfNonbondAtom(DuMM::NonbondAtomIndex nonbondAtomIx) const;
+    [[nodiscard]] auto getIncludedAtomIndexOfNonbondAtom(DuMM::NonbondAtomIndex nonbondAtomIx) const
+        -> DuMM::IncludedAtomIndex;
 
-
-    DuMM::NonbondAtomIndex getNonbondAtomIndex(DuMM::AtomIndex dAIx);
+    [[nodiscard]] auto getNonbondAtomIndex(DuMM::AtomIndex dAIx) const -> DuMM::NonbondAtomIndex;
 
     /** Given a DuMM::NonbondAtomIndex, return the corresponding
     DuMM::AtomIndex.\ You must already have called realizeTopology().
     See getIncludedAtomIndexOfNonbondAtom() if you want its
     DuMM::IncludedAtomIndex instead. **/
-    DuMM::AtomIndex getAtomIndexOfNonbondAtom(DuMM::NonbondAtomIndex nonbondAtomIx) const {
+    [[nodiscard]] auto getAtomIndexOfNonbondAtom(DuMM::NonbondAtomIndex nonbondAtomIx) const
+        -> DuMM::AtomIndex {
         return getAtomIndexOfIncludedAtom(getIncludedAtomIndexOfNonbondAtom(nonbondAtomIx));
     }
-    /**@}**/
-
-
-    // DEFINE FORCE FIELD PARAMETERS
 
     /** @name                 Define atom categories
     An AtomClass is used to collect together a set of properties which are expected
@@ -594,9 +587,6 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
     included in AtomClass but in a second more detailed classification level called
     ChargedAtomType. **/
     /**@{**/
-
-    /*! <!-- desk_mass_related --> */
-    const SimTK::mdunits::Mass getAtomMass(DuMM::AtomIndex atomIndex);
 
     /**
      * @brief Set the mass of an element. desk_mass_related
@@ -687,24 +677,30 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
     }
 
     /** Check whether an atom class has been defined using this index. **/
-    bool hasAtomClass(DuMM::AtomClassIndex) const;
+    [[nodiscard]] auto hasAtomClass(DuMM::AtomClassIndex) const -> bool;
+
     /** Check whether an atom class has been defined using this name. **/
-    bool hasAtomClass(const String& atomClassName) const;
+    [[nodiscard]] auto hasAtomClass(const String& atomClassName) const -> bool;
+
     /** Obtain the atom class index corresponding to this atom class name. **/
-    DuMM::AtomClassIndex getAtomClassIndex(const String& atomClassName) const;
+    [[nodiscard]] auto getAtomClassIndex(const String& atomClassName) const -> DuMM::AtomClassIndex;
+
     /** Obtain an atom class index that is numerically larger than the largest
     currently-defined atom class index. **/
-    DuMM::AtomClassIndex getNextUnusedAtomClassIndex() const;
+    [[nodiscard]] auto getNextUnusedAtomClassIndex() const -> DuMM::AtomClassIndex;
+
     /** Get the index number of the atom class associated with this atom. **/
-    DuMM::AtomClassIndex getAtomClassIndex(DuMM::AtomIndex atomIx) const;
+    [[nodiscard]] auto getAtomClassIndex(DuMM::AtomIndex atomIx) const -> DuMM::AtomClassIndex;
+
     /** Get the van der Waals radius shared by all atoms that belong to the
     indicated atom class.\ See comments for this group for a precise definition
     of what this means; there are ambiguities so don't assume you already know. **/
-    Real getVdwRadius(DuMM::AtomClassIndex atomClassIx) const;
+    [[nodiscard]] auto getVdwRadius(DuMM::AtomClassIndex atomClassIx) const -> Real;
+
     /** Get the van der Waals energy well depth shared by all atoms that belong to
     the indicated atom class.\ See comments for this group for a precise definition
     of what this means; there are ambiguities so don't assume you already know. **/
-    Real getVdwWellDepth(DuMM::AtomClassIndex atomClassIx) const;
+    [[nodiscard]] auto getVdwWellDepth(DuMM::AtomClassIndex atomClassIx) const -> Real;
 
     /** Define a new ChargedAtomType for this force field, for identifying atoms
     of a particular AtomClass that have a particular partial charge. You must
@@ -736,7 +732,8 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
                                   DuMM::AtomClassIndex atomClassIx,
                                   Real partialChargeInE) {
         defineChargedAtomType(atomTypeIx, atomTypeName, atomClassIx, partialChargeInE);
-    } // easy!
+    }
+
     /** Obsolete method -- use the other signature. Same routine as
     defineChargedAtomType_KA() but for backwards compatibility and compactness of
     expression in some contexts, this one accepts an integer for the charged atom
@@ -753,45 +750,19 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
     }
 
     /** Check whether a charged atom type has been defined using this index. **/
-    bool hasChargedAtomType(DuMM::ChargedAtomTypeIndex) const;
+    [[nodiscard]] auto hasChargedAtomType(DuMM::ChargedAtomTypeIndex) const -> bool;
+
     /** Check whether a charged atom type has been defined using this name. **/
-    bool hasChargedAtomType(const String& chargedTypeName) const;
+    [[nodiscard]] auto hasChargedAtomType(const String& chargedTypeName) const -> bool;
+
     /** Obtain the charged atom type index corresponding to this charged atom
     type name. **/
-    DuMM::ChargedAtomTypeIndex getChargedAtomTypeIndex(const String& chargedTypeName) const; // TODO
+    [[nodiscard]] auto getChargedAtomTypeIndex(const String& chargedTypeName) const
+        -> DuMM::ChargedAtomTypeIndex; // TODO
+
     /** Obtain a charged atom type index that is numerically larger than the
     largest currently-defined charged atom type index. **/
-    DuMM::ChargedAtomTypeIndex getNextUnusedChargedAtomTypeIndex() const; // TODO
-
-    /**@}**/
-
-
-    /** @name Control force field nonbonded behavior in special circumstances
-    These methods permit setting overall force field behavior in special
-    circumstances, including van der Waals mixing behavior for dissimilar
-    atom pairs and scaling of non-bonded terms for closely-bonded atoms. **/
-    /**@{**/
-
-    /** Obtain a human-readable name for one of our van der Waals mixing rules. **/
-    const char* getVdwMixingRuleName(VdwMixingRule) const;
-
-    /** Set the van der Waals mixing rule -- our default is Waldman-Hagler. **/
-    void setVdwMixingRule(VdwMixingRule);
-    /** Get the van der Waals mixing rule currently in effect.
-    @see getVdwMixingRuleName() for a human-readable version. **/
-    VdwMixingRule getVdwMixingRule() const;
-
-    void setVdw12ScaleFactor(Real); ///< default 0
-    void setVdw13ScaleFactor(Real); ///< default 0
-    void setVdw14ScaleFactor(Real); ///< default 1
-    void setVdw15ScaleFactor(Real); ///< default 1
-
-    void setCoulomb12ScaleFactor(Real); ///< default 0
-    void setCoulomb13ScaleFactor(Real); ///< default 0
-    void setCoulomb14ScaleFactor(Real); ///< default 1
-    void setCoulomb15ScaleFactor(Real); ///< default 1
-    /**@}**/
-
+    [[nodiscard]] auto getNextUnusedChargedAtomTypeIndex() const -> DuMM::ChargedAtomTypeIndex; // TODO
 
     /** @name   Tinker biotypes and pre-defined force field parameter sets
     DuMM understands Tinker-format parameter files that can be used to load
@@ -815,19 +786,18 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
     System. **/
     void setBiotypeChargedAtomType(
         DuMM::ChargedAtomTypeIndex
-            chargedAtomTypeIndex, ///< Prexisting charged atom type index in this subsystem
+            chargedAtomTypeIndex, ///< Preexisting charged atom type index in this subsystem
         BiotypeIndex biotypeIx    ///< Preexisting BiotypeIndex defined in the Biotype class
     );
 
     /** Get charged atom type index in this force field associated with a
     particular Biotype. **/
-    DuMM::ChargedAtomTypeIndex getBiotypeChargedAtomType(BiotypeIndex biotypeIx) const;
+    [[nodiscard]] auto getBiotypeChargedAtomType(BiotypeIndex biotypeIx) const -> DuMM::ChargedAtomTypeIndex;
 
     /** Generate C++ code from the current contents of this DuMM force
     field object. **/
-    std::ostream& generateBiotypeChargedAtomTypeSelfCode(std::ostream& os) const;
+    auto generateBiotypeChargedAtomTypeSelfCode(std::ostream& ostream) const -> std::ostream&;
     /**@}**/
-
 
     /** @name                   Bond stretch terms
     Bond stretch parameters (between 2 atom classes). You can use the standard,
@@ -875,6 +845,7 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
                           stiffnessInKcalPerAngSq * DuMM::Kcal2KJ / square(DuMM::Ang2Nm),
                           nominalLengthInAng * DuMM::Ang2Nm);
     }
+
     /** Same as defineBondStretch_KA() but takes integer class arguments for
     backwards compatibility. **/
     void defineBondStretch_KA(int class1, int class2, Real stiffnessInKcalPerAngSq, Real nominalLengthInAng) {
@@ -898,8 +869,6 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
     void defineCustomBondStretch(DuMM::AtomClassIndex class1,
                                  DuMM::AtomClassIndex class2,
                                  DuMM::CustomBondStretch* bondStretchTerm);
-    /**@}**/
-
 
     /** @name                       Bond bending terms
     Bond bending parameters (for 3 atom classes bonded 1-2-3). You can use the
@@ -952,6 +921,7 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
                            Real nominalAngleInDeg) {
         defineBondBend(class1, class2, class3, stiffnessInKcalPerRadSq * DuMM::Kcal2KJ, nominalAngleInDeg);
     }
+
     /** Same as defineBondBend_KA() but takes integer class arguments for
     backwards compatibility. **/
     void defineBondBend_KA(int class1,
@@ -981,9 +951,7 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
     void defineCustomBondBend(DuMM::AtomClassIndex class1,
                               DuMM::AtomClassIndex class2,
                               DuMM::AtomClassIndex class3,
-                              DuMM::CustomBondBend* bondBendTerm);
-    /**@}**/
-
+                              DuMM::CustomBondBend* customBondBend);
 
     /** @name                   Bond torsion terms
     Bond torsion (dihedral) parameters (for 4 atom classes bonded 1-2-3-4). You can
@@ -1073,6 +1041,7 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
                            int periodicity,
                            Real ampInKJ,
                            Real phaseInDegrees);
+
     /** Same as defineBondTorsion() but permits two torsion terms (with different
     periods) to be specified simultaneously. **/
     void defineBondTorsion(DuMM::AtomClassIndex class1,
@@ -1085,6 +1054,7 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
                            int periodicity2,
                            Real amp2InKJ,
                            Real phase2InDegrees);
+
     /** Same as defineBondTorsion() but permits three torsion terms (with different
     periods) to be specified simultaneously. **/
     void defineBondTorsion(DuMM::AtomClassIndex class1,
@@ -1290,7 +1260,6 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
                           phase5InDegrees);
     }
 
-
     /** Same as defineBondTorsion_KA() but takes integer class arguments for
     backwards compatibility. **/
     void defineBondTorsion_KA(int class1,
@@ -1308,6 +1277,7 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
                              amp1InKcal,
                              phase1InDegrees);
     }
+
     /** Same as defineBondTorsion_KA() but takes integer class arguments for
     backwards compatibility. **/
     void defineBondTorsion_KA(int class1,
@@ -1331,6 +1301,7 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
                              amp2InKcal,
                              phase2InDegrees);
     }
+
     /** Same as defineBondTorsion_KA() but takes integer class arguments for
     backwards compatibility. **/
     void defineBondTorsion_KA(int class1,
@@ -1360,7 +1331,6 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
                              amp3InKcal,
                              phase3InDegrees);
     }
-
 
     /** Same as defineBondTorsion_KA() but takes integer class arguments for
     backwards compatibility. **/
@@ -1457,8 +1427,6 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
                                  DuMM::AtomClassIndex class3,
                                  DuMM::AtomClassIndex class4,
                                  DuMM::CustomBondTorsion* bondTorsionTerm);
-    /**@}**/
-
 
     /** @name               Amber-style improper torsions
     As with normal torsions, (see defineBondTorsion()), only one term may have
@@ -1475,6 +1443,7 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
                                     int periodicity,
                                     Real ampInKJ,
                                     Real phaseInDegrees);
+
     /** Provide two torsion terms in MD units, using kilojoules/mole for
     amplitude. **/
     void defineAmberImproperTorsion(DuMM::AtomClassIndex class1,
@@ -1487,6 +1456,7 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
                                     int periodicity2,
                                     Real amp2InKJ,
                                     Real phase2InDegrees);
+
     /** Provide three torsion terms in MD units, using kilojoules/mole for
     amplitude. **/
     void defineAmberImproperTorsion(DuMM::AtomClassIndex class1,
@@ -1520,6 +1490,7 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
                                    amp1InKcal * DuMM::Kcal2KJ,
                                    phase1InDegrees);
     }
+
     /** Provide two torsion terms in KA units, using kilocalories/mole for
     amplitude. **/
     void defineAmberImproperTorsion_KA(DuMM::AtomClassIndex class1,
@@ -1543,6 +1514,7 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
                                    amp2InKcal * DuMM::Kcal2KJ,
                                    phase2InDegrees);
     }
+
     /** Provide three torsion terms in KA units, using kilocalories/mole for
     amplitude. **/
     void defineAmberImproperTorsion_KA(DuMM::AtomClassIndex class1,
@@ -1572,89 +1544,6 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
                                    amp3InKcal * DuMM::Kcal2KJ,
                                    phase3InDegrees);
     }
-    /**@}**/
-
-
-    /** @name                   GBSA implicit solvation
-    These methods are used to set GBSA terms. **/
-    /**@{**/
-    void setSolventDielectric(Real); // typically 80 for water
-    void setSoluteDielectric(Real);  // typically 1 or 2 for protein
-    Real getSolventDielectric() const;
-    Real getSoluteDielectric() const;
-
-    void setGbsaIncludeAceApproximation(bool);
-    void setGbsaIncludeAceApproximationOn() {
-        setGbsaIncludeAceApproximation(true);
-    }
-    void setGbsaIncludeAceApproximationOff() {
-        setGbsaIncludeAceApproximation(false);
-    }
-    /**@}**/
-
-    /** @name                   Global scale factors
-    These <em>non-physical</em> parameters can be used to weaken or disable (or
-    magnify) individual force field terms. These are always 1 for correct
-    implementation of any force field; other values are primarily useful for
-    testing the effects of individual terms on results or performance. Set to 0 to
-    disable the corresponding term altogether. **/
-    /**@{**/
-    void setVdwGlobalScaleFactor(Real);                  ///< scale all van der Waals terms
-    void setCoulombGlobalScaleFactor(Real);              ///< scale all Coulomb terms
-    void setGbsaGlobalScaleFactor(Real);                 ///< scale all GBSA terms
-    void setBondStretchGlobalScaleFactor(Real);          ///< scale all built-in bond stretch terms
-    void setBondBendGlobalScaleFactor(Real);             ///< scale all built-in bond bending terms
-    void setBondTorsionGlobalScaleFactor(Real);          ///< scale all built-in bond torsion terms
-    void setAmberImproperTorsionGlobalScaleFactor(Real); ///< scale all improper torsion terms
-    void setCustomBondStretchGlobalScaleFactor(Real);    ///< scale all custom bond stretch terms
-    void setCustomBondBendGlobalScaleFactor(Real);       ///< scale all custom bond bending terms
-    void setCustomBondTorsionGlobalScaleFactor(Real);    ///< scale all custom bond torsion terms
-
-    Real getVdwGlobalScaleFactor() const;     ///< get current scale factor for van der Waals terms
-    Real getCoulombGlobalScaleFactor() const; ///< get current scale factor for Coulomb terms
-    Real getGbsaGlobalScaleFactor() const;    ///< get current scale factor for GBSA terms
-    Real
-    getBondStretchGlobalScaleFactor() const;   ///< get current scale factor for built-in bond stretch terms
-    Real getBondBendGlobalScaleFactor() const; ///< get current scale factor for built-in bond bending terms
-    Real
-    getBondTorsionGlobalScaleFactor() const; ///< get current scale factor for built-in bond torsion terms
-    Real
-    getAmberImproperTorsionGlobalScaleFactor() const; ///< get current scale factor for improper torsion terms
-    Real
-    getCustomBondStretchGlobalScaleFactor() const; ///< get current scale factor for custom bond stretch terms
-    Real
-    getCustomBondBendGlobalScaleFactor() const; ///< get current scale factor for custom bond bending terms
-    Real
-    getCustomBondTorsionGlobalScaleFactor() const; ///< get current scale factor for custom bond torsion terms
-
-    /** Set all the global scale factors to the same value. This is commonly used
-    to turn everything on or off, followed by selectively disabling or enabling
-    individual terms. **/
-    void setAllGlobalScaleFactors(Real s) {
-        setVdwGlobalScaleFactor(s);
-        setCoulombGlobalScaleFactor(s);
-        setGbsaGlobalScaleFactor(s);
-        setBondStretchGlobalScaleFactor(s);
-        setBondBendGlobalScaleFactor(s);
-        setBondTorsionGlobalScaleFactor(s);
-        setAmberImproperTorsionGlobalScaleFactor(s);
-        setCustomBondStretchGlobalScaleFactor(s);
-        setCustomBondBendGlobalScaleFactor(s);
-        setCustomBondTorsionGlobalScaleFactor(s);
-    }
-
-
-    // Added extra functions to customize OpenMM usage (Eliza)
-    Real
-    getNonbondedCutoff() const;    ///< get current nonbonded cutoff (nm) used for LJ and Coulomb calculations
-    void setNonbondedCutoff(Real); ///< set nonbonded cutoff (nm) used for LJ and Coulomb calculations
-    int getNonbondedMethod() const; ///< get current nonbonded method used by OpenMM.
-    void setNonbondedMethod(
-        int); ///< set nonbonded nonbonded method used by OpenMM. (0 = nocutoff; 1=cutoffnonperiodic).
-
-
-    /**@}**/
-
 
     /** @name               Computational options
     These methods control how DuMM performs its computations. **/
@@ -1666,15 +1555,12 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
     void setTracing(bool);
 
     // Needed in Gmolmodel
-    const Vector_<Vec3>& getIncludedAtomPositionsInG(const State& s) const;
+    void updateOpenMMPositionsFromState(const State& state) const;
 
-    void evaluateEnergiesFromState(const State& state,
-                                   SimTK::Real& newPotentialEnergy,
-                                   SimTK::Real& newKineticEnergy) const;
+    static void evaluateEnergiesFromState(SimTK::Real& newPotentialEnergy, SimTK::Real& newKineticEnergy);
 
-    [[nodiscard]] auto integrateTrajectoryWithOpenMM(const State& state,
-                                                     int steps,
-                                                     SimTK::Real timeStepInPicoseconds) const -> bool;
+    [[nodiscard]] static auto integrateTrajectoryWithOpenMM(int steps, SimTK::Real timeStepInPicoseconds)
+        -> bool;
 
     /** How many times has the forcefield been evaluated? **/
     long long getForceEvaluationCount() const;
@@ -1682,10 +1568,6 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
     /** Produce an ugly but comprehensive dump of the contents of DuMM's internal
     data structures, sent to std::cout (stdout). **/
     void dump() const;
-
-    /** Generate C++ code to reproduce forceField parameters presently in
-    memory. **/
-    void dumpCForceFieldParameters(std::ostream& os, const String& methodName = "loadParameters") const;
 
     /** Load test parameters. **/
     // void loadTestMoleculeParameters();
@@ -1721,16 +1603,16 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
         setAtomClassVdwParameters(atomClassIx, radiusInAng * DuMM::Ang2Nm, wellDepthInKcal * DuMM::Kcal2KJ);
     }
 
-    bool isValidAtomClass(DuMM::AtomClassIndex) const;
+    [[nodiscard]] auto isValidAtomClass(DuMM::AtomClassIndex atomClassIx) const -> bool;
 
-    void defineIncompleteChargedAtomType(DuMM::ChargedAtomTypeIndex typeIx,
-                                         const char* name,
-                                         DuMM::AtomClassIndex classIx);
+    void defineIncompleteChargedAtomType(DuMM::ChargedAtomTypeIndex chargedAtomTypeIndex,
+                                         const char* typeName,
+                                         DuMM::AtomClassIndex atomClassIx);
 
-    void defineIncompleteChargedAtomType_KA(DuMM::ChargedAtomTypeIndex typeIx,
-                                            const char* name,
-                                            DuMM::AtomClassIndex classIx) {
-        defineIncompleteChargedAtomType(typeIx, name, classIx);
+    void defineIncompleteChargedAtomType_KA(DuMM::ChargedAtomTypeIndex chargedAtomTypeIndex,
+                                            const char* typeName,
+                                            DuMM::AtomClassIndex atomClassIx) {
+        defineIncompleteChargedAtomType(chargedAtomTypeIndex, typeName, atomClassIx);
     }
 
     void setChargedAtomTypeCharge(DuMM::ChargedAtomTypeIndex, Real charge);
@@ -1739,27 +1621,15 @@ class SimTK_MOLMODEL_EXPORT DuMMForceFieldSubsystem : public ForceSubsystem {
     }
 
     private:
-    class DuMMForceFieldSubsystemRep& updRep();
-    const DuMMForceFieldSubsystemRep& getRep() const;
+    [[nodiscard]] auto updRep() -> class DuMMForceFieldSubsystemRep&;
+    [[nodiscard]] auto getRep() const -> const DuMMForceFieldSubsystemRep&;
+
+    // Indexed by atom index, gives cluster and atom placement index for that atom
+    std::vector<DuMM::ClusterIndex> dAIxToClusterIndex;
+    std::vector<std::size_t> dAIxToAtomPlacementIx;
+    std::vector<DuMM::ClusterIndex> mbxToClusterIndex;
 
     friend class MolecularMechanicsSystem;
 };
 
-/** This class is just a DuMMForceFieldSubsystem for which the constructor
-pre-loads the definitions of the Amber99 force field. **/
-// class Amber99ForceSubsystem : public DuMMForceFieldSubsystem {
-// public:
-//     explicit Amber99ForceSubsystem(MolecularMechanicsSystem& system)
-//         : DuMMForceFieldSubsystem(system)
-//     {
-//         loadAmber99Parameters();
-//     }
-// };
-
-
 } // namespace SimTK
-
-
-/**@}**/ // End of MolecularMechanics module
-
-#endif // SimTK_MOLMODEL_DUMM_FORCE_FIELD_SUBSYSTEM_H_

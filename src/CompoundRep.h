@@ -858,8 +858,8 @@ class CompoundRep : public PIMPLImplementation<Compound, CompoundRep> {
     /*!
     <!-- Set atom frame in mobod frame -->
     */
-    CompoundRep& bsetFrameInMobilizedBodyFrame(Compound::AtomIndex atomIx, Transform B_X_atom) {
-        CompoundAtom& atom = updAtom(atomIx);
+    auto bsetFrameInMobilizedBodyFrame(Compound::AtomIndex cAIx, const Transform& B_X_atom) -> CompoundRep& {
+        CompoundAtom& atom = updAtom(cAIx);
         atom.setFrameInMobilizedBodyFrame(B_X_atom);
         return *this;
     }
@@ -2719,26 +2719,32 @@ class CompoundRep : public PIMPLImplementation<Compound, CompoundRep> {
     const CompoundAtom& getAtom(const Compound::AtomName& name) const {
         return getAtom(getAtomInfo(name));
     }
-    CompoundAtom& updAtom(const Compound::AtomName& name) {
+
+    auto updAtom(const Compound::AtomName& name) -> CompoundAtom& {
         return updAtom(updAtomInfo(name));
     }
-    const CompoundAtom& getAtom(Compound::AtomIndex id) const {
-        return getAtom(getAtomInfo(id));
+
+    auto getAtom(Compound::AtomIndex cAIx) const -> const CompoundAtom& {
+        return getAtom(getAtomInfo(cAIx));
     }
-    CompoundAtom& updAtom(Compound::AtomIndex id) {
-        return updAtom(updAtomInfo(id));
+
+    auto updAtom(Compound::AtomIndex cAIx) -> CompoundAtom& {
+        return updAtom(updAtomInfo(cAIx));
     }
-    CompoundAtom& updAtom(AtomInfo& info) {
+
+    static auto updAtom(AtomInfo& info) -> CompoundAtom& {
         return info.updAtom();
     }
-    const CompoundAtom& getAtom(const AtomInfo& info) const {
+
+    static auto getAtom(const AtomInfo& info) -> const CompoundAtom& {
         return info.getAtom();
     }
 
-    Compound::BondIndex getNumBonds() const {
+    auto getNumBonds() const -> Compound::BondIndex {
         return Compound::BondIndex(allBonds.size());
     }
-    Compound::AtomIndex getBondAtomIndex(Compound::BondIndex bid, int which) const;
+
+    auto getBondAtomIndex(Compound::BondIndex bid, int which) const -> Compound::AtomIndex;
 
     // const CompoundInfo& getSubcompoundInfo(const Compound::Name& name) const
     //{

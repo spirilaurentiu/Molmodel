@@ -43,70 +43,12 @@
 
 using namespace SimTK;
 
-// #ifndef DEBUG
-// #define DEBUG 1
-// #endif
-
-// #ifdef DEBUG
-#define TRACE(STR) printf("%s", STR);
-// #else
-// #define TRACE(STR)
-// #endif
-
 // Optimize for Robosample
 #include <fstream>
 #include <sstream>
 #include <sys/resource.h> // memory
 
 #include "OpenMM.hpp"
-
-
-/*! <!-- Execute a command from within (Linux free) -->
- */
-std::string exec_molmodel(const char* cmd) {
-    std::array<char, 128> buffer;
-    std::string result;
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
-    if (!pipe) {
-        printf("No pipe with error: %s\n", strerror(errno));
-        throw std::runtime_error("popen() failed!");
-    }
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-        result += buffer.data();
-    }
-    return result;
-}
-
-/*! <!-- Get Linux memory usage -->
- */
-std::size_t getLinuxMemoryUsageFromProc_m() {
-    std::ifstream file("/proc/self/status");
-    std::string line;
-    std::size_t memoryUsage = 0;
-
-    while (std::getline(file, line)) {
-        if (line.find("VmRSS:") != std::string::npos) {
-            std::istringstream iss(line);
-            std::string ignore;
-            iss >> ignore >> memoryUsage;
-            break;
-        }
-    }
-
-    return memoryUsage; // Value in kB
-}
-
-/*! <!-- Get memory usage with getrusage -->
- */
-long getResourceUsage_m() {
-    struct rusage usage;
-    getrusage(RUSAGE_SELF, &usage);
-    return usage.ru_maxrss;
-}
-
-#ifndef MEMDEBUG
-#    define MEMDEBUG 0
-#endif
 
 // This is Coulomb's constant 1/(4*pi*e0) in units which convert
 // e^2/nm to kJ/mol.
@@ -221,18 +163,6 @@ struct CrossBodyBondInfo {
 //------------------------------------------------------------------------------
 
 int DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl(State& s) const {
-    if (MEMDEBUG) {
-        std::cout << "DuMMRep::realizeSubsystemTopologyImpl memory 0.\n"
-                  << exec_molmodel("free") << std::endl
-                  << std::flush;
-        std::cout << "DuMMRep::realizeSubsystemTopologyImpl memory 0.\n"
-                  << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl
-                  << std::flush;
-        std::cout << "DuMMRep::realizeSubsystemTopologyImpl memory 0.\n"
-                  << getResourceUsage_m() << " kB" << std::endl
-                  << std::flush;
-    }
-
     // std::cout << "LAB DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl BEGIN" << std::endl;
     if (includedAtomStations.size()) {
         // At realization time, we need to verify that every atom has a valid atom
@@ -307,18 +237,6 @@ int DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl(State& s) const {
         // std::cout << "DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl END" << std::endl;
         return realizeInternalListsResult;
     }
-
-    if (MEMDEBUG) {
-        std::cout << "DuMMRep::realizeSubsystemTopologyImpl memory .\n"
-                  << exec_molmodel("free") << std::endl
-                  << std::flush;
-        std::cout << "DuMMRep::realizeSubsystemTopologyImpl memory .\n"
-                  << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl
-                  << std::flush;
-        std::cout << "DuMMRep::realizeSubsystemTopologyImpl memory .\n"
-                  << getResourceUsage_m() << " kB" << std::endl
-                  << std::flush;
-    }
 }
 
 // All the force field and molecule parameters have been set, as well as
@@ -326,24 +244,7 @@ int DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl(State& s) const {
 // calculations. Here we precalculate everything we can that derives from these
 // parameters and write it to the Topology-stage cache; i.e. write-once
 // data members of this object.
-// EU RESTORE
-// int DuMMForceFieldSubsystemRep::realizeSubsystemTopologyImpl(State& s) const
-// EU BEGIN
-int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
-// EU END
-{
-    if (MEMDEBUG) {
-        std::cout << "DuMMRep::realizeInternalLists memory 0.\n"
-                  << exec_molmodel("free") << std::endl
-                  << std::flush;
-        std::cout << "DuMMRep::realizeInternalLists memory 0.\n"
-                  << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl
-                  << std::flush;
-        std::cout << "DuMMRep::realizeInternalLists memory 0.\n"
-                  << getResourceUsage_m() << " kB" << std::endl
-                  << std::flush;
-    }
-
+int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const {
     // At realization time, we need to verify that every atom has a valid atom
     // class id. TODO: should apply only to included atoms.
     for (DuMM::AtomIndex anum(0); anum < atoms.size(); ++anum) {
@@ -357,61 +258,6 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
     DuMMForceFieldSubsystemRep* mutableThis = const_cast<DuMMForceFieldSubsystemRep*>(this);
 
     mutableThis->invalidateAllTopologicalCacheEntries();
-
-    if (MEMDEBUG) {
-        std::cout << "DuMMRep::realizeInternalLists memory 0.1.\n"
-                  << exec_molmodel("free") << std::endl
-                  << std::flush;
-        std::cout << "DuMMRep::realizeInternalLists memory 0.1. " << getLinuxMemoryUsageFromProc_m() << " kB"
-                  << std::endl
-                  << std::flush;
-        std::cout << "DuMMRep::realizeInternalLists memory 0.1. " << getResourceUsage_m() << " kB"
-                  << std::endl
-                  << std::flush;
-    }
-
-    // force field
-
-    // Calculate effective van der Waals parameters for all pairs of atom
-    // classes. We only fill in the diagonal and upper triangle; that is, each
-    // class contains parameters for like classes and all classes whose
-    // (arbitrary) class number is higher.
-    for (DuMM::AtomClassIndex i(0); i < atomClasses.size(); ++i) {
-        if (!atomClasses[i].isValid()) {
-            continue;
-        }
-        if (!atomClasses[i].isComplete()) {
-            continue;
-        }
-
-        AtomClass& iclass = mutableThis->atomClasses[i];
-        iclass.vdwDij.resize((int)atomClasses.size() - i, NaN);
-        iclass.vdwEij.resize((int)atomClasses.size() - i, NaN);
-        for (DuMM::AtomClassIndex j = i; j < atomClasses.size(); ++j) {
-            const AtomClass& jclass = atomClasses[j];
-            if (jclass.isValid() && jclass.isComplete()) {
-                applyMixingRule(iclass.vdwRadius,
-                                jclass.vdwRadius,
-                                iclass.vdwWellDepth,
-                                jclass.vdwWellDepth,
-                                iclass.vdwDij[j - i],
-                                iclass.vdwEij[j - i]);
-            }
-        }
-    }
-
-    if (MEMDEBUG) {
-        // std::cout << "DuMMRep::realizeInternalLists memory 0.1.\n" << exec_molmodel("free") << std::endl <<
-        // std::flush;
-        std::cout << "DuMMRep::realizeInternalLists memory 0.2. " << getLinuxMemoryUsageFromProc_m() << " kB"
-                  << std::endl
-                  << std::flush;
-        std::cout << "DuMMRep::realizeInternalLists memory 0.2. " << getResourceUsage_m() << " kB"
-                  << std::endl
-                  << std::flush;
-    }
-
-    // molecule
 
     // Process clusters & bodies (bodies are treated as top-level clusters)
 
@@ -461,7 +307,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         }
         const MobodIndex mbx = b.getMobilizedBodyIndex();
         const Cluster& cluster = getCluster(b.getClusterIndex());
-        for (AtomPlacementSet::const_iterator app = cluster.getAllContainedAtoms().begin();
+        for (AtomPlacementArray::const_iterator app = cluster.getAllContainedAtoms().begin();
              app != cluster.getAllContainedAtoms().end();
              ++app) {
             const AtomPlacement& ap = *app;
@@ -488,17 +334,6 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
     }
     for (DuMM::AtomIndex ax(0); ax < atoms.size(); ++ax) {
         assert(getAtom(ax).isAttachedToBody()); // TODO catch unassigned atoms
-    }
-
-    if (MEMDEBUG) {
-        // std::cout << "DuMMRep::realizeInternalLists memory 1.\n" << exec_molmodel("free") << std::endl <<
-        // std::flush;
-        std::cout << "DuMMRep::realizeInternalLists memory 1.\n"
-                  << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl
-                  << std::flush;
-        std::cout << "DuMMRep::realizeInternalLists memory 1.\n"
-                  << getResourceUsage_m() << " kB" << std::endl
-                  << std::flush;
     }
 
     //------- Process bonds -------
@@ -1106,16 +941,6 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         }
     }
 
-    if (MEMDEBUG) {
-        // std::cout << "DuMMRep::realizeInternalLists memory 5.\n" << exec_molmodel("free") << std::endl <<
-        // std::flush;
-        std::cout << "DuMMRep::realizeInternalLists memory 5. " << getLinuxMemoryUsageFromProc_m() << " kB"
-                  << std::endl
-                  << std::flush;
-        std::cout << "DuMMRep::realizeInternalLists memory 5. " << getResourceUsage_m() << " kB" << std::endl
-                  << std::flush;
-    }
-
     // We have processed all the atoms and marked them included if they
     // will appear in any nonbonded or bonded force calculation. The
     // nonbond atoms have been separately marked. We have also created a
@@ -1258,18 +1083,6 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
             }
         }
     }
-
-
-    if (MEMDEBUG) {
-        // std::cout << "DuMMRep::realizeInternalLists memory 6.\n" << exec_molmodel("free") << std::endl <<
-        // std::flush;
-        std::cout << "DuMMRep::realizeInternalLists memory 6. " << getLinuxMemoryUsageFromProc_m() << " kB"
-                  << std::endl
-                  << std::flush;
-        std::cout << "DuMMRep::realizeInternalLists memory 6. " << getResourceUsage_m() << " kB" << std::endl
-                  << std::flush;
-    }
-
 
     // Now that included atom index assignments have been made, we can
     // allocate the includedAtoms array and fill each IncludedAtom with
@@ -1464,20 +1277,7 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
         }
     }
 
-
-    if (MEMDEBUG) {
-        // std::cout << "DuMMRep::realizeInternalLists memory 7.\n" << exec_molmodel("free") << std::endl <<
-        // std::flush;
-        std::cout << "DuMMRep::realizeInternalLists memory 7. " << getLinuxMemoryUsageFromProc_m() << " kB"
-                  << std::endl
-                  << std::flush;
-        std::cout << "DuMMRep::realizeInternalLists memory 7. " << getResourceUsage_m() << " kB" << std::endl
-                  << std::flush;
-    }
-
-
     // GMolModel - Same for AllAtomIndex ....this can be optimised
-
     for (DuMM::IncludedAtomIndex iax(0); iax < AllAtoms.size(); ++iax) {
         const DuMM::AtomIndex ax = getAtomIndexOfAllAtom(iax);
         const CrossBodyBondInfo& x = crossBodyBondInfo[ax]; // computed above
@@ -1622,18 +1422,6 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
 
     mutableThis->internalListsRealized = true;
 
-    if (MEMDEBUG) {
-        std::cout << "DuMMRep::realizeInternalLists memory .\n"
-                  << exec_molmodel("free") << std::endl
-                  << std::flush;
-        std::cout << "DuMMRep::realizeInternalLists memory .\n"
-                  << getLinuxMemoryUsageFromProc_m() << " kB" << std::endl
-                  << std::flush;
-        std::cout << "DuMMRep::realizeInternalLists memory .\n"
-                  << getResourceUsage_m() << " kB" << std::endl
-                  << std::flush;
-    }
-
     if (nonBondedMappings.empty()) {
         for (DuMM::NonbondAtomIndex nbx(0); nbx < getNumNonbondAtoms(); ++nbx) {
             const DuMM::AtomIndex dAIx = getAtomIndexOfNonbondAtom(nbx);
@@ -1644,19 +1432,6 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
             nonBondedMappings.emplace_back(NonBondedMapping{int(dAIx), int(iax), int(ibx)});
         }
     }
-
-    // if (true) {
-    //     for (DuMM::NonbondAtomIndex nax(0); nax < getNumNonbondAtoms(); ++nax) {
-    //         const DuMM::IncludedAtomIndex iax = getIncludedAtomIndexOfNonbondAtom(nax);
-    //         const IncludedAtom& includedAtom = getIncludedAtom(iax);
-    //         const DuMMIncludedBodyIndex ibx = includedAtom.inclBodyIndex;
-
-    //         // forces[nax]
-    //         getAtom(getAtomIndexOfNonbondAtom(nax)).forceIndex = nax;
-
-
-    //     }
-    // }
 
     return 0;
 }
@@ -1968,36 +1743,6 @@ static inline void vdwCombineKong(Real ri, Real rj, Real ei, Real ej, Real& r, R
     r = std::pow(r6, oo6);
     e = er6 / r6;
 }
-
-
-// Radii and returned diameter are given in nm, energies in kJ/mol.
-void DuMMForceFieldSubsystemRep::applyMixingRule(Real ri, Real rj, Real ei, Real ej, Real& dmin, Real& emin)
-    const {
-    Real rmin = 0;
-
-    switch (vdwMixingRule) {
-        case DuMMForceFieldSubsystem::WaldmanHagler:
-            vdwCombineWaldmanHagler(ri, rj, ei, ej, rmin, emin);
-            break;
-        case DuMMForceFieldSubsystem::HalgrenHHG:
-            vdwCombineHalgrenHHG(ri, rj, ei, ej, rmin, emin);
-            break;
-        case DuMMForceFieldSubsystem::Jorgensen:
-            vdwCombineJorgensen(ri, rj, ei, ej, rmin, emin);
-            break;
-        case DuMMForceFieldSubsystem::LorentzBerthelot:
-            vdwCombineLorentzBerthelot(ri, rj, ei, ej, rmin, emin);
-            break;
-        case DuMMForceFieldSubsystem::Kong:
-            vdwCombineKong(ri, rj, ei, ej, rmin, emin);
-            break;
-        default:
-            assert(!"unknown vdw mixing rule");
-    };
-
-    dmin = 2 * rmin;
-}
-
 
 void DuMMForceFieldSubsystemRep::dump() const {
     printf("===============================================================\n");
@@ -2415,7 +2160,7 @@ void Cluster::attachToBody(MobilizedBodyIndex bnum, const Transform& X_BR, DuMMF
     // Tell all the atoms directly contained in this cluster that they are
     // now attached to the body also. This will fail if any of the atoms are
     // alread attached -- no polygamy.
-    AtomPlacementSet::const_iterator ap = directAtomPlacements.begin();
+    AtomPlacementArray::const_iterator ap = directAtomPlacements.begin();
     while (ap != directAtomPlacements.end()) {
         DuMMAtom& a = mm.updAtom(ap->atomIndex);
         a.attachToBody(bnum, X_BR * ap->station);
@@ -2424,7 +2169,7 @@ void Cluster::attachToBody(MobilizedBodyIndex bnum, const Transform& X_BR, DuMMF
 
     // Now do the same for our contained groups, who will in turn notify their
     // own atoms and subgroups.
-    ClusterPlacementSet::const_iterator cp = directClusterPlacements.begin();
+    ClusterPlacementArray::const_iterator cp = directClusterPlacements.begin();
     while (cp != directClusterPlacements.end()) {
         Cluster& c = mm.updCluster(cp->clusterIndex);
         c.attachToBody(bnum, X_BR * cp->placement, mm);
@@ -2438,8 +2183,8 @@ void Cluster::attachToBody(MobilizedBodyIndex bnum, const Transform& X_BR, DuMMF
 bool Cluster::containsAnyAtomsAttachedToABody(DuMM::AtomIndex& atomIndex,
                                               MobilizedBodyIndex& bodyIx,
                                               const DuMMForceFieldSubsystemRep& mm) const {
-    const AtomPlacementSet& myAtoms = getAllContainedAtoms();
-    AtomPlacementSet::const_iterator ap = myAtoms.begin();
+    const AtomPlacementArray& myAtoms = getAllContainedAtoms();
+    AtomPlacementArray::const_iterator ap = myAtoms.begin();
     while (ap != myAtoms.end()) {
         const DuMMAtom& a = mm.getAtom(ap->atomIndex);
         if (a.isAttachedToBody()) {
@@ -2473,12 +2218,8 @@ void Cluster::placeAtom(DuMM::AtomIndex atomIndex, const Vec3& station, DuMMForc
     assert(!mm.getAtom(atomIndex).isAttachedToBody());
     assert(!containsAtom(atomIndex));
 
-    std::pair<AtomPlacementSet::iterator, bool> ret;
-    ret = directAtomPlacements.insert(AtomPlacement(atomIndex, station));
-    assert(ret.second); // must not have been there already
-
-    ret = allAtomPlacements.insert(AtomPlacement(atomIndex, station));
-    assert(ret.second); // must not have been there already
+    directAtomPlacements.emplace_back(atomIndex, station);
+    allAtomPlacements.emplace_back(atomIndex, station);
 
     if (isAttachedToBody()) {
         mm.updAtom(atomIndex).attachToBody(mobodIx, placement_B * station);
@@ -2508,27 +2249,23 @@ void Cluster::placeCluster(DuMM::ClusterIndex childClusterIndex,
     // Make sure the new child cluster doesn't contain any atoms which are already in
     // any of the trees to which the parent cluster (this) is associated.
     // TODO: for now we need only look at the parent since we know it is top level.
-    const AtomPlacementSet& childsAtoms = child.getAllContainedAtoms();
-    AtomPlacementSet& parentsAtoms = updAllContainedAtoms();
+    const AtomPlacementArray& childsAtoms = child.getAllContainedAtoms();
+    AtomPlacementArray& parentsAtoms = updAllContainedAtoms();
 
     // Make sure none of the child's atoms are already in the parent.
-    AtomPlacementSet::const_iterator ap = childsAtoms.begin();
+    auto ap = childsAtoms.begin();
     while (ap != childsAtoms.end()) {
-        [[maybe_unused]] auto ret =
-            parentsAtoms.insert(AtomPlacement(ap->atomIndex, placement * ap->station));
-        assert(ret.second); // mustn't have been there already
+        parentsAtoms.emplace_back(ap->atomIndex, placement * ap->station);
         ++ap;
     }
 
-    const ClusterPlacementSet& childsClusters = child.getAllContainedClusters();
-    ClusterPlacementSet& parentsClusters = updAllContainedClusters();
+    const ClusterPlacementArray& childsClusters = child.getAllContainedClusters();
+    ClusterPlacementArray& parentsClusters = updAllContainedClusters();
 
     // Make sure none of the child's atoms are already in the parent.
-    ClusterPlacementSet::const_iterator cp = childsClusters.begin();
+    auto cp = childsClusters.begin();
     while (cp != childsClusters.end()) {
-        [[maybe_unused]] auto ret =
-            parentsClusters.insert(ClusterPlacement(cp->clusterIndex, placement * cp->placement));
-        assert(ret.second); // mustn't have been there already
+        parentsClusters.emplace_back(cp->clusterIndex, placement * cp->placement);
         ++cp;
     }
 
@@ -2549,16 +2286,14 @@ MassProperties Cluster::calcMassProperties(const Transform& tr, const DuMMForceF
     Real mass = 0;
     Vec3 com(0);
     Inertia inertia(0);
-    Inertia inertia_Spheres(0);
+    // Inertia inertia_Spheres(0);
 
     // Calculate the mass properties in the local frame and transform last.
-    AtomPlacementSet::const_iterator aap = allAtomPlacements.begin();
-    while (aap != allAtomPlacements.end()) {
-        const Real atomMass = mm.getElement(mm.getAtomElementNum(aap->atomIndex)).getMass();
-
-        SimTK::DuMM::AtomIndex dAIx = aap->atomIndex;
+    for (const auto& atomPlacement : allAtomPlacements) {
+        const Real atomMass = mm.getElement(mm.getAtomElementNum(atomPlacement.atomIndex)).getMass();
 
         /*! <!-- desk_mass_related --> */
+        // SimTK::DuMM::AtomIndex dAIx = atomPlacement.atomIndex;
         // const Real atomMass = mm.getAtomMass(dAIx);
 
         // std::cout << std::fixed << std::setprecision(6);
@@ -2566,14 +2301,13 @@ MassProperties Cluster::calcMassProperties(const Transform& tr, const DuMMForceF
         // std::endl;
 
         // Get the mass of the nucleus
-        SimTK::Real femto2nano = 0.000001;
         Real ra = atomMass;
         ra = std::pow(ra, 1.0 / 3.0);
         ra *= 1.2 * 0.01;
 
         mass += atomMass;
-        com += atomMass * aap->station;
-        Inertia pointMass = Inertia(aap->station, atomMass);
+        com += atomMass * atomPlacement.station;
+        Inertia pointMass = Inertia(atomPlacement.station, atomMass);
 
         // Accumulate point masses inertia
         inertia += pointMass;
@@ -2582,9 +2316,7 @@ MassProperties Cluster::calcMassProperties(const Transform& tr, const DuMMForceF
         Inertia sphericalInertia = UnitInertia::sphere(ra);
         sphericalInertia *= atomMass;
         sphericalInertia += pointMass;
-        inertia_Spheres += sphericalInertia;
-
-        ++aap;
+        // inertia_Spheres += sphericalInertia;
     }
     com /= mass;
 
