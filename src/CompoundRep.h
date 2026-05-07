@@ -2461,15 +2461,55 @@ class CompoundRep : public PIMPLImplementation<Compound, CompoundRep> {
     /*!
      * <!--  -->
      */
-    CompoundRep& matchDefaultTopLevelTransform(const Compound::AtomTargetLocations& atomTargets) {
-        Kabsch78::VectorSet vecPairs;
-        vecPairs.reserve(atomTargets.size());
+    auto matchDefaultTopLevelTransform(const Compound::AtomTargetLocations& atomTargets) -> CompoundRep& {
+        // // Reserve memory
+        // vecPairs.resize(atomTargets.size());
+        // atomSourceFrames.resize(getNumAtoms());
+
+        // // Calculate default atom frames in compound frame
+        // for (const auto& atom : allAtoms) {
+        //     const auto atomIndex = atom.getIndex();
+        //     atomSourceFrames[atomIndex] = calcDefaultAtomFrameInCompoundFrame(atomIndex);
+
+        //     assert(!isNaN(atomSourceFrames[atomIndex].p()[0]));
+        // }
+
+        // const Real weight = 1.0;
+
+        // for (Compound::AtomIndex atomIndex(0); atomIndex < atomTargets.size(); ++atomIndex) {
+        //     const Vec3 source = getTopLevelTransform() * atomSourceFrames[atomIndex].T();
+        //     const Vec3& target = atomTargets[atomIndex];
+
+        //     vecPairs[atomIndex] = {source, target, weight};
+        // }
+
+        // const auto result = Kabsch78::superpose(vecPairs);
+        // const auto& adjustment = result.transform;
+
+        // setTopLevelTransform(adjustment * getTopLevelTransform());
+
+
+        ///////////////////////////////////////////////////////////////////////////////
+
+
+        // Reserve memory
+        atomSet.n = static_cast<int>(atomTargets.size());
+
+        atomSet.sourceX.resize(atomSet.n);
+        atomSet.sourceY.resize(atomSet.n);
+        atomSet.sourceZ.resize(atomSet.n);
+
+        atomSet.targetX.resize(atomSet.n);
+        atomSet.targetY.resize(atomSet.n);
+        atomSet.targetZ.resize(atomSet.n);
+
+        atomSourceFrames.resize(getNumAtoms());
 
         // Calculate default atom frames in compound frame
-        std::vector<Transform> atomSourceFrames(getNumAtoms());
         for (const auto& atom : allAtoms) {
             const auto atomIndex = atom.getIndex();
             atomSourceFrames[atomIndex] = calcDefaultAtomFrameInCompoundFrame(atomIndex);
+
             assert(!isNaN(atomSourceFrames[atomIndex].p()[0]));
         }
 
@@ -2479,27 +2519,19 @@ class CompoundRep : public PIMPLImplementation<Compound, CompoundRep> {
             const Vec3 source = getTopLevelTransform() * atomSourceFrames[atomIndex].T();
             const Vec3& target = atomTargets[atomIndex];
 
-            vecPairs.push_back(Vec3Pair(source, target, weight));
+            atomSet.sourceX[atomIndex] = source[0];
+            atomSet.sourceY[atomIndex] = source[1];
+            atomSet.sourceZ[atomIndex] = source[2];
+
+            atomSet.targetX[atomIndex] = target[0];
+            atomSet.targetY[atomIndex] = target[1];
+            atomSet.targetZ[atomIndex] = target[2];
         }
 
-        const auto result = Kabsch78::superpose(vecPairs);
+        const auto result = Kabsch78::superpose_unweighted(atomSet);
         const auto& adjustment = result.transform;
 
         setTopLevelTransform(adjustment * getTopLevelTransform());
-
-        // setTopLevelTransform( getTopLevelTransform() );
-
-        // // STUDY localTransform
-        // Compound::AtomTargetLocations::const_iterator tI;
-        // for (tI = atomTargets.begin(); tI != atomTargets.end(); ++tI)
-        // {
-        //     Compound::AtomIndex cAIx = tI->first;
-        //     const SimTK::AtomInfo & atomInfo = getAtomInfo(cAIx);
-        //     const SimTK::CompoundAtom & atom = getAtom(atomInfo);
-
-        //     std::cout << "STUDY CompoundRep::matchDefaultTopLevelTransform cAIx T " << cAIx <<" \n "<<
-        //     atom.getLocalTransform() << std::endl;
-        // }
 
         return *this;
     }
@@ -3088,14 +3120,14 @@ class CompoundRep : public PIMPLImplementation<Compound, CompoundRep> {
     // bool hasParentCompound() const {return haveParentCompound;}
 
 
-    CompoundRep& setTopLevelTransform(const Transform& transform) {
+    auto setTopLevelTransform(const Transform& transform) -> CompoundRep& {
         // assert(!hasParentCompound());
         topLevelTransform = transform;
 
         return *this;
     }
 
-    const Transform& getTopLevelTransform() const {
+    auto getTopLevelTransform() const -> const Transform& {
         // assert(!hasParentCompound());
         return topLevelTransform;
     }
@@ -3279,6 +3311,10 @@ class CompoundRep : public PIMPLImplementation<Compound, CompoundRep> {
     private:
     friend class Compound;
     friend class Bond;
+
+    Kabsch78::VectorSet vecPairs;
+    std::vector<Transform> atomSourceFrames;
+    Kabsch78::AtomSet atomSet;
 
     // ownerSystem is being used in two ways:
     // 1) ownerSystem plus ixWithinOwnerSystem represent handle for compounds directly owned by a

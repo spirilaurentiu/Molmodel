@@ -136,13 +136,6 @@ void DuMMForceFieldSubsystem::setDuMMAtomMass(SimTK::DuMM::AtomIndex dAIx, SimTK
 
     DuMMForceFieldSubsystemRep& rep = updRep();
 
-    // Watch for nonsense arguments.
-    SimTK_APIARGCHECK1(rep.isValidAtomClass(class1),
-                       rep.ApiClassName,
-                       MethodName,
-                       "class1=%d which is not a valid atom class Index",
-                       (int)class1);
-
     rep.setAtomMass(dAIx, atomicMass);
 }
 
@@ -1772,7 +1765,7 @@ auto DuMMForceFieldSubsystem::addAtom(DuMM::ChargedAtomTypeIndex chargedAtomType
 
     DuMMForceFieldSubsystemRep& rep = updRep();
 
-    SimTK_APIARGCHECK1(rep.isValidChargedAtomType(chargedAtomTypeIndex),
+    SimTK_APIARGCHECK1(rep.isValidChargedAtomType(chargedAtomTypeIx),
                        rep.ApiClassName,
                        MethodName,
                        "charged atom type %d is not valid",
@@ -1794,11 +1787,11 @@ void DuMMForceFieldSubsystem::placeAtomInCluster(DuMM::AtomIndex dAIx,
     DuMMForceFieldSubsystemRep& rep = updRep();
 
     // Make sure that we've seen both the atomIndex and clusterIx before.
-    SimTK_APIARGCHECK1(rep.isValidAtom(atomIndex),
+    SimTK_APIARGCHECK1(rep.isValidAtom(dAIx),
                        rep.ApiClassName,
                        MethodName,
                        "atom index %d is not valid",
-                       (int)atomIndex);
+                       (int)dAIx);
     SimTK_APIARGCHECK1(rep.isValidCluster(clusterIx),
                        rep.ApiClassName,
                        MethodName,
@@ -2103,7 +2096,7 @@ auto DuMMForceFieldSubsystem::getAtomElement(DuMM::AtomIndex dAIx) const -> int 
     const DuMMForceFieldSubsystemRep& rep = getRep();
 
     // Make sure we've seen this atom before.
-    SimTK_APIARGCHECK1(rep.isValidAtom(atomIndex),
+    SimTK_APIARGCHECK1(rep.isValidAtom(dAIx),
                        rep.ApiClassName,
                        MethodName,
                        "atom %d is not valid",
@@ -2438,7 +2431,7 @@ auto DuMMForceFieldSubsystem::getAtomBody(DuMM::AtomIndex dAIx) const -> Mobiliz
     const DuMMAtom& atom = rep.getAtom(dAIx);
 
     // Atom must be attached to a body.
-    SimTK_APIARGCHECK1(a.isAttachedToBody(),
+    SimTK_APIARGCHECK1(atom.isAttachedToBody(),
                        rep.ApiClassName,
                        MethodName,
                        "atom %d is not attached to a body",

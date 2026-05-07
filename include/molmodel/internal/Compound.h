@@ -237,7 +237,7 @@ class SimTK_MOLMODEL_EXPORT Compound : public PIMPLHandle<Compound, CompoundRep>
     SimTK_DEFINE_UNIQUE_LOCAL_INDEX_TYPE(Compound, BondIndex);
 
     /// Type for set of target atom locations to be used for structure matching
-    typedef std::vector<Vec3> AtomTargetLocations;
+    using AtomTargetLocations = std::vector<Vec3>;
 
     class SingleAtom;
 
