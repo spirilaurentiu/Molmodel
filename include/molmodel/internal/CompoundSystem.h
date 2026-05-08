@@ -1,18 +1,29 @@
 #ifndef SimTK_MOLMODEL_COMPOUNDSYSTEM_H_
 #define SimTK_MOLMODEL_COMPOUNDSYSTEM_H_
 
-#include "SimTKsimbody.h"
-#include "molmodel/internal/common.h"
-#include "molmodel/internal/Compound.h"
-#include "molmodel/internal/MolecularMechanicsSystem.h"
-#include "molmodel/internal/DuMMForceFieldSubsystem.h"
-
 #include <map>
+
+#include "molmodel/internal/Compound.h"
+#include "molmodel/internal/DuMMForceFieldSubsystem.h"
+#include "molmodel/internal/MolecularMechanicsSystem.h"
+#include "molmodel/internal/common.h"
+
+#include "SimTKsimbody.h"
+
 
 namespace SimTK {
 
 class RigidUnit;
 class AtomBonding;
+
+enum class RootMobility : std::uint8_t {
+    Free = 0,
+    Cartesian,
+    Weld,
+    FreeLine,
+    Ball,
+    Pin
+};
 
 /**
  * \brief Derived class of MolecularMechanicsSystem that knows how to model molmodel Compounds
@@ -20,22 +31,23 @@ class AtomBonding;
  * \todo merge this class with MolecularMechanicsSystem
  */
 class SimTK_MOLMODEL_EXPORT CompoundSystem : public MolecularMechanicsSystem {
-public:
-
+    public:
     /** @class SimTK::CompoundSystem::CompoundIndex
      * Compound::Index type is an integer index into subcompounds of a Compound.  It is NOT
      * instrinsic to the subcompound, but represents the relationship between a subcompound
      * and precisely one of its parent compounds.
      */
-    SimTK_DEFINE_UNIQUE_LOCAL_INDEX_TYPE(CompoundSystem,CompoundIndex);
+    SimTK_DEFINE_UNIQUE_LOCAL_INDEX_TYPE(CompoundSystem, CompoundIndex);
 
     /// default constructor
-    CompoundSystem() {}
+    CompoundSystem() {
+    }
 
     /// destructor
     ~CompoundSystem() {
-        for (int i=0; i < (int)compounds.size(); ++i)
+        for (int i = 0; i < (int)compounds.size(); ++i) {
             delete compounds[i];
+        }
     }
 
     /**
@@ -45,10 +57,9 @@ public:
      * It is an error if the given handle wasn't the owner of the Compound.
      */
     void adoptCompound(
-        Compound& child, ///< Compound to be incorporated
+        Compound& child,                                 ///< Compound to be incorporated
         const Transform& compoundTransform = Transform() ///< location and orientation of the Compound
-        ) 
-    {
+    ) {
         // const Compound::Index id((int)compounds.size());
 
         // Create a new empty Compound and get a reference to it
@@ -64,14 +75,14 @@ public:
         newCompound.setMultibodySystem(*this);
 
         // Save transform
-        // March 6, 2008 -- adjust internal Transform of Compound, rather than 
+        // March 6, 2008 -- adjust internal Transform of Compound, rather than
         // saving the Transform in CompoundSystem
         newCompound.setTopLevelTransform(compoundTransform * newCompound.getTopLevelTransform());
         // std::cout << "SP_NEW  CompoundSystem::adoptCompound Top transforms:" << std::endl;
         // std::cout << compoundTransform;
         // std::cout << newCompound.getTopLevelTransform();
 
-        
+
         // assert((int) compoundTransforms.size() == (int) id);
         // compoundTransforms.push_back(compoundTransform);
 
@@ -79,43 +90,43 @@ public:
     }
 
     /** Instantiate a Simbody model representing the adopted Compounds, using
-    the same base body-to-ground connection type (Free or Weld mobilizer) for 
+    the same base body-to-ground connection type (Free or Weld mobilizer) for
     all top-level Compounds. If you want some compounds free and others welded,
-    use modelOneCompound() repeatedly instead. 
+    use modelOneCompound() repeatedly instead.
     @param[in] mobilizedBodyType    Value must be exactly "Free" or "Weld"
                                     including capitalization. The default is
                                     "Free".
-    @bug "Weld" will only be applied to those compounds for which the mobilizer 
-    would otherwise have been "Free" (six degrees of freedom). For compounds of 
+    @bug "Weld" will only be applied to those compounds for which the mobilizer
+    would otherwise have been "Free" (six degrees of freedom). For compounds of
     just a few atoms other mobilizers may be used and "Weld" is ignored. **/
-    void modelCompounds(String mobilizedBodyType = "Free");
+    void modelCompounds(RootMobility rootMobility);
 
 
-/**  **/
-CompoundSystem&
-calc_XPF_XBM_new(SimTK::Transform& Fr_X_Mr, SimTK::Transform& X_parentBC_childBC, BondMobility::Mobility bondMobility, std::vector<SimTK::Transform>& PFBM);
+    /**  **/
+    CompoundSystem& calc_XPF_XBM_new(SimTK::Transform& Fr_X_Mr,
+                                     SimTK::Transform& X_parentBC_childBC,
+                                     BondMobility::Mobility bondMobility,
+                                     std::vector<SimTK::Transform>& PFBM);
 
-CompoundSystem&
-calc_XPF_XBM(
-    SimTK::Compound& compound,
-    SimTK::Compound::AtomIndex atom1, SimTK::Compound::AtomIndex atom2,
-    BondMobility::Mobility bondMobility,
-    SimTK::Transform& Fr_X_M0,
-    SimTK::Angle rigidUnitInboardDihedral,
-    std::vector<SimTK::Transform>& PFBM,
-    SimTK::Transform& Fr_X_Mr
-);
+    CompoundSystem& calc_XPF_XBM(SimTK::Compound& compound,
+                                 SimTK::Compound::AtomIndex atom1,
+                                 SimTK::Compound::AtomIndex atom2,
+                                 BondMobility::Mobility bondMobility,
+                                 SimTK::Transform& Fr_X_M0,
+                                 SimTK::Angle rigidUnitInboardDihedral,
+                                 std::vector<SimTK::Transform>& PFBM,
+                                 SimTK::Transform& Fr_X_Mr);
 
 
     /** Build the Simbody model one compound at a time to allow differing
-    base body-to-ground connection types. If you use this method you must 
-    use it for all compounds; you can't mix with modelCompounds(). For 
+    base body-to-ground connection types. If you use this method you must
+    use it for all compounds; you can't mix with modelCompounds(). For
     example:
     @code
       CompoundSystem sys; // ... with compounds already adopted.
-      for (CompoundSystem::CompoundIndex c(0); c < sys.getNumCompounds(); ++c) 
+      for (CompoundSystem::CompoundIndex c(0); c < sys.getNumCompounds(); ++c)
           modelOneCompound(c, "Weld");
-    @endcode 
+    @endcode
 
     @param[in] mobilizedBodyType    Value must be exactly "Free" or "Weld"
                                     including capitalization. The default is
@@ -125,27 +136,30 @@ calc_XPF_XBM(
     mobilizers may be used. **/
     void modelOneCompound(CompoundIndex compoundId,
                           std::vector<Transform>& atomFrameCache,
-                          String        mobilizedBodyType = "Free");
+                          RootMobility rootMobility);
 
     /**
      * \return number of top-level Compounds adopted by this CompoundSystem
      */
-    size_t             getNumCompounds() const {return compounds.size();}
+    size_t getNumCompounds() const {
+        return compounds.size();
+    }
 
     /// \return read-only reference to an adopted Compound
     const Compound& getCompound(CompoundIndex i ///< integer index of Compound
-        ) const {return *compounds.at(i);}
+    ) const {
+        return *compounds.at(i);
+    }
 
     /// \return mutable reference to an adopted Compound
-    Compound&       updCompound(CompoundIndex i ///< integer index of Compound
-        )       {return *compounds.at(i);}
+    Compound& updCompound(CompoundIndex i ///< integer index of Compound
+    ) {
+        return *compounds.at(i);
+    }
 
-private:
-
-
-    void setClusterCompound(DuMM::ClusterIndex clusterIx, const Compound& compound) 
-    {
-        assert(! clusterHasCompound(clusterIx));
+    private:
+    void setClusterCompound(DuMM::ClusterIndex clusterIx, const Compound& compound) {
+        assert(!clusterHasCompound(clusterIx));
         compoundPtrsByClusterIndex[clusterIx] = &compound;
         assert(clusterHasCompound(clusterIx));
     }
@@ -162,11 +176,11 @@ private:
 
     // std::vector<Transform> compoundTransforms;
 
-    // retarded visual studio compiler complains about being unable to 
+    // retarded visual studio compiler complains about being unable to
     // export private stl class members
 #if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable:4251)
+#    pragma warning(push)
+#    pragma warning(disable : 4251)
 #endif
 
     std::vector<Compound*> compounds;
@@ -175,11 +189,10 @@ private:
     std::map<DuMM::ClusterIndex, MobilizedBodyIndex> clusterBodies;
 
 #if defined(_MSC_VER)
-#pragma warning(pop)
+#    pragma warning(pop)
 #endif
 };
 
 } // namespace SimTK
 
 #endif // SimTK_MOLMODEL_COMPOUNDSYSTEM_H_
-

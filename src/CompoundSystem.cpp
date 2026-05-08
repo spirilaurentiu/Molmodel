@@ -12,7 +12,7 @@ namespace SimTK {
 
 /*! <!-- Model all Compounds.
  * --> */
-void SimTK::CompoundSystem::modelCompounds(String mobilizedBodyType) {
+void SimTK::CompoundSystem::modelCompounds(RootMobility rootMobility) {
     std::cout << "CompoundSystem::modelCompounds\n";
 
 #if BUILD_GEOMETRY
@@ -23,7 +23,7 @@ void SimTK::CompoundSystem::modelCompounds(String mobilizedBodyType) {
     for (CompoundSystem::CompoundIndex c(0); c < getNumCompounds(); ++c) {
         Compound& compound = updCompound(c);
         std::vector<Transform> atomFrameCache(compound.getNAtoms());
-        modelOneCompound(c, atomFrameCache, mobilizedBodyType);
+        modelOneCompound(c, atomFrameCache, rootMobility);
     }
 }
 
@@ -456,7 +456,7 @@ CompoundSystem& CompoundSystem::calc_XPF_XBM(SimTK::Compound& compound,
  */
 void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
                                       std::vector<Transform>& atomFrameCache,
-                                      String mobilizedBodyType) {
+                                      RootMobility rootMobility) {
     bool showDebugMessages = false;
 
 // ------------------------------------------------------------------------
@@ -915,32 +915,32 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
             // if ( (unit.clusterAtoms.size() > 2) || (unit.hasChild) )
             if (true) // TEST
             {
-                if (mobilizedBodyType.compare("Free") == 0) {
+                if (rootMobility == RootMobility::Free) {
                     MobilizedBody::Free freeBody(parentMobod, G_X_B, massProps, Transform());
                     unit.mbx = freeBody.getMobilizedBodyIndex();
                     // std::cout << "First body Free mobodIx " << unit.mbx << std::endl;
 
-                } else if (mobilizedBodyType.compare("Cartesian") == 0) {
+                } else if (rootMobility == RootMobility::Cartesian) {
                     MobilizedBody::Translation cartesianBody(parentMobod, G_X_B, massProps, Transform());
                     unit.mbx = cartesianBody.getMobilizedBodyIndex();
                     // std::cout << "First body Cartesian mobodIx " << unit.mbx << std::endl;
 
-                } else if (mobilizedBodyType.compare("Weld") == 0) {
+                } else if (rootMobility == RootMobility::Weld) {
                     MobilizedBody::Weld weldBody(parentMobod, G_X_B, massProps, Transform());
                     unit.mbx = weldBody.getMobilizedBodyIndex();
                     // std::cout << "First body Weld mobodIx " << unit.mbx << std::endl;
 
-                } else if (mobilizedBodyType.compare("FreeLine") == 0) {
+                } else if (rootMobility == RootMobility::FreeLine) {
                     MobilizedBody::FreeLine freeLineBody(parentMobod, G_X_B, massProps, Transform());
                     unit.mbx = freeLineBody.getMobilizedBodyIndex();
                     // std::cout << "First body FreeLine mobodIx " << unit.mbx << std::endl;
 
-                } else if (mobilizedBodyType.compare("Ball") == 0) {
+                } else if (rootMobility == RootMobility::Ball) {
                     MobilizedBody::Ball ballBody(parentMobod, G_X_B, massProps, Transform());
                     unit.mbx = ballBody.getMobilizedBodyIndex();
                     // std::cout << "First body Ball mobodIx " << unit.mbx << std::endl;
 
-                } else if (mobilizedBodyType.compare("Pin") == 0) {
+                } else if (rootMobility == RootMobility::Pin) {
                     MobilizedBody::Pin pinBody(parentMobod, G_X_B, massProps, Transform());
                     unit.mbx = pinBody.getMobilizedBodyIndex();
                     // std::cout << "First body Pin mobodIx " << unit.mbx << std::endl;
