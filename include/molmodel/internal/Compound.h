@@ -253,6 +253,10 @@ class SimTK_MOLMODEL_EXPORT Compound : public PIMPLHandle<Compound, CompoundRep>
      */
     Compound();
 
+    void buildCache(const SimTK::Compound::AtomTargetLocations& atomTargets);
+    void computeAllFrames(std::vector<SimTK::Transform>& out,
+                          const SimTK::Compound::AtomTargetLocations& atomTargets);
+
     void updBondLength(Compound::BondIndex compoundBondIndex, mdunits::Length newLengthInNm);
 
     /**
@@ -864,7 +868,8 @@ class SimTK_MOLMODEL_EXPORT Compound : public PIMPLHandle<Compound, CompoundRep>
      * \param __no_param__ //
      * \return a reference to this compound
      */
-    Compound& matchDefaultTopLevelTransform(const AtomTargetLocations& atomTargets);
+    Compound& matchDefaultTopLevelTransform(const AtomTargetLocations& atomTargets,
+                                            const std::vector<SimTK::Transform>& atomFrameCache);
 
     /*!
     * <!-- Helper for calcDefaultAtomFramesInCompoundFrame. It sets a NaN flag for

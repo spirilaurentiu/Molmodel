@@ -32,6 +32,7 @@
 #include "molmodel/internal/common.h"
 
 #include "SimTKsimbody.h"
+#include "Transform.h"
 
 
 #define DO_INSTANTIATE_COMPOUND_PIMPL_HANDLE
@@ -1581,7 +1582,7 @@ CompoundRep::calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex atomId,
  * <!-- Delegate to recursive method to get inboard BC frame in Compound frame -->
  */
 Transform CompoundRep::calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex atomId) const {
-    // Get atom
+    // Get atom - std::vector operator[]
     const AtomInfo& atomInfo = getAtomInfo(atomId);
     const CompoundAtom& atom = atomInfo.getAtom();
 
@@ -1593,6 +1594,7 @@ Transform CompoundRep::calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex a
         // std::cout << "compound_X_atom BASE cAIX: " + std::to_string(int(atomInfo.getIndex()))  <<
         // std::endl; // YDIRBUG
 
+        // getter
         compound_X_atom = atom.getDefaultFrameInCompoundFrame();
 
         // PrintTransform(compound_X_atom, 3, " = "); // YDIRBUG
@@ -1604,10 +1606,12 @@ Transform CompoundRep::calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex a
         // std::cout << "inboardBC_X_atom cAIX: " + std::to_string(int(atomInfo.getIndex()))  << std::endl; //
         // YDIRBUG
 
+        // getInboardBondCenterIndex() -> BondCenterIndex
         Transform inboardBC_X_atom = atom.calcDefaultFrameInInboardCenterFrame();
 
         // PrintTransform(inboardBC_X_atom, 3, " = "); // YDIRBUG
 
+        // getBondCenterInfo() -> BondCenterIndex
         const BondCenterInfo& BCinfo = getBondCenterInfo(atomId, atom.getInboardBondCenterIndex());
         Transform compound_X_inboardBC = calcDefaultBondCenterFrameInCompoundFrame(BCinfo);
         compound_X_atom = compound_X_inboardBC * inboardBC_X_atom;
@@ -2421,8 +2425,9 @@ Compound& Compound::matchDefaultDihedralAngles(const AtomTargetLocations& atomTa
 
 /*! <!-- __no_desk__ -->
  */
-Compound& Compound::matchDefaultTopLevelTransform(const AtomTargetLocations& atomTargets) {
-    updImpl().matchDefaultTopLevelTransform(atomTargets);
+Compound& Compound::matchDefaultTopLevelTransform(const AtomTargetLocations& atomTargets,
+                                                  const std::vector<SimTK::Transform>& atomFrameCache) {
+    updImpl().matchDefaultTopLevelTransform(atomTargets, atomFrameCache);
     return *this;
 }
 
@@ -2459,6 +2464,14 @@ void Compound::updBondLength(Compound::BondIndex compoundBondIndex, mdunits::Len
     updImpl().updBondByIndex(compoundBondIndex).updBond().setDefaultBondLength(newLengthInNm);
 }
 
+void Compound::buildCache(const SimTK::Compound::AtomTargetLocations& atomTargets) {
+    updImpl().buildCache(atomTargets);
+}
+
+void Compound::computeAllFrames(std::vector<SimTK::Transform>& atomFrameCache,
+                                const SimTK::Compound::AtomTargetLocations& atomTargets) {
+    updImpl().computeAllFrames(atomFrameCache, atomTargets);
+}
 
 std::ostream& operator<<(std::ostream& o, const Compound& c) {
     c.getImpl().dumpCompoundRepToStream(o);

@@ -931,7 +931,7 @@ class CompoundAtom {
             UnitVec3 a2 = getBondCenterDirectionInAtomFrame(BondCenterIndex(1));
             Angle theta1 = bondCenter.getDefaultBond1Angle();
             Angle theta2 = bondCenter.getDefaultBond2Angle();
-            BondCenter::Chirality chirality = bondCenter.getChirality();
+            // BondCenter::Chirality chirality = bondCenter.getChirality();
             // NEWMOB BEGIN
 
             // std::cout << "CompoundAtom: " << " getBondCenterDirectionInAtomFrame BC>1= " << index << " : "
@@ -948,23 +948,27 @@ class CompoundAtom {
     /*!
      * <!-- Calculate bondCenterIndex BC frame in atom frame -->
      */
-    Transform calcDefaultBondCenterFrameInAtomFrame(BondCenterIndex bondCenterIndex) const {
+    [[nodiscard]] auto calcDefaultBondCenterFrameInAtomFrame(BondCenterIndex bondCenterIndex) const
+        -> Transform {
         // std::cout<<__FILE__<<":"<<__LINE__<<std::endl;
 
         // use getBondCenter() method to manage sanity checks
         const BondCenter& bondCenter = getBondCenter(bondCenterIndex);
 
         // Get BC direction
-        UnitVec3 direction = getBondCenterDirectionInAtomFrame(bondCenterIndex);
+        // UnitVec3 direction = getBondCenterDirectionInAtomFrame(bondCenterIndex);
+        const auto& direction = bondCenter.getDirection();
 
         // Another bondCenter is used to define the bond center y-axis for dihedral angles
         // Reference direction for dihedral computation (1 if BC is 0, and 0 otherwise)
-        const BondCenterIndex yAxisIndex = BondCenterIndex(bondCenter.getDefaultDihedralReferenceCenter());
+        const auto yAxisIndex = BondCenterIndex(bondCenter.getDefaultDihedralReferenceCenter());
         UnitVec3 ydir(0, 1, 0); // default to actual y-axis for one-bond-center-atom case
 
         // Some atoms have only one bond center, for others...
         if ((yAxisIndex != bondCenterIndex) && (yAxisIndex < (int)bondCenters.size())) {
-            ydir = getBondCenterDirectionInAtomFrame(yAxisIndex);
+            const auto& bondCenter2 = getBondCenter(yAxisIndex);
+            ydir = bondCenter2.getDirection();
+            // ydir = getBondCenterDirectionInAtomFrame(yAxisIndex);
         }
 
         // This creates a Rotation whose X axis is in "direction", and whose Y axis
@@ -974,7 +978,7 @@ class CompoundAtom {
         // <<" " << ydir[1] <<" " << ydir[2] <<std::endl; PrintTransform(Transform(Rotation(direction, XAxis,
         // ydir, YAxis)), 3, "BC_in_atom");
 
-        return Transform(Rotation(direction, XAxis, ydir, YAxis));
+        return {Rotation(direction, XAxis, ydir, YAxis)};
         // return Transform(Rotation(direction, XAxis, ydir, ZAxis)); // NEWMOB
     }
 
