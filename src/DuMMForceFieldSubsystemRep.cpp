@@ -1422,14 +1422,55 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const {
 
     mutableThis->internalListsRealized = true;
 
-    if (nonBondedMappings.empty()) {
-        for (DuMM::NonbondAtomIndex nbx(0); nbx < getNumNonbondAtoms(); ++nbx) {
-            const DuMM::AtomIndex dAIx = getAtomIndexOfNonbondAtom(nbx);
-            const DuMM::IncludedAtomIndex iax = getIncludedAtomIndexOfNonbondAtom(nbx);
-            const IncludedAtom& includedAtom = getIncludedAtom(iax);
-            const DuMMIncludedBodyIndex ibx = includedAtom.inclBodyIndex;
+    if (nonBondedMappings.dummAtomIndex.empty()) {
+        const int N = getNumNonbondAtoms();
 
-            nonBondedMappings.emplace_back(NonBondedMapping{int(dAIx), int(iax), int(ibx)});
+        nonBondedMappings.dummAtomIndex.resize(N);
+        nonBondedMappings.includedAtomIndex.resize(N);
+        nonBondedMappings.bodyIndex.resize(N);
+
+        for (DuMM::NonbondAtomIndex nbx(0); nbx < N; ++nbx) {
+            const int i = int(nbx);
+            nonBondedMappings.dummAtomIndex[i] = int(getAtomIndexOfNonbondAtom(nbx));
+            nonBondedMappings.includedAtomIndex[i] = int(getIncludedAtomIndexOfNonbondAtom(nbx));
+            nonBondedMappings.bodyIndex[i] =
+                int(getIncludedAtom(DuMM::IncludedAtomIndex(nonBondedMappings.includedAtomIndex[i]))
+                        .inclBodyIndex);
+        }
+
+        // Sort all three arrays together by bodyIndex so that per-body accumulation
+        // in evaluateForcesFromPositionsCache is a sequential reduction with no scatter.
+        // Build an index permutation, sort it, then apply it in-place.
+        std::vector<std::size_t> order(N);
+        std::iota(order.begin(), order.end(), 0);
+        std::sort(order.begin(), order.end(), [&](std::size_t lhs, std::size_t rhs) -> bool {
+            return nonBondedMappings.bodyIndex[lhs] < nonBondedMappings.bodyIndex[rhs];
+        });
+
+        apply_permutation(nonBondedMappings.dummAtomIndex, order);
+        apply_permutation(nonBondedMappings.includedAtomIndex, order);
+        apply_permutation(nonBondedMappings.bodyIndex, order);
+
+        // Precompute per-body slice offsets: bodyStart[b] is the first index
+        // in the SoA arrays belonging to body b, bodyStart.back() == N (sentinel).
+        // This lets the force loop do one local accumulation per body with zero scatter.
+        const int& lastBody = nonBondedMappings.bodyIndex.back();
+        nonBondedMappings.bodyStart.assign(lastBody + 2, N); // sentinel fill
+        nonBondedMappings.bodyStart[0] = 0;
+        for (int i = 0; i < N; ++i) {
+            const int bodyIx = nonBondedMappings.bodyIndex[i];
+
+            // first occurrence of body b sets its start
+            if (i == 0 || nonBondedMappings.bodyIndex[i - 1] != bodyIx) {
+                nonBondedMappings.bodyStart[bodyIx] = i;
+            }
+        }
+        // Propagate sentinel: bodies with no atoms inherit the next body's start
+        // (makes the half-open range [bodyStart[b], bodyStart[b+1]) always valid)
+        for (int bodyIx = lastBody; bodyIx >= 0; --bodyIx) {
+            if (nonBondedMappings.bodyStart[bodyIx] == N && bodyIx + 1 <= lastBody) {
+                nonBondedMappings.bodyStart[bodyIx] = nonBondedMappings.bodyStart[bodyIx + 1];
+            }
         }
     }
 

@@ -1484,7 +1484,7 @@ class SimTK::DuMMForceFieldSubsystemRep : public ForceSubsystem::Guts {
     ~DuMMForceFieldSubsystemRep() {
     }
 
-    [[nodiscard]] auto getNonBondedMappings() const -> const std::vector<NonBondedMapping>& {
+    [[nodiscard]] auto getNonBondedMappings() const -> const NonBondedMappings& {
         return nonBondedMappings;
     }
 
@@ -2286,7 +2286,7 @@ class SimTK::DuMMForceFieldSubsystemRep : public ForceSubsystem::Guts {
     CacheEntryIndex AllAtomPositionCacheIndex;
     bool internalListsRealized; // EU
 
-    mutable std::vector<NonBondedMapping> nonBondedMappings;
+    mutable NonBondedMappings nonBondedMappings;
 };
 
 

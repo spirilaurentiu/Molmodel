@@ -1242,15 +1242,6 @@ class CompoundRep : public PIMPLImplementation<Compound, CompoundRep> {
     std::vector<Compound::BondCenterIndex> compoundBCIxes;
     std::vector<int> atomBCIndices;
 
-    template <typename T>
-    void apply_permutation(std::vector<T>& vec, const std::vector<size_t>& perm) {
-        std::vector<T> tmp(vec.size());
-        for (size_t i = 0; i < perm.size(); ++i) {
-            tmp[i] = vec[perm[i]];
-        }
-        vec = std::move(tmp);
-    }
-
     void buildBondList(const SimTK::Compound::AtomTargetLocations& atomTargets) {
         const auto atomPairs = getBondedAtomRuns(2, atomTargets);
 
