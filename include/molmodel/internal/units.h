@@ -33,6 +33,7 @@
  * -------------------------------------------------------------------------- */
 
 #include "molmodel/internal/common.h"
+
 #include "SimTKcommon.h"
 
 namespace SimTK {
@@ -41,13 +42,13 @@ namespace SimTK {
 
 // Angles are not specific to small scales, so are not in the mdunits namespace
 
-    /**
+/**
  * \brief angle in radians
  */
 typedef Real Angle; // in radians
 
-typedef Real LineAngle; // angle in range (0,Pi)
-typedef Real CircleAngle; // angle in range (-Pi,Pi) or in range (0,2Pi)
+typedef Real LineAngle;    // angle in range (0,Pi)
+typedef Real CircleAngle;  // angle in range (-Pi,Pi) or in range (0,2Pi)
 typedef Real WindingAngle; // angle in range (-infinity, +infinity)
 
 namespace mdunits {
@@ -71,6 +72,6 @@ typedef Real Charge; // in elementary charge units
 static const Real Deg2Rad = (Real)SimTK_DEGREE_TO_RADIAN;
 static const Real Rad2Deg = (Real)SimTK_RADIAN_TO_DEGREE;
 
-}
+} // namespace SimTK
 
 #endif // SimTK_MOLMODEL_UNITS_H_

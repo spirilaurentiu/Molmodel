@@ -65,25 +65,21 @@ class SimTK_MOLMODEL_EXPORT Biotype // : public PIMPLHandle<SimTK_MOLMODEL_EXPOR
 public:
 
     // Noble gases
-    static const Biotype& Argon();
-
-    static const Biotype& MethaneH();
-    static const Biotype& MethaneC();
-
-    static const Biotype& EthaneH();
-    static const Biotype& EthaneC();
-
-    static const Biotype& SerineN();
-    static const Biotype& SerineHN();
-    static const Biotype& SerineCA();
-    static const Biotype& SerineHA();
-
-    static const Biotype& SerineC();
-    static const Biotype& SerineO();
-    static const Biotype& SerineCB();
-    static const Biotype& SerineHB();
-    static const Biotype& SerineOG();
-    static const Biotype& SerineHG();
+    // static const Biotype& Argon();
+    // static const Biotype& MethaneH();
+    // static const Biotype& MethaneC();
+    // static const Biotype& EthaneH();
+    // static const Biotype& EthaneC();
+    // static const Biotype& SerineN();
+    // static const Biotype& SerineHN();
+    // static const Biotype& SerineCA();
+    // static const Biotype& SerineHA();
+    // static const Biotype& SerineC();
+    // static const Biotype& SerineO();
+    // static const Biotype& SerineCB();
+    // static const Biotype& SerineHB();
+    // static const Biotype& SerineOG();
+    // static const Biotype& SerineHG();
 
     const Element&  getElement() const;
     int             getValence() const;
@@ -92,7 +88,7 @@ public:
 
     Biotype& setTinkerBiotypeIndex(TinkerBiotypeIndex tIx);
 
-    static void initializePopularBiotypes();
+    //static void initializePopularBiotypes();
 
     static const Biotype& get(BiotypeIndex biotypeIndex);
     static const Biotype& get(TinkerBiotypeIndex tinkerBiotypeIndex);

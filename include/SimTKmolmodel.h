@@ -35,40 +35,32 @@
  */
 
 /** @file
-This header file includes all the Molmodel header files that need to be 
+This header file includes all the Molmodel header files that need to be
 visible to a compiler processing a Molmodel-using compilation unit.\ However,
-user programs should included only the top-level Molmodel.h header (which 
+user programs should included only the top-level Molmodel.h header (which
 will include this one). **/
 
 // This should be kept self-contained for backwards compatibility since
-// in releases prior to Molmodel 2.2 users were told to include 
+// in releases prior to Molmodel 2.2 users were told to include
 // "SimTKmolmodel.h" rather than the now-preferred "Molmodel.h".
 
-#include "Simbody.h"
-#include "molmodel/internal/units.h"
-#include "molmodel/internal/bondGeometry.h"
-#include "molmodel/internal/Element.h"
-#include "molmodel/internal/AtomSubsystem.h"
 #include "molmodel/internal/Biotype.h"
 #include "molmodel/internal/Compound.h"
-#include "molmodel/internal/Protein.h"
+#include "molmodel/internal/CompoundSystem.h"
+#include "molmodel/internal/DNA.h"
+#include "molmodel/internal/DuMMForceFieldSubsystem.h"
+#include "molmodel/internal/Element.h"
+#include "molmodel/internal/Ions.h"
+#include "molmodel/internal/MassCenterMotionRemover.h"
+#include "molmodel/internal/MolecularMechanicsSystem.h"
 #include "molmodel/internal/NA.h"
 #include "molmodel/internal/RNA.h"
-#include "molmodel/internal/DNA.h"
-#include "molmodel/internal/Ions.h"
-#include "molmodel/internal/DuMMForceFieldSubsystem.h"
-#include "molmodel/internal/MolecularMechanicsSystem.h"
-#include "molmodel/internal/CompoundSystem.h"
-#include "molmodel/internal/PDBReader.h"
-#include "molmodel/internal/Pdb.h"
+#include "molmodel/internal/Span.hpp"
 #include "molmodel/internal/Superpose.h"
-#include "molmodel/internal/PeriodicPdbWriter.h"
-#include "molmodel/internal/VanderWallSphere.h"
-#include "molmodel/internal/RiboseMobilizer.h"
-#include "molmodel/internal/PeriodicVmdReporter.h"
-#include "molmodel/internal/VelocityRescalingThermostat.h"
-#include "molmodel/internal/NoseHooverThermostat.h"
-#include "molmodel/internal/MassCenterMotionRemover.h"
-#include "molmodel/internal/CompoundModeler.h"
+#include "molmodel/internal/bondGeometry.h"
+#include "molmodel/internal/units.h"
+
+#include "Simbody.h"
+
 
 #endif // SimTK_MOLMODEL_SimTKMOLMODEL_H_

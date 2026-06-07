@@ -35,6 +35,7 @@
 #include "molmodel/internal/common.h"
 #include "SimTKcommon.h"
 #include "molmodel/internal/units.h"
+#include <immintrin.h>
 
 namespace SimTK {
 
@@ -59,18 +60,19 @@ namespace SimTK {
 */
 
 /// Dihedral angle in radians in the range (-Pi, Pi]
-Angle SimTK_MOLMODEL_EXPORT calcDihedralAngle(
+Angle calcDihedralAngle(
         const Vec3& atomPos1,
         const Vec3& atomPos2, 
         const Vec3& atomPos3, 
         const Vec3& atomPos4);
 
 /// Dihedral angle in radians in the range (-Pi, Pi]
-Angle SimTK_MOLMODEL_EXPORT calcDihedralAngle(
+Angle calcDihedralAngle(
         const UnitVec3& bond12, 
         const UnitVec3& bond23, 
         const UnitVec3& bond34);
 
+Angle calcAngle(const Vec3& p1, const Vec3& p2, const Vec3& p3);
 
 } // namespace SimTK
 

@@ -380,11 +380,11 @@ void testBondStretchForce()
 // Custom Bond Stretch //
 /////////////////////////
 
-class HarmonicBondStretch
+class HarmonicBondForce
      : public DuMM::CustomBondStretch
 {
 public:
-    HarmonicBondStretch(Real stiffness, Real idealLength)
+    HarmonicBondForce(Real stiffness, Real idealLength)
         : idealLength(idealLength), stiffness(stiffness)
     {}
 
@@ -414,7 +414,7 @@ public:
         dumm.defineCustomBondStretch(
             dumm.getAtomClassIndex("O2Mol"),
             dumm.getAtomClassIndex("O2Mol"),
-            new HarmonicBondStretch(
+            new HarmonicBondForce(
                 600.0 * kilocalories_per_mole / (angstroms * angstroms),
                 1.21 * angstroms
             )

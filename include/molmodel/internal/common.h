@@ -37,11 +37,12 @@
  * any other Molmodel header.
  */
 
+#include <cassert>
+#include <limits>
+#include <vector>
+
 #include "SimTKcommon.h"
 
-#include <cassert>
-#include <vector>
-#include <limits>
 
 // Shared libraries are messy in Visual Studio. We have to distinguish three
 // cases:
@@ -63,36 +64,58 @@
 
 #ifdef _WIN32
 
-    // avoid warning about use of non-standard "extern template" constructs
-    // #ifdef _MSC_VER
-    // #pragma warning(disable:4231)
-    // #endif
+// avoid warning about use of non-standard "extern template" constructs
+// #ifdef _MSC_VER
+// #pragma warning(disable:4231)
+// #endif
 
-    #if defined(SimTK_MOLMODEL_BUILDING_SHARED_LIBRARY)
-        #define SimTK_MOLMODEL_EXPORT __declspec(dllexport)
+#    if defined(SimTK_MOLMODEL_BUILDING_SHARED_LIBRARY)
+#        define SimTK_MOLMODEL_EXPORT __declspec(dllexport)
 
-        // Keep MS VC++ quiet when it tries to instantiate incomplete template classes in a DLL.
-        #ifdef _MSC_VER
-        #pragma warning(disable:4661)
+// Keep MS VC++ quiet when it tries to instantiate incomplete template classes in a DLL.
+#        ifdef _MSC_VER
+#            pragma warning(disable : 4661)
 
-        // and lack of dll export of private members
-        #pragma warning(disable:4251)
-        #endif
+// and lack of dll export of private members
+#            pragma warning(disable : 4251)
+#        endif
 
-    #elif defined(SimTK_MOLMODEL_BUILDING_STATIC_LIBRARY) || defined(SimTK_USE_STATIC_LIBRARIES)
-        #define SimTK_MOLMODEL_EXPORT
-    #else
-        #define SimTK_MOLMODEL_EXPORT __declspec(dllimport)   // i.e., a client of a shared library
-    #endif
+#    elif defined(SimTK_MOLMODEL_BUILDING_STATIC_LIBRARY) || defined(SimTK_USE_STATIC_LIBRARIES)
+#        define SimTK_MOLMODEL_EXPORT
+#    else
+#        define SimTK_MOLMODEL_EXPORT __declspec(dllimport) // i.e., a client of a shared library
+#    endif
 #else
-    #define SimTK_MOLMODEL_EXPORT // Linux, Mac
+#    define SimTK_MOLMODEL_EXPORT // Linux, Mac
 #endif
 
 // Every SimTK Core library must provide these two routines, with the library
 // name appearing after the "version_" and "about_".
 extern "C" {
-    SimTK_MOLMODEL_EXPORT void SimTK_version_molmodel(int* major, int* minor, int* build);
-    SimTK_MOLMODEL_EXPORT void SimTK_about_molmodel(const char* key, int maxlen, char* value);
+SimTK_MOLMODEL_EXPORT void SimTK_version_molmodel(int* major, int* minor, int* build);
+SimTK_MOLMODEL_EXPORT void SimTK_about_molmodel(const char* key, int maxlen, char* value);
 }
+
+// Map non bonded atom indices to the included atom indices and body indices for fast lookup
+struct NonBondedMappings {
+    std::vector<int> dummAtomIndex;     // OpenMM particle index
+    std::vector<int> includedAtomIndex; // SimTK included-atom index
+    std::vector<int> bodyIndex;         // SimTK included-body index, sorted ascending
+    std::vector<int> bodyStart;         // half-open slice: body b -> [bodyStart[b], bodyStart[b+1])
+
+    [[nodiscard]] auto empty() const -> bool {
+        return dummAtomIndex.empty();
+    }
+};
+
+template <typename T>
+void apply_permutation(std::vector<T>& vec, const std::vector<size_t>& perm) {
+    std::vector<T> tmp(vec.size());
+    for (size_t i = 0; i < perm.size(); ++i) {
+        tmp[i] = vec[perm[i]];
+    }
+    vec = std::move(tmp);
+}
+
 
 #endif // SimTK_MOLMODEL_COMMON_H_
