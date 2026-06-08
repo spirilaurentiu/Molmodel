@@ -1064,6 +1064,14 @@ void CompoundSystem::modelOneCompound(CompoundIndex compoundId,
                 PFBM[1] = X_parentBC_childBC * X_BC_childAtom; // BAT from Compound
             }
 
+            std::cout << "=== STUDY calc_XPF_XBM ===\n";
+            std::cout << "STUDY Fr_X_Mr " << Fr_X_Mr << "\n";
+            std::cout << "STUDY defaultDihedral " << chemBond.getDefaultDihedral() << "\n";
+            std::cout << "STUDY defaultLength   " << chemBond.getDefaultBondLength() << "\n";
+            std::cout << "STUDY X_parentBC_childBC " << X_parentBC_childBC << "\n";
+            std::cout << "STUDY PFBM[0] " << PFBM[0] << "\n";
+            std::cout << "STUDY PFBM[1] " << PFBM[1] << "\n";
+
 
             // if (false) { // STUDY
 

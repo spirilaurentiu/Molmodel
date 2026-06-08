@@ -1722,11 +1722,19 @@ class CompoundRep : public PIMPLImplementation<Compound, CompoundRep> {
 
         const Transform aboutFace(Rotation(180 * Deg2Rad, YAxis));
 
+        std::cout << "computeAllFrames topoOrder: \n";
+        std::cout << "aboutFace: " << aboutFace << "\n";
+
+        int i = 0;
+
         for (const auto aIx : topoOrder_) {
             const auto& node = getNode(aIx);
             if (node.isBaseAtom) {
                 // Base atom frame is stored directly on the atom; always read it fresh.
                 atomFrameCache[aIx] = allAtoms[aIx].getAtom().getDefaultFrameInCompoundFrame();
+                std::cout << "Base Atom " << aIx << " frame: " << atomFrameCache[aIx] << "\n";
+                std::cout << "  Target location: " << atomTargets[aIx] << "\n";
+
                 continue;
             }
 
@@ -1745,11 +1753,18 @@ class CompoundRep : public PIMPLImplementation<Compound, CompoundRep> {
 
             // const auto X_parentBC_childBC = bond.getDefaultBondCenterFrameInOtherBondCenterFrame();
 
+            // std::cout << "Atom " << aIx << " with parent " << node.parentAtomIdx << ":\n";
+
             const Vec3 bondVector = atomTargets[node.atomIdx] - atomTargets[node.parentAtomIdx];
             const auto defaultBondLength = std::sqrt(dot(bondVector, bondVector));
 
             const Transform dihedral(Rotation(bond.getDefaultDihedralAngle(), XAxis));
             const Transform bondLength(Vec3(defaultBondLength, 0, 0));
+
+            // std::cout << "  bondLength: " << defaultBondLength << "\n";
+            // std::cout << "  dihedral: " << bond.getDefaultDihedralAngle() << " rad\n";
+            // std::cout << "  sin(dihedral): " << std::sin(bond.getDefaultDihedralAngle()) << "\n";
+            // std::cout << "  cos(dihedral): " << std::cos(bond.getDefaultDihedralAngle()) << "\n";
 
             const auto X_parentBC_childBC = dihedral * bondLength * aboutFace;
 
@@ -1762,6 +1777,20 @@ class CompoundRep : public PIMPLImplementation<Compound, CompoundRep> {
                                   * X_parentAtom_parentBC // bond angle geometry at parent
                                   * X_parentBC_childBC    // dihedral + bond length
                                   * X_inboardBC_atom;     // bond angle geometry at child
+
+            // std::cout << "  X_parentAtom_parentBC (idk): " << X_parentAtom_parentBC << "\n";
+            // std::cout << "  X_parentBC_childBC (dihedral * bondLength * aboutFace): " << X_parentBC_childBC
+            //           << "\n";
+            // std::cout << "  X_inboardBC_atom (idk): " << X_inboardBC_atom << "\n";
+            // std::cout << "  Final frame: " << atomFrameCache[aIx] << "\n";
+            // std::cout << "  Target location: " << atomTargets[aIx] << "\n";
+            // std::cout << "  Bond direction: " << bondVector << "\n";
+
+            // i++;
+            // if (i == 3) {
+            //     throw std::runtime_error(
+            //         "Done with computeAllFrames - remove this exception to proceed with testing");
+            // }
         }
     }
 
@@ -2444,10 +2473,10 @@ class CompoundRep : public PIMPLImplementation<Compound, CompoundRep> {
         }
 
         const size_t N = soaDihedrals.atom1.size();
+        const double R2D = 180.0 / SimTK::Pi; // radians -> degrees for readable output
 
         // -------------------------------------------------------------------------
         // Recompute offsets — always, no dirty flag
-        // Reads bond center directions (updated by matchDefaultDirections before this call)
         // -------------------------------------------------------------------------
         for (size_t i = 0; i < N; ++i) {
             Angle offset1 = 0.0;
@@ -2478,13 +2507,20 @@ class CompoundRep : public PIMPLImplementation<Compound, CompoundRep> {
         // -------------------------------------------------------------------------
         // Hot loop — compute nominal dihedral from positions, subtract cached offset
         // -------------------------------------------------------------------------
-        for (size_t i = 0; i < N; ++i) {
-            Angle internal = SimTK::calcDihedralAngle(atomTargets[soaDihedrals.atom1[i]],
-                                                      atomTargets[soaDihedrals.atom2[i]],
-                                                      atomTargets[soaDihedrals.atom3[i]],
-                                                      atomTargets[soaDihedrals.atom4[i]])
-                             - soaDihedrals.cachedOffsets[i];
+        std::cout << "=== matchDefaultDihedralAngles: " << N << " dihedrals ===\n";
+        std::cout << std::fixed << std::setprecision(3);
 
+        for (size_t i = 0; i < N; ++i) {
+            const auto a1 = soaDihedrals.atom1[i];
+            const auto a2 = soaDihedrals.atom2[i];
+            const auto a3 = soaDihedrals.atom3[i];
+            const auto a4 = soaDihedrals.atom4[i];
+
+            const Angle nominal =
+                SimTK::calcDihedralAngle(atomTargets[a1], atomTargets[a2], atomTargets[a3], atomTargets[a4]);
+            const Angle offset = soaDihedrals.cachedOffsets[i];
+
+            Angle internal = nominal - offset;
             while (internal < -SimTK::Pi) {
                 internal += 2 * SimTK::Pi;
             }
@@ -2492,8 +2528,17 @@ class CompoundRep : public PIMPLImplementation<Compound, CompoundRep> {
                 internal -= 2 * SimTK::Pi;
             }
 
+            std::cout << "[dih " << std::setw(4) << i << "] "
+                      << "atoms(" << a1 << "-" << a2 << "-" << a3 << "-" << a4 << ")"
+                      << "  nominal=" << std::setw(8) << nominal * R2D << " deg"
+                      << "  offset=" << std::setw(8) << offset * R2D << " deg"
+                      << "  default=" << std::setw(8) << internal * R2D << " deg"
+                      << "  (" << internal << " rad)"
+                      << "  bond23=" << soaDihedrals.bIx23[i] << "\n";
+
             allBonds[soaDihedrals.bIx23[i]].updBond().setDefaultDihedralAngle(internal);
         }
+        std::cout << std::flush;
 
         return *this;
     }
