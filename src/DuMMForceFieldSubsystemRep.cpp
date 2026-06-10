@@ -48,7 +48,7 @@ using namespace SimTK;
 #include <sstream>
 #include <sys/resource.h> // memory
 
-#include "OpenMM.hpp"
+#include "OpenMMContext.hpp"
 
 // This is Coulomb's constant 1/(4*pi*e0) in units which convert
 // e^2/nm to kJ/mol.
