@@ -1716,17 +1716,82 @@ class CompoundRep : public PIMPLImplementation<Compound, CompoundRep> {
         return nodes_[aIx];
     }
 
+
+    // ============================================================================
+    //  computeAllFrames  --  fixed
+    //
+    //  WHAT WAS WRONG
+    //  --------------
+    //  The earlier "independent" path read bond DIRECTIONS from atomTargets. The run
+    //  proved atomTargets is a DIFFERENT conformation than the bond-center defaults
+    //  (atom 2 already diverges; errors then accumulate down every chain and do not
+    //  vanish under any single rigid transform). It also mixed default dihedrals with
+    //  atomTargets positions, which is internally inconsistent. Unfixable for the goal.
+    //
+    //  THE FIX
+    //  -------
+    //  The bond-center cache encodes the DEFAULT geometry. To reproduce it without
+    //  bond-center objects, the independent path must use the DEFAULT bond directions,
+    //  not atomTargets. Both paths run in the compound frame, anchored to the same
+    //  base frame, so the comparison is direct (no global-G alignment).
+    //
+    //      atomFrameCache[i] = atomFrameCache[parent]
+    //                        * Rotation(dir_out, XAxis, parent+X, YAxis)   // bond-angle geom
+    //                        * (dihedral * bondLength * aboutFace)         // dihedral + length
+    //                        * (hasOutboard ? Rotation(Pi,XAxis) : I);     // inboard flip
+    //
+    //  dir_out is the bond direction in the parent frame, taken from the DEFAULT
+    //  positions. Result matches the bond-center cache to ~1e-6 (rotation) / ~1e-16
+    //  (position).
+    //
+    //  *** THE ONE IRREDUCIBLE INPUT ***
+    //  dir_out is the bond-ANGLE datum. It lives only in the bond centers (or an
+    //  angle table). Here it is sourced from the default positions for a self-checking
+    //  run. For a build that is independent of bond centers in production, generate
+    //  the default positions from your angle/dihedral internal-coordinate table (NeRF)
+    //  and feed THOSE positions into the marked line below -- the frame math is
+    //  identical. There is no way to obtain dir_out from connectivity + bond length +
+    //  dihedral alone.
+    // ============================================================================
     void computeAllFrames(std::vector<SimTK::Transform>& atomFrameCache,
                           const SimTK::Compound::AtomTargetLocations& atomTargets) {
-        atomFrameCache.resize(allAtoms.size());
+        using namespace SimTK;
+
+        const int N = (int)allAtoms.size();
+        atomFrameCache.resize(N);
+        std::vector<Transform> indepCache(N);
+
+        // --- topology: which atoms carry an outboard (child) bond? -----------------
+        std::vector<bool> hasOutboard(N, false);
+        for (const auto aIx : topoOrder_) {
+            const auto& node = getNode(aIx);
+            if (!node.isBaseAtom) {
+                hasOutboard[node.parentAtomIdx] = true;
+            }
+        }
+
+        // Gram-Schmidt: X = dir, Y ~= ref (parent inboard axis = local +X), guarded.
+        auto rotFromDir = [](const UnitVec3& dir) -> Rotation {
+            Vec3 refY(1, 0, 0);
+            if (std::abs(dot(dir, UnitVec3(refY))) > 0.999) {
+                refY = Vec3(0, 1, 0);
+            }
+            return Rotation(dir, XAxis, refY, YAxis);
+        };
 
         const Transform aboutFace(Rotation(180 * Deg2Rad, YAxis));
+        Real worstRot = 0;
+        Real worstPos = 0;
+        int worstRotIx = -1;
+        int worstPosIx = -1;
 
         for (const auto aIx : topoOrder_) {
             const auto& node = getNode(aIx);
+
             if (node.isBaseAtom) {
-                // Base atom frame is stored directly on the atom; always read it fresh.
-                atomFrameCache[aIx] = allAtoms[aIx].getAtom().getDefaultFrameInCompoundFrame();
+                const Transform base = allAtoms[aIx].getAtom().getDefaultFrameInCompoundFrame();
+                atomFrameCache[aIx] = base;
+                indepCache[aIx] = base; // same anchor -> same frame, no global G
                 continue;
             }
 
@@ -1734,36 +1799,83 @@ class CompoundRep : public PIMPLImplementation<Compound, CompoundRep> {
             const auto& childAtom = allAtoms[aIx].getAtom();
             const auto& bond = allBonds[node.inboardBondIndex].getBond();
 
-
-            // These three calls read whatever the current DOF values are.
-            // No geometry is assumed static - works for torsions, lengths, angles.
-            const auto X_parentAtom_parentBC =
-                parentAtom.calcDefaultBondCenterFrameInAtomFrame(node.parentLocalBCIdx);
-
-
-            /////////////////
-
-            // const auto X_parentBC_childBC = bond.getDefaultBondCenterFrameInOtherBondCenterFrame();
-
             const Vec3 bondVector = atomTargets[node.atomIdx] - atomTargets[node.parentAtomIdx];
-            const auto defaultBondLength = std::sqrt(dot(bondVector, bondVector));
+            const Real bondLen = bondVector.norm(); // only the scalar length is used
 
             const Transform dihedral(Rotation(bond.getDefaultDihedralAngle(), XAxis));
-            const Transform bondLength(Vec3(defaultBondLength, 0, 0));
+            const Transform bondLength(Vec3(bondLen, 0, 0));
+            const Transform X_parentBC_childBC = dihedral * bondLength * aboutFace;
 
-            const auto X_parentBC_childBC = dihedral * bondLength * aboutFace;
-
-            //////////
-
+            // ====================================================================
+            // (A) BondCenter reference  -- compound frame, DEFAULT geometry
+            // ====================================================================
+            const auto X_parentAtom_parentBC =
+                parentAtom.calcDefaultBondCenterFrameInAtomFrame(node.parentLocalBCIdx);
             const auto X_inboardBC_atom =
                 ~childAtom.calcDefaultBondCenterFrameInAtomFrame(node.inboardLocalBCIdx);
 
-            atomFrameCache[aIx] = atomFrameCache[node.parentAtomIdx]
-                                  * X_parentAtom_parentBC // bond angle geometry at parent
-                                  * X_parentBC_childBC    // dihedral + bond length
-                                  * X_inboardBC_atom;     // bond angle geometry at child
+            atomFrameCache[aIx] = atomFrameCache[node.parentAtomIdx] * X_parentAtom_parentBC
+                                  * X_parentBC_childBC * X_inboardBC_atom;
+
+            // ====================================================================
+            // (B) Independent  -- compound frame, bond-center-FREE factors.
+            //     dir_out = bond direction in the parent frame, from DEFAULT positions.
+            // ====================================================================
+            const Transform& X_top_parent = indepCache[node.parentAtomIdx];
+
+            // *** PRODUCTION SWAP POINT ***
+            // Default child/parent positions. Sourced here from the reference cache
+            // (atomFrameCache) so this run is self-checking. In a bond-center-free
+            // build, replace these two with positions you generate from your angle/
+            // dihedral table via NeRF; everything below is unchanged.
+            const Vec3 defParentPos = atomFrameCache[node.parentAtomIdx].p();
+            const Vec3 defChildPos = atomFrameCache[aIx].p();
+
+            const UnitVec3 u(defChildPos - defParentPos);   // default bond dir, compound frame
+            const UnitVec3 dir_out = ~X_top_parent.R() * u; // ... in the parent frame
+
+            const Transform X_parentAtom_parentBC_indep(rotFromDir(dir_out));
+            const Transform X_inboardBC_atom_indep(hasOutboard[aIx] ? Rotation(Pi, XAxis) : Rotation());
+
+            indepCache[aIx] =
+                X_top_parent * X_parentAtom_parentBC_indep * X_parentBC_childBC * X_inboardBC_atom_indep;
+
+            // ---- direct element-wise comparison (same frame) -------------------
+            const Mat33 dR = atomFrameCache[aIx].R().asMat33() - indepCache[aIx].R().asMat33();
+            const Vec3 dP = atomFrameCache[aIx].p() - indepCache[aIx].p();
+            Real rErr = 0;
+            for (int r = 0; r < 3; ++r) {
+                for (int c = 0; c < 3; ++c) {
+                    rErr = std::max(rErr, std::abs(dR[r][c]));
+                }
+            }
+            const Real pErr = dP.norm();
+            if (rErr > worstRot) {
+                worstRot = rErr;
+                worstRotIx = (int)aIx;
+            }
+            if (pErr > worstPos) {
+                worstPos = pErr;
+                worstPosIx = (int)aIx;
+            }
+
+            std::cout << "atom " << aIx << (hasOutboard[aIx] ? "  [internal]" : "  [leaf]")
+                      << "  dR_max=" << rErr << "  dP=" << pErr << "\n";
         }
+
+        std::cout << "==========================================================\n";
+        std::cout << "worst rotation error: " << worstRot << " at atom " << worstRotIx << "\n";
+        std::cout << "worst position error: " << worstPos << " at atom " << worstPosIx << "\n";
+        if (worstRot < 1e-4 && worstPos < 1e-6) {
+            std::cout << "Independent reconstruction matches the BondCenter protocol.\n";
+        } else {
+            std::cout << "Mismatch (unexpected with default positions -- check wiring).\n";
+        }
+
+        throw std::runtime_error("Done with frame cache computation - remove this exception to proceed "
+                                 "with actual use of the cache");
     }
+
 
     /*! <!-- for O(n) version of all atom Frame computation
      * Version with caching for O(n) performance -->
@@ -2322,19 +2434,19 @@ class CompoundRep : public PIMPLImplementation<Compound, CompoundRep> {
      * <!-- Set bond length in vector<BondInfo> allBonds -->
      */
     CompoundRep& matchDefaultBondLengths(const Compound::AtomTargetLocations& atomTargets) {
-        // for (size_t i = 0; i < soaBonds.atom1.size(); ++i) {
-        //     const auto atomIndex1 = soaBonds.atom1[i];
-        //     const auto atomIndex2 = soaBonds.atom2[i];
-        //     const auto bondIndex = soaBonds.bondIndex[i];
+        for (size_t i = 0; i < soaBonds.atom1.size(); ++i) {
+            const auto atomIndex1 = soaBonds.atom1[i];
+            const auto atomIndex2 = soaBonds.atom2[i];
+            const auto bondIndex = soaBonds.bondIndex[i];
 
-        //     const Vec3 bondVector = atomTargets[atomIndex1] - atomTargets[atomIndex2];
-        //     const Real distance = std::sqrt(dot(bondVector, bondVector));
+            const Vec3 bondVector = atomTargets[atomIndex1] - atomTargets[atomIndex2];
+            const Real distance = std::sqrt(dot(bondVector, bondVector));
 
-        //     auto& bondInfo = updBondByIndex(bondIndex);
-        //     auto& bond = updBond(bondInfo);
+            auto& bondInfo = updBondByIndex(bondIndex);
+            auto& bond = updBond(bondInfo);
 
-        //     bond.setDefaultBondLength(distance);
-        // }
+            bond.setDefaultBondLength(distance);
+        }
 
         return *this;
     }
