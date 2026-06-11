@@ -45,7 +45,7 @@
 #include "molmodel/internal/common.h"
 
 #include "DuMMForceFieldSubsystemRep.h"
-#include "OpenMMContext.hpp"
+#include "OpenMM.hpp"
 #include "units.h"
 
 
