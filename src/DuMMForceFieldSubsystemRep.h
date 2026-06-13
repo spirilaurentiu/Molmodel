@@ -1994,6 +1994,7 @@ class SimTK::DuMMForceFieldSubsystemRep : public ForceSubsystem::Guts {
             dummBodyIndexByMobodIndex[mobodIx] = duMMBodyIndex;
         } else {
             // Sanity check of preexisting DuMMBody
+            duMMBodyIndex = dummBodyIndexByMobodIndex.at(mobodIx);
         }
 
         assert(duMMSubsetOfBodies[duMMBodyIndex].isValid());

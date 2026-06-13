@@ -1431,9 +1431,9 @@ Transform CompoundRep::calcDefaultBondCenterFrameInAtomFrame(const BondCenterInf
  * <!-- Cache method used in O(n) all atom Frame computation.
  * Otherwise recursive. -->
  */
-const Transform
+Transform
 CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(const BondCenterInfo& BCinfo,
-                                                       std::vector<Transform>& atomFrameCache) const {
+                                                       const std::vector<Transform>& atomFrameCache) const {
     // Convenient vars
     Transform X_compound_center;
     const BondCenter& bondCenter = getBondCenter(BCinfo);
@@ -1449,14 +1449,27 @@ CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(const BondCenterInfo& BCi
         Transform X_parentBC_childBC = bond.getDefaultBondCenterFrameInOtherBondCenterFrame();
         assert(BCinfo.getIndex() == bondInfo.getChildBondCenterIndex());
 
+        std::cout << "X_parentBC_childBC cAIX: " + std::to_string(int(BCinfo.getAtomIndex())) // YDIRBUG
+                         + " BCmacroIx: " + std::to_string(int(BCinfo.getIndex()))
+                  << std::endl; // YDIRBUG
+
         // RECURSIVITY: Calc T_X_BCpar
         const BondCenterInfo& parentBondCenterInfo = getBondCenterInfo(bondInfo.getParentBondCenterIndex());
         Transform X_compound_parentBC = calcDefaultBondCenterFrameInCompoundFrame(parentBondCenterInfo,
                                                                                   atomFrameCache // use cache
         );
 
+        std::cout << "X_compound_parentBC cAIX: "
+                         + std::to_string(int(parentBondCenterInfo.getAtomIndex())) // YDIRBUG
+                         + " parentBCmacroIx: " + std::to_string(int(parentBondCenterInfo.getIndex()))
+                  << std::endl; // YDIRBUG
+
         // Calc T_X_BCchild
         X_compound_center = X_compound_parentBC * X_parentBC_childBC;
+
+        std::cout << "X_compound_center cAIX: " + std::to_string(int(BCinfo.getAtomIndex())) // YDIRBUG
+                         + " BCmacroIx: " + std::to_string(int(BCinfo.getIndex()))
+                  << std::endl; // YDIRBUG
 
         // Outboard case ----------------------------------------------------------
     } else {
@@ -1464,13 +1477,25 @@ CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(const BondCenterInfo& BCi
         Transform X_compound_atom =
             calcDefaultAtomFrameInCompoundFrame(BCinfo.getAtomIndex(), atomFrameCache);
 
+        std::cout << "X_compound_atom cAIX: " + std::to_string(int(BCinfo.getAtomIndex())) // YDIRBUG
+                         + " atom frame from cache: " + std::to_string(int(BCinfo.getAtomIndex()))
+                  << std::endl; // YDIRBUG
+
         // Get BC frame in atom frame (ACTUALLY CALCULATED)
         const SimTK::CompoundAtom& atom = getAtom(BCinfo.getAtomIndex());
         SimTK::CompoundAtom::BondCenterIndex BCIx = BCinfo.getAtomBondCenterIndex();
         Transform X_atom_center = atom.calcDefaultBondCenterFrameInAtomFrame(BCIx);
 
+        std::cout << "X_atom_center cAIX: " + std::to_string(int(BCinfo.getAtomIndex()))
+                         + " atomBC: " + std::to_string(int(BCIx))
+                  << std::endl; // YDIRBUG
+
         // Multiply and get T_X_BC
         X_compound_center = X_compound_atom * X_atom_center;
+
+        std::cout << "X_compound_center cAIX: " + std::to_string(int(BCinfo.getAtomIndex())) // YDIRBUG
+                         + " BCmacroIx: " + std::to_string(int(BCinfo.getIndex()))
+                  << std::endl; // YDIRBUG
     }
 
     // Return
@@ -1547,12 +1572,15 @@ Transform CompoundRep::calcDefaultBondCenterFrameInCompoundFrame(const BondCente
 /*!
  * <!-- for O(n) version of all atom Frame computation -->
  */
-const Transform&
+Transform
 CompoundRep::calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex atomId,
-                                                 std::vector<Transform>& atomFrameCache) const {
+                                                 const std::vector<Transform>& atomFrameCache) const {
+    std::cout << "- calcDefaultAtomFrameInCompoundFrame for atom " << atomId << "\n";
+
     // Is it already cached?
-    Transform& candidate = atomFrameCache[atomId];
+    const Transform& candidate = atomFrameCache[atomId];
     if (!isNaN(candidate.p()[0])) {
+        std::cout << "   Atom " << atomId << " frame is already cached: " << candidate << "\n";
         return candidate;
     }
 
@@ -1565,6 +1593,7 @@ CompoundRep::calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex atomId,
 
     if (atomInfo.isBaseAtom()) { // Get base atom directy
         parent_X_atom = atom.getDefaultFrameInCompoundFrame();
+        std::cout << "   Atom " << atomId << " is base atom, frame: " << parent_X_atom << "\n";
     }
 
     else { // Use recursive method to get inboard BC frame in Compound frame
@@ -1572,10 +1601,13 @@ CompoundRep::calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex atomId,
         const BondCenterInfo& center = getBondCenterInfo(atomId, atom.getInboardBondCenterIndex());
         Transform parent_X_inboard = calcDefaultBondCenterFrameInCompoundFrame(center, atomFrameCache);
         parent_X_atom = parent_X_inboard * inboard_X_atom;
+
+        std::cout << "   Atom " << atomId << " is not base atom, inboard_X_atom: " << inboard_X_atom
+                  << ", parent_X_inboard: " << parent_X_inboard << ", parent_X_atom: " << parent_X_atom
+                  << "\n";
     }
 
-    candidate = parent_X_atom;
-    return candidate;
+    return parent_X_atom;
 }
 
 /*!
@@ -1638,6 +1670,8 @@ void CompoundRep::invalidateAtomFrameCache(std::vector<Transform>& atomFrameCach
  */
 // Get all atom locations at once, for greater efficiency
 void CompoundRep::calcDefaultAtomFramesInCompoundFrame(std::vector<Transform>& atomFrameCache) const {
+    std::cout << "\n=====\nCompoundRep::calcDefaultAtomFramesInCompoundFrame():\n";
+
     // Iterate AtomInfos
     std::vector<AtomInfo>::const_iterator aI;
     for (aI = allAtoms.begin(); aI != allAtoms.end(); ++aI) {
@@ -1661,6 +1695,8 @@ void CompoundRep::calcDefaultAtomFramesInCompoundFrame(std::vector<Transform>& a
 
             // The actual calculation
             transform = calcDefaultAtomFrameInCompoundFrame(aI->getIndex(), atomFrameCache);
+
+            std::cout << "   Atom " << aI->getIndex() << " frame: " << transform;
 
             // Check
             if (isNaN(transform.p()[0])) {

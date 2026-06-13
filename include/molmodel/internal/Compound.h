@@ -1274,8 +1274,6 @@ class SimTK_MOLMODEL_EXPORT Compound : public PIMPLHandle<Compound, CompoundRep>
      */
     void updAtomMass(Compound::AtomIndex id, const SimTK::mdunits::Mass& mass);
 
-
-    protected:
     /**
      * \brief Stores relationship between a Compound Atom and an Atom defined in a DuMMForcefieldSubsystem
      */
@@ -1283,6 +1281,7 @@ class SimTK_MOLMODEL_EXPORT Compound : public PIMPLHandle<Compound, CompoundRep>
                           DuMM::AtomIndex      ///< integer index of an Atom in a DuMMForceFieldSubsystem
     );
 
+    protected:
     explicit Compound(CompoundRep* ip);
     friend class CompoundSystem;
 

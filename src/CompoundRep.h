@@ -1797,8 +1797,8 @@ class CompoundRep : public PIMPLImplementation<Compound, CompoundRep> {
     /*! <!-- for O(n) version of all atom Frame computation
      * Version with caching for O(n) performance -->
      */
-    const Transform& calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex atomId,
-                                                         std::vector<Transform>& atomFrameCache) const;
+    Transform calcDefaultAtomFrameInCompoundFrame(Compound::AtomIndex atomId,
+                                                  const std::vector<Transform>& atomFrameCache) const;
 
     Transform calcDefaultAtomFrameInGroundFrame(Compound::AtomIndex atomId) const;
 
@@ -2656,8 +2656,8 @@ class CompoundRep : public PIMPLImplementation<Compound, CompoundRep> {
     /*!
      * <!-- Cache method used in O(n) all atom Frame computation -->
      */
-    const Transform calcDefaultBondCenterFrameInCompoundFrame(const BondCenterInfo& info,
-                                                              std::vector<Transform>& atomFrameCache) const;
+    Transform calcDefaultBondCenterFrameInCompoundFrame(const BondCenterInfo& info,
+                                                        const std::vector<Transform>& atomFrameCache) const;
 
     Compound::BondCenterIndex getBondCenterIndex(const Compound::BondCenterName& name) const;
 

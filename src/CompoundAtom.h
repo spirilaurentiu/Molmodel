@@ -556,23 +556,14 @@ class Bond {
         // std::cout<<__FILE__<<":"<<__LINE__<<std::endl;
         //  1) rotate about x-axis by dihedral angle
         Transform dihedral(Rotation(getDefaultDihedralAngle(), XAxis));
-        std::cout << "dihedral angle=" << getDefaultDihedralAngle() << " rad\n";
-        std::cout << "sin(dihedral angle)=" << std::sin(getDefaultDihedralAngle()) << "\n";
-        std::cout << "cos(dihedral angle)=" << std::cos(getDefaultDihedralAngle()) << "\n";
-        std::cout << dihedral << "\n";
 
         // 2) translate along x-axis by bond length
         Transform bondLength(Vec3(defaultLength, 0, 0));
-        std::cout << "bond length=" << defaultLength << "\n";
-        std::cout << bondLength << "\n";
 
         // 3) rotate 180 degrees about y-axis to face the parent bond center
         Transform aboutFace(Rotation(180 * Deg2Rad, YAxis));
-        std::cout << "aboutFace=" << aboutFace << "\n";
 
         Transform BC1_X_BC2 = dihedral * bondLength * aboutFace;
-        std::cout << "BC1_X_BC2 =" << BC1_X_BC2 << "\n";
-        std::cout << "~BC1_X_BC2=" << ~BC1_X_BC2 << "\n";
         // std::cout<<__FILE__<<":"<<__LINE__<<std::endl;
 
         // throw std::runtime_error("getDefaultBondCenterFrameInOtherBondCenterFrame not implemented yet");
@@ -963,17 +954,12 @@ class CompoundAtom {
         -> Transform {
         // std::cout<<__FILE__<<":"<<__LINE__<<std::endl;
 
-        std::cout << "CompoundAtom: " << " calcDefaultBondCenterFrameInAtomFrame: bondCenterIndex= "
-                  << bondCenterIndex << std::endl;
-
         // use getBondCenter() method to manage sanity checks
         const BondCenter& bondCenter = getBondCenter(bondCenterIndex);
 
         // Get BC direction
         // UnitVec3 direction = getBondCenterDirectionInAtomFrame(bondCenterIndex);
         const auto& direction = bondCenter.getDirection();
-        std::cout << "   direction: " << direction[0] << " " << direction[1] << " " << direction[2]
-                  << std::endl;
 
         // Another bondCenter is used to define the bond center y-axis for dihedral angles
         // Reference direction for dihedral computation (1 if BC is 0, and 0 otherwise)
@@ -984,8 +970,6 @@ class CompoundAtom {
         if ((yAxisIndex != bondCenterIndex) && (yAxisIndex < (int)bondCenters.size())) {
             const auto& bondCenter2 = getBondCenter(yAxisIndex);
             ydir = bondCenter2.getDirection();
-            std::cout << "   yAxisIndex: " << yAxisIndex << std::endl;
-            std::cout << "   ydir: " << ydir << std::endl;
             // ydir = getBondCenterDirectionInAtomFrame(yAxisIndex);
         }
 
