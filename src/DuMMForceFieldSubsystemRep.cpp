@@ -45,10 +45,12 @@ using namespace SimTK;
 
 // Optimize for Robosample
 #include <fstream>
+#include <numeric>
 #include <sstream>
 #include <sys/resource.h> // memory
 
-#include "OpenMM.hpp"
+#include "OpenMMContext.hpp"
+
 
 // This is Coulomb's constant 1/(4*pi*e0) in units which convert
 // e^2/nm to kJ/mol.
@@ -1609,10 +1611,12 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const {
     const Vector_<Vec3>& inclAtomStation_G = getIncludedAtomStationsInG(s);
     const Vector_<Vec3>& inclAtomPos_G = getIncludedAtomPositionsInG(s);
 
-    // Calculate per-atom forces for this system conformation
-    // Note that we don't evaluate energies here
-    OPENMM::get().updatePositionsCache(nonBondedMappings, inclAtomPos_G);
-    OPENMM::get().evaluateForcesFromPositionsCache(nonBondedMappings, inclAtomStation_G, inclBodyForces_G);
+    throw std::runtime_error("DuMMForceFieldSubsystemRep::realizeForcesAndEnergy is not implemented yet.");
+
+    // // Calculate per-atom forces for this system conformation
+    // // Note that we don't evaluate energies here
+    // OPENMM::get().updatePositionsCache(nonBondedMappings, inclAtomPos_G);
+    // OPENMM::get().evaluateForcesFromPositionsCache(nonBondedMappings, inclAtomStation_G, inclBodyForces_G);
 
     markIncludedAtomForceCacheRealized(s);
     markIncludedBodyForceCacheRealized(s);

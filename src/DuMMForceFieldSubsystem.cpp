@@ -45,7 +45,7 @@
 #include "molmodel/internal/common.h"
 
 #include "DuMMForceFieldSubsystemRep.h"
-#include "OpenMM.hpp"
+#include "OpenMMContext.hpp"
 #include "units.h"
 
 
@@ -1738,18 +1738,22 @@ void DuMMForceFieldSubsystem::setTracing(bool shouldTrace) {
 }
 
 void DuMMForceFieldSubsystem::updateOpenMMPositionsFromState(const State& state) const {
-    OPENMM::get().updatePositionsCache(getRep().getNonBondedMappings(),
-                                       getRep().getIncludedAtomPositionsInG(state));
+    throw std::runtime_error("updateOpenMMPositionsFromState is not implemented yet");
+
+    // OPENMM::get().updatePositionsCache(getRep().getNonBondedMappings(),
+    //                                    getRep().getIncludedAtomPositionsInG(state));
 }
 
 void DuMMForceFieldSubsystem::evaluateEnergiesFromState(SimTK::Real& newPotentialEnergy,
                                                         SimTK::Real& newKineticEnergy) {
-    OPENMM::get().evaluateEnergiesFromPositionCache(newPotentialEnergy, newKineticEnergy);
+    throw std::runtime_error("evaluateEnergiesFromState is not implemented yet");
+    // OPENMM::get().evaluateEnergiesFromPositionCache(newPotentialEnergy, newKineticEnergy);
 }
 
 auto DuMMForceFieldSubsystem::integrateTrajectoryWithOpenMM(int steps, SimTK::Real timeStepInPicoseconds)
     -> bool {
-    return OPENMM::get().integrateTrajectory(steps, timeStepInPicoseconds);
+    throw std::runtime_error("integrateTrajectoryWithOpenMM is not implemented yet");
+    // return OPENMM::get().integrateTrajectory(steps, timeStepInPicoseconds);
 }
 
 auto DuMMForceFieldSubsystem::createCluster(const char* clusterName) -> DuMM::ClusterIndex {
