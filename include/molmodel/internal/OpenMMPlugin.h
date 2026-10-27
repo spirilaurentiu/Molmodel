@@ -12,9 +12,9 @@
 #include <exception>
 #include <cassert>
 
-#ifndef __DRILLING__
-#define __DRILLING__ 0
-#endif
+// #ifndef __DRILLING__
+// #define __DRILLING__ 0
+// #endif
 
 // #ifndef __PBC__ // _pbc_
 // #define __PBC__ 0
