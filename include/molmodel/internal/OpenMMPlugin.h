@@ -102,6 +102,8 @@ public:
      * @brief Update atom locations cache
      */
     void updateAtomLocationsCache();
+    void refreshOpenMMStatePositions();
+    SimTK::Vec3 getAtomPositionFromCache(int dummAtomIndex) const;
 
     /**
      * @brief Get specified atom location
@@ -247,6 +249,5 @@ private:
 };
 
 #endif //SimTK_MOLMODEL_OPENMM_PLUGIN_H_
-
 
 

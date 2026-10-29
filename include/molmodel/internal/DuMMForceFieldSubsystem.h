@@ -1461,6 +1461,7 @@ bool getUseOpenMMCalcOnlyNonBonded() const;
     void updateOMMAtomLocationCache();
 
     SimTK::Vec3 calcAtomLocationInGroundFrameThroughOMM( DuMM::AtomIndex daix ) const;
+    SimTK::Vec3 OMM_getAtomPositionFromCache(DuMM::AtomIndex daix) const;
     void OMM_integrateTrajectory( int steps );
     Real OMM_calcPotentialEnergy() const;
     Real OMM_calcKineticEnergy() const;

@@ -1819,6 +1819,11 @@ SimTK::Vec3 DuMMForceFieldSubsystem::calcAtomLocationInGroundFrameThroughOMM(
     return getRep().openMMPlugin.getAtomPosition(daix);
 }
 
+SimTK::Vec3 DuMMForceFieldSubsystem::OMM_getAtomPositionFromCache(DuMM::AtomIndex daix) const
+{
+    return getRep().openMMPlugin.getAtomPositionFromCache(daix);
+}
+
 // Needed in Gmolmodel
 const Vector_<Vec3>&
 DuMMForceFieldSubsystem::getIncludedAtomPositionsInG(const State& s) const {

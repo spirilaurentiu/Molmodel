@@ -796,13 +796,31 @@ void OpenMMPluginInterface::updateAtomLocationsCache()
     openMMState = openMMContext->getState(OpenMM::State::Positions);
     const auto numAtoms = openMMState.getPositions().size();
 
+    atomLocationsCache.resize(numAtoms);
+
     for (size_t i = 0; i < numAtoms; i++) {
         const auto& atom = openMMState.getPositions()[i];
         atomLocationsCache[i] = SimTK::Vec3(atom[0], atom[1], atom[2]);
     }
 }
 
+/*!
+ * <!--  -->
+*/
+void OpenMMPluginInterface::refreshOpenMMStatePositions() {
+    openMMState = openMMContext->getState(OpenMM::State::Positions);
+}
 
+/*!
+ * <!--  -->
+*/
+SimTK::Vec3 OpenMMPluginInterface::getAtomPositionFromCache(int dummAtomIndex) const
+{
+    SimTK::DuMM::AtomIndex dummAtomIndex_ai(dummAtomIndex);
+    SimTK::DuMM::NonbondAtomIndex nonbondedAtomIndex = dumm->getAtom(dummAtomIndex_ai).getNonbondAtomIndex();
+
+    return atomLocationsCache[nonbondedAtomIndex];
+}
 
 /*!
  * <!--  -->
@@ -813,7 +831,7 @@ SimTK::Vec3 OpenMMPluginInterface::getAtomPosition( int dummAtomIndex ) const
     SimTK::DuMM::NonbondAtomIndex nonbondedAtomIndex = dumm->getAtom(dummAtomIndex_ai).getNonbondAtomIndex();
 
     openMMState = openMMContext->getState( OpenMM::State::Positions );
-    OpenMM::Vec3 position = openMMState.getPositions() [nonbondedAtomIndex]; 
+    OpenMM::Vec3 position = openMMState.getPositions() [nonbondedAtomIndex];
 
     return SimTK::Vec3 ( position[0], position[1], position[2] );
 
