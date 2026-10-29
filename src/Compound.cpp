@@ -2543,12 +2543,18 @@ void Compound::updAtomMass(Compound::AtomIndex id, const SimTK::mdunits::Mass& m
     return updImpl().updAtomMass(id, mass);
 }
 
+Compound& Compound::refreshAtomRunCounts(
+    const AtomTargetLocations& atomTargets)
+{
+    updImpl().refreshAtomRunCounts(atomTargets);
+    return *this;
+}
 
 // EU: get list of all runs of consecutive bonded atoms of run-length n from the atoms mentions in an AtomTargetLocations structure
 // for example, to get a list of all bonded pairs, set run-length to 2.
-std::vector< std::vector<Compound::AtomIndex> > Compound::getBondedAtomRuns(int atomRunCount, const Compound::AtomTargetLocations& atomTargets) const
+std::vector< std::vector<Compound::AtomIndex> > Compound::calcBondedAtomRuns(int atomRunCount, const Compound::AtomTargetLocations& atomTargets) const
 {
-	return getImpl().getBondedAtomRuns(atomRunCount, atomTargets);
+	return getImpl().calcBondedAtomRuns(atomRunCount, atomTargets);
 }
 
 Compound& Compound::PrintCompoundGeometry(const Compound::AtomTargetLocations& atomTargets){
@@ -2558,34 +2564,34 @@ Compound& Compound::PrintCompoundGeometry(const Compound::AtomTargetLocations& a
 
 /*! <!-- __no_desk__ -->
 */
-Compound& Compound::matchDefaultAtomChirality(const AtomTargetLocations& atomTargets, Angle planarityTolerance, bool flipAll)
+Compound& Compound::matchDefaultAtomChirality(const AtomTargetLocations& atomTargets, Angle planarityTolerance, bool flipAll, bool useCachedRuns)
 {
-    updImpl().matchDefaultAtomChirality(atomTargets, planarityTolerance, flipAll);
+    updImpl().matchDefaultAtomChirality(atomTargets, planarityTolerance, flipAll, useCachedRuns);
     return *this;
 }
 
 /*! <!-- __no_desk__ -->
 */
-Compound& Compound::matchDefaultBondLengths(const AtomTargetLocations& atomTargets)
+Compound& Compound::matchDefaultBondLengths(const AtomTargetLocations& atomTargets, bool useCachedRuns)
 {
-    updImpl().matchDefaultBondLengths(atomTargets);
+    updImpl().matchDefaultBondLengths(atomTargets, useCachedRuns);
     return *this;
 }
 
 /*! <!-- __no_desk__ -->
 */
-Compound& Compound::matchDefaultBondAngles(const AtomTargetLocations& atomTargets)
+Compound& Compound::matchDefaultBondAngles(const AtomTargetLocations& atomTargets, bool useCachedRuns)
 {
-    updImpl().matchDefaultBondAngles(atomTargets);
+    updImpl().matchDefaultBondAngles(atomTargets, useCachedRuns);
     return *this;
 }
 
 //NEWMOB BEGIN
 /*! <!-- __no_desk__ -->
 */
-Compound& Compound::matchDefaultDirections(const AtomTargetLocations& atomTargets)
+Compound& Compound::matchDefaultDirections(const AtomTargetLocations& atomTargets, bool useCachedRuns)
 {
-    updImpl().matchDefaultDirections(atomTargets);
+    updImpl().matchDefaultDirections(atomTargets, useCachedRuns);
     return *this;
 }
 //NEWMOB END
@@ -2594,9 +2600,9 @@ Compound& Compound::matchDefaultDirections(const AtomTargetLocations& atomTarget
 */
 Compound& Compound::matchDefaultDihedralAngles(
         const AtomTargetLocations& atomTargets, 
-        Compound::PlanarBondMatchingPolicy policy)
+        Compound::PlanarBondMatchingPolicy policy, bool useCachedRuns)
 {
-    updImpl().matchDefaultDihedralAngles(atomTargets, policy);
+    updImpl().matchDefaultDihedralAngles(atomTargets, policy, useCachedRuns);
     return *this;
 }
 

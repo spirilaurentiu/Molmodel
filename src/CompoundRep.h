@@ -46,6 +46,9 @@
 #include <map>
 #include <string>
 #include <set>
+#include <algorithm>
+#include <stdexcept>
+#include <utility>
 using std::string;
 
 namespace SimTK {
@@ -814,7 +817,7 @@ public:
     CompoundRep& PrintCompoundGeometry(const Compound::AtomTargetLocations& atomTargets){
 
         // Iterate atoms
-        std::vector< AtomIndexVector > atomRun = getBondedAtomRuns(1, atomTargets);
+        std::vector< AtomIndexVector > atomRun = calcBondedAtomRuns(1, atomTargets);
         std::cout << "CompoundRep::PrintCompoundGeometry atomTargets\n";
         for(const auto& atomRIx : atomRun) {
             const Compound::AtomIndex atomIx = atomRIx[0];
@@ -1213,18 +1216,106 @@ public:
 
     Transform calcDefaultAtomFrameInGroundFrame(Compound::AtomIndex atomId) const;
 
+
+    /*! <!-- AtomIndexVector is a vector of AtomIndex representing a run of consecutive bonded atoms --> */
     typedef std::vector<Compound::AtomIndex> AtomIndexVector;
 
+    /*! <!-- AtomRunCount_2_3_4 stores all runs of 2, 3, and 4 consecutive bonded atoms --> */
+    std::vector< AtomIndexVector > AtomRunCount_2;
+    std::vector< AtomIndexVector > AtomRunCount_3;
+    std::vector< AtomIndexVector > AtomRunCount_4;
 
-    /*! <!-- get list of all runs of consecutive bonded atoms of run-length n from the atoms mentions in an AtomTargetLocations structure 
+    /*! <!-- Rebuild target-filtered runs after connectivity or target membership changes.
+     * Coordinate-only changes do not require a refresh. --> */
+    void refreshAtomRunCounts(const Compound::AtomTargetLocations& atomTargets)
+    {
+        std::vector<AtomIndexVector> neighbors(getNumAtoms());
+        std::vector<AtomIndexVector> pairs;
+        pairs.reserve(2 * getNumBonds());
+        for (Compound::BondIndex bondIx(0); bondIx < getNumBonds(); ++bondIx) {
+            const BondInfo& bondInfo = getBondInfo(bondIx);
+            const Compound::AtomIndex first =
+                getBondCenterInfo(bondInfo.getParentBondCenterIndex()).getAtomIndex();
+            const Compound::AtomIndex second =
+                getBondCenterInfo(bondInfo.getChildBondCenterIndex()).getAtomIndex();
+            if (atomTargets.find(first) == atomTargets.end()
+                || atomTargets.find(second) == atomTargets.end())
+                continue;
+
+            assert(first != second);
+            neighbors[first].push_back(second);
+            neighbors[second].push_back(first);
+            pairs.push_back(AtomIndexVector{first, second});
+            pairs.push_back(AtomIndexVector{second, first});
+        }
+
+        const auto extendRuns = [&neighbors](const std::vector<AtomIndexVector>& runs) {
+            std::vector<AtomIndexVector> extended;
+            for (const auto& run : runs) {
+                for (const auto next : neighbors[run.back()]) {
+                    if (std::find(run.begin(), run.end(), next) != run.end())
+                        continue;
+                    AtomIndexVector nextRun;
+                    nextRun.reserve(run.size() + 1);
+                    nextRun.insert(nextRun.end(), run.begin(), run.end());
+                    nextRun.push_back(next);
+                    extended.push_back(std::move(nextRun));
+                }
+            }
+            return extended;
+        };
+
+        std::vector<AtomIndexVector> triples = extendRuns(pairs);
+        std::vector<AtomIndexVector> quadruples = extendRuns(triples);
+        AtomRunCount_2.swap(pairs);
+        AtomRunCount_3.swap(triples);
+        AtomRunCount_4.swap(quadruples);
+    }
+
+    /*! <!-- Populate the target-filtered run cache, replacing any previous contents. --> */
+    void loadAtomRunCounts(const Compound::AtomTargetLocations& atomTargets)
+    {
+        refreshAtomRunCounts(atomTargets);
+    }
+
+    /*! <!-- Get atom run counts from the cache -->
+    * atomRunCount: the length of the atom run (2, 3, or 4); 1 also selects pairs
+    * atomRunList: the vector to store the atom runs of the specified length
+    * Call loadAtomRunCounts or refreshAtomRunCounts before reading the cache.
+    */
+    void getAtomRunCountsFromCache(
+        int atomRunCount,
+        std::vector< AtomIndexVector >& atomRunList) const
+        {
+            switch (atomRunCount)
+            {
+                case 1:
+                case 2:
+                    atomRunList = AtomRunCount_2;
+                    break;
+                case 3:
+                    atomRunList = AtomRunCount_3;
+                    break;
+                case 4:
+                    atomRunList = AtomRunCount_4;
+                    break;
+                default:
+                    throw std::invalid_argument("getAtomRunCountsFromCache: run length must be 1, 2, 3, or 4");
+            }
+        }
+
+    /*! <!-- Get list of all runs of consecutive bonded atoms
+    * of run-length n from the atoms mentions in an AtomTargetLocations structure 
     * for example, to get a list of all bonded pairs, set run-length to 2.-->
     */ 
-    std::vector< AtomIndexVector > getBondedAtomRuns(int atomRunCount, const Compound::AtomTargetLocations& atomTargets) const 
+    std::vector< AtomIndexVector > calcBondedAtomRuns(
+        int atomRunCount,
+        const Compound::AtomTargetLocations& atomTargets) const 
     {
+
         std::vector< AtomIndexVector >  answer;
 
-        typedef std::map<Compound::AtomIndex, AtomIndexVector > BondMap;
-        BondMap bondMap;
+        std::map<Compound::AtomIndex, AtomIndexVector> bondMap;
 
         // 1) Hash bonding data
         for (Compound::BondIndex bondCnt(0); bondCnt < getNumBonds(); ++bondCnt) 
@@ -1297,10 +1388,14 @@ public:
      * build a map - atomPartners_Map - from an index to a set of partners.
      * similar to bSpecificAtom.neighborsIndex built by InternalCoordinates class --> */ 
     std::map<Compound::AtomIndex, std::set<Compound::AtomIndex>>
-    buildAtomNeighbors_Map(const Compound::AtomTargetLocations& atomTargets){
+    buildAtomNeighbors_Map(const Compound::AtomTargetLocations& atomTargets, bool useCachedRuns = false){
 
         // Get list of consecutive bonded atoms from the atoms mentioned in an AtomTargetLocations
-        std::vector<AtomIndexVector> atomPairs_cAIxs = getBondedAtomRuns(2, atomTargets);
+        std::vector<AtomIndexVector> atomPairs_cAIxs;
+        if (useCachedRuns)
+            getAtomRunCountsFromCache(2, atomPairs_cAIxs);
+        else
+            atomPairs_cAIxs = calcBondedAtomRuns(2, atomTargets);
 
         // Allocate map
         std::map<Compound::AtomIndex, std::set<Compound::AtomIndex>> atomNeighbors_Map;
@@ -1333,12 +1428,13 @@ public:
     CompoundRep& matchDefaultAtomChirality(
         const Compound::AtomTargetLocations& atomTargets,
         Angle breakPlanarityThreshold,
-        bool flipAll=true)
+        bool flipAll=true,
+        bool useCachedRuns=false)
     {
 
         // Build a map from an AtomIndex to a set of bonded AtomIndexes
         std::map<Compound::AtomIndex, std::set<Compound::AtomIndex>>
-        atomNeighbors_Map = buildAtomNeighbors_Map(atomTargets); 
+        atomNeighbors_Map = buildAtomNeighbors_Map(atomTargets, useCachedRuns);
 
         // Main loop over atoms: Check the chirality of each atom
         Compound::AtomTargetLocations::const_iterator atomTargetLocIt;
@@ -1613,10 +1709,14 @@ public:
     /*!
     * <!-- Set bond length in vector<BondInfo> allBonds -->
     */
-    CompoundRep& matchDefaultBondLengths(const Compound::AtomTargetLocations& atomTargets) 
+    CompoundRep& matchDefaultBondLengths(const Compound::AtomTargetLocations& atomTargets, bool useCachedRuns = false)
     {
         // Get neighbour list: std::vector<std::vector<cAIx>>
-        std::vector< AtomIndexVector > atomPairs = getBondedAtomRuns(2, atomTargets);
+        std::vector<AtomIndexVector> atomPairs;
+        if (useCachedRuns)
+            getAtomRunCountsFromCache(2, atomPairs);
+        else
+            atomPairs = calcBondedAtomRuns(2, atomTargets);
 
         // Loop over those pairs of atoms and set the bond length default to the target distances
         // This method is broken into two parts like this to serve as an example for the more
@@ -1659,11 +1759,15 @@ public:
     * <!-- atom2.updBondCenter(largerId).setDefaultBond1Angle(angle)
     * of the middle atom BC -->
     */
-    CompoundRep& matchDefaultBondAngles(const Compound::AtomTargetLocations& atomTargets) 
+    CompoundRep& matchDefaultBondAngles(const Compound::AtomTargetLocations& atomTargets, bool useCachedRuns = false)
     {
         //std::cout << "matchDefaultBondAngles" << std::endl;
         //std::cout<<"BEGIN  matchDefaultBondAngles"<<std::endl;
-        std::vector< AtomIndexVector > atomTriples = getBondedAtomRuns(3, atomTargets);
+        std::vector<AtomIndexVector> atomTriples;
+        if (useCachedRuns)
+            getAtomRunCountsFromCache(3, atomTriples);
+        else
+            atomTriples = calcBondedAtomRuns(3, atomTargets);
 
         std::vector< AtomIndexVector >::const_iterator bonds13Ix;
         for (bonds13Ix = atomTriples.begin(); bonds13Ix != atomTriples.end(); ++bonds13Ix) 
@@ -1702,9 +1806,13 @@ public:
     * <!-- Continuation of the matchDefaultBondAngles: sets the direction of
     * the BCs >= 1 -->
     */
-    CompoundRep& matchDefaultDirections(const Compound::AtomTargetLocations& atomTargets){
+    CompoundRep& matchDefaultDirections(const Compound::AtomTargetLocations& atomTargets, bool useCachedRuns = false){
         
-        std::vector< AtomIndexVector > atomRun = getBondedAtomRuns(1, atomTargets);
+        std::vector<AtomIndexVector> atomRun;
+        if (useCachedRuns)
+            getAtomRunCountsFromCache(1, atomRun);
+        else
+            atomRun = calcBondedAtomRuns(1, atomTargets);
         
         for(const auto& atomRIx : atomRun) {
 
@@ -1811,11 +1919,15 @@ public:
     */
     CompoundRep& matchDefaultDihedralAngles(
             const Compound::AtomTargetLocations& atomTargets, 
-            Compound::PlanarBondMatchingPolicy policy) 
+            Compound::PlanarBondMatchingPolicy policy, bool useCachedRuns = false)
     {
         //std::cout << "matchDefaultDihedralAngles" << std::endl;
         //std::cout<<"BEGIN   matchDefaultDihedralAngles"<<std::endl;
-        std::vector< AtomIndexVector > atomQuads = getBondedAtomRuns(4, atomTargets);
+        std::vector<AtomIndexVector> atomQuads;
+        if (useCachedRuns)
+            getAtomRunCountsFromCache(4, atomQuads);
+        else
+            atomQuads = calcBondedAtomRuns(4, atomTargets);
 
         std::vector< AtomIndexVector >::const_iterator bonds14Ix;
         for (bonds14Ix = atomQuads.begin(); bonds14Ix != atomQuads.end(); ++bonds14Ix) 

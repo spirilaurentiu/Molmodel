@@ -731,13 +731,13 @@ public:
        (const class PdbResidue& targetResidue, 
         bool                    guessCoordinates = false) const;
 
-
+    Compound& refreshAtomRunCounts(const AtomTargetLocations& atomTargets);
 
 	/** \brief Get list of all runs of consecutive bonded atoms of run-length n 
 	 * from the atoms mentions in an AtomTargetLocations structure
 	 * for example, to get a list of all bonded pairs, set run-length to 2.
     */
-	std::vector< std::vector<Compound::AtomIndex> > getBondedAtomRuns(
+	std::vector< std::vector<Compound::AtomIndex> > calcBondedAtomRuns(
 	int atomRunCount,
 	const AtomTargetLocations& atomTargets) const;
 
@@ -752,31 +752,37 @@ public:
      * \param atomTargets ///< another set of atom locations to match chirality of
      * \param planarityTolerance ///< break planarity of BondCenters more than this angle out of plane (radians)
      * \param flipAll ///< whether to invert each mismatched BondCenter, or all at once
+     * \param useCachedRuns Use runs prepared by refreshAtomRunCounts for the current
+     * topology and target atom set. Coordinate-only changes do not require a refresh.
      * \return c
      */
     Compound& matchDefaultAtomChirality(
             const AtomTargetLocations& atomTargets, 
             Angle planarityTolerance = 90.0 * Deg2Rad, 
-            bool flipAll = true 
+            bool flipAll = true,
+            bool useCachedRuns = false
             );
 
     /** \brief __no_desc__
      * \param __no_param__ //
      * \return a reference to this compound
      */
-    Compound& matchDefaultBondLengths(const AtomTargetLocations& atomTargets);
+    // Cached mode requires refreshAtomRunCounts for the current topology and target atom set.
+    Compound& matchDefaultBondLengths(const AtomTargetLocations& atomTargets, bool useCachedRuns = false);
 
     /** \brief __no_desc__
      * \param __no_param__ //
      * \return a reference to this compound
      */
-    Compound& matchDefaultBondAngles(const AtomTargetLocations& atomTargets);
+    // Cached mode requires refreshAtomRunCounts for the current topology and target atom set.
+    Compound& matchDefaultBondAngles(const AtomTargetLocations& atomTargets, bool useCachedRuns = false);
 
     /** \brief __no_desc__
      * \param __no_param__ //
      * \return a reference to this compound
      */
-    Compound& matchDefaultDirections(const AtomTargetLocations& atomTargets); // NEWMOB
+    // Cached mode requires refreshAtomRunCounts for the current topology and target atom set.
+    Compound& matchDefaultDirections(const AtomTargetLocations& atomTargets, bool useCachedRuns = false); // NEWMOB
 
     enum PlanarBondMatchingPolicy {KeepPlanarBonds, DistortPlanarBonds, FlipPlanarBonds};
 
@@ -786,7 +792,8 @@ public:
      */
     Compound& matchDefaultDihedralAngles(
         const AtomTargetLocations& atomTargets,///< set of atom locations to match dihedrals of
-        PlanarBondMatchingPolicy policy = FlipPlanarBonds ///< whether to keep ideal torsions on bonds between planar atoms
+        PlanarBondMatchingPolicy policy = FlipPlanarBonds, ///< whether to keep ideal torsions on bonds between planar atoms
+        bool useCachedRuns = false ///< requires refreshed runs for the current topology and target atom set
         );
 
     /** \brief __no_desc__
