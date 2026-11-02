@@ -865,6 +865,16 @@ Real OpenMMPluginInterface::calcKineticEnergy() const
 }
 
 /*!
+ * <!-- Calculate potential and kinetic energies -->
+*/
+std::pair<SimTK::Real, SimTK::Real> OpenMMPluginInterface::calcPotentialAndKineticEnergies() const {
+    openMMState = openMMContext->getState(OpenMM::State::Energy);
+    SimTK::Real potentialEnergy = openMMState.getPotentialEnergy();
+    SimTK::Real kineticEnergy = openMMState.getKineticEnergy();
+    return std::make_pair(potentialEnergy, kineticEnergy);
+}
+
+/*!
  * <!--  -->
 */
 void OpenMMPluginInterface::setVelocitiesToTemperature(SimTK::Real temperature, uint32_t seed) {

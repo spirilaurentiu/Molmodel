@@ -125,6 +125,12 @@ public:
     SimTK::Real calcKineticEnergy() const;
 
     /**
+     * @brief Calculate potential and kinetic energies
+     * @return pair of doubles representing potential and kinetic energies
+     */
+    std::pair<SimTK::Real, SimTK::Real> calcPotentialAndKineticEnergies() const;
+
+    /**
      * @brief Set particle mass
      * @param index OpenMM index of the particle
      * @param mass mass of the particle

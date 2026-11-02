@@ -1465,6 +1465,7 @@ bool getUseOpenMMCalcOnlyNonBonded() const;
     void OMM_integrateTrajectory( int steps );
     Real OMM_calcPotentialEnergy() const;
     Real OMM_calcKineticEnergy() const;
+    std::pair<SimTK::Real, SimTK::Real> OMM_calcPotentialAndKineticEnergies() const;
 
     SimTK::Real calcFullPotentialEnergyOpenMM(const State& s) const;
 

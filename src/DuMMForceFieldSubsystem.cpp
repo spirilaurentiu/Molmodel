@@ -1810,6 +1810,9 @@ Real DuMMForceFieldSubsystem::OMM_calcPotentialEnergy() const
 Real DuMMForceFieldSubsystem::OMM_calcKineticEnergy() const
 { return getRep().openMMPlugin.calcKineticEnergy();} 
 
+std::pair<SimTK::Real, SimTK::Real> DuMMForceFieldSubsystem::OMM_calcPotentialAndKineticEnergies() const
+{ return getRep().openMMPlugin.calcPotentialAndKineticEnergies();} 
+
 void DuMMForceFieldSubsystem::OMM_integrateTrajectory( int steps )
 { return updRep().openMMPlugin.integrateTrajectory(steps);}
 
