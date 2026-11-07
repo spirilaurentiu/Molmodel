@@ -1438,6 +1438,15 @@ void setUseOpenMMCalcOnlyNonBonded(bool);
 /** Return the current setting of the flag set by setUseOpenMMCalcOnlyNonBonded(). **/
 bool getUseOpenMMCalcOnlyNonBonded() const;
 
+/** Register a rigid distance constraint between two DuMM atoms, in nm
+(MD units). Consumed by the OpenMM plugin (OpenMM::System::addConstraint);
+OpenMM automatically applies SETTLE to fully-constrained three-atom
+molecules (e.g. rigid waters) and CCMA otherwise. The corresponding
+harmonic stretch term is omitted from the OpenMM bonded forces when
+OpenMM integration is used. Must be called before realizeTopology(). **/
+void defineConstraint(DuMM::AtomIndex atom1, DuMM::AtomIndex atom2,
+                      SimTK::Real distanceInNm);
+
 // Used for OpenMM integration
     void setUseOpenMMIntegration(bool);
     bool getUseOpenMMIntegration() const;

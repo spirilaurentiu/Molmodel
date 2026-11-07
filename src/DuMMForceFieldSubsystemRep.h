@@ -1539,6 +1539,9 @@ public:
 
         internalListsRealized = false; // EU
 
+        stepsize = 0.001; // default stepsize in picoseconds
+        temperature = 300; // default temperature in Kelvin
+
     }
 
     ~DuMMForceFieldSubsystemRep() {
@@ -2465,6 +2468,16 @@ public:
     bool allowOpenMMReference;
     Real stepsize;
     Real temperature;
+
+    // Rigid distance constraints (nm), consumed by the OpenMM plugin.
+    // OpenMM picks SETTLE for fully-constrained 3-atom molecules
+    // (rigid waters) and CCMA otherwise.
+    struct DuMMConstraint {
+        DuMM::AtomIndex atom1;
+        DuMM::AtomIndex atom2;
+        Real            distance; // nm
+    };
+    std::vector<DuMMConstraint> constraints;
 
         // TOPOLOGICAL CACHE ENTRIES
         //   These cache entries are allocated in realizeTopology().

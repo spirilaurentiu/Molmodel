@@ -269,7 +269,7 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                         // ----------------------------------------------
 
                         
-
+    // ADD PARTICLES 
     for (DuMM::NonbondAtomIndex nax(0); nax < dumm->getNumNonbondAtoms(); ++nax) {
 
         //openMMSystem->addParticle(masses[nax]);
@@ -278,6 +278,45 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
         openMMSystem->addParticle(element.getMass());
         //std::cout << "OMMBUG OpenMM System added particle with mass " <<" "<< element.getMass() << std::endl; std::cout<<std::flush;
 
+    }
+
+    // RIGID DISTANCE CONSTRAINTS (DuMMForceFieldSubsystem::defineConstraint)
+    // OpenMM automatically applies SETTLE to fully-constrained 3-atom
+    // molecules (rigid waters) and CCMA otherwise. Constraints must be
+    // added to the System before the OpenMM::Context is created.
+    // constrainedPairs is used below to skip the now-redundant harmonic
+    // stretch terms (canonical order: lower included atom index first).
+    // ------------------------------------------------------------------
+    std::set<std::pair<int, int>> constrainedPairs;
+
+    for (const auto& constraint : dumm->constraints) {
+
+        const DuMMAtom& atom1 = dumm->getAtom(constraint.atom1);
+        const DuMMAtom& atom2 = dumm->getAtom(constraint.atom2);
+
+        if ( !atom1.isNonbondAtom() || !atom2.isNonbondAtom() ) {
+            std::cout << "WARNING: OpenMMPlugin: constraint between DuMM atoms "
+                << (int)constraint.atom1 << " and " << (int)constraint.atom2
+                << " skipped: not nonbond atoms (not OpenMM particles)."
+                << std::endl;
+            continue;
+        }
+
+        // OpenMM particles were added one per NonbondAtomIndex, in order
+        const int p1 = (int)atom1.getNonbondAtomIndex();
+        const int p2 = (int)atom2.getNonbondAtomIndex();
+
+        openMMSystem->addConstraint(p1, p2, constraint.distance);
+
+        const int i1 = (int)atom1.getIncludedAtomIndex();
+        const int i2 = (int)atom2.getIncludedAtomIndex();
+        constrainedPairs.insert({std::min(i1, i2), std::max(i1, i2)});
+    }
+
+    if ( !dumm->constraints.empty() ) {
+        std::cout << "OpenMMPlugin: added " << openMMSystem->getNumConstraints()
+            << " rigid distance constraint(s) to the OpenMM System."
+            << std::endl;
     }
 
     // Nonbonded forces
@@ -386,6 +425,15 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
 
                         const DuMM::IncludedAtomIndex a2num = a1.force12[b12];
                         const BondStretch &bondStretch = *a1.stretch[b12];
+
+                        // Skip stretch terms replaced by rigid constraints
+                        // (the constraint keeps the distance at d0)
+                        if ( !constrainedPairs.empty() &&
+                            constrainedPairs.count(
+                                {std::min((int)a1num, (int)a2num),
+                                 std::max((int)a1num, (int)a2num)}) != 0 ) {
+                            continue;
+                        }
 
                         if (bondStretch.hasBuiltinTerm()) {
 
@@ -518,6 +566,8 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
     openMMSystem->addForce(openMMThermostat);
 
     //std::cout << "OpenMM System number of forces " <<  openMMSystem->getNumForces() << std::endl;
+
+    std::cout << "OpenMMPluginInterface::initializeOpenMM openMMSystem->addForce T: " << temperature << std::endl << std::flush;
 
     // Get the integrator
     Real stepsize = 0;
@@ -855,9 +905,7 @@ Real OpenMMPluginInterface::calcPotentialEnergy() const
 }
 
 
-/*!
- * <!--  -->
-*/
+/*! <!-- Calculate kinetic energy --> */
 Real OpenMMPluginInterface::calcKineticEnergy() const
 {
     openMMState = openMMContext->getState(OpenMM::State::Energy);
@@ -874,20 +922,22 @@ std::pair<SimTK::Real, SimTK::Real> OpenMMPluginInterface::calcPotentialAndKinet
     return std::make_pair(potentialEnergy, kineticEnergy);
 }
 
-/*!
- * <!--  -->
-*/
+/*! <!-- Set velocities to temperature -->*/
 void OpenMMPluginInterface::setVelocitiesToTemperature(SimTK::Real temperature, uint32_t seed) {
-    // TODO why check
-    // std::cout << "setVelocitiesToTemperature " << temperature << " " << seed << std::endl;
+
     if (openMMContext){
         openMMThermostat->setDefaultTemperature(temperature);
         openMMContext->setVelocitiesToTemperature(temperature, seed);
+
+        // Update the Andersen thermostat with the new temperature too
+        openMMContext->setParameter(OpenMM::AndersenThermostat::Temperature(), temperature);
+
     }
+
 }
 
 /*!
- * <!--  -->
+ * <!-- Set particle mass -->
 */
 void OpenMMPluginInterface::setParticleMass(int index, SimTK::Real mass) {
     std::cout << std::fixed << std::setprecision(6);

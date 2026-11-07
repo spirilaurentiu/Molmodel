@@ -1788,6 +1788,23 @@ void DuMMForceFieldSubsystem::setUseOpenMMCalcOnlyNonBonded(bool use)
 {   invalidateSubsystemTopologyCache();
     updRep().wantOpenMMCalcOnlyNonBonded = use; }
 
+void DuMMForceFieldSubsystem::defineConstraint(DuMM::AtomIndex atom1,
+    DuMM::AtomIndex atom2, SimTK::Real distanceInNm)
+{
+    static const char* MethodName = "defineConstraint";
+    DuMMForceFieldSubsystemRep& mm = updRep();
+
+    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtom(atom1), mm.ApiClassName, MethodName,
+        "atom index %d is not valid", (int)atom1);
+    SimTK_APIARGCHECK1_ALWAYS(mm.isValidAtom(atom2), mm.ApiClassName, MethodName,
+        "atom index %d is not valid", (int)atom2);
+    SimTK_APIARGCHECK1_ALWAYS(distanceInNm > 0, mm.ApiClassName, MethodName,
+        "constraint distance %g must be positive (nm)", distanceInNm);
+
+    invalidateSubsystemTopologyCache();
+    mm.constraints.push_back({atom1, atom2, distanceInNm});
+}
+
 
 
 bool DuMMForceFieldSubsystem::getUseOpenMMIntegration() const
