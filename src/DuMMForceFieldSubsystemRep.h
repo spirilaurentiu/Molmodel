@@ -1513,9 +1513,9 @@ public:
         useMultithreadedComputation = true;
         numThreadsRequested         = 0; // let DuMM pick
 
-        wantOpenMMAcceleration      = false;
+        wantOpenMMAcceleration      = true;
         wantOpenMMIntegration       = false;
-        wantOpenMMCalcOnlyNonBonded = true;
+        wantOpenMMCalcOnlyNonBonded = false;
         allowOpenMMReference        = false;
 
         gbsaIncludeAceApproximation = true;
@@ -1529,6 +1529,7 @@ public:
         usingMultithreaded = false;
         numThreadsInUse   = 0;
         nonbondedExecutor = 0;  // these are allocated if we end up multithreaded
+        NonbondedFullExecutor = 0;
         gbsaExecutor      = 0;
         executor          = 0;
 
@@ -1546,6 +1547,7 @@ public:
 
     ~DuMMForceFieldSubsystemRep() {
         delete nonbondedExecutor;
+        delete NonbondedFullExecutor;
         delete gbsaExecutor;
         delete executor;
         delete gbsaCpuObc;
@@ -2190,9 +2192,10 @@ private:
 
         usingMultithreaded = false;
         numThreadsInUse    = 0;
-        delete nonbondedExecutor;   nonbondedExecutor = 0;
-        delete gbsaExecutor;        gbsaExecutor = 0;
-        delete executor;            executor = 0;
+        delete nonbondedExecutor;     nonbondedExecutor = 0;
+        delete NonbondedFullExecutor; NonbondedFullExecutor = 0;
+        delete gbsaExecutor;          gbsaExecutor = 0;
+        delete executor;              executor = 0;
 
         vdwScaleSingleThread.clear();
         coulombScaleSingleThread.clear();

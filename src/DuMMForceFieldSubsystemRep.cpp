@@ -107,7 +107,7 @@ void stdcout_memdebug_molmodel(std::string header__){
 }
 
 #ifndef MEMDEBUG
-#define MEMDEBUG 1
+#define MEMDEBUG 0
 #endif
 
 // This is Coulomb's constant 1/(4*pi*e0) in units which convert
@@ -346,25 +346,14 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
 
         // force field
 
-    // Calculate effective van der Waals parameters for all pairs of atom
-    // classes. We only fill in the diagonal and upper triangle; that is, each
-    // class contains parameters for like classes and all classes whose
-    // (arbitrary) class number is higher.
-    for (DuMM::AtomClassIndex i(0); i < atomClasses.size(); ++i) {
-        if (!atomClasses[i].isValid()) continue;
-        if (!atomClasses[i].isComplete()) continue;
+    SimTK_ERRCHK_ALWAYS(
+        wantOpenMMAcceleration && !wantOpenMMCalcOnlyNonBonded,
+        "DuMMForceFieldSubsystemRep::realizeInternalLists()",
+        "Native DuMM force/energy evaluation is disabled; "
+        "wantOpenMMAcceleration must be true and wantOpenMMCalcOnlyNonBonded must be false.");
 
-        AtomClass& iclass = mutableThis->atomClasses[i];
-        iclass.vdwDij.resize((int)atomClasses.size()-i, NaN);
-        iclass.vdwEij.resize((int)atomClasses.size()-i, NaN);
-        for (DuMM::AtomClassIndex j=i; j < atomClasses.size(); ++j) {
-            const AtomClass& jclass = atomClasses[j];
-            if (jclass.isValid() && jclass.isComplete())
-                applyMixingRule(iclass.vdwRadius,    jclass.vdwRadius,
-                                iclass.vdwWellDepth, jclass.vdwWellDepth,
-                                iclass.vdwDij[j-i],  iclass.vdwEij[j-i]);
-        }
-    }
+    // OpenMM builds its own nonbonded parameters directly from atomClasses
+    // and chargedAtomTypes; do NOT allocate the O(N_classes^2) vdwDij/vdwEij tables.
 
     if(MEMDEBUG == 1){stdcout_memdebug_molmodel("DuMMRep::realizeInternalLists memory 0.2");}
 
@@ -1451,149 +1440,32 @@ int DuMMForceFieldSubsystemRep::realizeInternalLists(State& s) const
 
     if(MEMDEBUG == 1){stdcout_memdebug_molmodel("DuMMRep::realizeInternalLists memory 8.2");}
 
-        // Don't delete this object here.
-        ObcParameters* obcParameters =
-            new ObcParameters(getNumNonbondAtoms(), ObcParameters::ObcTypeII);
-        obcParameters->setScaledRadiusFactors( &gbsaObcScaleFactors.front() );
-        obcParameters->setAtomicRadii(&gbsaRadii.front(),
-                                      SimTKOpenMMCommon::KcalAngUnits);
-        obcParameters->setSolventDielectric(gbsaSolventDielectric);
-        obcParameters->setSoluteDielectric(gbsaSoluteDielectric);
-        mutableThis->gbsaCpuObc = new CpuObc(obcParameters); // CpuObc takes ownership of the parameters object
-        gbsaCpuObc->setIncludeAceApproximation((int)gbsaIncludeAceApproximation);
-
-        // The cpu GBSA requires vectors of pointers to locations and forces.
-        // Allocate those now. Note that forces have to be zeroed each step.
-        gbsaRawCoordinates.resize(3 * getNumNonbondAtoms(), NaN); // [x,y,z,x,y,z,...], Angstrom(!) units
-        gbsaAtomicForces.resize  (3 * getNumNonbondAtoms(), NaN);
-        mutableThis->gbsaCoordinatePointers.resize (getNumNonbondAtoms()); // [&x0,&x1,&x2...]
-        mutableThis->gbsaAtomicForcePointers.resize(getNumNonbondAtoms()); // [&x0,&x1,&x2...]
-
-    if(MEMDEBUG == 1){stdcout_memdebug_molmodel("DuMMRep::realizeInternalLists memory 8.3");}
-
-        // Load the pointers -- after this they don't change.
-        for (DuMM::NonbondAtomIndex a(0); a < getNumNonbondAtoms(); ++a) {
-            mutableThis->gbsaCoordinatePointers[a]  = &gbsaRawCoordinates[3*a];
-            mutableThis->gbsaAtomicForcePointers[a] = &gbsaAtomicForces[3*a];
-        }
+        // Native CpuObc and gbsaRawCoordinates/gbsaAtomicForces are not allocated
+        // because GBSA is evaluated exclusively by OpenMM.
     }
 
         ///////////////////////////////////////////
-        // Initialize OpenMM if it is being used //
+        // Initialize OpenMM (mandatory)         //
         ///////////////////////////////////////////
 
-    // OpenMM has to be enabled at run time to be used. And if
-    // all we can find is a slow reference implementation we still won't use it
-    // unless the reference platform has been explicitly allowed.
+    mutableThis->openMMPlatformInUse =
+        mutableThis->openMMPlugin.initializeOpenMM(allowOpenMMReference, this);
 
-    // Using "while" here just so we can break out; this won't ever loop. If we
-    // decide to use OpenMM, the flag usingOpenMM will be set true.
-    mutableThis->usingOpenMM = false;
-    if (wantOpenMMAcceleration ) {
-        mutableThis->openMMPlatformInUse = mutableThis->openMMPlugin.initializeOpenMM(allowOpenMMReference, this);
+    SimTK_ERRCHK_ALWAYS(
+        !openMMPlatformInUse.empty(),
+        "DuMMForceFieldSubsystemRep::realizeInternalLists()",
+        "Failed to initialize OpenMM platform, and native DuMM fallback is disabled.");
 
-        if (openMMPlatformInUse.empty()) {
-            if (tracing)
-                std::cout << "WARNING: DuMM: failed to initialize OpenMM\n";
-        }
+    if (tracing)
+        std::cout << "NOTE: DuMM: using OpenMM platform '" << openMMPlatformInUse << "'\n";
 
-        if (tracing)
-            std::cout << "NOTE: DuMM: using OpenMM platform '" << openMMPlatformInUse << "'\n";
-
-        mutableThis->usingOpenMM = true;
-    }
+    mutableThis->usingOpenMM = true;
+    mutableThis->usingMultithreaded = false;
+    mutableThis->numThreadsInUse = 1;
 
     if(MEMDEBUG == 1){stdcout_memdebug_molmodel("DuMMRep::realizeInternalLists memory 8.4");}
 
-    if (!usingOpenMM) {
-        // If the caller specified how many threads to use, even if only one,
-        // and says "useMultithreadedComputation" then we will use the
-        // multithreaded code.
-        const bool wantParallel =
-            useMultithreadedComputation
-            && (   numThreadsRequested > 0
-                || ParallelExecutor::getNumProcessors() > 1);
-
-        const bool anyNonbonded = getNumNonbondAtoms()
-                                  && (   coulombGlobalScaleFactor !=0
-                                      || vdwGlobalScaleFactor     !=0
-                                      || gbsaGlobalScaleFactor    !=0);
-
-        if (wantParallel) {
-            mutableThis->usingMultithreaded = true;
-            if (!anyNonbonded) {
-                mutableThis->usingMultithreaded = false;
-                if (tracing)
-                    // EU BEGIN COMMENT
-                    std::clog << "NOTE: DuMM: not using multithreading because"
-                                 " there are no nonbonded or implicit solvent"
-                                 " terms to calculate.\n";
-
-            }
-            // This will probably never happen.
-            if (ParallelExecutor::isWorkerThread()) {
-                mutableThis->usingMultithreaded = false;
-                if (tracing)
-                    // EU BEGIN COMMENT
-                    std::clog << "NOTE: DuMM: can't use multithreading because"
-                                 " the main thread is already a ParallelExecutor"
-                                 " worker thread.\n";
-            }
-        }
-    }
-
     if(MEMDEBUG == 1){stdcout_memdebug_molmodel("DuMMRep::realizeInternalLists memory 9");}
-
-
-    // If we're not using openMM, but we are using multithreaded computation, create
-    // Parallel2DExecutors for parallelizing expensive force calculations.
-    mutableThis->numThreadsInUse = 1;
-    if (usingMultithreaded) {
-        const int numThreadsWanted = numThreadsRequested > 0
-                            ? numThreadsRequested
-                            : ParallelExecutor::getNumProcessors();
-        mutableThis->numThreadsInUse = std::min(numThreadsWanted,
-                                                std::max(1, getNumNonbondAtoms()/2));
-
-        if (tracing && (numThreadsInUse < numThreadsWanted))
-            std::clog << "NOTE: DuMM: reduced number of threads from "
-                      << numThreadsWanted << " to " << numThreadsInUse
-                      << " because there were only " << getNumNonbondAtoms()
-                      << " atoms included in nonbonded force calculations.\n";
-
-        //mutableThis->executor = new ParallelExecutor(numThreadsInUse);
-
-        if (tracing)
-            std::clog << "NOTE: DuMM: using multithreading code with "
-                      << numThreadsInUse << " threads.\n";
-
-        mutableThis->nonbondedExecutor =
-            //new Parallel2DExecutor(includedBodies.size(), *executor);
-            new Parallel2DExecutor(includedBodies.size(), numThreadsInUse);
-        mutableThis->gbsaExecutor =
-            //new Parallel2DExecutor(getNumNonbondAtoms(), *executor);
-            new Parallel2DExecutor(getNumNonbondAtoms(), numThreadsInUse);
-
-        // gmolmodel
-        mutableThis->NonbondedFullExecutor =
-                new Parallel2DExecutor( AllBodies.size(), numThreadsInUse) ;
-    }
-
-    if (!(usingOpenMM || usingMultithreaded)) {
-        if (tracing)
-            // EU BEGIN COMMENT
-            std::clog << "NOTE: DuMM: using single threaded code.\n";
-
-
-        // Using single threaded -- allocate global temporaries
-        vdwScaleSingleThread.resize(getNumNonbondAtoms(), Real(1));
-        coulombScaleSingleThread.resize(getNumNonbondAtoms(), Real(1));
-
-    }
-
-    //GMolModel
-    vdwScaleAllSingleThread.resize(getNumAllNonbondAtoms(), Real(1));
-    coulombScaleAllSingleThread.resize(getNumAllNonbondAtoms(), Real(1));
 
 
     // Create cache entries for storing position info and forces for included
@@ -2058,6 +1930,10 @@ void DuMMForceFieldSubsystemRep::calcBodySubsetNonbondedForces
     Vector_<Vec3>&                          inclAtomForce_G,
     Real&                                   energy) const
 {
+    SimTK_ERRCHK_ALWAYS(false,
+        "DuMMForceFieldSubsystemRep::calcBodySubsetNonbondedForces()",
+        "Native DuMM nonbonded forces are disabled (vdwDij/vdwEij are not allocated). "
+        "Use OpenMM evaluation instead.");
     //TRACE("DuMMForceFieldSubsystemRep::calcBodySubsetNonbondedForces BEGIN\n");
 
     const IncludedBody& inclBod1 = includedBodies[dummBodIx];
@@ -2196,6 +2072,10 @@ void DuMMForceFieldSubsystemRep::calcNonbondedForces
     Vector_<Vec3>&                      inclAtomForce_G,
     Real&                               energy) const
 {
+    SimTK_ERRCHK_ALWAYS(false,
+        "DuMMForceFieldSubsystemRep::calcNonbondedForces()",
+        "Native DuMM nonbonded forces are disabled (vdwDij/vdwEij are not allocated). "
+        "Use OpenMM evaluation instead.");
     //TRACE("calcNonbondedForces() BEGIN");
     for (DuMMIncludedBodyIndex inclBodyIx(0);
          inclBodyIx < getNumIncludedBodies(); ++inclBodyIx)
@@ -2453,15 +2333,15 @@ SimTK::Real DuMMForceFieldSubsystemRep::calcFullPotentialEnergyOpenMM(const Stat
 // Potential energy is calculated at the same time since that comes for free.
 void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
 {
-
     if (   isIncludedAtomForceCacheRealized(s)
         && isIncludedBodyForceCacheRealized(s)
         && isEnergyCacheRealized(s))
         return; // nothing to do
 
-    // Get access to the matter subsystem so we can access the bodies.
-    // const MultibodySystem&        mbs    = getMultibodySystem();
-    //const SimbodyMatterSubsystem& matter = mbs.getMatterSubsystem();
+    SimTK_ERRCHK_ALWAYS(
+        usingOpenMM && !wantOpenMMCalcOnlyNonBonded,
+        "DuMMForceFieldSubsystemRep::realizeForcesAndEnergy()",
+        "Native DuMM force/energy calculation is disabled; OpenMM must be active.");
 
     // These are the DuMM-local cache entries that we're going to fill in here.
     Vector_<Vec3>&          inclAtomForce_G  = updIncludedAtomForceCache(s);
@@ -2475,128 +2355,19 @@ void DuMMForceFieldSubsystemRep::realizeForcesAndEnergy(const State& s) const
     inclBodyForces_G = SpatialVec(Vec3(0), Vec3(0));
 
     energy = 0;
-	++forceEvaluationCount;
+    ++forceEvaluationCount;
 
     // Get access to already-calculated position dependent quantities.
     const Vector_<Vec3>& inclAtomStation_G = getIncludedAtomStationsInG(s);
     const Vector_<Vec3>& inclAtomPos_G     = getIncludedAtomPositionsInG(s);
 
-    //TODO: Very ambiguous. Need to clean up.
-
-    // BONDED FORCES //
-
-    if ( ( usingOpenMM && ! wantOpenMMCalcOnlyNonBonded ) ) { // Calculate with OpenMM
-        ;
-    }else  { // Calculate with DuMM
-
-        const bool doStretch = bondStretchGlobalScaleFactor != 0 || customBondStretchGlobalScaleFactor != 0;
-        const bool doBend = bondBendGlobalScaleFactor != 0 || customBondBendGlobalScaleFactor != 0;
-        const bool doTorsion = bondTorsionGlobalScaleFactor != 0 || customBondTorsionGlobalScaleFactor != 0;
-        const bool doImproper = amberImproperTorsionGlobalScaleFactor != 0;
-
-        for (DuMMIncludedBodyIndex incBodyIx(0);
-             incBodyIx < getNumIncludedBodies(); ++incBodyIx) {
-            const IncludedBody &inclBody = includedBodies[incBodyIx];
-            assert(inclBody.isValid());
-
-            // For each atom on this body, deal with all the bonded forces for which
-            // it is atom 1 of a bond. See discussion elsewhere for how we avoid
-            // double counting.
-            for (DuMMBondStarterIndex bsx = inclBody.beginBondStarterAtoms;
-                 bsx != inclBody.endBondStarterAtoms; ++bsx) {
-                const DuMM::IncludedAtomIndex atom = bondStarterAtoms[bsx];
-
-                // Bond stretch (1-2)
-                if (doStretch)
-                    calcBondStretch(atom, inclAtomStation_G, inclAtomPos_G,
-                                    bondStretchGlobalScaleFactor, customBondStretchGlobalScaleFactor,
-                                    inclBodyForces_G, energy);
-
-                // Bond bend (1-2-3)
-                if (doBend)
-                    calcBondBend(atom, inclAtomStation_G, inclAtomPos_G,
-                                 bondBendGlobalScaleFactor, customBondBendGlobalScaleFactor,
-                                 inclBodyForces_G, energy);
-
-                // Bond torsion (1-2-3-4)
-                if (doTorsion)
-                    calcBondTorsion(atom, inclAtomStation_G, inclAtomPos_G,
-                                    bondTorsionGlobalScaleFactor, customBondTorsionGlobalScaleFactor,
-                                    inclBodyForces_G, energy);
-
-                // Amber improper torsion   2-1-3
-                //                             \4
-                if (doImproper)
-                    calcAmberImproperTorsion(atom, inclAtomStation_G,
-                                             inclAtomPos_G, amberImproperTorsionGlobalScaleFactor,
-                                             inclBodyForces_G, energy);
-            }
-        }
-        std::cout << (("Warning: CALC BONDED with DUMM: Ebonded = " + std::to_string(energy) +  " \n"));
+    if (getNumNonbondAtoms() > 0) {
+        openMMPlugin.calcOpenMMEnergyAndForces(
+            inclAtomStation_G, inclAtomPos_G,
+            true /*forces*/, true /*energy*/,
+            inclBodyForces_G, energy);
     }
 
-
-    // NONBONDED FORCES //
-    //std::cout << "DuMM: Nof nonbonded atoms = " << getNumNonbondAtoms() << std::endl;
-
-    if (getNumNonbondAtoms()) {
-
-        if (usingOpenMM) {
-
-            // Calculate forces and energy.
-            // TODO: should calculate energy only when it is asked for.
-
-            openMMPlugin.calcOpenMMEnergyAndForces(
-                inclAtomStation_G, inclAtomPos_G, true /*forces*/, true /*energy*/,
-                inclBodyForces_G, energy);
-
-            // All done!
-            markIncludedAtomForceCacheRealized(s);
-            markIncludedBodyForceCacheRealized(s);
-            markEnergyCacheRealized(s);
-            return;
-        }
-
-        if (usingMultithreaded) { // Parallel calculation in multiple threads.
-            NonbondedForceTask task (*this, inclAtomPos_G, inclAtomForce_G, energy);
-
-            nonbondedExecutor->execute(task, Parallel2DExecutor::HalfMatrix);
-
-            TRACE_OPENMM (("CALC NONBONDED with DUMM Parallel2DExecutor: Energy = " + std::to_string(energy) +  " \n").c_str());
-
-        } else { // Serial calculation in this thread.
-
-            if (!(coulombGlobalScaleFactor==0 && vdwGlobalScaleFactor==0)) {
-                calcNonbondedForces(inclAtomPos_G, inclAtomForce_G, energy);
-
-                TRACE_OPENMM (("CALC NONBONDED with DUMM SingleThread: Energy = " + std::to_string(energy) +  " \n").c_str());
-
-            }
-        }
-
-        // GBSA - (Generalized Born/solvent accessibility implicit) solvent model
-        if (gbsaGlobalScaleFactor != 0) {
-            calcGBSAForces(inclAtomStation_G, inclAtomPos_G, usingMultithreaded,
-                           gbsaGlobalScaleFactor, inclBodyForces_G, energy);
-            TRACE_OPENMM (("CALC GBSA with DUMM : Energy = " + std::to_string(energy) +  " \n").c_str());
-        }
-    }
-
-    // Compute included body spatial forces from generated atom forces.
-    for (DuMMIncludedBodyIndex dbx(0); dbx < getNumIncludedBodies(); ++dbx) {
-        const IncludedBody& inclBod = includedBodies[dbx];
-        for (DuMM::IncludedAtomIndex iax = inclBod.beginIncludedAtoms;
-                iax != inclBod.endIncludedAtoms; ++iax)
-        {
-            const Vec3& aStation_G = inclAtomStation_G[iax];
-            const Vec3& aFrc_G     = inclAtomForce_G[iax];
-            inclBodyForces_G[dbx] += SpatialVec(aStation_G % aFrc_G, aFrc_G);
-        }
-    }
-
-    TRACE_OPENMM (("FINAL ENERGY = " + std::to_string(energy) +  " \n").c_str());
-
-    // Done.
     markIncludedAtomForceCacheRealized(s);
     markIncludedBodyForceCacheRealized(s);
     markEnergyCacheRealized(s);
@@ -3536,112 +3307,11 @@ thread_local Array_<Real, DuMM::NonbondAtomIndex>  NonbondedFullEnergyTask::loca
 // TODO: GBSA potential is not calculated.
 Real DuMMForceFieldSubsystemRep::
 CalcFullPotEnergyIncludingRigidBodiesRep(const State& s) const {
-
-
-    Real eStretch = 0;		// Bonds Stretch Potential
-    Real eBend = 0;		    // Bonds Bend Potential
-    Real eTorsion = 0;		// Bonds Torsion Potential
-    Real eImproper = 0;		// Bond Improper Potential
-    Real eVdW = 0; 		    // Van der Waals Potential
-    Real eCoulomb = 0;		// Coulomb Potential
-
-    Real eTotal = 0;
-
-    const MultibodySystem&        mbs    = getMultibodySystem();
-    const SimbodyMatterSubsystem& matter = mbs.getMatterSubsystem();
-
-    Vector_<Vec3>  AllAtomStation_G = getIncludedAtomStationCache(s);
-    Vector_<Vec3>  AllAtomPos_G     = getIncludedAtomPositionCache(s);     
-    AllAtomStation_G.resize( getNumAllAtoms() );
-    AllAtomPos_G.resize( getNumAllAtoms() );
-
-    // iterate all bodies
-    for (DuMMIncludedBodyIndex dbx(0); dbx < AllBodies.size(); ++dbx) {
-
-        const IncludedBody&      currentBody  = AllBodies[dbx];
-        const MobilizedBodyIndex mbx     = currentBody.mobodIx;
-        const MobilizedBody&     mobod   = matter.getMobilizedBody(mbx);
-
-        const Transform&    X_GB  = mobod.getBodyTransform(s);
-        const Rotation&     R_GB  = X_GB.R();
-        const Vec3&         p_GB  = X_GB.p();
-
-
-	    // First we make sure we have updated all atoms positions
-	    int iax_count = 0;
-        for (DuMM::IncludedAtomIndex iax=currentBody.beginAllAtoms;
-             iax != currentBody.endAllAtoms; ++iax)
-        {
-            const Vec3& station_B_All = getAllAtomStation(iax);
-            // atomic coordinates with respect to Ground frame
-            const Vec3 p_BS_G = R_GB * station_B_All; 
-            AllAtomStation_G[iax] = p_BS_G;
-            AllAtomPos_G[iax]     = p_GB + p_BS_G;
-
-            iax_count++;
-        }
-
-	    // iterate all bond forming atoms within currentBody
-	    for (DuMMBondStarterIndex bsx = currentBody.beginAllBondStarterAtoms;
-    		bsx != currentBody.endAllBondStarterAtoms; ++bsx)
-    	{
-
-	    const DuMM::IncludedAtomIndex a1num = AllbondStarterAtoms[bsx];
-
-	    //Calculate Bonded Terms
-	
-	    if ( bondStretchGlobalScaleFactor !=0 
-	    || customBondStretchGlobalScaleFactor != 0 ){
-            eStretch += CalcFullPotEnergyBondStretch( a1num, AllAtomPos_G );
-	    }
-	    if ( bondBendGlobalScaleFactor !=0 
-	    || customBondTorsionGlobalScaleFactor != 0 ){
-            eBend += CalcFullPotEnergyBondBend( a1num, AllAtomPos_G );
-	    }
-	    if ( bondTorsionGlobalScaleFactor !=0 
-	    || customBondTorsionGlobalScaleFactor != 0 ){
-            eTorsion += CalcFullPotEnergyBondTorsion( a1num, AllAtomPos_G );
-	    }
-	    if ( amberImproperTorsionGlobalScaleFactor !=0 ){
-            eImproper += CalcFullPotEnergyBondImproper( a1num, AllAtomPos_G );
-	    }
-
-
-	    }
-
-    }
-
-     //Calculate Nonbonded Terms
-     if (usingMultithreaded) {
-
-        NonbondedFullEnergyTask NonbondedFullTask
-                        (*this, AllAtomPos_G, eVdW, eCoulomb);
-
-
-        //NonbondedFullExecutor -> execute(NonbondedFullTask, Parallel2DExecutor::HalfMatrix); // inter body
-        NonbondedFullExecutor -> execute(NonbondedFullTask, Parallel2DExecutor::HalfPlusDiagonal ); // inter and inside bodies
-     }
-
-     else {
-
-         if (!(coulombGlobalScaleFactor == 0 && vdwGlobalScaleFactor == 0)) {
-             CalcFullPotEnergyNonbondedSingleThread(AllAtomPos_G, eVdW, eCoulomb);
-         }
-     }
-
-    eTotal = eStretch + eBend + eTorsion + eImproper + eVdW + eCoulomb;
-
-/*
-    TRACE( ("FUll Potential Bond Stretch: " + std::to_string( eStretch ) + "\n").c_str() );
-    TRACE( ("FUll Potential Bond Bend   : " + std::to_string( eBend ) + "\n").c_str() );
-    TRACE( ("FUll Potential Bond Torsion: " + std::to_string( eTorsion ) + "\n").c_str() );
-    TRACE( ("FUll Potential Bond Impoper: " + std::to_string( eImproper ) + "\n").c_str() );
-    TRACE( ("FUll Potential VdW         : " + std::to_string( eVdW ) + "\n").c_str() );
-    TRACE( ("FUll Potential Coulomnb    : " + std::to_string( eCoulomb ) + "\n").c_str() );
-    TRACE( ("FUll Potential TOTAL       : " + std::to_string( eTotal ) + "\n").c_str() );
-//*/
-    return eTotal;
-
+    SimTK_ERRCHK_ALWAYS(false,
+        "DuMMForceFieldSubsystemRep::CalcFullPotEnergyIncludingRigidBodiesRep()",
+        "Native DuMM potential energy is disabled (vdwDij/vdwEij are not allocated). "
+        "Use OpenMM potential energy evaluation instead.");
+    return NaN;
 }
 //.........CALC FULL POTENTIAL ENERGY - INCLUDING RIGID BODIES .................
 
@@ -3664,9 +3334,12 @@ void DuMMForceFieldSubsystemRep::CalcFullPotEnergyNonbonded
          Real&                                   eVdW,
          Real&                                   eCoulomb) const
 {
+    SimTK_ERRCHK_ALWAYS(false,
+        "DuMMForceFieldSubsystemRep::CalcFullPotEnergyNonbonded()",
+        "Native DuMM potential energy is disabled (vdwDij/vdwEij are not allocated). "
+        "Use OpenMM potential energy evaluation instead.");
 
     const IncludedBody& inclBod1 = AllBodies[dummBodIx];
-
 
     for (DuMM::NonbondAtomIndex nax1 = inclBod1.beginAllNonbondAtoms;
          nax1 != inclBod1.endAllNonbondAtoms; ++nax1)
