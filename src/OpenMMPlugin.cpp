@@ -220,53 +220,53 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
 
 
 
-                        // ----------------------------------------------
-                        // PBC - Periodic Boundary Conditions __begin__
-                        // ----------------------------------------------
-                        #ifdef __PBC__ // _pbc_
+            // ----------------------------------------------
+            // PBC - Periodic Boundary Conditions __begin__
+            // ----------------------------------------------
+            #ifdef __PBC__ // _pbc_
 
-                            std::cout<<"OpenMMPlugin::__PBC__ "<<" _begin_ "<<std::endl<<std::flush;
+                std::cout<<"OpenMMPlugin::__PBC__ "<<" _begin_ "<<std::endl<<std::flush;
 
-                            double angle_alpha = 1.5708;
-                            double angle_beta = 1.5708;
-                            double angle_gamma = 1.5708;
+                double angle_alpha = 1.5708;
+                double angle_beta = 1.5708;
+                double angle_gamma = 1.5708;
 
-                            double boxLength_X = 10; // Example box length in angstroms
-                            double boxLength_Y = 10; // Example box length in angstroms
-                            double boxLength_Z = 10; // Example box length in angstroms
+                double boxLength_X = 10; // Example box length in angstroms
+                double boxLength_Y = 10; // Example box length in angstroms
+                double boxLength_Z = 10; // Example box length in angstroms
 
-                            auto periodicBoxVectors = computePeriodicBoxVectors(
-                                boxLength_X, boxLength_Y, boxLength_Z,
-                                angle_alpha, angle_beta, angle_gamma);
+                auto periodicBoxVectors = computePeriodicBoxVectors(
+                    boxLength_X, boxLength_Y, boxLength_Z,
+                    angle_alpha, angle_beta, angle_gamma);
 
-                            OpenMM::Vec3 pbcVector_X = std::get<0>(periodicBoxVectors);
-                            OpenMM::Vec3 pbcVector_Y = std::get<1>(periodicBoxVectors);
-                            OpenMM::Vec3 pbcVector_Z = std::get<2>(periodicBoxVectors);
+                OpenMM::Vec3 pbcVector_X = std::get<0>(periodicBoxVectors);
+                OpenMM::Vec3 pbcVector_Y = std::get<1>(periodicBoxVectors);
+                OpenMM::Vec3 pbcVector_Z = std::get<2>(periodicBoxVectors);
 
-                            std::cout<<"OpenMMPlugin::__PBC__ "<<" pbcVector_X " << pbcVector_X[0]<<" "<<pbcVector_X[1]<<" "<<pbcVector_X[2] <<std::endl<<std::flush;
-                            std::cout<<"OpenMMPlugin::__PBC__ "<<" pbcVector_Y " << pbcVector_Y[0]<<" "<<pbcVector_Y[1]<<" "<<pbcVector_Y[2] <<std::endl<<std::flush;
-                            std::cout<<"OpenMMPlugin::__PBC__ "<<" pbcVector_Z " << pbcVector_Z[0]<<" "<<pbcVector_Z[1]<<" "<<pbcVector_Z[2] <<std::endl<<std::flush;
+                std::cout<<"OpenMMPlugin::__PBC__ "<<" pbcVector_X " << pbcVector_X[0]<<" "<<pbcVector_X[1]<<" "<<pbcVector_X[2] <<std::endl<<std::flush;
+                std::cout<<"OpenMMPlugin::__PBC__ "<<" pbcVector_Y " << pbcVector_Y[0]<<" "<<pbcVector_Y[1]<<" "<<pbcVector_Y[2] <<std::endl<<std::flush;
+                std::cout<<"OpenMMPlugin::__PBC__ "<<" pbcVector_Z " << pbcVector_Z[0]<<" "<<pbcVector_Z[1]<<" "<<pbcVector_Z[2] <<std::endl<<std::flush;
 
-                            openMMSystem->setDefaultPeriodicBoxVectors(pbcVector_X, pbcVector_Y, pbcVector_Z);
+                openMMSystem->setDefaultPeriodicBoxVectors(pbcVector_X, pbcVector_Y, pbcVector_Z);
 
-                            //openMMContext->setPeriodicBoxVectors(pbcVector_X, pbcVector_Y, pbcVector_Z);
+                //openMMContext->setPeriodicBoxVectors(pbcVector_X, pbcVector_Y, pbcVector_Z);
 
-                            double alpha = 0.3; // Typical alpha value
+                double alpha = 0.3; // Typical alpha value
 
-                            double gridSpacing = 0.1; // Typical grid spacing
+                double gridSpacing = 0.1; // Typical grid spacing
 
-                            int nx = 64; // Typical grid dimensions
-                            int ny = 64;
-                            int nz = 64;
+                int nx = 64; // Typical grid dimensions
+                int ny = 64;
+                int nz = 64;
 
-                            //ommNonbondedForce->setPMEParameters(alpha, nx, ny, nz);
+                //ommNonbondedForce->setPMEParameters(alpha, nx, ny, nz);
 
-                            std::cout << "Set OpenMM System PBC " << std::endl;
-                        
-                        # endif
-                        // ----------------------------------------------
-                        // PBC - Periodic Boundary Conditions __end__
-                        // ----------------------------------------------
+                std::cout << "Set OpenMM System PBC " << std::endl;
+            
+            # endif
+            // ----------------------------------------------
+            // PBC - Periodic Boundary Conditions __end__
+            // ----------------------------------------------
 
                         
     // ADD PARTICLES 

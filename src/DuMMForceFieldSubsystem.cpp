@@ -1528,7 +1528,7 @@ void DuMMForceFieldSubsystem::setNonbondedMethod(int methodIndex) {
 
     DuMMForceFieldSubsystemRep& mm = updRep();
 
-    SimTK_APIARGCHECK1_ALWAYS(0 <= methodIndex && methodIndex <= 1, mm.ApiClassName, MethodName,
+    SimTK_APIARGCHECK1_ALWAYS(0 <= methodIndex && methodIndex <= 4, mm.ApiClassName, MethodName,
                               "Nonbonded method index should be 0 (NoCutoff) or 1 (CutoffNonPeriodic): (%g) was invalid",
                               methodIndex);
 
