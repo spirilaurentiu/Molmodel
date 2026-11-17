@@ -1374,7 +1374,8 @@ Real getNonbondedCutoff() const;                        ///< get current nonbond
 void setNonbondedCutoff(Real);                          ///< set nonbonded cutoff (nm) used for LJ and Coulomb calculations
 int getNonbondedMethod() const;                         ///< get current nonbonded method used by OpenMM.
 void setNonbondedMethod(int);                           ///< set nonbonded nonbonded method used by OpenMM. (0 = nocutoff; 1=cutoffnonperiodic).
-
+void setPBCBox(Real PBC_boxLength_X, Real PBC_boxLength_Y, Real PBC_boxLength_Z,
+               Real PBC_angle_alpha, Real PBC_angle_beta, Real PBC_angle_gamma);
 
 
 

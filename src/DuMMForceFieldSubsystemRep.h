@@ -2457,8 +2457,10 @@ public:
     Real nonbondedCutoff;
     int nonbondedMethod;
 
-    bool tracing; // for debugging
+    Real PBC_boxLength_X = 0, PBC_boxLength_Y = 0, PBC_boxLength_Z = 0;
+    Real PBC_angle_alpha = 0, PBC_angle_beta = 0, PBC_angle_gamma = 0;
 
+    bool tracing = false; // for debugging
 
     // Control use of multithreading.
     bool useMultithreadedComputation;

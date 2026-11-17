@@ -1535,7 +1535,28 @@ void DuMMForceFieldSubsystem::setNonbondedMethod(int methodIndex) {
     mm.nonbondedMethod=methodIndex;
 }
 
+void DuMMForceFieldSubsystem::setPBCBox(Real PBC_boxLength_X, Real PBC_boxLength_Y, Real PBC_boxLength_Z,
+                                        Real PBC_angle_alpha, Real PBC_angle_beta, Real PBC_angle_gamma) {
+    static const char* MethodName = "setPBCBox";
 
+    invalidateSubsystemTopologyCache();
+
+    DuMMForceFieldSubsystemRep& mm = updRep();
+
+    SimTK_APIARGCHECK1_ALWAYS(PBC_boxLength_X > 0, mm.ApiClassName, MethodName,
+        "PBC box length X (%g) was invalid: must be greater than zero", PBC_boxLength_X);
+    SimTK_APIARGCHECK1_ALWAYS(PBC_boxLength_Y > 0, mm.ApiClassName, MethodName,
+        "PBC box length Y (%g) was invalid: must be greater than zero", PBC_boxLength_Y);
+    SimTK_APIARGCHECK1_ALWAYS(PBC_boxLength_Z > 0, mm.ApiClassName, MethodName,
+        "PBC box length Z (%g) was invalid: must be greater than zero", PBC_boxLength_Z);
+
+    mm.PBC_boxLength_X = PBC_boxLength_X;
+    mm.PBC_boxLength_Y = PBC_boxLength_Y;
+    mm.PBC_boxLength_Z = PBC_boxLength_Z;
+    mm.PBC_angle_alpha = PBC_angle_alpha;
+    mm.PBC_angle_beta = PBC_angle_beta;
+    mm.PBC_angle_gamma = PBC_angle_gamma;
+}
 
 void DuMMForceFieldSubsystem::setSolventDielectric(Real dielectric) {
     static const char* MethodName = "setSolventDielectric";

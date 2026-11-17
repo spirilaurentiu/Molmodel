@@ -223,21 +223,23 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
             // ----------------------------------------------
             // PBC - Periodic Boundary Conditions __begin__
             // ----------------------------------------------
-            #ifdef __PBC__ // _pbc_
+            //#ifdef __PBC__ // _pbc_
+
+            if(dumm->nonbondedMethod > 1){
 
                 std::cout<<"OpenMMPlugin::__PBC__ "<<" _begin_ "<<std::endl<<std::flush;
 
-                double angle_alpha = 1.5708;
-                double angle_beta = 1.5708;
-                double angle_gamma = 1.5708;
+                double PBC_angle_alpha = dumm->PBC_angle_alpha;
+                double PBC_angle_beta = dumm->PBC_angle_beta;
+                double PBC_angle_gamma = dumm->PBC_angle_gamma;
 
-                double boxLength_X = 10; // Example box length in angstroms
-                double boxLength_Y = 10; // Example box length in angstroms
-                double boxLength_Z = 10; // Example box length in angstroms
+                double PBC_boxLength_X = dumm->PBC_boxLength_X;
+                double PBC_boxLength_Y = dumm->PBC_boxLength_Y;
+                double PBC_boxLength_Z = dumm->PBC_boxLength_Z;
 
                 auto periodicBoxVectors = computePeriodicBoxVectors(
-                    boxLength_X, boxLength_Y, boxLength_Z,
-                    angle_alpha, angle_beta, angle_gamma);
+                    PBC_boxLength_X, PBC_boxLength_Y, PBC_boxLength_Z,
+                    PBC_angle_alpha, PBC_angle_beta, PBC_angle_gamma);
 
                 OpenMM::Vec3 pbcVector_X = std::get<0>(periodicBoxVectors);
                 OpenMM::Vec3 pbcVector_Y = std::get<1>(periodicBoxVectors);
@@ -262,8 +264,8 @@ std::string OpenMMPluginInterface::initializeOpenMM(bool allowReferencePlatform,
                 //ommNonbondedForce->setPMEParameters(alpha, nx, ny, nz);
 
                 std::cout << "Set OpenMM System PBC " << std::endl;
-            
-            # endif
+            }
+            //# endif
             // ----------------------------------------------
             // PBC - Periodic Boundary Conditions __end__
             // ----------------------------------------------
